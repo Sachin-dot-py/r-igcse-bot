@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
-import { DiscordClient } from './utils/client.ts';
-import { registerCommands, registerEvents } from './utils/registry.ts';
+import { DiscordClient } from './registry/client';
+import { registerCommands, registerEvents } from './registry/index';
 import { GatewayIntentBits } from 'discord.js';
 
 const token = process.env.BOT_TOKEN;

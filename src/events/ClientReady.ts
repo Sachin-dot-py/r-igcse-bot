@@ -1,6 +1,6 @@
 import { Events } from 'discord.js';
-import BaseEvent from '../utils/Structure/BaseEvent.ts';
-import type { DiscordClient } from '../utils/client.ts';
+import BaseEvent from '../registry/Structure/BaseEvent';
+import type { DiscordClient } from '../registry/client';
 
 export default class ClientReadyEvent extends BaseEvent {
     constructor() {

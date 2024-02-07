@@ -1,5 +1,5 @@
 import { Client, Collection, type ClientOptions } from 'discord.js';
-import type BaseCommand from './Structure/BaseCommand.ts';
+import type BaseCommand from './Structure/BaseCommand';
 
 export class DiscordClient extends Client {
     private _commands = new Collection<string, BaseCommand>();

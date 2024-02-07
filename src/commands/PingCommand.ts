@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import BaseCommand from '../utils/Structure/BaseCommand';
+import BaseCommand from '../registry/Structure/BaseCommand';
 
 export default class TestCommand extends BaseCommand {
     constructor() {

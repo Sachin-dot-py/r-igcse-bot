@@ -1,6 +1,6 @@
 import { join as joinPaths, extname } from 'path';
 import { readdir } from 'fs/promises';
-import { DiscordClient } from './client.ts';
+import { DiscordClient } from './client';
 
 export async function registerCommands(client: DiscordClient) {
     const commandsPath = joinPaths(`${import.meta.dir}`, '..', 'commands');
