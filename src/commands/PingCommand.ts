@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import BaseCommand from '../registry/Structure/BaseCommand';
 
-export default class TestCommand extends BaseCommand {
+export default class PingCommand extends BaseCommand {
     constructor() {
         super(
             new SlashCommandBuilder().setName('ping').setDescription('Pong!'),
