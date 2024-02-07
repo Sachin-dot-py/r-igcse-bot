@@ -1,9 +1,0 @@
-{
-    "outDir": "dist",
-    "dts": false,
-    "skipNodeModulesBundle": false,
-    "format": "esm",
-    "entry": ["src/index.ts"],
-    "replaceNodeEnv": true,
-    "splitting": true
-}
