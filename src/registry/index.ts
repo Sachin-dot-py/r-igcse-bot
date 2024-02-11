@@ -1,6 +1,8 @@
 import { join as joinPaths, extname } from 'path';
 import { readdir } from 'fs/promises';
 import { DiscordClient } from './client';
+import type BaseCommand from './Structure/BaseCommand';
+import type BaseEvent from './Structure/BaseEvent';
 
 export async function registerCommands(client: DiscordClient) {
     const commandsPath = joinPaths(`${import.meta.dir}`, '..', 'commands');
@@ -11,7 +13,8 @@ export async function registerCommands(client: DiscordClient) {
 
     for (const file of commandFiles) {
         const filePath = joinPaths(commandsPath, file);
-        const { default: BotCommand } = await import(filePath);
+        const { default: BotCommand }: { default: new () => BaseCommand } =
+            await import(filePath);
 
         const command = new BotCommand();
 
@@ -32,7 +35,8 @@ export async function registerEvents(client: DiscordClient) {
 
     for (const file of eventFiles) {
         const filePath = joinPaths(eventsPath, file);
-        const { default: BotEvent } = await import(filePath);
+        const { default: BotEvent }: { default: new () => BaseEvent } =
+            await import(filePath);
 
         const event = new BotEvent();
 

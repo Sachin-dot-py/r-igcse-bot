@@ -25,10 +25,7 @@ export type JokeCategory =
     | 'Spooky'
     | 'Christmas';
 
-export const getJoke = async (
-    categories: JokeCategory[],
-    amount: number = 1,
-) => {
+export const getJoke = async (categories: JokeCategory[], amount = 1) => {
     const res = await fetch(
         `https://v2.jokeapi.dev/joke/${categories.join(',')}?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&amount=${amount}`,
     );

@@ -2,7 +2,7 @@ import type { Events } from 'discord.js';
 import type { DiscordClient } from '../client';
 
 export default abstract class BaseEvent {
-    constructor(private _name: Events) {}
+    constructor(private _name: string) {}
 
     get name() {
         return this._name;
