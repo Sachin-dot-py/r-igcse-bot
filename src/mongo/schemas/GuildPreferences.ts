@@ -1,7 +1,7 @@
 import { Schema, model as createModel } from 'mongoose';
 
 export interface IGuildPreferences {
-    guildId: number;
+    guildId: string;
     modlogChannel: number;
     repEnabled: boolean;
     suggestionsChannel: number;
@@ -10,7 +10,7 @@ export interface IGuildPreferences {
 }
 
 const schema = new Schema<IGuildPreferences>({
-    guildId: { type: Number, required: true, unique: true },
+    guildId: { type: String, required: true, unique: true },
     modlogChannel: { type: Number, required: true },
     repEnabled: { type: Boolean, required: true },
     suggestionsChannel: { type: Number, required: true },

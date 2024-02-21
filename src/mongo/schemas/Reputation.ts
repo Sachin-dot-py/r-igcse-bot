@@ -1,15 +1,15 @@
 import { Schema, model as createModel } from 'mongoose';
 
 export interface IReputation {
-    userId: number;
+    userId: string;
     rep: number;
-    guildId: number;
+    guildId: string;
 }
 
 const schema = new Schema<IReputation>({
-    userId: { type: Number, required: true },
+    userId: { type: String, required: true },
     rep: { type: Number, required: true },
-    guildId: { type: Number, required: true },
+    guildId: { type: String, required: true },
 });
 
 export const Reputation = createModel<IReputation>('Reputation', schema);

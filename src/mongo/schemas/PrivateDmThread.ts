@@ -1,12 +1,12 @@
 import { Schema, model as createModel } from 'mongoose';
 
 export interface IPrivateDmThread {
-    userId: number;
+    userId: string;
     threadId: string;
 }
 
 const schema = new Schema<IPrivateDmThread>({
-    userId: { type: Number, required: true },
+    userId: { type: String, required: true },
     threadId: { type: String, required: true },
 });
 

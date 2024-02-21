@@ -9,7 +9,7 @@ export interface IPunishment {
     duration: string | null;
     when: Date;
     points: number;
-    guildId: number;
+    guildId: string;
 }
 
 const schema = new Schema<IPunishment>({
@@ -54,7 +54,7 @@ const schema = new Schema<IPunishment>({
         unique: false,
     },
     guildId: {
-        type: Number,
+        type: String,
         required: true,
         unique: false,
     },
