@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import BaseCommand from '../registry/Structure/BaseCommand';
-import { getJoke, type JokeCategory } from '../utils/apis/joke';
+import { getJoke } from '../utils/apis/joke';
+import { type Category as JokeCategory } from 'chucklejs';
 
 export default class JokeCommand extends BaseCommand {
     constructor() {
@@ -28,7 +29,7 @@ export default class JokeCommand extends BaseCommand {
 
         await interaction.deferReply();
 
-        const joke = await getJoke(categories);
+        const joke = (await getJoke(categories))[0];
 
         await interaction.followUp(joke);
     }
