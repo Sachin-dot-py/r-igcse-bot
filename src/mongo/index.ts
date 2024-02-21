@@ -9,3 +9,8 @@ export {
     PrivateDmThread,
     type IPrivateDmThread,
 } from './schemas/PrivateDmThread';
+export {
+    GuildPreferences,
+    type IGuildPreferences,
+} from './schemas/GuildPreferences';
+export { Reputation, type IReputation } from './schemas/Reputation';

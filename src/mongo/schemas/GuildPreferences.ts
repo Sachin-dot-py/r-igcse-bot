@@ -18,7 +18,7 @@ const schema = new Schema<IGuildPreferences>({
     emoteChannel: { type: Number, required: true },
 });
 
-export const PrivateDmThread = createModel<IGuildPreferences>(
-    'PrivateDmThread',
+export const GuildPreferences = createModel<IGuildPreferences>(
+    'GuildPreferences',
     schema,
 );
