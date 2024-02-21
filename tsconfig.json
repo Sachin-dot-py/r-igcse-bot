@@ -17,7 +17,11 @@
         "skipLibCheck": true,
         "strict": true,
         "noFallthroughCasesInSwitch": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+
+        "paths": {
+            "@/*": ["./src/*"]
+        }
     },
     "typeRoots": ["./global.d.ts"]
 }

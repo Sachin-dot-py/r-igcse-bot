@@ -5,11 +5,21 @@ import {
 } from 'discord.js';
 
 export default abstract class BaseCommand {
+    private _category: string = '';
+
     constructor(
         private _data:
             | Omit<SlashCommandBuilder, 'addSubcommandGroup' | 'addSubcommand'>
             | SlashCommandSubcommandsOnlyBuilder,
     ) {}
+
+    set category(category: string) {
+        this._category = category;
+    }
+
+    get category() {
+        return this._category;
+    }
 
     get data() {
         return this._data;

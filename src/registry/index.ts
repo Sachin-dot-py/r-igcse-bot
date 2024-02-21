@@ -4,12 +4,26 @@ import { DiscordClient } from './client';
 import type BaseCommand from './Structure/BaseCommand';
 import type BaseEvent from './Structure/BaseEvent';
 
-export async function registerCommands(client: DiscordClient) {
-    const commandsPath = joinPaths(`${import.meta.dir}`, '..', 'commands');
-
-    const commandFiles = (await readdir(commandsPath)).filter(
-        (file) => extname(file) == '.js' || extname(file) == '.ts',
+export async function registerCommands(
+    client: DiscordClient,
+    category: string = '',
+) {
+    const commandsPath = joinPaths(
+        `${import.meta.dir}`,
+        '..',
+        'commands',
+        category,
     );
+
+    const commandItems = await readdir(commandsPath, { withFileTypes: true });
+
+    commandItems
+        .filter((dirent) => dirent.isDirectory())
+        .forEach((dirent) => registerCommands(client, dirent.name));
+
+    const commandFiles = commandItems
+        .filter((dirent) => dirent.isFile())
+        .map((dirent) => dirent.name);
 
     for (const file of commandFiles) {
         const filePath = joinPaths(commandsPath, file);
@@ -18,20 +32,27 @@ export async function registerCommands(client: DiscordClient) {
 
         const command = new BotCommand();
 
-        if ('data' in command && 'execute' in command)
+        if (
+            'data' in command &&
+            'execute' in command &&
+            'category' in command
+        ) {
+            command.category = category;
             client.commands.set(command.data.name, command);
-        else
+        } else
             console.warn(
-                `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
+                `[WARNING] The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
             );
     }
 }
 
 export async function registerEvents(client: DiscordClient) {
     const eventsPath = joinPaths(`${import.meta.dir}`, '..', 'events');
-    const eventFiles = (await readdir(eventsPath)).filter(
-        (file) => extname(file) == '.js' || extname(file) == '.ts',
-    );
+    const eventFiles = (
+        await readdir(eventsPath, {
+            recursive: true,
+        })
+    ).filter((file) => extname(file) == '.js' || extname(file) == '.ts');
 
     for (const file of eventFiles) {
         const filePath = joinPaths(eventsPath, file);
