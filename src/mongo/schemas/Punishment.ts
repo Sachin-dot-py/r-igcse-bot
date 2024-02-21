@@ -1,7 +1,7 @@
 import { Schema, model as createModel } from 'mongoose';
 
 export interface IPunishment {
-    caseID: number;
+    caseId: number;
     actionAgainst: number;
     actionBy: number;
     reason: string;
@@ -9,11 +9,11 @@ export interface IPunishment {
     duration: string | null;
     when: Date;
     points: number;
-    guild_id: number;
+    guildId: number;
 }
 
 const schema = new Schema<IPunishment>({
-    caseID: {
+    caseId: {
         type: Number,
         required: true,
         unique: false,
@@ -53,7 +53,7 @@ const schema = new Schema<IPunishment>({
         required: false,
         unique: false,
     },
-    guild_id: {
+    guildId: {
         type: Number,
         required: true,
         unique: false,

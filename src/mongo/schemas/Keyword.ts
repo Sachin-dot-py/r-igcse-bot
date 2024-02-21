@@ -3,7 +3,7 @@ import { Schema, model as createModel } from 'mongoose';
 export interface IKeyword {
     keyword: string;
     autoreply: boolean;
-    guild_id: number;
+    guildId: number;
 }
 
 const schema = new Schema<IKeyword>({
@@ -17,7 +17,7 @@ const schema = new Schema<IKeyword>({
         required: true,
         unique: false,
     },
-    guild_id: {
+    guildId: {
         type: Number,
         required: true,
         unique: false,
