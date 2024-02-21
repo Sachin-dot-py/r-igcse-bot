@@ -2,20 +2,20 @@ import { Schema, model as createModel } from 'mongoose';
 
 export interface IGuildPreferences {
     guildId: string;
-    modlogChannel: number;
+    modlogChannel: string;
     repEnabled: boolean;
-    suggestionsChannel: number;
-    warnlogChannel: number;
-    emoteChannel: number;
+    suggestionsChannel: string;
+    warnlogChannel: string;
+    emoteChannel: string;
 }
 
 const schema = new Schema<IGuildPreferences>({
     guildId: { type: String, required: true, unique: true },
-    modlogChannel: { type: Number, required: true },
+    modlogChannel: { type: String, required: true },
     repEnabled: { type: Boolean, required: true },
-    suggestionsChannel: { type: Number, required: true },
-    warnlogChannel: { type: Number, required: true },
-    emoteChannel: { type: Number, required: true },
+    suggestionsChannel: { type: String, required: true },
+    warnlogChannel: { type: String, required: true },
+    emoteChannel: { type: String, required: true },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(
