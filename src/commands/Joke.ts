@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import BaseCommand from '../registry/Structure/BaseCommand';
-import { getJoke, type JokeCategory } from '../utils/joke';
+import { getJoke, type JokeCategory } from '../utils/apis/joke';
 
 export default class JokeCommand extends BaseCommand {
     constructor() {
