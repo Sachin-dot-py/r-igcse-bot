@@ -26,7 +26,8 @@ export default class WarnCommand extends BaseCommand {
                 )
                 .setDefaultMemberPermissions(
                     PermissionFlagsBits.ModerateMembers,
-                ),
+                )
+                .setDMPermission(false),
         );
     }
 
@@ -35,7 +36,7 @@ export default class WarnCommand extends BaseCommand {
         const reason = interaction.options.getString('reason', true);
 
         if (user.id === interaction.user.id) {
-            await interaction.reply({
+            await interaction.followUp({
                 content: 'You cannot warn yourself!',
                 ephemeral: true,
             });

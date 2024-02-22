@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import BaseCommand from '../registry/Structure/BaseCommand';
-import { getJoke } from '../utils/apis/joke';
+import BaseCommand from '../../registry/Structure/BaseCommand';
+import { getJoke } from '../../utils/apis/joke';
 import { type Category as JokeCategory } from 'chucklejs';
 
 export default class JokeCommand extends BaseCommand {

@@ -30,7 +30,7 @@ export default class InteractionCreateEvent extends BaseEvent {
                     ephemeral: true,
                 });
             else
-                await interaction.reply({
+                await interaction.followUp({
                     content: 'There was an error while executing this command!',
                     ephemeral: true,
                 });

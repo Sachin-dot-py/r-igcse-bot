@@ -9,6 +9,6 @@ export default class PingCommand extends BaseCommand {
     }
 
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.reply('Pong!');
+        await interaction.followUp('Pong!');
     }
 }

@@ -5,25 +5,16 @@ import {
 } from 'discord.js';
 import BaseCommand from '@/registry/Structure/BaseCommand';
 
-export default class KickCommand extends BaseCommand {
+export default class rrMakeCommand extends BaseCommand {
     constructor() {
         super(
             new SlashCommandBuilder()
-                .setName('kick')
-                .setDescription('Kick a user from the server (for mods)')
-                .addUserOption((option) =>
-                    option
-                        .setName('user')
-                        .setDescription('User to kick')
-                        .setRequired(true),
+                .setName('rrmake')
+                .setDescription('Create reaction roles')
+                .setDefaultMemberPermissions(
+                    PermissionFlagsBits.ManageMessages |
+                        PermissionFlagsBits.ManageRoles,
                 )
-                .addStringOption((option) =>
-                    option
-                        .setName('reason')
-                        .setDescription('Reason for kick')
-                        .setRequired(true),
-                )
-                .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
                 .setDMPermission(false),
         );
     }

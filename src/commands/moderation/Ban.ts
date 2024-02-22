@@ -32,7 +32,8 @@ export default class BanCommand extends BaseCommand {
                         .setMinValue(0)
                         .setRequired(false),
                 )
-                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+                .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+                .setDMPermission(false),
         );
     }
 
@@ -43,7 +44,7 @@ export default class BanCommand extends BaseCommand {
             interaction.options.getInteger('delete messages', false) || 0;
 
         // if (user.id === interaction.user.id) {
-        //     await interaction.reply({
+        //     await interaction.followUp({
         //         content: 'You cannot ban yourself!',
         //         ephemeral: true,
         //     });
@@ -51,7 +52,7 @@ export default class BanCommand extends BaseCommand {
         // }
 
         // if (interaction.guild?.bans.cache.has(user.id)) {
-        //     await interaction.reply({
+        //     await interaction.followUp({
         //         content: 'User is already banned!',
         //         ephemeral: true,
         //     });
