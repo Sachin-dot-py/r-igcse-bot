@@ -6,7 +6,7 @@ import {
 import BaseCommand from '@/registry/Structure/BaseCommand';
 import { GuildPreferences } from '@/mongo';
 
-export default class PingCommand extends BaseCommand {
+export default class WarnCommand extends BaseCommand {
     constructor() {
         super(
             new SlashCommandBuilder()

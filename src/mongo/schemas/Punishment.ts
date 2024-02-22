@@ -5,7 +5,7 @@ export interface IPunishment {
     actionAgainst: number;
     actionBy: number;
     reason: string;
-    action: string;
+    action: 'Timeout' | 'Remove Timeout' | 'Warn' | 'Kick' | 'Ban' | 'Unban';
     duration: string | null;
     when: Date;
     points: number;
