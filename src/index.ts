@@ -1,10 +1,13 @@
 import 'dotenv/config';
 
 import { DiscordClient } from './registry/client';
-import { registerCommands, registerEvents } from './registry/index';
+import {
+    registerCommands,
+    registerEvents,
+    syncCommands,
+} from './registry/index';
 import { GatewayIntentBits } from 'discord.js';
 
-const token = process.env.BOT_TOKEN;
 const client = new DiscordClient({
     intents: [
         GatewayIntentBits.AutoModerationConfiguration,
@@ -33,4 +36,4 @@ const client = new DiscordClient({
 await registerCommands(client);
 await registerEvents(client);
 
-client.login(token);
+client.login(process.env.BOT_TOKEN);

@@ -3,6 +3,7 @@ import { readdir } from 'fs/promises';
 import { DiscordClient } from './client';
 import type BaseCommand from './Structure/BaseCommand';
 import type BaseEvent from './Structure/BaseEvent';
+import { REST, Routes } from 'discord.js';
 
 export async function registerCommands(
     client: DiscordClient,
@@ -63,4 +64,11 @@ export async function registerEvents(client: DiscordClient) {
 
         client.on(event.name, (...args) => event.execute(client, ...args));
     }
+}
+
+export async function syncCommands(client: DiscordClient, guildId: string) {
+    return await client.rest.put(
+        Routes.applicationGuildCommands(client.application?.id!, guildId),
+        { body: client.commands },
+    );
 }
