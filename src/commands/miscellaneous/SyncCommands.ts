@@ -1,14 +1,9 @@
-import {
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    SlashCommandBuilder,
-    messageLink,
-} from 'discord.js';
+import { syncCommands } from '@/registry';
 import BaseCommand, {
     type DiscordChatInputCommandInteraction,
 } from '@/registry/Structure/BaseCommand';
-import { syncCommands } from '@/registry';
 import type { DiscordClient } from '@/registry/client';
+import { SlashCommandBuilder } from 'discord.js';
 
 export default class SyncCommandsCommand extends BaseCommand {
     constructor() {

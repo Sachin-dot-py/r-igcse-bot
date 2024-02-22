@@ -1,10 +1,9 @@
-import {
-    ChatInputCommandInteraction,
-    PermissionFlagsBits,
-    SlashCommandBuilder,
-} from 'discord.js';
-import BaseCommand from '@/registry/Structure/BaseCommand';
+import BaseCommand, {
+    type DiscordChatInputCommandInteraction,
+} from '@/registry/Structure/BaseCommand';
+import type { DiscordClient } from '@/registry/client';
 import { GUILD_ID } from '@/utils/apis/constants';
+import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 
 export default class BanCommand extends BaseCommand {
     constructor() {
@@ -37,7 +36,10 @@ export default class BanCommand extends BaseCommand {
         );
     }
 
-    async execute(interaction: ChatInputCommandInteraction) {
+    async execute(
+        interaction: DiscordChatInputCommandInteraction,
+        client: DiscordClient,
+    ) {
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
         const deleteMessagesDays =
@@ -73,6 +75,13 @@ export default class BanCommand extends BaseCommand {
                 content: `Successfully banned @${user.displayName}`,
                 ephemeral: true,
             });
+
+            await client.logger.ban(
+                user,
+                interaction.guild!,
+                reason,
+                deleteMessagesDays,
+            );
         } catch (e) {
             await interaction.followUp({
                 content: 'Failed to ban user',

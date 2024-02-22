@@ -1,10 +1,7 @@
-import {
-    ChatInputCommandInteraction,
-    EmbedBuilder,
-    SlashCommandBuilder,
-    messageLink,
-} from 'discord.js';
-import BaseCommand from '@/registry/Structure/BaseCommand';
+import BaseCommand, {
+    type DiscordChatInputCommandInteraction,
+} from '@/registry/Structure/BaseCommand';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 
 export default class YesNoPollCommand extends BaseCommand {
     constructor() {
@@ -21,7 +18,7 @@ export default class YesNoPollCommand extends BaseCommand {
         );
     }
 
-    async execute(interaction: ChatInputCommandInteraction) {
+    async execute(interaction: DiscordChatInputCommandInteraction) {
         const poll = interaction.options.getString('poll', true);
 
         await interaction.followUp({

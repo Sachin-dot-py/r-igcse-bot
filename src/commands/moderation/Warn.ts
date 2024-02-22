@@ -1,10 +1,8 @@
-import {
-    ChatInputCommandInteraction,
-    PermissionFlagsBits,
-    SlashCommandBuilder,
-} from 'discord.js';
-import BaseCommand from '@/registry/Structure/BaseCommand';
 import { GuildPreferences } from '@/mongo';
+import BaseCommand, {
+    type DiscordChatInputCommandInteraction,
+} from '@/registry/Structure/BaseCommand';
+import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 
 export default class WarnCommand extends BaseCommand {
     constructor() {
@@ -31,7 +29,7 @@ export default class WarnCommand extends BaseCommand {
         );
     }
 
-    async execute(interaction: ChatInputCommandInteraction) {
+    async execute(interaction: DiscordChatInputCommandInteraction) {
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
 

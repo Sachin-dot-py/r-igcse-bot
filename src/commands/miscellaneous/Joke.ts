@@ -1,5 +1,7 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import BaseCommand from '../../registry/Structure/BaseCommand';
+import { SlashCommandBuilder } from 'discord.js';
+import BaseCommand, {
+    type DiscordChatInputCommandInteraction,
+} from '../../registry/Structure/BaseCommand';
 import { getJoke } from '../../utils/apis/joke';
 import { type Category as JokeCategory } from 'chucklejs';
 
@@ -21,7 +23,7 @@ export default class JokeCommand extends BaseCommand {
         );
     }
 
-    async execute(interaction: ChatInputCommandInteraction) {
+    async execute(interaction: DiscordChatInputCommandInteraction) {
         const category = interaction.options.getString('subreddit', false);
         const categories: JokeCategory[] = category
             ? [category as JokeCategory]
