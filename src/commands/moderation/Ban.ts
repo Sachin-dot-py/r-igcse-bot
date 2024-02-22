@@ -50,13 +50,13 @@ export default class BanCommand extends BaseCommand {
         //     return;
         // }
 
-        if (interaction.guild?.bans.cache.has(user.id)) {
-            await interaction.reply({
-                content: 'User is already banned!',
-                ephemeral: true,
-            });
-            return;
-        }
+        // if (interaction.guild?.bans.cache.has(user.id)) {
+        //     await interaction.reply({
+        //         content: 'User is already banned!',
+        //         ephemeral: true,
+        //     });
+        //     return;
+        // }
 
         try {
             await interaction.guild?.bans.create(user, {
@@ -64,9 +64,14 @@ export default class BanCommand extends BaseCommand {
                 deleteMessageSeconds: deleteMessagesDays * 86400,
             });
 
-            await interaction.followUp(
+            await user.send(
                 `Hi there from ${interaction.guild?.name}. You have been banned from the server due to '${reason}'.${interaction.guild?.id === GUILD_ID ? ' If you feel this ban was done in error, to appeal your ban, please fill the form below.\nhttps://forms.gle/8qnWpSFbLDLdntdt8' : ''}`,
             );
+
+            await interaction.followUp({
+                content: `Successfully banned @${user.displayName}`,
+                ephemeral: true,
+            });
         } catch (e) {
             await interaction.followUp({
                 content: 'Failed to ban user',
