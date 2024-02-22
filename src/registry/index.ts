@@ -28,22 +28,26 @@ export async function registerCommands(
 
     for (const file of commandFiles) {
         const filePath = joinPaths(commandsPath, file);
-        const { default: BotCommand }: { default: new () => BaseCommand } =
-            await import(filePath);
+        try {
+            const { default: BotCommand }: { default: new () => BaseCommand } =
+                await import(filePath);
 
-        const command = new BotCommand();
+            const command = new BotCommand();
 
-        if (
-            'data' in command &&
-            'execute' in command &&
-            'category' in command
-        ) {
-            command.category = category;
-            client.commands.set(command.data.name, command);
-        } else
-            console.warn(
-                `[WARNING] The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
-            );
+            if (
+                'data' in command &&
+                'execute' in command &&
+                'category' in command
+            ) {
+                command.category = category;
+                client.commands.set(command.data.name, command);
+            } else
+                console.warn(
+                    `[WARNING] The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
+                );
+        } catch (error) {
+            console.error(error);
+        }
     }
 }
 

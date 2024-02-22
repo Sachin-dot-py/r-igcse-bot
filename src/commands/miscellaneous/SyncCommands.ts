@@ -9,7 +9,7 @@ export default class SyncCommandsCommand extends BaseCommand {
     constructor() {
         super(
             new SlashCommandBuilder()
-                .setName('syncCommands')
+                .setName('sync_commands')
                 .setDescription('Sync bot application commands with discord')
                 .setDMPermission(false),
         );

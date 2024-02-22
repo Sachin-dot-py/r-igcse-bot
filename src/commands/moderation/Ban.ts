@@ -25,7 +25,7 @@ export default class BanCommand extends BaseCommand {
                 )
                 .addIntegerOption((option) =>
                     option
-                        .setName('delete messages')
+                        .setName('delete_messages')
                         .setDescription('Days to delete messages for')
                         .setMaxValue(7)
                         .setMinValue(0)
@@ -43,7 +43,7 @@ export default class BanCommand extends BaseCommand {
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
         const deleteMessagesDays =
-            interaction.options.getInteger('delete messages', false) || 0;
+            interaction.options.getInteger('delete_messages', false) || 0;
 
         // if (user.id === interaction.user.id) {
         //     await interaction.followUp({
