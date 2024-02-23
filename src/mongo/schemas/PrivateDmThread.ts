@@ -1,16 +1,16 @@
-import { Schema, model as createModel } from 'mongoose';
+import { Schema, model as createModel } from "mongoose";
 
 export interface IPrivateDmThread {
-    userId: string;
-    threadId: string;
+	userId: string;
+	threadId: string;
 }
 
 const schema = new Schema<IPrivateDmThread>({
-    userId: { type: String, required: true },
-    threadId: { type: String, required: true },
+	userId: { type: String, required: true },
+	threadId: { type: String, required: true },
 });
 
 export const PrivateDmThread = createModel<IPrivateDmThread>(
-    'PrivateDmThread',
-    schema,
+	"PrivateDmThread",
+	schema,
 );
