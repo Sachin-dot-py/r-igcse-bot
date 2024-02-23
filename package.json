@@ -8,18 +8,18 @@
     "format": "prettier . --write"
   },
   "dependencies": {
-    "chucklejs": "^1.0.0",
-    "discord.js": "^14.14.1",
-    "mongoose": "^8.2.0",
-    "redis": "^4.6.13",
-    "redis-om": "^0.4.3",
-    "uuid": "^9.0.1"
+    "chucklejs": "^1",
+    "discord.js": "^14",
+    "mongoose": "^8",
+    "redis": "^4",
+    "redis-om": "^0",
+    "uuid": "^9"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "dotenv": "latest",
-    "prettier": "latest",
-    "typescript": "latest",
+    "@types/bun": "^1",
+    "dotenv": "^",
+    "prettier": "^",
+    "typescript": "^",
     "@types/uuid": "^9.0.8"
   }
 }

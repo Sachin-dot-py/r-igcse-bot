@@ -1,7 +1,7 @@
 import { ActivityType, Events } from 'discord.js';
 import BaseEvent from '../registry/Structure/BaseEvent';
 import type { DiscordClient } from '../registry/client';
-import { syncCommands } from '@/registry'
+import { syncCommands } from '@/registry';
 
 export default class ClientReadyEvent extends BaseEvent {
     constructor() {
@@ -16,8 +16,7 @@ export default class ClientReadyEvent extends BaseEvent {
             status: 'online',
         });
 
-        client.guilds.cache.forEach(async (guild) => {
+        for (const guild of client.guilds.cache.values())
             await syncCommands(client, guild.id);
-        })
     }
 }
