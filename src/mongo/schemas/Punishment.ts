@@ -1,63 +1,63 @@
-import { Schema, model as createModel } from 'mongoose';
+import { Schema, model as createModel } from "mongoose";
 
 export interface IPunishment {
-    caseId: number;
-    actionAgainst: number;
-    actionBy: number;
-    reason: string;
-    action: 'Timeout' | 'Remove Timeout' | 'Warn' | 'Kick' | 'Ban' | 'Unban';
-    duration: string | null;
-    when: Date;
-    points: number;
-    guildId: string;
+	caseId: number;
+	actionAgainst: number;
+	actionBy: number;
+	reason: string;
+	action: "Timeout" | "Remove Timeout" | "Warn" | "Kick" | "Ban" | "Unban";
+	duration: string | null;
+	when: Date;
+	points: number;
+	guildId: string;
 }
 
 const schema = new Schema<IPunishment>({
-    caseId: {
-        type: Number,
-        required: true,
-        unique: false,
-    },
-    actionAgainst: {
-        type: Number,
-        required: true,
-        unique: false,
-    },
-    actionBy: {
-        type: Number,
-        required: true,
-        unique: false,
-    },
-    reason: {
-        type: String,
-        required: true,
-        unique: false,
-    },
-    action: {
-        type: String,
-        required: true,
-        unique: false,
-    },
-    duration: {
-        type: String,
-        required: false,
-        unique: false,
-    },
-    when: {
-        type: Date,
-        required: true,
-        unique: false,
-    },
-    points: {
-        type: Number,
-        required: false,
-        unique: false,
-    },
-    guildId: {
-        type: String,
-        required: true,
-        unique: false,
-    },
+	caseId: {
+		type: Number,
+		required: true,
+		unique: false,
+	},
+	actionAgainst: {
+		type: Number,
+		required: true,
+		unique: false,
+	},
+	actionBy: {
+		type: Number,
+		required: true,
+		unique: false,
+	},
+	reason: {
+		type: String,
+		required: true,
+		unique: false,
+	},
+	action: {
+		type: String,
+		required: true,
+		unique: false,
+	},
+	duration: {
+		type: String,
+		required: false,
+		unique: false,
+	},
+	when: {
+		type: Date,
+		required: true,
+		unique: false,
+	},
+	points: {
+		type: Number,
+		required: false,
+		unique: false,
+	},
+	guildId: {
+		type: String,
+		required: true,
+		unique: false,
+	},
 });
 
-export const Punishment = createModel<IPunishment>('Punishment', schema);
+export const Punishment = createModel<IPunishment>("Punishment", schema);

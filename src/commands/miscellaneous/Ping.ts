@@ -1,16 +1,14 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-    type DiscordChatInputCommandInteraction,
-} from '@/registry/Structure/BaseCommand';
+	type DiscordChatInputCommandInteraction,
+} from "@/registry/Structure/BaseCommand";
 
 export default class PingCommand extends BaseCommand {
-    constructor() {
-        super(
-            new SlashCommandBuilder().setName('ping').setDescription('Pong!'),
-        );
-    }
+	constructor() {
+		super(new SlashCommandBuilder().setName("ping").setDescription("Pong!"));
+	}
 
-    async execute(interaction: DiscordChatInputCommandInteraction) {
-        await interaction.followUp('Pong!');
-    }
+	async execute(interaction: DiscordChatInputCommandInteraction) {
+		await interaction.followUp("Pong!");
+	}
 }
