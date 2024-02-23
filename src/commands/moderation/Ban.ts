@@ -46,7 +46,7 @@ export default class BanCommand extends BaseCommand {
 			interaction.options.getInteger("delete_messages", false) || 0;
 
 		// if (user.id === interaction.user.id) {
-		//     await interaction.followUp({
+		//     await interaction.reply({
 		//         content: 'You cannot ban yourself!',
 		//         ephemeral: true,
 		//     });
@@ -71,7 +71,7 @@ export default class BanCommand extends BaseCommand {
 				`Hi there from ${interaction.guild?.name}. You have been banned from the server due to '${reason}'.${interaction.guild?.id === GUILD_ID ? " If you feel this ban was done in error, to appeal your ban, please fill the form below.\nhttps://forms.gle/8qnWpSFbLDLdntdt8" : ""}`,
 			);
 
-			await interaction.followUp({
+			await interaction.reply({
 				content: `Successfully banned @${user.displayName}`,
 				ephemeral: true,
 			});
@@ -83,7 +83,9 @@ export default class BanCommand extends BaseCommand {
 				deleteMessagesDays,
 			);
 		} catch (e) {
-			await interaction.followUp({
+			// TODO: Ban failed logging
+
+			await interaction.reply({
 				content: "Failed to ban user",
 				ephemeral: true,
 			});

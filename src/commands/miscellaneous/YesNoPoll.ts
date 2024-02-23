@@ -7,7 +7,7 @@ export default class YesNoPollCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("yesnopoll")
+				.setName("yes_no_poll")
 				.setDescription("Create a new in-channel poll")
 				.addStringOption((option) =>
 					option
@@ -20,11 +20,6 @@ export default class YesNoPollCommand extends BaseCommand {
 
 	async execute(interaction: DiscordChatInputCommandInteraction) {
 		const poll = interaction.options.getString("poll", true);
-
-		await interaction.followUp({
-			content: "Creating poll...",
-			ephemeral: true,
-		});
 
 		const embed = new EmbedBuilder()
 			.setTitle(poll)
@@ -42,7 +37,8 @@ export default class YesNoPollCommand extends BaseCommand {
 			await message?.react("🟩");
 			await message?.react("🟥");
 		} catch (e) {
-			await interaction.followUp({
+			// TODO: Extract into logger
+			await interaction.reply({
 				content: "Failed to create poll",
 				ephemeral: true,
 			});

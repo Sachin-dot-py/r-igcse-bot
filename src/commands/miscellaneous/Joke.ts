@@ -15,16 +15,38 @@ export default class JokeCommand extends BaseCommand {
 					option
 						.setName("category")
 						.setDescription("specify category")
-						.addChoices({
-							name: "programming",
-							value: "Programming",
-						}),
+						.addChoices(
+							{
+								name: "programming",
+								value: "Programming",
+							},
+							{
+								name: "dark",
+								value: "Dark",
+							},
+							{
+								name: "pun",
+								value: "Pun",
+							},
+							{
+								name: "misc",
+								value: "Misc",
+							},
+							{
+								name: "spooky",
+								value: "Spooky",
+							},
+							{
+								name: "christmas",
+								value: "Christmas",
+							},
+						),
 				),
 		);
 	}
 
 	async execute(interaction: DiscordChatInputCommandInteraction) {
-		const category = interaction.options.getString("subreddit", false);
+		const category = interaction.options.getString("category", false);
 		const categories: JokeCategory[] = category
 			? [category as JokeCategory]
 			: ["Misc", "Dark", "Pun"];

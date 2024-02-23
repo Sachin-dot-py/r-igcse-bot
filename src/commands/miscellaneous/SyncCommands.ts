@@ -21,12 +21,12 @@ export default class SyncCommandsCommand extends BaseCommand {
 	) {
 		try {
 			await syncCommands(client, interaction.guildId!);
-			await interaction.followUp({
+			await interaction.reply({
 				content: "Commands synced",
 				ephemeral: true,
 			});
 		} catch (error) {
-			await interaction.followUp({
+			await interaction.reply({
 				content: "Couldn't sync commands",
 				ephemeral: true,
 			});

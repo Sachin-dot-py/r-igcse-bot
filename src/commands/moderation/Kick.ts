@@ -31,7 +31,7 @@ export default class KickCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 
 		// if (user.id === interaction.user.id) {
-		//     await interaction.followUp({
+		//     await interaction.reply({
 		//         content: 'You cannot kick yourself!',
 		//         ephemeral: true,
 		//     });
@@ -45,12 +45,12 @@ export default class KickCommand extends BaseCommand {
 				`Hi there from ${interaction.guild?.name}. You have been kicked from the server due to '${reason}'.`,
 			);
 
-			await interaction.followUp({
+			await interaction.reply({
 				content: `Successfully kicked @${user.displayName}`,
 				ephemeral: true,
 			});
 		} catch (e) {
-			await interaction.followUp({
+			await interaction.reply({
 				content: "Failed to kick user",
 				ephemeral: true,
 			});
