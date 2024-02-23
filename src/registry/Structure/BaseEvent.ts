@@ -1,4 +1,3 @@
-import type { Events } from 'discord.js';
 import type { DiscordClient } from '../client';
 
 export default abstract class BaseEvent {
@@ -8,5 +7,5 @@ export default abstract class BaseEvent {
         return this._name;
     }
 
-    abstract execute(client: DiscordClient, ...args: any): void;
+    abstract execute(client: DiscordClient, ...args: any): Promise<void>;
 }

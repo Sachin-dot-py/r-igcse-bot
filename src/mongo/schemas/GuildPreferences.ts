@@ -2,7 +2,7 @@ import { Schema, model as createModel } from 'mongoose';
 
 export interface IGuildPreferences {
     guildId: string;
-    modlogChannel: string;
+    // modlogChannel: string;
     repEnabled: boolean;
     suggestionsChannel: string;
     warnlogChannel: string;
@@ -12,7 +12,7 @@ export interface IGuildPreferences {
 
 const schema = new Schema<IGuildPreferences>({
     guildId: { type: String, required: true, unique: true },
-    modlogChannel: { type: String, required: true },
+    // modlogChannel: { type: String, required: true },
     repEnabled: { type: Boolean, required: true },
     suggestionsChannel: { type: String, required: true },
     warnlogChannel: { type: String, required: true },

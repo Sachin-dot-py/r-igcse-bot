@@ -1,7 +1,16 @@
-import { Events, GuildMember, Message, User } from 'discord.js';
+import { GuildPreferences, PrivateDmThread, Reputation } from '@/mongo';
+import {
+    ChannelType,
+    Colors,
+    EmbedBuilder,
+    Events,
+    Guild,
+    Message,
+    TextChannel,
+    ThreadChannel,
+} from 'discord.js';
 import BaseEvent from '../registry/Structure/BaseEvent';
 import type { DiscordClient } from '../registry/client';
-import { GuildPreferences, Reputation } from '@/mongo';
 
 export default class MessageCreateEvent extends BaseEvent {
     constructor() {
@@ -11,17 +20,70 @@ export default class MessageCreateEvent extends BaseEvent {
     async execute(client: DiscordClient, message: Message) {
         if (message.author.bot) return;
 
-        // if (!message.guild) this.handleModMail();
+        if (message.guild) {
+            const guildPreferences = await GuildPreferences.findOne({
+                guildId: message.guildId,
+            }).exec();
 
-        this.handleRep(message);
+            if (message.reference && (guildPreferences?.repEnabled || true))
+                this.handleRep(
+                    message,
+                    guildPreferences?.repDisabledChannels || [],
+                );
+        } else
+            this.handleModMail(
+                message,
+                client.guilds.cache.get('894596848357089330')!,
+                '1204423423799988314',
+            );
     }
 
-    private async handleModMail() {
-        throw new Error('Method not implemented.');
+    // TODO: Logging
+    private async handleModMail(
+        message: Message,
+        guild: Guild,
+        threadsChannelId: string,
+    ) {
+        const channel = guild.channels.cache.get(threadsChannelId);
+
+        if (!channel || !(channel instanceof TextChannel)) return;
+
+        const res = await PrivateDmThread.findOne({
+            userId: message.author.id,
+        }).exec();
+
+        let thread: ThreadChannel;
+
+        if (!res) {
+            thread = await channel.threads.create({
+                name: `${message.author.username} (${message.author.id})`,
+                type: ChannelType.PrivateThread,
+                startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``,
+            });
+
+            await PrivateDmThread.create({
+                userId: message.author.id,
+                threadId: thread.id,
+            });
+        } else thread = channel.threads.cache.get(res.threadId)!;
+
+        const embed = new EmbedBuilder()
+            .setTitle('New DM Recieved')
+            .setAuthor({
+                name: message.author.username,
+                iconURL: message.author.displayAvatarURL(),
+            })
+            .setDescription(message.content)
+            .setTimestamp(message.createdTimestamp)
+            .setColor(Colors.Red);
+
+        thread.send({
+            embeds: [embed],
+        });
     }
 
     // TODO: Refactor reputation system
-    private async handleRep(message: Message) {
+    private async handleRep(message: Message, repDisabledChannels: string[]) {
         const referenceMessage = await message.fetchReference();
 
         if (
@@ -33,17 +95,7 @@ export default class MessageCreateEvent extends BaseEvent {
                     ? message.channel.parentId
                     : message.channelId;
 
-            const guildPreferences = await GuildPreferences.findOne({
-                guildId: message.guildId,
-            }).exec();
-
-            const repDisabledChannels =
-                guildPreferences?.repDisabledChannels || [];
-
-            if (
-                !repDisabledChannels.some((id) => id === channelId) &&
-                (guildPreferences?.repEnabled || true)
-            ) {
+            if (!repDisabledChannels.some((id) => id === channelId)) {
                 const rep = [];
 
                 if (
