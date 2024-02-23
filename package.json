@@ -1,25 +1,25 @@
 {
-  "name": "r-igcsebot",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "start": "bun src/index.ts",
-    "start:watch": "bun --watch src/index.ts",
-    "format": "prettier . --write"
-  },
-  "dependencies": {
-    "chucklejs": "^1",
-    "discord.js": "^14",
-    "mongoose": "^8",
-    "redis": "^4",
-    "redis-om": "^0",
-    "uuid": "^9"
-  },
-  "devDependencies": {
-    "@types/bun": "^1",
-    "dotenv": "^",
-    "prettier": "^",
-    "typescript": "^",
-    "@types/uuid": "^9.0.8"
-  }
+	"name": "r-igcsebot",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"start": "bun src/index.ts",
+		"start:watch": "bun --watch src/index.ts",
+		"format": "prettier . --write"
+	},
+	"dependencies": {
+		"chucklejs": "^1",
+		"discord.js": "^14",
+		"mongoose": "^8",
+		"redis": "^4",
+		"redis-om": "^0",
+		"uuid": "^9"
+	},
+	"devDependencies": {
+		"@types/bun": "^1",
+		"dotenv": "^",
+		"prettier": "^",
+		"typescript": "^",
+		"@types/uuid": "^9.0.8"
+	}
 }

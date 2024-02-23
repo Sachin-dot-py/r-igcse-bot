@@ -1,21 +1,21 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 
 class Buttons extends ActionRowBuilder {
-    constructor(customId: string) {
-        super();
+	constructor(customId: string) {
+		super();
 
-        const confirm = new ButtonBuilder()
-            .setCustomId(`confirm_${customId}`)
-            .setLabel('Confirm')
-            .setStyle(ButtonStyle.Success);
+		const confirm = new ButtonBuilder()
+			.setCustomId(`confirm_${customId}`)
+			.setLabel("Confirm")
+			.setStyle(ButtonStyle.Success);
 
-        const cancel = new ButtonBuilder()
-            .setCustomId(`cancel_${customId}`)
-            .setLabel('Cancel')
-            .setStyle(ButtonStyle.Danger);
+		const cancel = new ButtonBuilder()
+		    .setCustomId(`cancel_${customId}`)
+			.setLabel("Cancel")
+			.setStyle(ButtonStyle.Danger);
 
-        this.addComponents(confirm, cancel);
-    }
+		this.addComponents(confirm, cancel);
+	}
 }
 
 export default Buttons;

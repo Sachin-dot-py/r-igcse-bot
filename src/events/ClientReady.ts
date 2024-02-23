@@ -16,7 +16,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online",
 		});
 
-        for (const guild of client.guilds.cache.values())
-            await syncCommands(client, guild.id);
-    }
+		for (const guild of client.guilds.cache.values())
+			await syncCommands(client, guild.id);
+	}
 }
