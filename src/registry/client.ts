@@ -15,6 +15,10 @@ export class DiscordClient extends Client {
         return this._commands;
     }
 
+    get commandsData() {
+        return this._commands.map((command) => command.data.toJSON());
+    }
+
     get logger() {
         return this._logger;
     }

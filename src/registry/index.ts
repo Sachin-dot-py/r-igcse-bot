@@ -73,6 +73,6 @@ export async function registerEvents(client: DiscordClient) {
 export async function syncCommands(client: DiscordClient, guildId: string) {
     return await client.rest.put(
         Routes.applicationGuildCommands(client.application?.id!, guildId),
-        { body: client.commands },
+        { body: client.commandsData },
     );
 }
