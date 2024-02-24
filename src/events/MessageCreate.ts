@@ -22,99 +22,104 @@ export default class MessageCreateEvent extends BaseEvent {
 
     // TODO: Refactor reputation system
     private async handleRep(message: Message) {
-        const referenceMessage = await message.fetchReference();
-
-        if (
-            !referenceMessage.author.bot &&
-            !(referenceMessage.author.id === message.author.id)
-        ) {
-            const channelId =
-                message.channel.isThread() && !message.channel.isThreadOnly()
-                    ? message.channel.parentId
-                    : message.channelId;
-
-            const guildPreferences = await GuildPreferences.findOne({
-                guildId: message.guildId,
-            }).exec();
-
-            const repDisabledChannels =
-                guildPreferences?.repDisabledChannels || [];
-
+        try {
+            const referenceMessage = await message.fetchReference().catch(() => null);
+            if (referenceMessage === null) { return; }
+        
             if (
-                !repDisabledChannels.some((id) => id === channelId) &&
-                (guildPreferences?.repEnabled || true)
+                !referenceMessage.author.bot &&
+                !(referenceMessage.author.id === message.author.id)
             ) {
-                const rep = [];
+                const channelId =
+                    message.channel.isThread() && !message.channel.isThreadOnly()
+                        ? message.channel.parentId
+                        : message.channelId;
+
+                const guildPreferences = await GuildPreferences.findOne({
+                    guildId: message.guildId,
+                }).exec();
+
+                const repDisabledChannels =
+                    guildPreferences?.repDisabledChannels || [];
 
                 if (
-                    [
-                        "you're welcome", // 'your welcome',
-                        'ur welcome',
-                        'no problem',
-                        'np',
-                        'yw',
-                    ].some((phrase) =>
-                        message.content.toLowerCase().includes(phrase),
+                    !repDisabledChannels.some((id) => id === channelId) &&
+                    (guildPreferences?.repEnabled || true)
+                ) {
+                    const rep = [];
+
+                    if (
+                        [
+                            "you're welcome", // 'your welcome',
+                            'ur welcome',
+                            'no problem',
+                            'np',
+                            'yw',
+                        ].some((phrase) =>
+                            message.content.toLowerCase().includes(phrase),
+                        )
                     )
-                )
-                    rep.push(message.author);
+                        rep.push(message.author);
 
-                if (
-                    [
-                        'ty',
-                        'thanks',
-                        'thank',
-                        'thank you',
-                        'thx',
-                        'tysm',
-                        'thank u',
-                        'thnks',
-                        'tanks',
-                        'thanku',
-                        'tyvm',
-                        'thankyou',
-                    ].some((phrase) =>
-                        message.content.toLowerCase().includes(phrase),
+                    if (
+                        [
+                            'ty',
+                            'thanks',
+                            'thank',
+                            'thank you',
+                            'thx',
+                            'tysm',
+                            'thank u',
+                            'thnks',
+                            'tanks',
+                            'thanku',
+                            'tyvm',
+                            'thankyou',
+                        ].some((phrase) =>
+                            message.content.toLowerCase().includes(phrase),
+                        )
                     )
-                )
-                    rep.push(referenceMessage.author);
+                        rep.push(referenceMessage.author);
 
-                for (const user of rep) {
-                    const member = await message.guild?.members.fetch(user.id);
+                    for (const user of rep) {
+                        const member = await message.guild?.members.fetch(user.id);
 
-                    if (member) {
-                        const res = await Reputation.findOneAndUpdate(
-                            {
-                                guildId: message.guildId,
-                                userId: member.id,
-                            },
-                            {
-                                $inc: {
-                                    rep: 1,
+                        if (member) {
+                            const res = await Reputation.findOneAndUpdate(
+                                {
+                                    guildId: message.guildId,
+                                    userId: member.id,
                                 },
-                            },
-                            {
-                                upsert: true,
-                            },
-                        ).exec();
+                                {
+                                    $inc: {
+                                        rep: 1,
+                                    },
+                                },
+                                {
+                                    upsert: true,
+                                },
+                            ).exec();
 
-                        const rep = res?.rep;
+                            const rep = res?.rep;
 
-                        if (
-                            [100, 500, 1000, 5000].some((amnt) => rep === amnt)
-                        ) {
-                            const role = message.guild?.roles.cache.get(
-                                `${rep}+ Rep Club`,
-                            );
-                            message.channel.send(
-                                `Gave +1 Rep to <@${member.id}> (${rep})${role ? `\nWelcome to the ${role.name}` : ''}`,
-                            );
+                            if (
+                                [100, 500, 1000, 5000].some((amnt) => rep === amnt)
+                            ) {
+                                const role = message.guild?.roles.cache.get(
+                                    `${rep}+ Rep Club`,
+                                );
+                                message.channel.send(
+                                    `Gave +1 Rep to <@${member.id}> (${rep})${role ? `\nWelcome to the ${role.name}` : ''}`,
+                                );
 
-                            if (role) member.roles.add(role);
+                                if (role) member.roles.add(role);
+                            }
                         }
                     }
                 }
             }
+        } catch (_) {
+            return;
         }
     }
 }
