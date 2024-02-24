@@ -6,8 +6,7 @@ export interface IQuestionR extends Entity {
 	questions: string[];
 	answers: string | string[];
 	solved: boolean;
-	solvedBy: string[];
-	answersByUsers: string[];
+	userAnswers: any[];
 	sessionId: string;
 }
 
