@@ -10,7 +10,7 @@ class Buttons extends ActionRowBuilder {
 			.setStyle(ButtonStyle.Success);
 
 		const cancel = new ButtonBuilder()
-		    .setCustomId(`cancel_${customId}`)
+			.setCustomId(`cancel_${customId}`)
 			.setLabel("Cancel")
 			.setStyle(ButtonStyle.Danger);
 

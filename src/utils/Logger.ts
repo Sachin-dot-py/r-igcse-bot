@@ -11,12 +11,13 @@ export default class Logger {
 		reason: string,
 		daysOfMessagesDeleted: number,
 	) {
-		const modlogChannelId =
-			(
-				await GuildPreferences.findOne({
-					guildId: guild.id,
-				}).exec()
-			)?.modlogChannel || "";
+		const modlogChannelId = (
+			await GuildPreferences.findOne({
+				guildId: guild.id,
+			}).exec()
+		)?.modlogChannel;
+
+		if (!modlogChannelId) return;
 
 		const modlogChannel = guild.channels.cache.get(modlogChannelId);
 
