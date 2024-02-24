@@ -4,7 +4,7 @@ import { GatewayIntentBits } from "discord.js";
 import { DiscordClient } from "./registry/client";
 import { registerCommands, registerEvents } from "./registry/index";
 
-const client = new DiscordClient({
+export const client = new DiscordClient({
 	intents: [
 		GatewayIntentBits.AutoModerationConfiguration,
 		GatewayIntentBits.AutoModerationExecution,

@@ -4,10 +4,11 @@ import { QuestionRRepo } from "./schemas/Question";
 import { SessionRepo } from "./schemas/Session";
 import { StickyMessageRepo } from "./schemas/StickyMessage";
 import { ViewRepo } from "./schemas/View";
+import { client } from "..";
 
 export const redis = createClient({ url: process.env.REDIS_URL });
 
-redis.on("error", (err) => console.log(`[ \x1b[0;33m!\x1b[0m ] ${err}`));
+redis.on("error", (err) => client.logger.error(err));
 
 await redis.connect();
 

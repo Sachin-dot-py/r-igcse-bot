@@ -23,7 +23,7 @@ export default class YesNoPollCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setTitle(poll)
-			.setDescription(`Total Votes: 0\n\n${"🟩".repeat(10)}`)
+			.setDescription("Total Votes: 0\n\nNo one has voted")
 			.setAuthor({
 				name: interaction.user.displayName,
 				iconURL: interaction.user.displayAvatarURL(),
@@ -34,8 +34,8 @@ export default class YesNoPollCommand extends BaseCommand {
 				embeds: [embed],
 			});
 
-			await message?.react("🟩");
-			await message?.react("🟥");
+			await message?.react("✅");
+			await message?.react("❌");
 		} catch (e) {
 			// TODO: Extract into logger
 			await interaction.reply({
