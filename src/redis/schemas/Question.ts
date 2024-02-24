@@ -32,19 +32,19 @@ export class QuestionRRepo extends Repository {
 		this.createIndex();
 	}
 
-	async get(questionName: string): Promise<IQuestionR | null> {
-		return (await this.fetch(questionName)) as IQuestionR;
+	async get(questionName: string) {
+		return (await this.fetch(questionName)) as IQuestionR | null;
 	}
 
-	async set(questionName: string, data: IQuestionR): Promise<void> {
+	async set(questionName: string, data: IQuestionR) {
 		await this.save(questionName, data);
 	}
 
-	async delete(questionName: string): Promise<void> {
+	async delete(questionName: string) {
 		await this.remove(questionName);
 	}
 
-	async getAll(): Promise<IQuestionR[]> {
+	async getAll() {
 		return (await this.search().return.all()) as IQuestionR[];
 	}
 }
