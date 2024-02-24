@@ -7,7 +7,7 @@ import { ViewRepo } from "./schemas/View";
 
 export const redis = createClient({ url: process.env.REDIS_URL });
 
-redis.on('error', (err) => console.log(`[ \x1b[0;33m!\x1b[0m ] ${err}`));
+redis.on("error", (err) => console.log(`[ \x1b[0;33m!\x1b[0m ] ${err}`));
 
 await redis.connect();
 
