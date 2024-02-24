@@ -23,7 +23,11 @@ export async function registerCommands(
 		.forEach((dirent) => registerCommands(client, dirent.name));
 
 	const commandFiles = commandItems
-		.filter((dirent) => dirent.isFile())
+		.filter(
+			(dirent) =>
+				dirent.isFile() &&
+				((x: string) => x !== x.toLowerCase())(dirent.name[0]),
+		)
 		.map((dirent) => dirent.name);
 
 	for (const file of commandFiles) {
@@ -53,7 +57,11 @@ export async function registerEvents(client: DiscordClient) {
 		await readdir(eventsPath, {
 			recursive: true,
 		})
-	).filter((file) => extname(file) == ".js" || extname(file) == ".ts");
+	).filter(
+		(file) =>
+			((x: string) => x !== x.toLowerCase())(file[0]) &&
+			(extname(file) == ".js" || extname(file) == ".ts"),
+	);
 
 	for (const file of eventFiles) {
 		const filePath = joinPaths(eventsPath, file);

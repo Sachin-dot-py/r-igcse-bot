@@ -40,6 +40,8 @@ export default class BanCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
 	) {
+		if (!interaction.guild) return;
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 		const deleteMessagesDays =
@@ -78,7 +80,7 @@ export default class BanCommand extends BaseCommand {
 
 			await client.logger.ban(
 				user,
-				interaction.guild!,
+				interaction.guild,
 				reason,
 				deleteMessagesDays,
 			);
