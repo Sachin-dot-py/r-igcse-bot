@@ -1,9 +1,9 @@
-import { createClient, type RedisClientType } from 'redis';
-import { UserRepo } from './schemas/User';
-import { QuestionRRepo } from './schemas/Question';
-import { SessionRepo } from './schemas/Session'
-import { StickyMessageRepo } from './schemas/StickyMessage';
-import { ViewRepo } from './schemas/View'
+import { createClient, type RedisClientType } from "redis";
+import { UserRepo } from "./schemas/User";
+import { QuestionRRepo } from "./schemas/Question";
+import { SessionRepo } from "./schemas/Session";
+import { StickyMessageRepo } from "./schemas/StickyMessage";
+import { ViewRepo } from "./schemas/View";
 
 export const redis = createClient({ url: process.env.REDIS_URL });
 
