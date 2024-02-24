@@ -9,7 +9,7 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	async execute(client: DiscordClient) {
-		console.log(`Ready! Logged in as ${client.user?.tag}`);
+		client.logger.info(`Logged in as \x1b[1m${client.user?.tag}\x1b[0m`);
 
 		client.user?.setPresence({
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
