@@ -5,6 +5,7 @@
 	"scripts": {
 		"start": "bun src/index.ts",
 		"start:watch": "bun --watch src/index.ts",
+		"lint": "eslint .",
 		"format": "prettier . --write"
 	},
 	"dependencies": {
@@ -17,9 +18,12 @@
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
+		"@typescript-eslint/eslint-plugin": "latest",
+		"@typescript-eslint/parser": "latest",
 		"dotenv": "latest",
+		"eslint": "latest",
 		"prettier": "latest",
 		"typescript": "latest",
-		"@types/uuid": "^9.0.8"
+		"@types/uuid": "^9"
 	}
 }
