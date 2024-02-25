@@ -26,7 +26,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			}).exec();
 
 			if (message.reference && (guildPreferences?.repEnabled || true))
-				this.handleRep(message, guildPreferences?.repDisabledChannels || []);
+				this.handleRep(message, guildPreferences?.repDisabledChannelIds || []);
 		} else
 			this.handleModMail(
 				message,

@@ -2,7 +2,6 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/client";
-import { GUILD_ID } from "@/constants";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default class BanCommand extends BaseCommand {

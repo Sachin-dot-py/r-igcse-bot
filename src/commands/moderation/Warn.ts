@@ -44,7 +44,7 @@ export default class WarnCommand extends BaseCommand {
 			await GuildPreferences.findOne({
 				guildId: interaction.guildId,
 			}).exec()
-		)?.warnlogChannel;
+		)?.warnlogChannelId;
 
 		if (warnlogChannelId) {
 			const warnlogChannel =

@@ -27,7 +27,7 @@ export default class Logger {
 			await GuildPreferences.findOne({
 				guildId: guild.id,
 			}).exec()
-		)?.modlogChannel;
+		)?.modlogChannelId;
 
 		if (!modlogChannelId) return;
 

@@ -2,24 +2,26 @@ import { Schema, model as createModel } from "mongoose";
 
 export interface IGuildPreferences {
 	guildId: string;
-	modlogChannel: string;
 	repEnabled: boolean;
-	suggestionsChannel: string;
-	warnlogChannel: string;
-	emoteChannel: string;
-	repDisabledChannels: string[];
+	repDisabledChannelIds: string[];
+	modlogChannelId: string;
+	suggestionsChannelId: string;
+	warnlogChannelId: string;
+	emoteChannelId: string;
 	helperRoleIds: string[];
+	banAppealFormLink: string;
 }
 
 const schema = new Schema<IGuildPreferences>({
 	guildId: { type: String, required: true, unique: true },
-	modlogChannel: { type: String, required: true },
+	modlogChannelId: { type: String, required: true },
 	repEnabled: { type: Boolean, required: true },
-	suggestionsChannel: { type: String, required: true },
-	warnlogChannel: { type: String, required: true },
-	emoteChannel: { type: String, required: true },
-	repDisabledChannels: { type: [String], required: true },
+	suggestionsChannelId: { type: String, required: true },
+	warnlogChannelId: { type: String, required: true },
+	emoteChannelId: { type: String, required: true },
+	repDisabledChannelIds: { type: [String], required: true },
 	helperRoleIds: { type: [String], required: true },
+	banAppealFormLink: { type: String, required: true },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(
