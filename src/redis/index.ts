@@ -1,19 +1,16 @@
-import { createClient, type RedisClientType } from "redis";
-import { UserRepo } from "./schemas/User";
-import { QuestionRRepo } from "./schemas/Question";
-import { SessionRepo } from "./schemas/Session";
-import { StickyMessageRepo } from "./schemas/StickyMessage";
-import { ViewRepo } from "./schemas/View";
-import { client } from "..";
+import { createClient } from "redis";
+import { client } from "nekdis";
+import { client as discordClient } from "..";
 
 export const redis = createClient({ url: process.env.REDIS_URL });
+client.redisClient = redis;
 
-redis.on("error", (err) => client.logger.error(err));
+redis.on("error", (err) => discordClient.logger.error(err));
 
-await redis.connect();
+await client.connect();
 
-export const User = new UserRepo(redis as RedisClientType);
-export const QuestionR = new QuestionRRepo(redis as RedisClientType);
-export const Session = new SessionRepo(redis as RedisClientType);
-export const StickyMessage = new StickyMessageRepo(redis as RedisClientType);
-export const View = new ViewRepo(redis as RedisClientType);
+export { QuestionR } from "./schemas/Question";
+export { Session } from "./schemas/Session";
+export { StickyMessageR } from "./schemas/StickyMessage";
+export { User } from "./schemas/User";
+export { View } from "./schemas/View";

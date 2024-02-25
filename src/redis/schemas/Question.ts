@@ -1,50 +1,18 @@
-import type { RedisClientType } from "redis";
-import { Schema, type Entity, Repository } from "redis-om";
+import { client, Schema } from "nekdis";
 
-export interface IQuestionR extends Entity {
-	questionName: string;
-	questions: string[];
-	answers: string | string[];
-	solved: boolean;
-	userAnswers: any[];
-	sessionId: string;
-}
-
-export const QuestionR = new Schema(
-	"Question",
-	{
-		questionName: { type: "string" },
-		questions: { type: "string[]" },
-		answers: { type: "string" },
-		solved: { type: "boolean" },
-		solvedBy: { type: "string[]", path: "$.userAnswers[*].user" },
-		answersByUsers: { type: "string[]", path: "$.userAnswers[*].answer" },
-		sessionId: { type: "string" },
+const schema = new Schema({
+	questionName: { type: "array" },
+	questions: { type: "array" },
+	answers: { type: "string" },
+	solved: { type: "boolean" },
+	userAnswers: {
+		type: "object",
+		properties: {
+			solvedBy: { type: "array" },
+			answersByUsers: { type: "array" },
+		},
 	},
-	{
-		dataStructure: "JSON",
-	},
-);
+	sessionId: { type: "string" },
+});
 
-export class QuestionRRepo extends Repository {
-	constructor(redis: RedisClientType) {
-		super(QuestionR, redis);
-		this.createIndex();
-	}
-
-	async get(questionName: string) {
-		return (await this.fetch(questionName)) as IQuestionR | null;
-	}
-
-	async set(questionName: string, data: IQuestionR) {
-		await this.save(questionName, data);
-	}
-
-	async delete(questionName: string) {
-		await this.remove(questionName);
-	}
-
-	async getAll() {
-		return (await this.search().return.all()) as IQuestionR[];
-	}
-}
+export const QuestionR = client.model("Question", schema);
