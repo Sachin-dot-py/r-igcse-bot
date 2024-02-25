@@ -1,9 +1,16 @@
-import { Client, Collection, type ClientOptions } from "discord.js";
-import type BaseCommand from "./Structure/BaseCommand";
+import {
+	Client,
+	Collection,
+	type ClientOptions,
+	type RESTPostAPIChatInputApplicationCommandsJSONBody,
+} from "discord.js";
 import Logger from "@/utils/Logger";
 
 export class DiscordClient extends Client {
-	private _commands = new Collection<string, BaseCommand>();
+	private _commands = new Collection<
+		string,
+		RESTPostAPIChatInputApplicationCommandsJSONBody
+	>();
 	private _logger: Logger;
 
 	constructor(options: ClientOptions) {
@@ -13,10 +20,6 @@ export class DiscordClient extends Client {
 
 	get commands() {
 		return this._commands;
-	}
-
-	get commandsData() {
-		return this._commands.map((command) => command.data.toJSON());
 	}
 
 	get logger() {

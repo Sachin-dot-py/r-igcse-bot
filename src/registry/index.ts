@@ -37,11 +37,11 @@ export async function registerCommands(
 				await import(filePath);
 
 			const command = new BotCommand();
+			command.category = category;
 
-			if ("data" in command && "execute" in command && "category" in command) {
-				command.category = category;
-				client.commands.set(command.data.name, command);
-			} else
+			if (command instanceof BotCommand)
+				client.commands.set(command.data.name, command.data.toJSON());
+			else
 				console.warn(
 					`[WARNING] The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
 				);
@@ -74,11 +74,17 @@ export async function registerEvents(client: DiscordClient) {
 	}
 }
 
-export async function syncCommands(client: DiscordClient, guildId: string) {
+export async function syncCommands(client: DiscordClient, guildId?: string) {
 	if (!client.application?.id) throw new Error("No application id");
 
-	return await client.rest.put(
-		Routes.applicationGuildCommands(client.application?.id, guildId),
-		{ body: client.commandsData },
-	);
+	try {
+		await client.rest.put(
+			guildId
+				? Routes.applicationGuildCommands(client.application.id, guildId)
+				: Routes.applicationCommands(client.application.id),
+			{ body: client.commands },
+		);
+	} catch (error) {
+		console.error(error);
+	}
 }

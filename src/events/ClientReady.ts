@@ -35,8 +35,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online",
 		});
 
-		for (const guild of client.guilds.cache.values())
-			await syncCommands(client, guild.id);
+		await syncCommands(client);
 
 		const guild = client.guilds.cache.get(GUILD_ID);
 		const botlogChannel = await guild?.channels.cache.get(BOTLOG_CHANNEL_ID);
@@ -69,7 +68,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				},
 				{
 					name: "Role Statistics",
-					value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}}\nIGCSE Helpers: ${guild.roles.cache.get(IGCSE_HELPER_ROLE)!.members.size}\nAS/AL Helpers: ${guild.roles.cache.get(AL_HELPER_ROLE)!.members.size}\nBot Developers: ${guild.roles.cache.get(BOT_DEVELOPER_ROLE)!.members.size}\nStaff Moderators: ${guild.roles.cache.get(MODERATOR_ROLE)!.members.size}\nTemp Moderators: ${guild.roles.cache.get(TEMP_MODERATOR_ROLE)!.members.size}\nChat Moderators: ${guild.roles.cache.get(CHAT_MODERATOR_ROLE)!.members.size}\`\`\``,
+					value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}\nIGCSE Helpers: ${guild.roles.cache.get(IGCSE_HELPER_ROLE)!.members.size}\nAS/AL Helpers: ${guild.roles.cache.get(AL_HELPER_ROLE)!.members.size}\nBot Developers: ${guild.roles.cache.get(BOT_DEVELOPER_ROLE)!.members.size}\nStaff Moderators: ${guild.roles.cache.get(MODERATOR_ROLE)!.members.size}\nTemp Moderators: ${guild.roles.cache.get(TEMP_MODERATOR_ROLE)!.members.size}\nChat Moderators: ${guild.roles.cache.get(CHAT_MODERATOR_ROLE)!.members.size}\`\`\``,
 					inline: false,
 				},
 				{
