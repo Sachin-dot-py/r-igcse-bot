@@ -8,6 +8,7 @@ export interface IGuildPreferences {
 	warnlogChannel: string;
 	emoteChannel: string;
 	repDisabledChannels: string[];
+	helperRoleIds: string[];
 }
 
 const schema = new Schema<IGuildPreferences>({
@@ -18,6 +19,7 @@ const schema = new Schema<IGuildPreferences>({
 	warnlogChannel: { type: String, required: true },
 	emoteChannel: { type: String, required: true },
 	repDisabledChannels: { type: [String], required: true },
+	helperRoleIds: { type: [String], required: true },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

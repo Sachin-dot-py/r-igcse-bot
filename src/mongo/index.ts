@@ -16,3 +16,4 @@ export {
 export { Reputation, type IReputation } from "./schemas/Reputation";
 export { StickyMessage, type IStickyMessage } from "./schemas/StickyMessage";
 export { Question, type IQuestion } from "./schemas/Question";
+export { HOTM, type IHOTM } from "./schemas/HOTM";
