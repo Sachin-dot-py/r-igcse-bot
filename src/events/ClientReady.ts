@@ -9,7 +9,7 @@ import {
 	MODERATOR_ROLE,
 	TEMP_MODERATOR_ROLE,
 } from "@/constants";
-import { syncCommands } from "@/registry";
+import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
 	ChannelType,
@@ -35,7 +35,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online",
 		});
 
-		await syncCommands(client);
+		await syncInteractions(client);
 
 		const guild = client.guilds.cache.get(GUILD_ID);
 		const botlogChannel = await guild?.channels.cache.get(BOTLOG_CHANNEL_ID);

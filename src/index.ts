@@ -2,7 +2,11 @@ import "dotenv/config";
 
 import { GatewayIntentBits } from "discord.js";
 import { DiscordClient } from "./registry/client";
-import { registerCommands, registerEvents } from "./registry/index";
+import {
+	registerCommands,
+	registerEvents,
+	registerMenus,
+} from "./registry/index";
 
 export const client = new DiscordClient({
 	intents: [
@@ -30,6 +34,7 @@ export const client = new DiscordClient({
 });
 
 await registerCommands(client);
+await registerMenus(client);
 await registerEvents(client);
 
 client.login(process.env.BOT_TOKEN);

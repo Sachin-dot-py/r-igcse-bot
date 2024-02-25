@@ -1,4 +1,4 @@
-import { syncCommands } from "@/registry";
+import { syncInteractions } from "@/registry";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -20,7 +20,7 @@ export default class SyncCommandsCommand extends BaseCommand {
 		client: DiscordClient,
 	) {
 		try {
-			await syncCommands(client, interaction.guildId!);
+			await syncInteractions(client, interaction.guildId!);
 			await interaction.reply({
 				content: "Commands synced",
 				ephemeral: true,

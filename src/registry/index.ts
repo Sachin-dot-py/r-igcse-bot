@@ -4,6 +4,7 @@ import { extname, join as joinPaths } from "path";
 import type BaseCommand from "./Structure/BaseCommand";
 import type BaseEvent from "./Structure/BaseEvent";
 import { DiscordClient } from "./client";
+import type BaseMenu from "./Structure/BaseMenu";
 
 export async function registerCommands(
 	client: DiscordClient,
@@ -40,10 +41,34 @@ export async function registerCommands(
 			command.category = category;
 
 			if (command instanceof BotCommand)
-				client.commands.set(command.data.name, command.data.toJSON());
+				client.commands.set(command.data.name, command);
 			else
 				console.warn(
 					`[WARNING] The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
+				);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+}
+
+export async function registerMenus(client: DiscordClient) {
+	const menusPath = joinPaths(`${import.meta.dir}`, "..", "menus");
+
+	const menuFiles = await readdir(menusPath, { recursive: true });
+
+	for (const file of menuFiles) {
+		const filePath = joinPaths(menusPath, file);
+		try {
+			const { default: BotMenu }: { default: new () => BaseMenu } =
+				await import(filePath);
+
+			const menu = new BotMenu();
+
+			if (menu instanceof BotMenu) client.menus.set(menu.data.name, menu);
+			else
+				console.warn(
+					`[WARNING] The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`,
 				);
 		} catch (error) {
 			console.error(error);
@@ -74,7 +99,10 @@ export async function registerEvents(client: DiscordClient) {
 	}
 }
 
-export async function syncCommands(client: DiscordClient, guildId?: string) {
+export async function syncInteractions(
+	client: DiscordClient,
+	guildId?: string,
+) {
 	if (!client.application?.id) throw new Error("No application id");
 
 	try {
@@ -82,7 +110,7 @@ export async function syncCommands(client: DiscordClient, guildId?: string) {
 			guildId
 				? Routes.applicationGuildCommands(client.application.id, guildId)
 				: Routes.applicationCommands(client.application.id),
-			{ body: client.commands },
+			{ body: client.interactionData },
 		);
 	} catch (error) {
 		console.error(error);
