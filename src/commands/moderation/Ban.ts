@@ -1,3 +1,4 @@
+import { GuildPreferences } from "@/mongo";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -63,13 +64,20 @@ export default class BanCommand extends BaseCommand {
 		// }
 
 		try {
+			// TODO: Guild Preferences Caching
+			const guildPrefs = await GuildPreferences.findOne({
+				guildId: interaction.guild.id,
+			});
+
+			if (!guildPrefs) return;
+
 			await interaction.guild?.bans.create(user, {
 				reason: reason,
 				deleteMessageSeconds: deleteMessagesDays * 86400,
 			});
 
 			await user.send(
-				`Hi there from ${interaction.guild?.name}. You have been banned from the server due to '${reason}'.${interaction.guild?.id === GUILD_ID ? " If you feel this ban was done in error, to appeal your ban, please fill the form below.\nhttps://forms.gle/8qnWpSFbLDLdntdt8" : ""}`,
+				`Hi there from ${interaction.guild.name}. You have been banned from the server due to '${reason}'. If you feel this ban was done in error, to appeal your ban, please fill the form below.\n${guildPrefs.banAppealFormLink}`,
 			);
 
 			await interaction.reply({

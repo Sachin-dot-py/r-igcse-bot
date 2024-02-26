@@ -7,6 +7,7 @@ import {
 	registerEvents,
 	registerMenus,
 } from "./registry/index";
+import { BOT_TOKEN } from "./constants";
 
 export const client = new DiscordClient({
 	intents: [
@@ -37,4 +38,4 @@ await registerCommands(client);
 await registerMenus(client);
 await registerEvents(client);
 
-client.login(process.env.BOT_TOKEN);
+client.login(BOT_TOKEN);

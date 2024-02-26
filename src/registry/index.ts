@@ -103,7 +103,10 @@ export async function syncInteractions(
 	client: DiscordClient,
 	guildId?: string,
 ) {
-	if (!client.application?.id) throw new Error("No application id");
+	if (!client.application?.id) {
+		console.error("No application id");
+		return;
+	}
 
 	try {
 		await client.rest.put(

@@ -19,7 +19,7 @@ export default class StickMessageMenu extends BaseMenu {
 			new ContextMenuCommandBuilder()
 				.setName("Stick Message")
 				.setType(ApplicationCommandType.Message)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+				// .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false),
 		);
 	}
