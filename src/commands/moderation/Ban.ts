@@ -1,4 +1,4 @@
-import { GuildPreferences } from "@/mongo";
+import { GuildPreferences, Punishment } from "@/mongo";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -71,9 +71,36 @@ export default class BanCommand extends BaseCommand {
 
 			if (!guildPrefs) return;
 
+			const modlogChannel = interaction.guild.channels.cache.get(
+				guildPrefs.modlogChannelId,
+			);
+
+			if (!modlogChannel || !modlogChannel.isTextBased()) {
+				await interaction.reply(
+					"Please properly configure your guild preferences.",
+				);
+				return;
+			}
+
+			const lastMessageContent =
+				await modlogChannel.messages.cache.last()?.content;
+
+			if (!lastMessageContent) lastMessageContent = "0";
+
+			const caseNumber = parseInt(lastMessageContent) + 1;
+
 			await interaction.guild?.bans.create(user, {
 				reason: reason,
 				deleteMessageSeconds: deleteMessagesDays * 86400,
+			});
+
+			await Punishment.create({
+				guildId: interaction.guild.id,
+				actionAgainst: user.id,
+				actionBy: interaction.user.id,
+				action: "Ban",
+				caseId: caseNumber,
+				reason,
 			});
 
 			await user.send(

@@ -3,7 +3,7 @@ import { Schema, client } from "nekdis";
 const schema = new Schema({
 	$id: { type: "string" },
 	channelId: { type: "string" },
-	messageId: { type: "string", optional: true },
+	messageId: { type: "string" },
 	embed: { type: "object" },
 	stickTime: { type: "string" },
 	unstickTime: { type: "string" },
