@@ -7,7 +7,7 @@ client.redisClient = redis;
 
 redis.on("error", (err) => discordClient.logger.error(err));
 
-// await client.connect();
+await client.connect();
 
 export { QuestionR } from "./schemas/Question";
 export { Session } from "./schemas/Session";

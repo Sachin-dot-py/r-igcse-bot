@@ -1,14 +1,8 @@
 import {
-	ChatInputCommandInteraction,
 	ContextMenuCommandBuilder,
 	ContextMenuCommandInteraction,
 } from "discord.js";
 import type { DiscordClient } from "../client";
-
-export type DiscordChatInputCommandInteraction = Omit<
-	ChatInputCommandInteraction,
-	"client"
->;
 
 export default abstract class BaseMenu {
 	constructor(private _data: ContextMenuCommandBuilder) {}

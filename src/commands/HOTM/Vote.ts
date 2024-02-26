@@ -26,14 +26,14 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const helper = interaction.options.getUser("helper", true);
 
 		// TODO: Implement Cache
-		const helperRoleIds = (
+		const igHelperRoleId = (
 			await GuildPreferences.findOne({ guildId: interaction.guild.id })
-		)?.helperRoleIds;
+		)?.igHelperRoleId;
 
-		if (!helperRoleIds || helperRoleIds.length < 1) return;
+		if (!igHelperRoleId) return;
 
-		const helperRoles = interaction.guild.roles.cache.filter((role) =>
-			helperRoleIds.includes(role.id),
+		const helperRoles = interaction.guild.roles.cache.filter(
+			(role) => igHelperRoleId === role.id,
 		);
 
 		if (!(helperRoles.size < 1)) {

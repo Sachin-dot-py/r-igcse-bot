@@ -1,4 +1,9 @@
-import { GuildPreferences, PrivateDmThread, Reputation } from "@/mongo";
+import {
+	GuildPreferences,
+	PrivateDmThread,
+	Reputation,
+	StickyMessage,
+} from "@/mongo";
 import {
 	ChannelType,
 	Colors,
@@ -27,6 +32,43 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (message.reference && (guildPreferences?.repEnabled || true))
 				this.handleRep(message, guildPreferences?.repDisabledChannelIds || []);
+
+			if (client.stickyChannelIds.some((id) => id === message.channelId)) {
+				if (!(client.stickyCounter[message.channelId] > 4)) {
+					if (isNaN(client.stickyCounter[message.channelId]))
+						client.stickyCounter[message.channelId] = 0;
+					client.stickyCounter[message.channelId]++;
+					return;
+				}
+
+				const stickyMessages = await StickyMessage.find({
+					channelId: message.channelId,
+				}).exec();
+
+				for (const stickyMessage of stickyMessages) {
+					if (stickyMessage.messageId) {
+						const oldSticky = await message.channel.messages.fetch(
+							stickyMessage.id,
+						);
+
+						if (oldSticky) await oldSticky.delete();
+					}
+
+					const embed = new EmbedBuilder(stickyMessage.embed);
+
+					const newSticky = await message.channel.send({
+						embeds: [embed],
+					});
+
+					await stickyMessage.updateOne({
+						$set: {
+							messageId: newSticky.id,
+						},
+					});
+
+					client.stickyCounter[message.channelId] = 0;
+				}
+			}
 		} else
 			this.handleModMail(
 				message,

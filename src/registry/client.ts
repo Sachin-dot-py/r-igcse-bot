@@ -12,11 +12,31 @@ import type BaseMenu from "./Structure/BaseMenu";
 export class DiscordClient extends Client {
 	private _commands = new Collection<string, BaseCommand>();
 	private _menus = new Collection<string, BaseMenu>();
+
 	private _logger: Logger;
+
+	private _stickyChannelIds: string[] = [];
+	private _stickyCounter: Record<string, number> = {};
 
 	constructor(options: ClientOptions) {
 		super(options);
 		this._logger = new Logger(this);
+	}
+
+	get stickyChannelIds() {
+		return this._stickyChannelIds;
+	}
+
+	set stickyChannelIds(channelIds: string[]) {
+		this._stickyChannelIds = channelIds;
+	}
+
+	get stickyCounter() {
+		return this._stickyCounter;
+	}
+
+	set stickyCounter(counts: Record<string, number>) {
+		this._stickyCounter = counts;
 	}
 
 	get commands() {

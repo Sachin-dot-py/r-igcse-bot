@@ -16,7 +16,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (interaction.isChatInputCommand())
 			this.handleCommand(client, interaction);
 		else if (interaction.isContextMenuCommand())
-			this.handleCommand(client, interaction);
+			this.handleMenu(client, interaction);
 	}
 
 	async handleCommand(

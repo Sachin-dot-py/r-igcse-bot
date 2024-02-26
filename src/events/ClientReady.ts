@@ -1,3 +1,5 @@
+import { BETA } from "@/constants";
+import { GuildPreferences, StickyMessage } from "@/mongo";
 import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
@@ -8,8 +10,6 @@ import {
 } from "discord.js";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/client";
-import { GuildPreferences } from "@/mongo";
-import { BETA } from "@/constants";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -26,7 +26,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online",
 		});
 
-		await syncInteractions(client, "576460042774118420");
+		await syncInteractions(client);
 
 		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
 			year: "numeric",
@@ -81,5 +81,30 @@ export default class ClientReadyEvent extends BaseEvent {
 
 			await botlogChannel.send({ embeds: [readyEmbed] });
 		}
+
+		const time = Date.now();
+
+		const stickyMessages = await StickyMessage.find().exec();
+
+		// for (const { id, ...rest } of stickyMessages) {
+		// 	// try {
+		// 	// 	await redisClient.redisClient.flushDb();
+		// 	// } catch (error) {
+		// 	// 	console.error(error);
+		// 	// }
+		// 	// await StickyMessageR.createAndSave({
+		// 	// 	$id: id,
+		// 	// 	...rest,
+		// 	// 	enabled:
+		// 	// 		parseInt(rest.stickTime) <= time && parseInt(rest.unstickTime) > time,
+		// 	// });
+		// }
+
+		client.stickyChannelIds = stickyMessages
+			.filter(
+				({ stickTime, unstickTime }) =>
+					parseInt(stickTime) <= time && parseInt(unstickTime) > time,
+			)
+			.map((message) => message.channelId);
 	}
 }
