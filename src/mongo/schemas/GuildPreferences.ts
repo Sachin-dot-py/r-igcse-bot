@@ -8,7 +8,7 @@ export interface IGuildPreferences {
 
 	modlogChannelId: string;
 	botlogChannelId: string;
-	warnlogChannelId: string;
+	welcomeChannelId: string;
 
 	suggestionsChannelId: string;
 	emoteChannelId: string;
@@ -16,6 +16,7 @@ export interface IGuildPreferences {
 	igHelperRoleId: string;
 	alHelperRoleId: string;
 
+	adminRoleId: string;
 	moderatorRoleId: string;
 	tempModRoleId: string;
 	chatModRoleId: string;
@@ -27,13 +28,14 @@ const schema = new Schema<IGuildPreferences>({
 	guildId: { type: String, required: true, unique: true },
 	modlogChannelId: { type: String, required: true },
 	botlogChannelId: { type: String, required: true },
+	welcomeChannelId: { type: String, required: true },
 	repEnabled: { type: Boolean, required: true },
 	suggestionsChannelId: { type: String, required: true },
-	warnlogChannelId: { type: String, required: true },
 	emoteChannelId: { type: String, required: true },
 	repDisabledChannelIds: { type: [String], required: true },
 	igHelperRoleId: { type: String, required: true },
 	alHelperRoleId: { type: String, required: true },
+	adminRoleId: { type: String, required: true },
 	moderatorRoleId: { type: String, required: true },
 	tempModRoleId: { type: String, required: true },
 	chatModRoleId: { type: String, required: true },

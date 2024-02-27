@@ -42,13 +42,13 @@ export default class WarnCommand extends BaseCommand {
 			return;
 		}
 
-		const warnlogChannelId = (
+		const modlogChannelId = (
 			await GuildPreferencesCache.get(interaction.guild.id)
-		)?.warnlogChannelId;
+		)?.modlogChannelId;
 
-		if (warnlogChannelId) {
-			const warnlogChannel =
-				await interaction.guild.channels.fetch(warnlogChannelId);
+		if (modlogChannelId) {
+			const modlogChannel =
+				await interaction.guild.channels.fetch(modlogChannelId);
 		}
 	}
 }

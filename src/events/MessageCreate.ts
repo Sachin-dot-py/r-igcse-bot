@@ -1,9 +1,5 @@
-import {
-	GuildPreferences,
-	PrivateDmThread,
-	Reputation,
-	StickyMessage,
-} from "@/mongo";
+import { PrivateDmThread, Reputation, StickyMessage } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import {
 	ChannelType,
 	Colors,
@@ -16,7 +12,6 @@ import {
 } from "discord.js";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/client";
-import { GuildPreferencesCache } from "@/redis";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
