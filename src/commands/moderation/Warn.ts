@@ -1,4 +1,4 @@
-import { GuildPreferences } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -29,6 +29,8 @@ export default class WarnCommand extends BaseCommand {
 
 	// TODO: Warn Command
 	async execute(interaction: DiscordChatInputCommandInteraction) {
+		if (!interaction.guild) return;
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
@@ -41,14 +43,12 @@ export default class WarnCommand extends BaseCommand {
 		}
 
 		const warnlogChannelId = (
-			await GuildPreferences.findOne({
-				guildId: interaction.guildId,
-			}).exec()
+			await GuildPreferencesCache.get(interaction.guild.id)
 		)?.warnlogChannelId;
 
 		if (warnlogChannelId) {
 			const warnlogChannel =
-				await interaction.guild?.channels.fetch(warnlogChannelId);
+				await interaction.guild.channels.fetch(warnlogChannelId);
 		}
 	}
 }

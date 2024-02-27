@@ -1,9 +1,8 @@
-import { GuildPreferences, Punishment } from "@/mongo";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/client";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 
 export default class BanCommand extends BaseCommand {
 	constructor() {
@@ -31,7 +30,7 @@ export default class BanCommand extends BaseCommand {
 						.setMinValue(0)
 						.setRequired(false),
 				)
-				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+				// .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 				.setDMPermission(false),
 		);
 	}
@@ -65,15 +64,19 @@ export default class BanCommand extends BaseCommand {
 
 		try {
 			// TODO: Guild Preferences Caching
-			const guildPrefs = await GuildPreferences.findOne({
-				guildId: interaction.guild.id,
-			});
+			// const guildPrefs = await GuildPreferences.findOne({
+			// 	guildId: interaction.guild.id,
+			// });
 
-			if (!guildPrefs) return;
+			// if (!guildPrefs) {
+			// 	await interaction.reply(
+			// 		"Please properly configure your guild preferences.",
+			// 	);
+			// 	return;
+			// }
 
-			const modlogChannel = interaction.guild.channels.cache.get(
-				guildPrefs.modlogChannelId,
-			);
+			const modlogChannel =
+				interaction.guild.channels.cache.get("894596848357089330");
 
 			if (!modlogChannel || !modlogChannel.isTextBased()) {
 				await interaction.reply(
@@ -85,27 +88,22 @@ export default class BanCommand extends BaseCommand {
 			const lastMessageContent =
 				await modlogChannel.messages.cache.last()?.content;
 
-			if (!lastMessageContent) lastMessageContent = "0";
+			const caseNumber =
+				parseInt(lastMessageContent?.match(/\d/g)?.join("") || "0") + 1;
 
-			const caseNumber = parseInt(lastMessageContent) + 1;
+			// await interaction.guild?.bans.create(user, {
+			// 	reason: reason,
+			// 	deleteMessageSeconds: deleteMessagesDays * 86400,
+			// });
 
-			await interaction.guild?.bans.create(user, {
-				reason: reason,
-				deleteMessageSeconds: deleteMessagesDays * 86400,
-			});
-
-			await Punishment.create({
-				guildId: interaction.guild.id,
-				actionAgainst: user.id,
-				actionBy: interaction.user.id,
-				action: "Ban",
-				caseId: caseNumber,
-				reason,
-			});
-
-			await user.send(
-				`Hi there from ${interaction.guild.name}. You have been banned from the server due to '${reason}'. If you feel this ban was done in error, to appeal your ban, please fill the form below.\n${guildPrefs.banAppealFormLink}`,
-			);
+			// await Punishment.create({
+			// 	guildId: interaction.guild.id,
+			// 	actionAgainst: user.id,
+			// 	actionBy: interaction.user.id,
+			// 	action: "Ban",
+			// 	caseId: caseNumber,
+			// 	reason,
+			// });
 
 			await interaction.reply({
 				content: `Successfully banned @${user.displayName}`,
@@ -114,8 +112,10 @@ export default class BanCommand extends BaseCommand {
 
 			await client.logger.ban(
 				user,
+				interaction.user,
 				interaction.guild,
 				reason,
+				caseNumber,
 				deleteMessagesDays,
 			);
 		} catch (e) {

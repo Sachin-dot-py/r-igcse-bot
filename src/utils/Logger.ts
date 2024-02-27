@@ -1,4 +1,5 @@
 import { GuildPreferences } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/client";
 import { Colors, EmbedBuilder, type Guild, type User } from "discord.js";
 
@@ -19,35 +20,34 @@ export default class Logger {
 
 	public async ban(
 		user: User,
+		by: User,
 		guild: Guild,
 		reason: string,
+		caseNumber: number,
 		daysOfMessagesDeleted: number,
 	) {
-		const modlogChannelId = (
-			await GuildPreferences.findOne({
-				guildId: guild.id,
-			}).exec()
-		)?.modlogChannelId;
+		const modlogChannelId = (await GuildPreferencesCache.get(guild.id))
+			?.modlogChannelId;
 
 		if (!modlogChannelId) return;
 
 		const modlogChannel = guild.channels.cache.get(modlogChannelId);
 
 		if (modlogChannel && modlogChannel.isTextBased()) {
-			const embed = new EmbedBuilder()
-				.setTitle("User Banned")
-				.setDescription(reason)
-				.setFooter({
-					text: `${daysOfMessagesDeleted} days of messages deleted`,
-				})
-				.setColor(Colors.Red)
-				.setAuthor({
-					name: user.displayName,
-					iconURL: user.displayAvatarURL(),
-				});
+			// const embed = new EmbedBuilder()
+			// 	.setTitle("User Banned")
+			// 	.setDescription(reason)
+			// 	.setFooter({
+			// 		text: `${daysOfMessagesDeleted} days of messages deleted`,
+			// 	})
+			// 	.setColor(Colors.Red)
+			// 	.setAuthor({
+			// 		name: user.displayName,
+			// 		iconURL: user.displayAvatarURL(),
+			// 	});
 
 			await modlogChannel.send({
-				embeds: [embed],
+				content: `Case #${caseNumber} | [Ban]\nUsername: ${user.displayName} (${user.id})\nModerator: ${by.displayName} \nReason: ${reason}`,
 			});
 		}
 	}

@@ -1,4 +1,5 @@
-import { GuildPreferences, HOTM } from "@/mongo";
+import { HOTM } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -25,9 +26,8 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		const helper = interaction.options.getUser("helper", true);
 
-		// TODO: Implement Cache
 		const igHelperRoleId = (
-			await GuildPreferences.findOne({ guildId: interaction.guild.id })
+			await GuildPreferencesCache.get(interaction.guild.id)
 		)?.igHelperRoleId;
 
 		if (!igHelperRoleId) return;

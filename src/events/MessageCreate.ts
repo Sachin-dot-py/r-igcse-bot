@@ -16,6 +16,7 @@ import {
 } from "discord.js";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/client";
+import { GuildPreferencesCache } from "@/redis";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -26,9 +27,9 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.guild) {
-			const guildPreferences = await GuildPreferences.findOne({
-				guildId: message.guildId,
-			}).exec();
+			const guildPreferences = await GuildPreferencesCache.get(
+				message.guild.id,
+			);
 
 			if (message.reference && (guildPreferences?.repEnabled || true))
 				this.handleRep(message, guildPreferences?.repDisabledChannelIds || []);
