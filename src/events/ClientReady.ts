@@ -10,6 +10,7 @@ import {
 } from "discord.js";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/client";
+import { GuildPreferencesCache } from "@/redis";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -80,8 +81,13 @@ export default class ClientReadyEvent extends BaseEvent {
 				]);
 
 			await botlogChannel.send({ embeds: [readyEmbed] });
-		}
 
+			await this.populateStickyMessageCache(client);
+			await this.populateGuildPreferencesCache();
+		}
+	}
+
+	private async populateStickyMessageCache(client: DiscordClient) {
 		const time = Date.now();
 
 		const stickyMessages = await StickyMessage.find().exec();
@@ -106,5 +112,15 @@ export default class ClientReadyEvent extends BaseEvent {
 					parseInt(stickTime) <= time && parseInt(unstickTime) > time,
 			)
 			.map((message) => message.channelId);
+	}
+
+	private async populateGuildPreferencesCache() {
+		const guildPreferences = await GuildPreferences.find().exec();
+
+		for (const { guildId, ...rest } of guildPreferences)
+			await GuildPreferencesCache.createAndSave({
+				$id: guildId,
+				...rest,
+			});
 	}
 }
