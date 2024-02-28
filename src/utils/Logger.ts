@@ -1,5 +1,5 @@
 import { GuildPreferencesCache } from "@/redis";
-import type { DiscordClient } from "@/registry/client";
+import type { DiscordClient } from "@/registry/DiscordClient";
 import { Colors, EmbedBuilder, type Guild, type User } from "discord.js";
 
 export default class Logger {

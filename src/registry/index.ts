@@ -3,7 +3,7 @@ import { readdir } from "fs/promises";
 import { extname, join as joinPaths } from "path";
 import type BaseCommand from "./Structure/BaseCommand";
 import type BaseEvent from "./Structure/BaseEvent";
-import { DiscordClient } from "./client";
+import { DiscordClient } from "./DiscordClient";
 import type BaseMenu from "./Structure/BaseMenu";
 
 export async function registerCommands(

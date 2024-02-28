@@ -5,6 +5,7 @@ import {
 	type RESTPostAPIApplicationCommandsJSONBody,
 	type RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from "discord.js";
+import { Client as RedisClient } from "nekdis";
 import type BaseCommand from "./Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import type BaseMenu from "./Structure/BaseMenu";
@@ -12,6 +13,7 @@ import type BaseMenu from "./Structure/BaseMenu";
 export class DiscordClient extends Client {
 	private _commands = new Collection<string, BaseCommand>();
 	private _menus = new Collection<string, BaseMenu>();
+	private _redis: RedisClient;
 
 	private _logger: Logger;
 
@@ -21,6 +23,14 @@ export class DiscordClient extends Client {
 	constructor(options: ClientOptions) {
 		super(options);
 		this._logger = new Logger(this);
+		this._redis = new RedisClient({
+			url: process.env.REDIS_URL,
+		});
+		// this._redis.redisClient.on("error", (err) => this._logger.error(err));
+	}
+
+	get redis() {
+		return this._redis;
 	}
 
 	get stickyChannelIds() {

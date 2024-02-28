@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { GatewayIntentBits } from "discord.js";
-import { DiscordClient } from "./registry/client";
+import { DiscordClient } from "./registry/DiscordClient";
 import {
 	registerCommands,
 	registerEvents,

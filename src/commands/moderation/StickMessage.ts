@@ -2,7 +2,7 @@ import { StickyMessage } from "@/mongo";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import type { DiscordClient } from "@/registry/client";
+import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
 
 export default class StickMessageCommand extends BaseCommand {

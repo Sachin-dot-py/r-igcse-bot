@@ -1,5 +1,6 @@
 import { BETA } from "@/constants";
 import { GuildPreferences, StickyMessage } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
@@ -8,9 +9,8 @@ import {
 	EmbedBuilder,
 	Events,
 } from "discord.js";
+import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import type { DiscordClient } from "../registry/client";
-import { GuildPreferencesCache } from "@/redis";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -26,6 +26,8 @@ export default class ClientReadyEvent extends BaseEvent {
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
 			status: "online",
 		});
+
+		await client.redis.connect();
 
 		await syncInteractions(client);
 
@@ -70,7 +72,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					},
 					{
 						name: "Role Statistics",
-						value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}\nIGCSE Helpers: ${guild.roles.cache.get(guildPrefs.igHelperRoleId)!.members.size}\nAS/AL Helpers: ${guild.roles.cache.get(guildPrefs.alHelperRoleId)!.members.size}\nStaff Moderators: ${guild.roles.cache.get(guildPrefs.moderatorRoleId)!.members.size}\nTemp Moderators: ${guild.roles.cache.get(guildPrefs.tempModRoleId)!.members.size}\nChat Moderators: ${guild.roles.cache.get(guildPrefs.chatModRoleId)!.members.size}\`\`\``,
+						value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}\nIGCSE Helpers: ${guild.roles.cache.get(guildPrefs.igHelperRoleId)!.members.size}\nAS/AL Helpers: ${guild.roles.cache.get(guildPrefs.alHelperRoleId)!.members.size}\nStaff Moderators: ${guild.roles.cache.get(guildPrefs.moderatorRoleId)!.members.size}\nChat Moderators: ${guild.roles.cache.get(guildPrefs.chatModRoleId)!.members.size}\`\`\``,
 						inline: false,
 					},
 					{

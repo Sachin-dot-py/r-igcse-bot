@@ -2,7 +2,7 @@ import {
 	ContextMenuCommandBuilder,
 	ContextMenuCommandInteraction,
 } from "discord.js";
-import type { DiscordClient } from "../client";
+import type { DiscordClient } from "../DiscordClient";
 
 export default abstract class BaseMenu {
 	constructor(private _data: ContextMenuCommandBuilder) {}

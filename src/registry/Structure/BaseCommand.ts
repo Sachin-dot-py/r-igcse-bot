@@ -3,7 +3,7 @@ import {
 	SlashCommandBuilder,
 	type SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
-import type { DiscordClient } from "../client";
+import type { DiscordClient } from "../DiscordClient";
 
 export type DiscordChatInputCommandInteraction = Omit<
 	ChatInputCommandInteraction,

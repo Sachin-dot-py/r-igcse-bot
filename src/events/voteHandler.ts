@@ -1,4 +1,4 @@
-import type { DiscordClient } from "@/registry/client";
+import type { DiscordClient } from "@/registry/DiscordClient";
 import { MessageReaction, User, EmbedBuilder } from "discord.js";
 
 export const handleVote = (

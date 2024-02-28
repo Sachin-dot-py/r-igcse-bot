@@ -10,15 +10,11 @@ export interface IGuildPreferences {
 	botlogChannelId: string;
 	welcomeChannelId: string;
 
-	suggestionsChannelId: string;
-	emoteChannelId: string;
-
 	igHelperRoleId: string;
 	alHelperRoleId: string;
 
 	adminRoleId: string;
 	moderatorRoleId: string;
-	tempModRoleId: string;
 	chatModRoleId: string;
 
 	banAppealFormLink: string;
@@ -30,14 +26,11 @@ const schema = new Schema<IGuildPreferences>({
 	botlogChannelId: { type: String, required: true },
 	welcomeChannelId: { type: String, required: true },
 	repEnabled: { type: Boolean, required: true },
-	suggestionsChannelId: { type: String, required: true },
-	emoteChannelId: { type: String, required: true },
 	repDisabledChannelIds: { type: [String], required: true },
 	igHelperRoleId: { type: String, required: true },
 	alHelperRoleId: { type: String, required: true },
 	adminRoleId: { type: String, required: true },
 	moderatorRoleId: { type: String, required: true },
-	tempModRoleId: { type: String, required: true },
 	chatModRoleId: { type: String, required: true },
 	banAppealFormLink: { type: String, required: true },
 });
