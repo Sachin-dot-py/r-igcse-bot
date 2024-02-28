@@ -2,6 +2,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { client } from "@/index";
 
 export default class YesNoPollCommand extends BaseCommand {
 	constructor() {
@@ -42,7 +43,7 @@ export default class YesNoPollCommand extends BaseCommand {
 				content: "Failed to create poll",
 				ephemeral: true,
 			});
-			console.error(e);
+			client.logger.error(e);
 		}
 	}
 }

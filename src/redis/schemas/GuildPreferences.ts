@@ -1,11 +1,13 @@
-import { Schema, client } from "nekdis";
+import { client } from "@/index";
+import { Schema, Repository } from "redis-om";
 
-const schema = new Schema({
+const schema = new Schema("GuildPreferences", {
+	guildId: { type: "string" },
 	modlogChannelId: { type: "string" },
 	botlogChannelId: { type: "string" },
 	welcomeChannelId: { type: "string" },
 	repEnabled: { type: "boolean" },
-	repDisabledChannelIds: { type: "array" },
+	repDisabledChannelIds: { type: "string[]" },
 	igHelperRoleId: { type: "string" },
 	alHelperRoleId: { type: "string" },
 	adminRoleId: { type: "string" },
@@ -14,4 +16,4 @@ const schema = new Schema({
 	banAppealFormLink: { type: "string" },
 });
 
-export const GuildPreferencesCache = client.model("Question", schema);
+export const GuildPreferencesCache = new Repository(schema, client.redis);

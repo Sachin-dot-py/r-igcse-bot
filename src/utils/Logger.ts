@@ -1,19 +1,25 @@
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { Colors, EmbedBuilder, type Guild, type User } from "discord.js";
+import {
+	Colors,
+	EmbedBuilder,
+	type Guild,
+	type GuildBasedChannel,
+	type User,
+} from "discord.js";
 
 export default class Logger {
 	constructor(private client: DiscordClient) {}
 
-	public info(message: string) {
+	public info(message: any) {
 		console.log(`[ \x1b[0;34mi\x1b[0m ] ${message}`);
 	}
 
-	public warn(message: string) {
+	public warn(message: any) {
 		console.log(`[ \x1b[0;33m!\x1b[0m ] ${message}`);
 	}
 
-	public error(message: string) {
+	public error(message: any) {
 		console.error(`[ \x1b[0;31mx\x1b[0m ] ${message}`);
 	}
 
@@ -24,15 +30,9 @@ export default class Logger {
 		reason: string,
 		caseNumber: number,
 		daysOfMessagesDeleted: number,
+		modlogChannel: GuildBasedChannel,
 	) {
-		const modlogChannelId = (await GuildPreferencesCache.get(guild.id))
-			?.botlogChannelId;
-
-		if (!modlogChannelId) return;
-
-		const modlogChannel = guild.channels.cache.get(modlogChannelId);
-
-		if (modlogChannel && modlogChannel.isTextBased()) {
+		if (modlogChannel.isTextBased()) {
 			const embed = new EmbedBuilder()
 				.setTitle(`User Banned | Case #${caseNumber}`)
 				.setDescription(reason)
@@ -57,9 +57,7 @@ export default class Logger {
 					},
 				]);
 
-			// await modlogChannel.send({
-			// 	content: `Case #${caseNumber} | [Ban]\nUsername: ${user.displayName} (${user.id})\nModerator: ${by.displayName} \nReason: ${reason}`,
-			// });
+			await modlogChannel.send({ embeds: [embed] });
 		}
 	}
 }

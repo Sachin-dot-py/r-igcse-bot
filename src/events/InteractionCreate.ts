@@ -26,7 +26,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const command = client.commands.get(interaction.commandName);
 
 		if (!command) {
-			console.error(
+			client.logger.error(
 				`No command matching ${interaction.commandName} was found.`,
 			);
 			return;
@@ -35,7 +35,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		try {
 			await command.execute(interaction, client);
 		} catch (error) {
-			console.error(error);
+			client.logger.error(error);
 
 			if (interaction.replied || interaction.deferred)
 				await interaction.followUp({
@@ -56,14 +56,16 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const menu = client.menus.get(interaction.commandName);
 
 		if (!menu) {
-			console.error(`No menu matching ${interaction.commandName} was found.`);
+			client.logger.error(
+				`No menu matching ${interaction.commandName} was found.`,
+			);
 			return;
 		}
 
 		try {
 			await menu.execute(interaction, client);
 		} catch (error) {
-			console.error(error);
+			client.logger.error(error);
 
 			if (interaction.replied || interaction.deferred)
 				await interaction.followUp({

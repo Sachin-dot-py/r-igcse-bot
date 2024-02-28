@@ -43,11 +43,11 @@ export async function registerCommands(
 			if (command instanceof BotCommand)
 				client.commands.set(command.data.name, command);
 			else
-				console.warn(
-					`[WARNING] The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
+				client.logger.warn(
+					`The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
 				);
 		} catch (error) {
-			console.error(error);
+			client.logger.error(error);
 		}
 	}
 }
@@ -67,11 +67,11 @@ export async function registerMenus(client: DiscordClient) {
 
 			if (menu instanceof BotMenu) client.menus.set(menu.data.name, menu);
 			else
-				console.warn(
-					`[WARNING] The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`,
+				client.logger.warn(
+					`The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`,
 				);
 		} catch (error) {
-			console.error(error);
+			client.logger.error(error);
 		}
 	}
 }
@@ -104,7 +104,7 @@ export async function syncInteractions(
 	guildId?: string,
 ) {
 	if (!client.application?.id) {
-		console.error("No application id");
+		client.logger.error("No application id");
 		return;
 	}
 
@@ -116,6 +116,6 @@ export async function syncInteractions(
 			{ body: client.interactionData },
 		);
 	} catch (error) {
-		console.error(error);
+		client.logger.error(error);
 	}
 }

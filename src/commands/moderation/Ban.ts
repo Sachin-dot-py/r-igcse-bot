@@ -3,6 +3,8 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
+import { lookUpGuildPreference } from "@/mongo/schemas/GuildPreferences";
+import { FALLBACK_MODLOG_CHANNEL_ID, PRIMARY_GUILD_ID } from "@/constants";
 
 export default class BanCommand extends BaseCommand {
 	constructor() {
@@ -64,19 +66,18 @@ export default class BanCommand extends BaseCommand {
 
 		try {
 			// TODO: Guild Preferences Caching
-			// const guildPrefs = await GuildPreferences.findOne({
-			// 	guildId: interaction.guild.id,
-			// });
 
-			// if (!guildPrefs) {
-			// 	await interaction.reply(
-			// 		"Please properly configure your guild preferences.",
-			// 	);
-			// 	return;
-			// }
+			const modlogChannelId =
+				interaction.guildId === PRIMARY_GUILD_ID
+					? FALLBACK_MODLOG_CHANNEL_ID
+					: (await lookUpGuildPreference(
+							"guildId",
+							interaction.guild.id,
+							"modlogChannelId",
+						)) || FALLBACK_MODLOG_CHANNEL_ID;
 
 			const modlogChannel =
-				interaction.guild.channels.cache.get("894596848357089330");
+				interaction.guild.channels.cache.get(modlogChannelId);
 
 			if (!modlogChannel || !modlogChannel.isTextBased()) {
 				await interaction.reply(
@@ -117,6 +118,7 @@ export default class BanCommand extends BaseCommand {
 				reason,
 				caseNumber,
 				deleteMessagesDays,
+				modlogChannel,
 			);
 		} catch (e) {
 			// TODO: Ban failed logging
@@ -126,7 +128,7 @@ export default class BanCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			console.error(e);
+			client.logger.error(e);
 			return;
 		}
 	}
