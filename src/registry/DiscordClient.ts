@@ -26,7 +26,6 @@ export class DiscordClient extends Client {
 		this._redis = new RedisClient({
 			url: process.env.REDIS_URL,
 		});
-		// this._redis.redisClient.on("error", (err) => this._logger.error(err));
 	}
 
 	get redis() {

@@ -32,7 +32,10 @@ export default class MessageCreateEvent extends BaseEvent {
 			}
 
 			if (message.reference && (guildPreferences?.repEnabled || true))
-				this.handleRep(message, guildPreferences?.repDisabledChannelIds || []);
+				this.handleRep(
+					message as Message<true>,
+					guildPreferences?.repDisabledChannelIds || [],
+				);
 
 			if (client.stickyChannelIds.some((id) => id === message.channelId)) {
 				if (!(client.stickyCounter[message.channelId] > 4)) {
@@ -72,7 +75,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			}
 		} else
 			this.handleModMail(
-				message,
+				message as Message<false>,
 				client.guilds.cache.get("894596848357089330")!,
 				"1204423423799988314",
 			);
@@ -80,7 +83,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 	// TODO: Logging
 	private async handleModMail(
-		message: Message,
+		message: Message<false>,
 		guild: Guild,
 		threadsChannelId: string,
 	) {
@@ -123,7 +126,10 @@ export default class MessageCreateEvent extends BaseEvent {
 	}
 
 	// TODO: Refactor reputation system
-	private async handleRep(message: Message, repDisabledChannels: string[]) {
+	private async handleRep(
+		message: Message<true>,
+		repDisabledChannels: string[],
+	) {
 		const referenceMessage = await message.fetchReference();
 
 		if (
@@ -168,7 +174,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					rep.push(referenceMessage.author);
 
 				for (const user of rep) {
-					const member = await message.guild?.members.fetch(user.id);
+					const member = await message.guild.members.fetch(user.id);
 
 					if (member) {
 						const res = await Reputation.findOneAndUpdate(
@@ -189,7 +195,7 @@ export default class MessageCreateEvent extends BaseEvent {
 						const rep = res?.rep;
 
 						if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
-							const role = message.guild?.roles.cache.get(`${rep}+ Rep Club`);
+							const role = message.guild.roles.cache.get(`${rep}+ Rep Club`);
 							message.channel.send(
 								`Gave +1 Rep to <@${member.id}> (${rep})${role ? `\nWelcome to the ${role.name}` : ""}`,
 							);
