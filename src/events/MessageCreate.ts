@@ -23,7 +23,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		if (message.guild) {
 			const guildPreferences = await GuildPreferencesCache.get(
-				message.guild.id,
+				message.guild.id
 			);
 
 			if (!guildPreferences) {

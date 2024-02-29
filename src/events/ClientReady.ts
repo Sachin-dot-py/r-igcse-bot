@@ -98,7 +98,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		// 	// try {
 		// 	// 	await redisClient.redisClient.flushDb();
 		// 	// } catch (error) {
-		// 	// 	console.error(error);
+		// 	// 	client.logger.error(error);
 		// 	// }
 		// 	// await StickyMessageR.createAndSave({
 		// 	// 	$id: id,
@@ -120,8 +120,8 @@ export default class ClientReadyEvent extends BaseEvent {
 		const guildPreferences = await GuildPreferences.find().exec();
 
 		for (const { guildId, ...rest } of guildPreferences)
-			await GuildPreferencesCache.createAndSave({
-				$id: guildId,
+			await GuildPreferencesCache.save({
+				guildId: guildId,
 				...rest,
 			});
 	}

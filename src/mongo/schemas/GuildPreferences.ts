@@ -39,3 +39,16 @@ export const GuildPreferences = createModel<IGuildPreferences>(
 	"GuildPreferences",
 	schema,
 );
+
+export const lookUpGuildPreference = <
+	K extends keyof IGuildPreferences,
+	V extends IGuildPreferences[K],
+>(
+	searchKey: K,
+	searchValue: V,
+	returnKey: keyof IGuildPreferences,
+) => {
+	return GuildPreferences.findOne({ [searchKey]: searchValue })?.then(
+		(document) => document?.[returnKey] as V | undefined,
+	);
+};
