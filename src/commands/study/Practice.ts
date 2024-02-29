@@ -12,7 +12,6 @@ import Select from "@/components/practice/Select";
 import SessionInfoModal from "@/components/practice/SessionInfoModal";
 import Buttons from "@/components/practice/Buttons";
 import { practiceSubjects, topicsForSubjects } from "@/data";
-import { User, Session, QuestionR } from "@/redis";
 import { v4 as uuidv4 } from "uuid";
 
 type CommandOptions = {
@@ -72,14 +71,15 @@ export default class PracticeCommand extends BaseCommand {
 	}
 
 	private async newSession(interaction: DiscordChatInputCommandInteraction) {
-		const sessionUser = await User.get(interaction.user.id);
-		if (sessionUser?.playing) {
-			await interaction.reply({
-				content: "You are already in a session",
-				ephemeral: true,
-			});
-			return;
-		}
+		// const sessionUser = await PracticeUserCache.get(interaction.user.id);
+		// if (sessionUser?.playing) {
+		// 	await interaction.reply({
+		// 		content: "You are already in a session",
+		// 		ephemeral: true,
+		// 	});
+		// 	return;
+		// }
+
 		const modalCustomId = uuidv4();
 		const sessionInfoModal = new SessionInfoModal(modalCustomId);
 

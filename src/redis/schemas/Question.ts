@@ -1,5 +1,5 @@
-import { client } from "@/index";
 import { Schema, Repository } from "redis-om";
+import { redis } from "..";
 
 const schema = new Schema("Question", {
 	questionName: { type: "string[]" },
@@ -11,4 +11,4 @@ const schema = new Schema("Question", {
 	sessionId: { type: "string" },
 });
 
-export const QuestionR = new Repository(schema, client.redis);
+export const QuestionCache = new Repository(schema, redis);

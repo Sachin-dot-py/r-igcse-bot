@@ -1,8 +1,8 @@
+import { logger } from "@/index";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { client } from "@/index";
 
 export default class YesNoPollCommand extends BaseCommand {
 	constructor() {
@@ -43,7 +43,7 @@ export default class YesNoPollCommand extends BaseCommand {
 				content: "Failed to create poll",
 				ephemeral: true,
 			});
-			client.logger.error(e);
+			logger.error(e);
 		}
 	}
 }

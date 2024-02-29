@@ -8,6 +8,11 @@ import {
 	registerMenus,
 } from "./registry/index";
 import { BOT_TOKEN } from "./constants";
+import mongo from "mongoose";
+import { redis } from "./redis";
+import Logger from "./utils/Logger";
+
+export const logger = new Logger();
 
 export const client = new DiscordClient({
 	intents: [
@@ -37,5 +42,8 @@ export const client = new DiscordClient({
 await registerCommands(client);
 await registerMenus(client);
 await registerEvents(client);
+
+await mongo.connect(process.env.MONGO_URL);
+await redis.connect();
 
 client.login(BOT_TOKEN);

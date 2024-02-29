@@ -1,8 +1,8 @@
+import { logger } from "@/index";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import { client } from "@/index";
 
 export default class KickCommand extends BaseCommand {
 	constructor() {
@@ -56,7 +56,7 @@ export default class KickCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			client.logger.error(e);
+			logger.error(e);
 			return;
 		}
 	}

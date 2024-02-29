@@ -1,4 +1,4 @@
-import { client } from "@/index";
+import { redis } from "../";
 import { Schema, Repository } from "redis-om";
 
 const schema = new Schema("View", {
@@ -6,4 +6,4 @@ const schema = new Schema("View", {
 	messageId: { type: "string" },
 });
 
-export const View = new Repository(schema, client.redis);
+export const PracticeViewCache = new Repository(schema, redis);

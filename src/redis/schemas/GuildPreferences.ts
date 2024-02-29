@@ -1,5 +1,20 @@
-import { client } from "@/index";
-import { Schema, Repository } from "redis-om";
+import { Schema, Repository, type RedisConnection } from "redis-om";
+import { redis } from "..";
+
+interface IGuildPreferences {
+	guildId: string;
+	modlogChannelId: string;
+	botlogChannelId: string;
+	welcomeChannelId: string;
+	repEnabled: boolean;
+	repDisabledChannelIds: string[];
+	igHelperRoleId: string;
+	alHelperRoleId: string;
+	adminRoleId: string;
+	moderatorRoleId: string;
+	chatModRoleId: string;
+	banAppealFormLink: string;
+}
 
 const schema = new Schema("GuildPreferences", {
 	guildId: { type: "string" },
@@ -16,4 +31,14 @@ const schema = new Schema("GuildPreferences", {
 	banAppealFormLink: { type: "string" },
 });
 
-export const GuildPreferencesCache = new Repository(schema, client.redis);
+class Repo extends Repository {
+	constructor(clientOrConnection: RedisConnection) {
+		super(schema, clientOrConnection);
+	}
+
+	// async getGuildPreferences(guildId: string) {
+	// 	return (await this.fetch({ guildId })) as IGuildPreferences;
+	// }
+}
+
+export const GuildPreferencesCache = new Repo(redis);

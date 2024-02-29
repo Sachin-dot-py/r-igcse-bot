@@ -1,5 +1,4 @@
 import { HOTM } from "@/mongo";
-import { GuildPreferencesCache } from "@/redis";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -26,32 +25,32 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		const helper = interaction.options.getUser("helper", true);
 
-		const igHelperRoleId = (
-			await GuildPreferencesCache.get(interaction.guild.id)
-		)?.igHelperRoleId;
+		// const igHelperRoleId = (
+		// 	await GuildPreferencesCache.get(interaction.guild.id)
+		// )?.igHelperRoleId;
 
-		if (!igHelperRoleId) return;
+		// if (!igHelperRoleId) return;
 
-		const helperRoles = interaction.guild.roles.cache.filter(
-			(role) => igHelperRoleId === role.id,
-		);
+		// const helperRoles = interaction.guild.roles.cache.filter(
+		// 	(role) => igHelperRoleId === role.id,
+		// );
 
-		if (!(helperRoles.size < 1)) {
-			await interaction.reply({
-				content: "Helper role not found",
-				ephemeral: true,
-			});
-			// TODO: Logging for staff
-			return;
-		}
+		// if (!(helperRoles.size < 1)) {
+		// 	await interaction.reply({
+		// 		content: "Helper role not found",
+		// 		ephemeral: true,
+		// 	});
+		// 	// TODO: Logging for staff
+		// 	return;
+		// }
 
-		if (!helperRoles.some((role) => role.members.has(helper.id))) {
-			await interaction.reply({
-				content: `${helper.displayName} is not a helper`,
-				ephemeral: true,
-			});
-			return;
-		}
+		// if (!helperRoles.some((role) => role.members.has(helper.id))) {
+		// 	await interaction.reply({
+		// 		content: `${helper.displayName} is not a helper`,
+		// 		ephemeral: true,
+		// 	});
+		// 	return;
+		// }
 
 		const hotm = await HOTM.updateOne(
 			{ guildId: interaction.guild.id, helperId: helper.id },

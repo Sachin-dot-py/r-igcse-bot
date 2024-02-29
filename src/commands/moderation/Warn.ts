@@ -1,4 +1,3 @@
-import { GuildPreferencesCache } from "@/redis";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -42,13 +41,13 @@ export default class WarnCommand extends BaseCommand {
 			return;
 		}
 
-		const modlogChannelId = (
-			await GuildPreferencesCache.get(interaction.guild.id)
-		)?.modlogChannelId;
+		// const modlogChannelId = (
+		// 	await GuildPreferencesCache.get(interaction.guild.id)
+		// )?.modlogChannelId;
 
-		if (modlogChannelId) {
-			const modlogChannel =
-				await interaction.guild.channels.fetch(modlogChannelId);
-		}
+		// if (modlogChannelId) {
+		// 	const modlogChannel =
+		// 		await interaction.guild.channels.fetch(modlogChannelId);
+		// }
 	}
 }

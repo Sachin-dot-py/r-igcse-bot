@@ -3,8 +3,8 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
-import { lookUpGuildPreference } from "@/mongo/schemas/GuildPreferences";
-import { FALLBACK_MODLOG_CHANNEL_ID, PRIMARY_GUILD_ID } from "@/constants";
+import { GuildPreferences } from "../../mongo/schemas/GuildPreferences";
+import { logger } from "@/index";
 
 export default class BanCommand extends BaseCommand {
 	constructor() {
@@ -67,17 +67,15 @@ export default class BanCommand extends BaseCommand {
 		try {
 			// TODO: Guild Preferences Caching
 
-			const modlogChannelId =
-				interaction.guildId === PRIMARY_GUILD_ID
-					? FALLBACK_MODLOG_CHANNEL_ID
-					: (await lookUpGuildPreference(
-							"guildId",
-							interaction.guild.id,
-							"modlogChannelId",
-						)) || FALLBACK_MODLOG_CHANNEL_ID;
+			const modlogChannelId = (
+				await GuildPreferences.findOne({
+					guildId: interaction.guild.id,
+				}).exec()
+			)?.modlogChannelId;
 
-			const modlogChannel =
-				interaction.guild.channels.cache.get(modlogChannelId);
+			const modlogChannel = interaction.guild.channels.cache.get(
+				modlogChannelId!,
+			);
 
 			if (!modlogChannel || !modlogChannel.isTextBased()) {
 				await interaction.reply(
@@ -111,7 +109,7 @@ export default class BanCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			await client.logger.ban(
+			await logger.ban(
 				user,
 				interaction.user,
 				interaction.guild,
@@ -128,7 +126,7 @@ export default class BanCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			client.logger.error(e);
+			logger.error(e);
 			return;
 		}
 	}

@@ -1,5 +1,3 @@
-import { GuildPreferencesCache } from "@/redis";
-import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	Colors,
 	EmbedBuilder,
@@ -9,17 +7,15 @@ import {
 } from "discord.js";
 
 export default class Logger {
-	constructor(private client: DiscordClient) {}
-
-	public info(message: any) {
+	public info(message: unknown) {
 		console.log(`[ \x1b[0;34mi\x1b[0m ] ${message}`);
 	}
 
-	public warn(message: any) {
+	public warn(message: unknown) {
 		console.log(`[ \x1b[0;33m!\x1b[0m ] ${message}`);
 	}
 
-	public error(message: any) {
+	public error(message: unknown) {
 		console.error(`[ \x1b[0;31mx\x1b[0m ] ${message}`);
 	}
 

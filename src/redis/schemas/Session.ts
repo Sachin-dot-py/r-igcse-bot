@@ -1,5 +1,5 @@
-import { client } from "@/index";
 import { Schema, Repository } from "redis-om";
+import { redis } from "..";
 
 const schema = new Schema("Session", {
 	sessionId: { type: "string" },
@@ -17,4 +17,4 @@ const schema = new Schema("Session", {
 	expireTime: { type: "date" },
 });
 
-export const Session = new Repository(schema, client.redis);
+export const SessionCache = new Repository(schema, redis);

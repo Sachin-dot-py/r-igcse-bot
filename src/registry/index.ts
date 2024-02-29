@@ -5,6 +5,7 @@ import type BaseCommand from "./Structure/BaseCommand";
 import type BaseEvent from "./Structure/BaseEvent";
 import { DiscordClient } from "./DiscordClient";
 import type BaseMenu from "./Structure/BaseMenu";
+import { logger } from "..";
 
 export async function registerCommands(
 	client: DiscordClient,
@@ -43,11 +44,11 @@ export async function registerCommands(
 			if (command instanceof BotCommand)
 				client.commands.set(command.data.name, command);
 			else
-				client.logger.warn(
+				logger.warn(
 					`The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
 				);
 		} catch (error) {
-			client.logger.error(error);
+			logger.error(error);
 		}
 	}
 }
@@ -67,11 +68,11 @@ export async function registerMenus(client: DiscordClient) {
 
 			if (menu instanceof BotMenu) client.menus.set(menu.data.name, menu);
 			else
-				client.logger.warn(
+				logger.warn(
 					`The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`,
 				);
 		} catch (error) {
-			client.logger.error(error);
+			logger.error(error);
 		}
 	}
 }
@@ -104,7 +105,7 @@ export async function syncInteractions(
 	guildId?: string,
 ) {
 	if (!client.application?.id) {
-		client.logger.error("No application id");
+		logger.error("No application id");
 		return;
 	}
 
@@ -116,6 +117,6 @@ export async function syncInteractions(
 			{ body: client.interactionData },
 		);
 	} catch (error) {
-		client.logger.error(error);
+		logger.error(error);
 	}
 }

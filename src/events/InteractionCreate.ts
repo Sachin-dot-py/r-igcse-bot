@@ -6,6 +6,7 @@ import {
 } from "discord.js";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/DiscordClient";
+import { logger } from "..";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -26,16 +27,14 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const command = client.commands.get(interaction.commandName);
 
 		if (!command) {
-			client.logger.error(
-				`No command matching ${interaction.commandName} was found.`,
-			);
+			logger.error(`No command matching ${interaction.commandName} was found.`);
 			return;
 		}
 
 		try {
 			await command.execute(interaction, client);
 		} catch (error) {
-			client.logger.error(error);
+			logger.error(error);
 
 			if (interaction.replied || interaction.deferred)
 				await interaction.followUp({
@@ -56,16 +55,14 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const menu = client.menus.get(interaction.commandName);
 
 		if (!menu) {
-			client.logger.error(
-				`No menu matching ${interaction.commandName} was found.`,
-			);
+			logger.error(`No menu matching ${interaction.commandName} was found.`);
 			return;
 		}
 
 		try {
 			await menu.execute(interaction, client);
 		} catch (error) {
-			client.logger.error(error);
+			logger.error(error);
 
 			if (interaction.replied || interaction.deferred)
 				await interaction.followUp({

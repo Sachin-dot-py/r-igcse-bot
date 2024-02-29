@@ -1,13 +1,13 @@
-// import { Schema, client } from "nekdis";
+// import { Repository, Schema } from "redis-om";
+// import { redis } from "..";
 
-// const schema = new Schema({
-// 	$id: { type: "string" },
+// const schema = new Schema("StickyMessage", {
 // 	channelId: { type: "string" },
 // 	messageId: { type: "string" },
-// 	embed: { type: "object" },
+// 	embed: { type: "" },
 // 	stickTime: { type: "string" },
 // 	unstickTime: { type: "string" },
 // 	enabled: { type: "boolean" },
 // });
 
-// export const StickyMessageR = client.model("StickyMessage", schema);
+// export const StickyMessageCache = new Repository(schema, redis);

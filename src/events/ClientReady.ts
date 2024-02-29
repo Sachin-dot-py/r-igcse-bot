@@ -1,6 +1,5 @@
 import { BETA } from "@/constants";
 import { GuildPreferences, StickyMessage } from "@/mongo";
-import { GuildPreferencesCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
@@ -9,6 +8,7 @@ import {
 	EmbedBuilder,
 	Events,
 } from "discord.js";
+import { logger } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 
@@ -20,14 +20,12 @@ export default class ClientReadyEvent extends BaseEvent {
 	async execute(client: DiscordClient) {
 		if (!client.user) return;
 
-		client.logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
+		logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
 
 		client.user.setPresence({
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
 			status: "online",
 		});
-
-		await client.redis.connect();
 
 		await syncInteractions(client);
 
@@ -98,7 +96,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		// 	// try {
 		// 	// 	await redisClient.redisClient.flushDb();
 		// 	// } catch (error) {
-		// 	// 	client.logger.error(error);
+		// 	// 	logger.error(error);
 		// 	// }
 		// 	// await StickyMessageR.createAndSave({
 		// 	// 	$id: id,
@@ -117,12 +115,9 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async populateGuildPreferencesCache() {
-		const guildPreferences = await GuildPreferences.find().exec();
-
-		for (const { guildId, ...rest } of guildPreferences)
-			await GuildPreferencesCache.save({
-				guildId: guildId,
-				...rest,
-			});
+		// const guildPreferences = await GuildPreferences.find().exec();
+		// for (const { guildId, ...rest } of guildPreferences)
+		// 	await GuildPreferencesCache.save({
+		// });
 	}
 }

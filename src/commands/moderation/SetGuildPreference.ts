@@ -1,5 +1,4 @@
 import { GuildPreferences } from "@/mongo";
-import { GuildPreferencesCache } from "@/redis";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -138,20 +137,20 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 			return;
 		}
 
-		await GuildPreferencesCache.createAndSave({
-			$id: interaction.guild.id,
-			repEnabled,
-			modlogChannelId: modlogChannel.id,
-			botlogChannelId: botlogChannel.id,
-			welcomeChannelId: welcomeChannel.id,
-			adminRoleId: adminRole.id,
-			moderatorRoleId: moderatorRole.id,
-			igHelperRoleId: igHelperRole.id,
-			alHelperRoleId: alHelperRole.id,
-			chatModRoleId: chatModRole.id,
-			banAppealFormLink,
-			repDisabledChannelIds: prefs.repDisabledChannelIds,
-		});
+		// await GuildPreferencesCache.createAndSave({
+		// 	$id: interaction.guild.id,
+		// 	repEnabled,
+		// 	modlogChannelId: modlogChannel.id,
+		// 	botlogChannelId: botlogChannel.id,
+		// 	welcomeChannelId: welcomeChannel.id,
+		// 	adminRoleId: adminRole.id,
+		// 	moderatorRoleId: moderatorRole.id,
+		// 	igHelperRoleId: igHelperRole.id,
+		// 	alHelperRoleId: alHelperRole.id,
+		// 	chatModRoleId: chatModRole.id,
+		// 	banAppealFormLink,
+		// 	repDisabledChannelIds: prefs.repDisabledChannelIds,
+		// });
 
 		await interaction.reply({
 			content: "Preferences updated",
