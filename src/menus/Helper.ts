@@ -1,8 +1,14 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseMenu from "@/registry/Structure/BaseMenu";
 import {
+	ActionRowBuilder,
+	ApplicationCommandType,
+	ButtonBuilder,
+	ButtonStyle,
+	ComponentType,
 	ContextMenuCommandBuilder,
 	ContextMenuCommandInteraction,
+	EmbedBuilder,
 	PermissionFlagsBits,
 } from "discord.js";
 
@@ -65,6 +71,7 @@ export default class HelperMenu extends BaseMenu {
 		super(
 			new ContextMenuCommandBuilder()
 				.setName("helper")
+				.setType(ApplicationCommandType.Message)
 				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
 		);
 	}
@@ -73,7 +80,12 @@ export default class HelperMenu extends BaseMenu {
 		client: DiscordClient,
 		interaction: ContextMenuCommandInteraction,
 	) {
-		if (!interaction.guild || !interaction.channel) return;
+		if (
+			!interaction.guild ||
+			!interaction.channel ||
+			!interaction.isMessageContextMenuCommand()
+		)
+			return;
 
 		if (interaction.guild.id !== "576460042774118420") {
 			await interaction.reply(
@@ -99,6 +111,63 @@ export default class HelperMenu extends BaseMenu {
 			return;
 		}
 
-		// TODO: I gtg so ill do it later, just pushing
+		// TODO: Server Booster perk
+
+		const embed = new EmbedBuilder()
+			.setDescription(
+				`The helper role for this channel, \`@${role.name}\`, will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`,
+			)
+			.setAuthor({
+				name: interaction.user.displayName,
+				iconURL: interaction.user.displayAvatarURL(),
+			});
+
+		const cancelButton = new ButtonBuilder()
+			.setCustomId("cancel_ping")
+			.setLabel("Cancel Ping")
+			.setStyle(ButtonStyle.Danger);
+
+		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+			cancelButton,
+		);
+
+		await interaction.channel.send({
+			embeds: [embed],
+			components: [row],
+		});
+
+		const collector = interaction.channel.createMessageComponentCollector({
+			componentType: ComponentType.Button,
+			time: 890,
+			filter: (i) =>
+				i.user.id === interaction.user.id ||
+				i.memberPermissions.has(PermissionFlagsBits.ModerateMembers),
+		});
+
+		collector.on("collect", async (i) => {
+			if (!(i.customId === "cancel_ping")) return;
+			interaction.editReply({
+				content: `Ping cancelled by ${i.user.displayName}`,
+			});
+		});
+
+		collector.on("end", async () => {
+			if (!interaction.channel) return;
+
+			const embed = new EmbedBuilder()
+				.setDescription(
+					`[Jump to the message.](${interaction.targetMessage.url})`,
+				)
+				.setAuthor({
+					name: interaction.user.displayName,
+					iconURL: interaction.user.displayAvatarURL(),
+				});
+
+			await interaction.channel.send({
+				content: `<@${role.id}>`,
+				embeds: [embed],
+			});
+			await interaction.deleteReply();
+		});
 	}
 }
