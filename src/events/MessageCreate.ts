@@ -26,6 +26,14 @@ export default class MessageCreateEvent extends BaseEvent {
 				message.guild.id,
 			);
 
+			const keywords = (guildPreferences.keywords || []).filter(
+				({ keyword }) => keyword === message.content.toLowerCase(),
+			);
+
+			if (keywords.length > 0) {
+				message.reply(keywords[0].response);
+			}
+
 			if (guildPreferences.repEnabled === null) {
 				// TODO: Bot logging for unset guild prefs
 				return;
@@ -45,33 +53,8 @@ export default class MessageCreateEvent extends BaseEvent {
 					return;
 				}
 
-				const stickyMessages = await StickyMessage.find({
-					channelId: message.channelId,
-				}).exec();
-
-				for (const stickyMessage of stickyMessages) {
-					if (stickyMessage.messageId) {
-						const oldSticky = await message.channel.messages.fetch(
-							stickyMessage.id,
-						);
-
-						if (oldSticky) await oldSticky.delete();
-					}
-
-					const embed = new EmbedBuilder(stickyMessage.embed);
-
-					const newSticky = await message.channel.send({
-						embeds: [embed],
-					});
-
-					await stickyMessage.updateOne({
-						$set: {
-							messageId: newSticky.id,
-						},
-					});
-
-					client.stickyCounter[message.channelId] = 0;
-				}
+				await this.handleStickyMessages(message as Message<true>);
+				client.stickyCounter[message.channelId] = 0;
 			}
 		} else
 			this.handleModMail(
@@ -205,6 +188,34 @@ export default class MessageCreateEvent extends BaseEvent {
 					}
 				}
 			}
+		}
+	}
+
+	private async handleStickyMessages(message: Message<true>) {
+		const stickyMessages = await StickyMessage.find({
+			channelId: message.channelId,
+		}).exec();
+
+		for (const stickyMessage of stickyMessages) {
+			if (stickyMessage.messageId) {
+				const oldSticky = await message.channel.messages.fetch(
+					stickyMessage.id,
+				);
+
+				if (oldSticky) await oldSticky.delete();
+			}
+
+			const embed = new EmbedBuilder(stickyMessage.embed);
+
+			const newSticky = await message.channel.send({
+				embeds: [embed],
+			});
+
+			await stickyMessage.updateOne({
+				$set: {
+					messageId: newSticky.id,
+				},
+			});
 		}
 	}
 }
