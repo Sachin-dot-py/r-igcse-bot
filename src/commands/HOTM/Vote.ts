@@ -22,8 +22,8 @@ export default class HOTMVotingCommand extends BaseCommand {
 	}
 
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		if (!interaction.guild) return;
 

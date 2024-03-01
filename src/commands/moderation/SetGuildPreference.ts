@@ -79,8 +79,8 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 
 	// TODO: improve the command?
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		if (!interaction.guild) return;
 

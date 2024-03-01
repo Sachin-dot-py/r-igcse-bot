@@ -44,8 +44,8 @@ export default class StickMessageCommand extends BaseCommand {
 
 	// TODO: Logging
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		if (
 			!interaction.inGuild() ||

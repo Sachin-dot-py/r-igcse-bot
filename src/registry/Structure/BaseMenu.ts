@@ -12,7 +12,7 @@ export default abstract class BaseMenu {
 	}
 
 	abstract execute(
-		interaction: ContextMenuCommandInteraction,
 		client: DiscordClient,
+		interaction: ContextMenuCommandInteraction,
 	): Promise<void>;
 }

@@ -32,7 +32,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		try {
-			await command.execute(interaction, client);
+			await command.execute(client, interaction);
 		} catch (error) {
 			logger.error(error);
 
@@ -60,7 +60,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		try {
-			await menu.execute(interaction, client);
+			await menu.execute(client, interaction);
 		} catch (error) {
 			logger.error(error);
 

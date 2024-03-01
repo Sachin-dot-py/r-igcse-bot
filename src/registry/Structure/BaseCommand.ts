@@ -32,7 +32,7 @@ export default abstract class BaseCommand {
 	}
 
 	abstract execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	): Promise<void>;
 }

@@ -21,8 +21,8 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 	}
 
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		if (!interaction.guild) return;
 

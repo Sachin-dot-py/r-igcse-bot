@@ -1,4 +1,6 @@
-export const practiceSubjects = {
+export const practiceSubjects: {
+	[key: string]: string;
+} = {
 	"0455": "Economics",
 	//'0606': "Additional Mathematics",
 	//'0607': "International Mathematics",
@@ -9,7 +11,9 @@ export const practiceSubjects = {
 	//'0417': "Information & Communication Technology (ICT)"
 };
 
-export const subjectTopics = {
+export const subjectTopics: {
+	[key: string]: string[];
+} = {
 	"0455": [
 		"CH 1 - Basic Economic Problem: Choice And The Allocation Of Resources",
 		"CH 2 - The Allocation Of Resources: How The Market Works; Market Failure",

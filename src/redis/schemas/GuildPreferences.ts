@@ -5,24 +5,9 @@ import {
 	type Entity,
 } from "redis-om";
 import { redis } from "..";
+import type { IGuildPreferences } from "@/mongo";
 
-interface IGuildPreferences extends Entity {
-	modlogChannelId: string;
-	botlogChannelId: string;
-	welcomeChannelId: string;
-	repEnabled: boolean;
-	repDisabledChannelIds: string[];
-	igHelperRoleId: string;
-	alHelperRoleId: string;
-	adminRoleId: string;
-	moderatorRoleId: string;
-	chatModRoleId: string;
-	banAppealFormLink: string;
-	keywords: {
-		keyword: string;
-		response: string;
-	}[];
-}
+type ICachedGuildPreferences = Omit<IGuildPreferences, "guildId"> & Entity;
 
 const schema = new Schema("GuildPreferences", {
 	modlogChannelId: { type: "string" },
@@ -32,6 +17,14 @@ const schema = new Schema("GuildPreferences", {
 	repDisabledChannelIds: { type: "string[]" },
 	igHelperRoleId: { type: "string" },
 	alHelperRoleId: { type: "string" },
+	// igHelperRoles: {
+	// 	roleId: string;
+	// 	channelId: string;
+	// }[];
+	// alHelperRoles: {
+	// 	roleId: string;
+	// 	channelId: string;
+	// }[];
 	adminRoleId: { type: "string" },
 	moderatorRoleId: { type: "string" },
 	chatModRoleId: { type: "string" },
@@ -47,11 +40,11 @@ class GuildPreferencesRepository extends Repository {
 	}
 
 	async get(guildId: string) {
-		return (await this.fetch(guildId)) as IGuildPreferences;
+		return (await this.fetch(guildId)) as ICachedGuildPreferences;
 	}
 
-	async set(guildId: string, preferences: IGuildPreferences) {
-		return (await this.save(guildId, preferences)) as IGuildPreferences;
+	async set(guildId: string, preferences: ICachedGuildPreferences) {
+		return (await this.save(guildId, preferences)) as ICachedGuildPreferences;
 	}
 }
 

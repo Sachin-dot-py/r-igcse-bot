@@ -16,8 +16,8 @@ export default class SyncCommandsCommand extends BaseCommand {
 	}
 
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		try {
 			await syncInteractions(client, interaction.guildId!);

@@ -21,8 +21,8 @@ export default class YesNoPollCommand extends BaseCommand {
 	}
 
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const poll = interaction.options.getString("poll", true);
 

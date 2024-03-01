@@ -29,8 +29,8 @@ export default class KickCommand extends BaseCommand {
 	}
 
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);

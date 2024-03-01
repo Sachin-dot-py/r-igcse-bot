@@ -10,6 +10,15 @@ export interface IGuildPreferences {
 	botlogChannelId: string;
 	welcomeChannelId: string;
 
+	// igHelperRoles: {
+	// 	roleId: string;
+	// 	channelId: string;
+	// }[];
+	// alHelperRoles: {
+	// 	roleId: string;
+	// 	channelId: string;
+	// }[];
+
 	igHelperRoleId: string;
 	alHelperRoleId: string;
 
@@ -32,6 +41,14 @@ const schema = new Schema<IGuildPreferences>({
 	welcomeChannelId: { type: String, required: true },
 	repEnabled: { type: Boolean, required: true },
 	repDisabledChannelIds: { type: [String], required: true },
+	// igHelperRoles: {
+	// 	roleId: { type: String, required: true },
+	// 	channelId: { type: String, required: true },
+	// },
+	// alHelperRoles: {
+	// 	roleId: { type: String, required: true },
+	// 	channelId: { type: String, required: true },
+	// },
 	igHelperRoleId: { type: String, required: true },
 	alHelperRoleId: { type: String, required: true },
 	adminRoleId: { type: String, required: true },

@@ -10,8 +10,8 @@ export default class PingCommand extends BaseCommand {
 	}
 
 	async execute(
-		interaction: DiscordChatInputCommandInteraction,
 		client: DiscordClient,
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		await interaction.reply("Pong!");
 	}
