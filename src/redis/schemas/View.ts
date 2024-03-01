@@ -1,9 +1,9 @@
-import { redis } from "../";
-import { Schema, Repository } from "redis-om";
+// import { redis } from "../";
+// import { Schema, Repository } from "redis-om";
 
-const schema = new Schema("View", {
-	viewId: { type: "string" },
-	messageId: { type: "string" },
-});
+// const schema = new Schema("View", {
+// 	viewId: { type: "string" },
+// 	messageId: { type: "string" },
+// });
 
-export const PracticeViewCache = new Repository(schema, redis);
+// export const PracticeViewCache = new Repository(schema, redis);

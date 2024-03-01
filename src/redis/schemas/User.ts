@@ -1,11 +1,16 @@
-import { Schema, Repository } from "redis-om";
-import { redis } from "..";
+// import { Schema, Repository, type Entity } from "redis-om";
+// import { redis } from "..";
 
-const schema = new Schema("User", {
-	userId: { type: "string" },
-	playing: { type: "boolean" },
-	subject: { type: "string" },
-	sessionId: { type: "string" },
-});
+// interface ICachedPracticeUser extends Entity {
+// 	playing: boolean;
+// 	subject?: string;
+// 	sessionId?: string;
+// }
 
-export const PracticeUserCache = new Repository(schema, redis);
+// const schema = new Schema("User", {
+// 	playing: { type: "boolean" },
+// 	subject: { type: "string" },
+// 	sessionId: { type: "string" },
+// });
+
+// export const PracticeUserCache = new Repository(schema, redis);

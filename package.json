@@ -1,29 +1,29 @@
 {
-	"name": "r-igcse-bot",
-	"module": "src/index.ts",
-	"type": "module",
-	"scripts": {
-		"start": "bun src/index.ts",
-		"start:watch": "bun --watch src/index.ts",
-		"lint": "eslint .",
-		"format": "prettier . --write"
-	},
-	"dependencies": {
-		"chucklejs": "^1",
-		"discord.js": "^14",
-		"mongoose": "^8",
-		"redis": "^4",
-		"redis-om": "^0.4",
-		"uuid": "^9"
-	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"@typescript-eslint/eslint-plugin": "latest",
-		"@typescript-eslint/parser": "latest",
-		"dotenv": "latest",
-		"eslint": "latest",
-		"prettier": "latest",
-		"typescript": "latest",
-		"@types/uuid": "^9"
-	}
+  "name": "r-igcse-bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "start:watch": "bun --watch src/index.ts",
+    "lint": "eslint .",
+    "format": "prettier . --write"
+  },
+  "dependencies": {
+    "chucklejs": "^1",
+    "discord.js": "^14",
+    "mongoose": "^8",
+    "redis": "^4",
+    "redis-om": "^0.4",
+    "uuid": "^9"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "dotenv": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "typescript": "latest",
+    "@types/uuid": "^9"
+  }
 }

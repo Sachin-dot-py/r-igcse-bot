@@ -1,7 +1,12 @@
-import { Schema, Repository, type RedisConnection } from "redis-om";
+import {
+	Schema,
+	Repository,
+	type RedisConnection,
+	type Entity,
+} from "redis-om";
 import { redis } from "..";
 
-interface IGuildPreferences {
+interface IGuildPreferences extends Entity {
 	guildId: string;
 	modlogChannelId: string;
 	botlogChannelId: string;
@@ -17,7 +22,6 @@ interface IGuildPreferences {
 }
 
 const schema = new Schema("GuildPreferences", {
-	guildId: { type: "string" },
 	modlogChannelId: { type: "string" },
 	botlogChannelId: { type: "string" },
 	welcomeChannelId: { type: "string" },
@@ -34,11 +38,16 @@ const schema = new Schema("GuildPreferences", {
 class Repo extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
+		this.createIndex();
 	}
 
-	// async getGuildPreferences(guildId: string) {
-	// 	return (await this.fetch({ guildId })) as IGuildPreferences;
-	// }
+	async get(guildId: string) {
+		return (await this.fetch(guildId)) as IGuildPreferences;
+	}
+
+	async set(guildId: string, preferences: IGuildPreferences) {
+		return (await this.save(guildId, preferences)) as IGuildPreferences;
+	}
 }
 
 export const GuildPreferencesCache = new Repo(redis);
