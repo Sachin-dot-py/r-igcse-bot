@@ -13,6 +13,7 @@ import SessionInfoModal from "@/components/practice/SessionInfoModal";
 import Buttons from "@/components/practice/Buttons";
 import { practiceSubjects, topicsForSubjects } from "@/data";
 import { v4 as uuidv4 } from "uuid";
+import type { DiscordClient } from "@/registry/DiscordClient";
 
 type CommandOptions = {
 	[key: string]: (

@@ -4,6 +4,7 @@ import BaseCommand, {
 } from "../../registry/Structure/BaseCommand";
 import { getJoke } from "../../utils/apis/joke";
 import { type Category as JokeCategory } from "chucklejs";
+import type { DiscordClient } from "@/registry/DiscordClient";
 
 export default class JokeCommand extends BaseCommand {
 	constructor() {
