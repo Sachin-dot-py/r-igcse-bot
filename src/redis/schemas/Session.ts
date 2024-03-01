@@ -6,7 +6,7 @@ import {
 } from "redis-om";
 import { redis } from "..";
 
-interface ICachedSession extends Entity {
+interface ICachedPracticeSession extends Entity {
 	channelId: string;
 	threadId: string;
 	subject: string;
@@ -36,19 +36,19 @@ const schema = new Schema("Session", {
 	expireTime: { type: "date" },
 });
 
-class SessionRepository extends Repository {
+class PracticeSessionRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
 	}
 
 	async get(sessionId: string) {
-		return (await this.fetch(sessionId)) as ICachedSession;
+		return (await this.fetch(sessionId)) as ICachedPracticeSession;
 	}
 
-	async set(sessionId: string, sessionData: ICachedSession) {
-		return (await this.save(sessionId, sessionData)) as ICachedSession;
+	async set(sessionId: string, sessionData: ICachedPracticeSession) {
+		return (await this.save(sessionId, sessionData)) as ICachedPracticeSession;
 	}
 }
 
-export const SessionCache = new SessionRepository(redis);
+export const PracticeSessionCache = new PracticeSessionRepository(redis);

@@ -8,8 +8,8 @@ export const redis = createClient({
 redis.on("error", logger.error);
 
 export { GuildPreferencesCache } from "./schemas/GuildPreferences";
-export { QuestionCache } from "./schemas/Question";
-export { SessionCache } from "./schemas/Session";
+export { PracticeQuestionCache } from "./schemas/Question";
+export { PracticeSessionCache } from "./schemas/Session";
 // export { StickyMessageR } from "./schemas/StickyMessage";
 // export { PracticeUserCache } from "./schemas/User";
 // export { PracticeViewCache } from "./schemas/View";

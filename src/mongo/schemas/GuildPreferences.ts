@@ -18,6 +18,11 @@ export interface IGuildPreferences {
 	chatModRoleId: string;
 
 	banAppealFormLink: string;
+
+	keywords: {
+		keyword: string;
+		response: string;
+	}[];
 }
 
 const schema = new Schema<IGuildPreferences>({
@@ -33,6 +38,18 @@ const schema = new Schema<IGuildPreferences>({
 	moderatorRoleId: { type: String, required: true },
 	chatModRoleId: { type: String, required: true },
 	banAppealFormLink: { type: String, required: true },
+	keywords: {
+		keyword: {
+			type: String,
+			required: true,
+			unique: true,
+		},
+		response: {
+			type: String,
+			required: true,
+			unique: false,
+		},
+	},
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

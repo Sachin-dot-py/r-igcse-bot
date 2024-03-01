@@ -128,6 +128,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			repEnabled,
 			repDisabledChannelIds,
 			welcomeChannelId,
+			keywords,
 		} of guildPreferences)
 			await GuildPreferencesCache.set(guildId, {
 				adminRoleId,
@@ -141,6 +142,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				repEnabled,
 				repDisabledChannelIds,
 				welcomeChannelId,
+				keywords,
 			});
 	}
 }

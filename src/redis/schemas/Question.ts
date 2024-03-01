@@ -6,7 +6,7 @@ import {
 } from "redis-om";
 import { redis } from "..";
 
-interface ICachedQuestion extends Entity {
+interface ICachedPracticeQuestion extends Entity {
 	questions: string[];
 	answers: string[];
 	solved: boolean;
@@ -26,19 +26,22 @@ const schema = new Schema("Question", {
 	sessionId: { type: "string" },
 });
 
-class QuestionRepository extends Repository {
+class PracticeQuestionRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
 	}
 
 	async get(questionName: string) {
-		return (await this.fetch(questionName)) as ICachedQuestion;
+		return (await this.fetch(questionName)) as ICachedPracticeQuestion;
 	}
 
-	async set(questionName: string, questionData: ICachedQuestion) {
-		return (await this.save(questionName, questionData)) as ICachedQuestion;
+	async set(questionName: string, questionData: ICachedPracticeQuestion) {
+		return (await this.save(
+			questionName,
+			questionData,
+		)) as ICachedPracticeQuestion;
 	}
 }
 
-export const QuestionCache = new QuestionRepository(redis);
+export const PracticeQuestionCache = new PracticeQuestionRepository(redis);

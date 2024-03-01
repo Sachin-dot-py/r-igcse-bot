@@ -18,6 +18,10 @@ interface IGuildPreferences extends Entity {
 	moderatorRoleId: string;
 	chatModRoleId: string;
 	banAppealFormLink: string;
+	keywords: {
+		keyword: string;
+		response: string;
+	}[];
 }
 
 const schema = new Schema("GuildPreferences", {
@@ -32,9 +36,11 @@ const schema = new Schema("GuildPreferences", {
 	moderatorRoleId: { type: "string" },
 	chatModRoleId: { type: "string" },
 	banAppealFormLink: { type: "string" },
+	keyword: { type: "string", path: "$.keywords[*]" },
+	response: { type: "string", path: "$.keywords[*]" },
 });
 
-class Repo extends Repository {
+class GuildPreferencesRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
@@ -49,4 +55,4 @@ class Repo extends Repository {
 	}
 }
 
-export const GuildPreferencesCache = new Repo(redis);
+export const GuildPreferencesCache = new GuildPreferencesRepository(redis);
