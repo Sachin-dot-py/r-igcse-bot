@@ -11,6 +11,7 @@ import {
 import { logger } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { GuildPreferencesCache } from "@/redis";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -36,13 +37,10 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const guild of client.guilds.cache.values()) {
-			// TODO: Cache all guild prefs from the start
-			const guildPrefs = await GuildPreferences.findOne({
-				guildId: guild.id,
-			}).exec();
+			const guildPrefs = await GuildPreferencesCache.get(guild.id);
 
 			// TODO: Implement warning for server to set their guild prefs
-			if (!guildPrefs) continue;
+			if (!guildPrefs.botlogChannelId) continue;
 
 			const botlogChannel = await guild.channels.cache.get(
 				guildPrefs.botlogChannelId,
@@ -115,9 +113,34 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async populateGuildPreferencesCache() {
-		// const guildPreferences = await GuildPreferences.find().exec();
-		// for (const { guildId, ...rest } of guildPreferences)
-		// 	await GuildPreferencesCache.save({
-		// });
+		const guildPreferences = await GuildPreferences.find().exec();
+
+		for (const {
+			guildId,
+			adminRoleId,
+			igHelperRoleId,
+			alHelperRoleId,
+			moderatorRoleId,
+			chatModRoleId,
+			botlogChannelId,
+			modlogChannelId,
+			banAppealFormLink,
+			repEnabled,
+			repDisabledChannelIds,
+			welcomeChannelId,
+		} of guildPreferences)
+			await GuildPreferencesCache.set(guildId, {
+				adminRoleId,
+				igHelperRoleId,
+				alHelperRoleId,
+				moderatorRoleId,
+				chatModRoleId,
+				botlogChannelId,
+				modlogChannelId,
+				banAppealFormLink,
+				repEnabled,
+				repDisabledChannelIds,
+				welcomeChannelId,
+			});
 	}
 }

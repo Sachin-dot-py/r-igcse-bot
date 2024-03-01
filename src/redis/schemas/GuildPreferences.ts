@@ -7,7 +7,6 @@ import {
 import { redis } from "..";
 
 interface IGuildPreferences extends Entity {
-	guildId: string;
 	modlogChannelId: string;
 	botlogChannelId: string;
 	welcomeChannelId: string;

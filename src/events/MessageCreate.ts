@@ -11,6 +11,7 @@ import {
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { GuildPreferencesCache } from "@/redis";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -21,20 +22,20 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.guild) {
-			// const guildPreferences = await GuildPreferencesCache.get(
-			// 	message.guild.id,
-			// );
+			const guildPreferences = await GuildPreferencesCache.get(
+				message.guild.id,
+			);
 
-			// if (!guildPreferences) {
-			// 	// TODO: Bot logging for unset guild prefs
-			// 	return;
-			// }
+			if (guildPreferences.repEnabled === null) {
+				// TODO: Bot logging for unset guild prefs
+				return;
+			}
 
-			// if (message.reference && (guildPreferences?.repEnabled || true))
-			// 	this.handleRep(
-			// 		message as Message<true>,
-			// 		guildPreferences?.repDisabledChannelIds || [],
-			// 	);
+			if (message.reference && (guildPreferences.repEnabled || true))
+				this.handleRep(
+					message as Message<true>,
+					guildPreferences?.repDisabledChannelIds || [],
+				);
 
 			if (client.stickyChannelIds.some((id) => id === message.channelId)) {
 				if (!(client.stickyCounter[message.channelId] > 4)) {
