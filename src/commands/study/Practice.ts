@@ -63,7 +63,10 @@ export default class PracticeCommand extends BaseCommand {
 		"Session Info": this.sessionInfo,
 	};
 
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		const action = interaction.options.getString("action");
 		if (action) {
 			this.options[action](interaction);

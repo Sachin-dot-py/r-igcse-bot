@@ -19,7 +19,10 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		);
 	}
 
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		if (!interaction.guild) return;
 
 		await HOTM.deleteMany({ guildId: interaction.guild.id });

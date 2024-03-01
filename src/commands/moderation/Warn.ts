@@ -27,7 +27,10 @@ export default class WarnCommand extends BaseCommand {
 	}
 
 	// TODO: Warn Command
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		if (!interaction.guild) return;
 
 		const user = interaction.options.getUser("user", true);

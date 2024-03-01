@@ -1,3 +1,4 @@
+import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -17,5 +18,8 @@ export default class rrMakeCommand extends BaseCommand {
 	}
 
 	// TODO: Reaction Roles Command
-	async execute(interaction: DiscordChatInputCommandInteraction) {}
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {}
 }

@@ -8,7 +8,10 @@ export default class PingCommand extends BaseCommand {
 		super(new SlashCommandBuilder().setName("ping").setDescription("Pong!"));
 	}
 
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		await interaction.reply("Pong!");
 	}
 }

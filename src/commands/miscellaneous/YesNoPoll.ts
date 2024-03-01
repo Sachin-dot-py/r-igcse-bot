@@ -19,7 +19,10 @@ export default class YesNoPollCommand extends BaseCommand {
 		);
 	}
 
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		const poll = interaction.options.getString("poll", true);
 
 		const embed = new EmbedBuilder()

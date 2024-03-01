@@ -77,7 +77,10 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 	}
 
 	// TODO: improve the command?
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		if (!interaction.guild) return;
 
 		const repEnabled = interaction.options.getBoolean("rep_enabled", true);

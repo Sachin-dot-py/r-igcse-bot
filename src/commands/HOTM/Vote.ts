@@ -20,7 +20,10 @@ export default class HOTMVotingCommand extends BaseCommand {
 		);
 	}
 
-	async execute(interaction: DiscordChatInputCommandInteraction) {
+	async execute(
+		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient,
+	) {
 		if (!interaction.guild) return;
 
 		const helper = interaction.options.getUser("helper", true);
