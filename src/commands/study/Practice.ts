@@ -11,7 +11,7 @@ import BaseCommand, {
 import Select from "@/components/practice/Select";
 import SessionInfoModal from "@/components/practice/SessionInfoModal";
 import Buttons from "@/components/practice/Buttons";
-import { practiceSubjects, topicsForSubjects } from "@/data";
+import { practiceSubjects, subjectTopics } from "@/data";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "@/registry/DiscordClient";
 
@@ -147,7 +147,7 @@ export default class PracticeCommand extends BaseCommand {
 			return;
 		}
 
-		const topicSelectOptions = topicsForSubjects[selectedSubject].map((topic) =>
+		const topicSelectOptions = subjectTopics[selectedSubject].map((topic) =>
 			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic),
 		);
 		const topicSelects: Select[] = [];
@@ -188,7 +188,7 @@ export default class PracticeCommand extends BaseCommand {
 		}
 
 		if (selectedTopics.length === 0) {
-			selectedTopics.push(...topicsForSubjects[selectedSubject]);
+			selectedTopics.push(...subjectTopics[selectedSubject]);
 		}
 	}
 

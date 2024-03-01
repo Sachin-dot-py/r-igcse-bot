@@ -9,11 +9,7 @@ export const practiceSubjects = {
 	//'0417': "Information & Communication Technology (ICT)"
 };
 
-type TopicsForSubjects = {
-	[key: string]: string[];
-};
-
-export const topicsForSubjects: TopicsForSubjects = {
+export const subjectTopics = {
 	"0455": [
 		"CH 1 - Basic Economic Problem: Choice And The Allocation Of Resources",
 		"CH 2 - The Allocation Of Resources: How The Market Works; Market Failure",
