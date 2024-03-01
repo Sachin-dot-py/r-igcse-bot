@@ -5,7 +5,6 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
-	ComponentType,
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -48,11 +47,9 @@ export default class KickCommand extends BaseCommand {
 		client: DiscordClient,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
-		if (!interaction.guild) return;
+		if (!interaction.guild || !interaction.channel) return;
 
 		if (interaction.options.getSubcommand() === "send") {
-			if (!interaction.channel) return;
-
 			const channel =
 				interaction.options.getChannel("channel", false) || interaction.channel;
 
@@ -104,7 +101,45 @@ export default class KickCommand extends BaseCommand {
 				})
 				.catch(logger.error);
 		} else if (interaction.options.getSubcommand() === "edit") {
-			const messageId = interaction.options.getChannel("messageId", true);
+			const messageId = interaction.options.getString("messageId", true);
+
+			const messageContent = new TextInputBuilder()
+				.setCustomId("messageContent")
+				.setLabel("Message Content")
+				.setPlaceholder("The body of the message you wish to send")
+				.setRequired(true)
+				.setStyle(TextInputStyle.Paragraph);
+
+			const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
+				messageContent,
+			);
+
+			const message = interaction.channel.messages.cache.get(messageId);
+
+			// TODO: Logging
+			if (!message) return;
+
+			const modal = new ModalBuilder()
+				.setTitle("Edit a message!")
+				.setCustomId("editMessage")
+				.addComponents(row);
+
+			await interaction.showModal(modal);
+
+			interaction
+				.awaitModalSubmit({
+					filter: (i) =>
+						i.customId === "editMessage" && i.user.id === interaction.user.id,
+					time: 24000000,
+				})
+				.then(async (i) => {
+					if (!interaction.channel) return;
+
+					await message.edit({
+						content: i.fields.getTextInputValue("messageContent"),
+					});
+				})
+				.catch(logger.error);
 		}
 	}
 }
