@@ -46,6 +46,5 @@ await registerMenus(client);
 await registerEvents(client);
 
 await mongo.connect(process.env.MONGO_URL);
-await redis.connect();
 
 client.login(BOT_TOKEN);

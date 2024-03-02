@@ -10,6 +10,7 @@ export default class extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("set_rep")
+				.setDescription("// TODO")
 				.setDMPermission(false)
 				.addIntegerOption((option) =>
 					option

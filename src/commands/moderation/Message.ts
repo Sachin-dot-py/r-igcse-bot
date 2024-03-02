@@ -22,6 +22,7 @@ export default class KickCommand extends BaseCommand {
 				.addSubcommand((command) =>
 					command
 						.setName("send")
+						.setDescription("// TODO")
 						.addChannelOption((option) =>
 							option
 								.setName("channel")
@@ -32,9 +33,10 @@ export default class KickCommand extends BaseCommand {
 				.addSubcommand((command) =>
 					command
 						.setName("edit")
+						.setDescription("// TODO")
 						.addIntegerOption((option) =>
 							option
-								.setName("messageId")
+								.setName("message_id")
 								.setDescription("Id of message to send"),
 						),
 				)
@@ -56,14 +58,14 @@ export default class KickCommand extends BaseCommand {
 			if (!(channel instanceof TextChannel)) return;
 
 			const replyMessageId = new TextInputBuilder()
-				.setCustomId("replyMessageId")
+				.setCustomId("reply_message_id")
 				.setLabel("Reply Message Id")
 				.setPlaceholder("ID of the message you want to reply to")
 				.setRequired(false)
 				.setStyle(TextInputStyle.Short);
 
 			const messageContent = new TextInputBuilder()
-				.setCustomId("messageContent")
+				.setCustomId("message_content")
 				.setLabel("Message Content")
 				.setPlaceholder("The body of the message you wish to send")
 				.setRequired(true)
@@ -79,7 +81,7 @@ export default class KickCommand extends BaseCommand {
 
 			const modal = new ModalBuilder()
 				.setTitle("Send a message!")
-				.setCustomId("sendMessage")
+				.setCustomId("send_message")
 				.addComponents(row1, row2);
 
 			await interaction.showModal(modal);
@@ -87,24 +89,24 @@ export default class KickCommand extends BaseCommand {
 			interaction
 				.awaitModalSubmit({
 					filter: (i) =>
-						i.customId === "sendMessage" && i.user.id === interaction.user.id,
+						i.customId === "send_message" && i.user.id === interaction.user.id,
 
 					time: 24000000,
 				})
 				.then(async (i) => {
 					await channel.send({
-						content: i.fields.getTextInputValue("messageContent"),
+						content: i.fields.getTextInputValue("message_content"),
 						reply: {
-							messageReference: i.fields.getTextInputValue("replyMessageId"),
+							messageReference: i.fields.getTextInputValue("reply_message_id"),
 						},
 					});
 				})
 				.catch(logger.error);
 		} else if (interaction.options.getSubcommand() === "edit") {
-			const messageId = interaction.options.getString("messageId", true);
+			const messageId = interaction.options.getString("message_id", true);
 
 			const messageContent = new TextInputBuilder()
-				.setCustomId("messageContent")
+				.setCustomId("message_content")
 				.setLabel("Message Content")
 				.setPlaceholder("The body of the message you wish to send")
 				.setRequired(true)
@@ -121,7 +123,7 @@ export default class KickCommand extends BaseCommand {
 
 			const modal = new ModalBuilder()
 				.setTitle("Edit a message!")
-				.setCustomId("editMessage")
+				.setCustomId("edit_message")
 				.addComponents(row);
 
 			await interaction.showModal(modal);
@@ -129,14 +131,14 @@ export default class KickCommand extends BaseCommand {
 			interaction
 				.awaitModalSubmit({
 					filter: (i) =>
-						i.customId === "editMessage" && i.user.id === interaction.user.id,
+						i.customId === "edit_message" && i.user.id === interaction.user.id,
 					time: 24000000,
 				})
 				.then(async (i) => {
 					if (!interaction.channel) return;
 
 					await message.edit({
-						content: i.fields.getTextInputValue("messageContent"),
+						content: i.fields.getTextInputValue("message_content"),
 					});
 				})
 				.catch(logger.error);

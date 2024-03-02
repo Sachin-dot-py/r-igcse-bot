@@ -9,6 +9,8 @@ export const redis = createClient({
 	url: process.env.REDIS_URL,
 });
 
+await redis.connect();
+
 export const GuildPreferencesCache = new GuildPreferencesRepository(redis);
 export const StickyMessageCache = new StickyMessageRepository(redis);
 export const PracticeQuestionCache = new PracticeQuestionRepository(redis);

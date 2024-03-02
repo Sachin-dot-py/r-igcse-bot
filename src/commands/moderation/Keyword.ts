@@ -9,13 +9,14 @@ export default class KeywordCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("keyword")
+				.setDescription("// TODO")
+				.addSubcommand((command) =>
+					command.setName("add").setDescription("Add a keyword"),
+				)
+				.addSubcommand((command) =>
+					command.setName("remove").setDescription("Remove a keyword"),
+				)
 				.setDMPermission(false)
-				.addSubcommand((builder) =>
-					builder.setName("add").setDescription("Add a keyword"),
-				)
-				.addSubcommand((builder) =>
-					builder.setName("remove").setDescription("Remove a keyword"),
-				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 		);
 	}

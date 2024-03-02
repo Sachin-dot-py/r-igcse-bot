@@ -10,9 +10,7 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("reset_hotm")
-				.setDescription(
-					"You do not have the necessary permissions to perform this action",
-				)
+				.setDescription("// TODO")
 				.setDefaultMemberPermissions(
 					PermissionFlagsBits.ManageGuild | PermissionFlagsBits.ManageRoles,
 				)
