@@ -197,6 +197,8 @@ export default class MessageCreateEvent extends BaseEvent {
 		}).exec();
 
 		for (const stickyMessage of stickyMessages) {
+			if (!stickyMessage.enabled) return;
+
 			if (stickyMessage.messageId) {
 				const oldSticky = await message.channel.messages.fetch(
 					stickyMessage.id,
@@ -205,10 +207,12 @@ export default class MessageCreateEvent extends BaseEvent {
 				if (oldSticky) await oldSticky.delete();
 			}
 
-			const embed = new EmbedBuilder(stickyMessage.embed);
+			const embeds = stickyMessage.embeds.map(
+				(embed) => new EmbedBuilder(embed),
+			);
 
 			const newSticky = await message.channel.send({
-				embeds: [embed],
+				embeds,
 			});
 
 			await stickyMessage.updateOne({
