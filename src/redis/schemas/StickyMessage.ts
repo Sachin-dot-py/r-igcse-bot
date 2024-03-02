@@ -1,3 +1,4 @@
+import type { IStickyMessage } from "@/mongo";
 import {
 	Repository,
 	Schema,
@@ -5,14 +6,7 @@ import {
 	type RedisConnection,
 } from "redis-om";
 
-interface ICachedStickyMessage extends Entity {
-	channelId: string;
-	messageId: string;
-	embed: string;
-	stickTime: string;
-	unstickTime: string;
-	enabled: boolean;
-}
+type ICachedStickyMessage = IStickyMessage & { enabled: boolean } & Entity;
 
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
@@ -30,13 +24,20 @@ export class StickyMessageRepository extends Repository {
 	}
 
 	async get(sessionId: string) {
-		return (await this.fetch(sessionId)) as ICachedStickyMessage;
+		const res = await this.fetch(sessionId);
+		res.embed = JSON.parse(res.embed as string);
+
+		return res as ICachedStickyMessage;
 	}
 
 	async set(messageId: string, stickyMessageData: ICachedStickyMessage) {
-		return (await this.save(
-			messageId,
-			stickyMessageData,
-		)) as ICachedStickyMessage;
+		const data = {
+			...stickyMessageData,
+			embed: JSON.stringify(stickyMessageData.embed),
+		};
+
+		await this.save(messageId, data);
+
+		return stickyMessageData;
 	}
 }
