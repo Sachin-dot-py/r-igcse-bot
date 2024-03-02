@@ -4,7 +4,7 @@ import { Schema, model as createModel } from "mongoose";
 export interface IStickyMessage {
 	channelId: string;
 	messageId: string | null;
-	embed: APIEmbed;
+	embeds: APIEmbed[];
 	stickTime: string;
 	unstickTime: string;
 }
@@ -12,7 +12,7 @@ export interface IStickyMessage {
 const schema = new Schema<IStickyMessage>({
 	channelId: { type: String, required: true },
 	messageId: { type: String },
-	embed: { type: Object, required: true },
+	embeds: { type: [Object], required: true },
 	stickTime: { type: String, required: true },
 	unstickTime: { type: String, required: true },
 });

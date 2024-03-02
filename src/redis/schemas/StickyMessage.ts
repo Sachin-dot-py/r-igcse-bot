@@ -11,7 +11,7 @@ type ICachedStickyMessage = IStickyMessage & { enabled: boolean } & Entity;
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
-	embed: { type: "string" },
+	embed: { type: "string[]" },
 	stickTime: { type: "string" },
 	unstickTime: { type: "string" },
 	enabled: { type: "boolean" },
@@ -25,7 +25,7 @@ export class StickyMessageRepository extends Repository {
 
 	async get(sessionId: string) {
 		const res = await this.fetch(sessionId);
-		res.embed = JSON.parse(res.embed as string);
+		res.embeds = (res.embeds as string[]).map((embed) => JSON.parse(embed));
 
 		return res as ICachedStickyMessage;
 	}
@@ -33,7 +33,7 @@ export class StickyMessageRepository extends Repository {
 	async set(messageId: string, stickyMessageData: ICachedStickyMessage) {
 		const data = {
 			...stickyMessageData,
-			embed: JSON.stringify(stickyMessageData.embed),
+			embeds: stickyMessageData.embeds.map((embed) => JSON.stringify(embed)),
 		};
 
 		await this.save(messageId, data);

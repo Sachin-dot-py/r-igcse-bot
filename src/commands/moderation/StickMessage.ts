@@ -105,13 +105,13 @@ export default class StickMessageCommand extends BaseCommand {
 			return;
 		}
 
-		const embed = embeds[0];
 		const enabled = stickTime <= time && unstickTime > time;
 
 		await StickyMessage.create({
 			channelId: channel.id,
 			messageId: null,
-			embed: embed.toJSON(),
+			embeds: embeds.map((embed) => embed.toJSON()),
+			enabled,
 			stickTime,
 			unstickTime,
 		});
