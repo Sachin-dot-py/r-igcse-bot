@@ -4,7 +4,6 @@ import {
 	type Entity,
 	type RedisConnection,
 } from "redis-om";
-import { redis } from "..";
 
 interface ICachedPracticeQuestion extends Entity {
 	questions: string[];
@@ -26,7 +25,7 @@ const schema = new Schema("Question", {
 	sessionId: { type: "string" },
 });
 
-class PracticeQuestionRepository extends Repository {
+export class PracticeQuestionRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
@@ -43,5 +42,3 @@ class PracticeQuestionRepository extends Repository {
 		)) as ICachedPracticeQuestion;
 	}
 }
-
-export const PracticeQuestionCache = new PracticeQuestionRepository(redis);

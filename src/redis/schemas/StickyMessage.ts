@@ -4,7 +4,6 @@ import {
 	type Entity,
 	type RedisConnection,
 } from "redis-om";
-import { redis } from "..";
 
 interface ICachedStickyMessage extends Entity {
 	channelId: string;
@@ -24,7 +23,7 @@ const schema = new Schema("StickyMessage", {
 	enabled: { type: "boolean" },
 });
 
-class StickyMessageRepository extends Repository {
+export class StickyMessageRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
@@ -41,5 +40,3 @@ class StickyMessageRepository extends Repository {
 		)) as ICachedStickyMessage;
 	}
 }
-
-export const StickyMessageCache = new StickyMessageRepository(redis);

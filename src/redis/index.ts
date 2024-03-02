@@ -1,15 +1,18 @@
 import { createClient } from "redis";
-import { logger } from "..";
+
+import { GuildPreferencesRepository } from "./schemas/GuildPreferences";
+import { StickyMessageRepository } from "./schemas/StickyMessage";
+import { PracticeQuestionRepository } from "./schemas/Question";
+import { PracticeSessionRepository } from "./schemas/Session";
 
 export const redis = createClient({
 	url: process.env.REDIS_URL,
 });
 
-redis.on("error", logger.error);
+export const GuildPreferencesCache = new GuildPreferencesRepository(redis);
+export const StickyMessageCache = new StickyMessageRepository(redis);
+export const PracticeQuestionCache = new PracticeQuestionRepository(redis);
+export const PracticeSessionCache = new PracticeSessionRepository(redis);
 
-export { GuildPreferencesCache } from "./schemas/GuildPreferences";
-export { StickyMessageCache } from "./schemas/StickyMessage";
-export { PracticeQuestionCache } from "./schemas/Question";
-export { PracticeSessionCache } from "./schemas/Session";
-// export { PracticeUserCache } from "./schemas/User";
-// export { PracticeViewCache } from "./schemas/View";
+// import { PracticeUserCache } from "./schemas/User";
+// import { PracticeViewCache } from "./schemas/View";

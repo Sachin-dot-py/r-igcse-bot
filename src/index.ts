@@ -14,6 +14,8 @@ import Logger from "./utils/Logger";
 
 export const logger = new Logger();
 
+redis.on("error", logger.error);
+
 export const client = new DiscordClient({
 	intents: [
 		GatewayIntentBits.AutoModerationConfiguration,

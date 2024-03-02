@@ -4,7 +4,6 @@ import {
 	type RedisConnection,
 	type Entity,
 } from "redis-om";
-import { redis } from "..";
 import type { IGuildPreferences } from "@/mongo";
 
 type ICachedGuildPreferences = Omit<IGuildPreferences, "guildId"> & Entity;
@@ -33,7 +32,7 @@ const schema = new Schema("GuildPreferences", {
 	response: { type: "string", path: "$.keywords[*]" },
 });
 
-class GuildPreferencesRepository extends Repository {
+export class GuildPreferencesRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
@@ -47,5 +46,3 @@ class GuildPreferencesRepository extends Repository {
 		return (await this.save(guildId, preferences)) as ICachedGuildPreferences;
 	}
 }
-
-export const GuildPreferencesCache = new GuildPreferencesRepository(redis);

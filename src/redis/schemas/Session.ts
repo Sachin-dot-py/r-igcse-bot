@@ -4,7 +4,6 @@ import {
 	type RedisConnection,
 	type Entity,
 } from "redis-om";
-import { redis } from "..";
 
 interface ICachedPracticeSession extends Entity {
 	channelId: string;
@@ -36,7 +35,7 @@ const schema = new Schema("Session", {
 	expireTime: { type: "date" },
 });
 
-class PracticeSessionRepository extends Repository {
+export class PracticeSessionRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
 		this.createIndex();
@@ -50,5 +49,3 @@ class PracticeSessionRepository extends Repository {
 		return (await this.save(sessionId, sessionData)) as ICachedPracticeSession;
 	}
 }
-
-export const PracticeSessionCache = new PracticeSessionRepository(redis);
