@@ -6,7 +6,7 @@ import {
 	type RedisConnection,
 } from "redis-om";
 
-type ICachedStickyMessage = IStickyMessage & { enabled: boolean } & Entity;
+type ICachedStickyMessage = IStickyMessage & Entity;
 
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
