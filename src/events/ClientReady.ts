@@ -28,8 +28,6 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online",
 		});
 
-		await syncInteractions(client);
-
 		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
 			year: "numeric",
 			month: "numeric",
@@ -79,26 +77,40 @@ export default class ClientReadyEvent extends BaseEvent {
 				]);
 
 			await botlogChannel.send({ embeds: [readyEmbed] });
-
-			await this.populateStickyMessageCache(client);
-			await this.populateGuildPreferencesCache();
 		}
+
+		await this.populateGuildPreferencesCache()
+			.then(() => logger.info("Populated Guild Preferences Cache"))
+			.catch(logger.error);
+
+		await this.populateStickyMessageCache(client)
+			.then(() => logger.info("Populated Sticky Messages Cache"))
+			.catch(logger.error);
+
+		await syncInteractions(client)
+			.then(() => logger.info("Synced application commands globally"))
+			.catch(logger.error);
+
+		setInterval(async () => {
+			await this.updateStickyMessages().catch(logger.error);
+			// .then(() => logger.info("Updated sticky messages (enabled or not)"))
+		}, 60000);
 	}
 
 	private async populateStickyMessageCache(client: DiscordClient) {
-		const stickyMessages = await StickyMessage.find().exec();
+		const stickyMessages = await StickyMessage.find({}).exec();
 
-		for (const { id, ...rest } of stickyMessages) {
-			await StickyMessageCache.set(id, {
-				channelId: rest.channelId,
-				messageId: rest.messageId,
-				embeds: rest.embeds,
-				stickTime: rest.stickTime,
-				unstickTime: rest.unstickTime,
-				enabled: rest.enabled,
+		for (const stickyMessage of stickyMessages) {
+			await StickyMessageCache.set(stickyMessage.id, {
+				channelId: stickyMessage.channelId,
+				messageId: stickyMessage.messageId,
+				embeds: stickyMessage.embeds,
+				stickTime: stickyMessage.stickTime,
+				unstickTime: stickyMessage.unstickTime,
+				enabled: stickyMessage.enabled,
 			});
 
-			client.stickyChannelIds.push(rest.channelId);
+			client.stickyChannelIds.push(stickyMessage.channelId);
 		}
 	}
 
@@ -134,5 +146,35 @@ export default class ClientReadyEvent extends BaseEvent {
 				welcomeChannelId,
 				keywords,
 			});
+	}
+
+	private async updateStickyMessages() {
+		const time = Date.now();
+
+		const stickyMessages = await StickyMessage.find().exec();
+
+		for (const stickyMessage of stickyMessages) {
+			const stickTime = parseInt(stickyMessage.stickTime);
+			const unstickTime = parseInt(stickyMessage.unstickTime);
+
+			if (stickTime <= time && unstickTime >= time) {
+				await StickyMessage.updateOne(
+					{ id: stickyMessage.id },
+					{ $set: { enabled: true } },
+				);
+
+				const res = await StickyMessageCache.get(stickyMessage.id);
+
+				await StickyMessageCache.set(stickyMessage.id, {
+					...res,
+					enabled: true,
+				});
+			} else if (unstickTime <= time) {
+				await StickyMessage.deleteOne({
+					messageId: stickyMessage.messageId,
+				}).exec();
+				StickyMessageCache.remove(stickyMessage.id);
+			}
+		}
 	}
 }

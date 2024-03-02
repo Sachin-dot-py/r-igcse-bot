@@ -11,12 +11,12 @@ export interface IStickyMessage {
 }
 
 const schema = new Schema<IStickyMessage>({
-	channelId: { type: String, required: true },
-	messageId: { type: String },
-	embeds: { type: [Object], required: true },
-	stickTime: { type: String, required: true },
-	unstickTime: { type: String, required: true },
-	enabled: { type: Boolean, required: true },
+	channelId: { type: String },
+	messageId: { type: String, required: false },
+	embeds: { type: [Object] },
+	stickTime: { type: String },
+	unstickTime: { type: String },
+	enabled: { type: Boolean },
 });
 
 export const StickyMessage = createModel<IStickyMessage>(

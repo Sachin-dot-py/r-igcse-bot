@@ -4,6 +4,7 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
+import { StickyMessageCache } from "@/redis";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
@@ -107,13 +108,22 @@ export default class StickMessageCommand extends BaseCommand {
 
 		const enabled = stickTime <= time && unstickTime > time;
 
-		await StickyMessage.create({
+		const res = await StickyMessage.create({
 			channelId: channel.id,
 			messageId: null,
 			embeds: embeds.map((embed) => embed.toJSON()),
 			enabled,
-			stickTime,
-			unstickTime,
+			stickTime: stickTime.toString(),
+			unstickTime: unstickTime.toString(),
+		});
+
+		await StickyMessageCache.set(res!.id, {
+			channelId: channel.id,
+			messageId: null,
+			embeds: embeds.map((embed) => embed.toJSON()),
+			enabled,
+			stickTime: stickTime.toString(),
+			unstickTime: unstickTime.toString(),
 		});
 
 		if (enabled) client.stickyChannelIds.push(channel.id);

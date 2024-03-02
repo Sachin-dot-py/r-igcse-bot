@@ -23,8 +23,8 @@ export class StickyMessageRepository extends Repository {
 		this.createIndex();
 	}
 
-	async get(sessionId: string) {
-		const res = await this.fetch(sessionId);
+	async get(id: string) {
+		const res = await this.fetch(id);
 		res.embeds = (res.embeds as string[]).map((embed) => JSON.parse(embed));
 
 		return res as ICachedStickyMessage;
@@ -36,8 +36,10 @@ export class StickyMessageRepository extends Repository {
 			embeds: stickyMessageData.embeds.map((embed) => JSON.stringify(embed)),
 		};
 
-		await this.save(id, data);
+		const res = (await this.save(id, data)) as ICachedStickyMessage;
 
-		return stickyMessageData;
+		await this.expire(id, 90);
+
+		return res;
 	}
 }

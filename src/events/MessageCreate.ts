@@ -1,6 +1,10 @@
-import { PrivateDmThread, Reputation, StickyMessage } from "@/mongo";
+import {
+	PrivateDmThread,
+	Reputation,
+	StickyMessage,
+	type IStickyMessage,
+} from "@/mongo";
 import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
-import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
 import {
 	ChannelType,
 	Colors,
@@ -11,6 +15,7 @@ import {
 	TextChannel,
 	ThreadChannel,
 } from "discord.js";
+import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 
@@ -54,7 +59,12 @@ export default class MessageCreateEvent extends BaseEvent {
 					return;
 				}
 
-				await this.handleStickyMessages(message as Message<true>);
+				try {
+					await this.handleStickyMessages(message as Message<true>);
+				} catch (error) {
+					console.error(error);
+				}
+
 				client.stickyCounter[message.channelId] = 0;
 			}
 		} else
@@ -196,30 +206,32 @@ export default class MessageCreateEvent extends BaseEvent {
 		const stickyMessages = (await StickyMessageCache.search()
 			.where("channelId")
 			.equals(message.channelId)
-			.returnAll()) as ICachedStickyMessage[];
+			.returnAll()) as (Omit<IStickyMessage, "embeds"> & {
+			embeds: string[];
+		} & Entity)[];
 
 		for (const stickyMessage of stickyMessages) {
 			if (!stickyMessage.enabled) return;
 
 			if (stickyMessage.messageId) {
-				const oldSticky = await message.channel.messages.fetch(
+				const oldSticky = await message.channel.messages.cache.get(
 					stickyMessage.messageId,
 				);
 
 				if (oldSticky) await oldSticky.delete();
 			}
 
-			const embeds = stickyMessage.embeds.map(
-				(embed) => new EmbedBuilder(embed),
+			const embeds = (stickyMessage.embeds as string[]).map(
+				(embed) => new EmbedBuilder(JSON.parse(embed)),
 			);
 
 			const newSticky = await message.channel.send({
 				embeds,
 			});
 
-			const res = await StickyMessage.findOneAndUpdate(
+			await StickyMessage.findOneAndUpdate(
 				{
-					messageId: stickyMessage.messageId,
+					id: stickyMessage[EntityId]!,
 				},
 				{
 					$set: {
@@ -228,8 +240,9 @@ export default class MessageCreateEvent extends BaseEvent {
 				},
 			);
 
-			await StickyMessageCache.set(res!.id, {
+			await StickyMessageCache.set(stickyMessage[EntityId]!, {
 				...stickyMessage,
+				embeds: stickyMessage.embeds.map((embed) => JSON.parse(embed)),
 				messageId: newSticky.id,
 			});
 		}
