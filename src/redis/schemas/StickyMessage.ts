@@ -6,12 +6,12 @@ import {
 	type RedisConnection,
 } from "redis-om";
 
-type ICachedStickyMessage = IStickyMessage & Entity;
+export type ICachedStickyMessage = IStickyMessage & Entity;
 
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
-	embed: { type: "string[]" },
+	embeds: { type: "string[]" },
 	stickTime: { type: "string" },
 	unstickTime: { type: "string" },
 	enabled: { type: "boolean" },
@@ -30,13 +30,13 @@ export class StickyMessageRepository extends Repository {
 		return res as ICachedStickyMessage;
 	}
 
-	async set(messageId: string, stickyMessageData: ICachedStickyMessage) {
+	async set(id: string, stickyMessageData: IStickyMessage) {
 		const data = {
 			...stickyMessageData,
 			embeds: stickyMessageData.embeds.map((embed) => JSON.stringify(embed)),
 		};
 
-		await this.save(messageId, data);
+		await this.save(id, data);
 
 		return stickyMessageData;
 	}

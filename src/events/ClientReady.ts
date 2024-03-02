@@ -11,7 +11,7 @@ import {
 import { logger } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
+import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -86,30 +86,20 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async populateStickyMessageCache(client: DiscordClient) {
-		const time = Date.now();
-
 		const stickyMessages = await StickyMessage.find().exec();
 
-		// for (const { id, ...rest } of stickyMessages) {
-		// 	// try {
-		// 	// 	await redisClient.redisClient.flushDb();
-		// 	// } catch (error) {
-		// 	// 	logger.error(error);
-		// 	// }
-		// 	// await StickyMessageR.createAndSave({
-		// 	// 	$id: id,
-		// 	// 	...rest,
-		// 	// 	enabled:
-		// 	// 		parseInt(rest.stickTime) <= time && parseInt(rest.unstickTime) > time,
-		// 	// });
-		// }
+		for (const { id, ...rest } of stickyMessages) {
+			await StickyMessageCache.set(id, {
+				channelId: rest.channelId,
+				messageId: rest.messageId,
+				embeds: rest.embeds,
+				stickTime: rest.stickTime,
+				unstickTime: rest.unstickTime,
+				enabled: rest.enabled,
+			});
 
-		client.stickyChannelIds = stickyMessages
-			.filter(
-				({ stickTime, unstickTime }) =>
-					parseInt(stickTime) <= time && parseInt(unstickTime) > time,
-			)
-			.map((message) => message.channelId);
+			client.stickyChannelIds.push(rest.channelId);
+		}
 	}
 
 	private async populateGuildPreferencesCache() {

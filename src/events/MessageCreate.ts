@@ -1,4 +1,6 @@
 import { PrivateDmThread, Reputation, StickyMessage } from "@/mongo";
+import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
+import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
 import {
 	ChannelType,
 	Colors,
@@ -11,7 +13,6 @@ import {
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -192,16 +193,17 @@ export default class MessageCreateEvent extends BaseEvent {
 	}
 
 	private async handleStickyMessages(message: Message<true>) {
-		const stickyMessages = await StickyMessage.find({
-			channelId: message.channelId,
-		}).exec();
+		const stickyMessages = (await StickyMessageCache.search()
+			.where("channelId")
+			.equals(message.channelId)
+			.returnAll()) as ICachedStickyMessage[];
 
 		for (const stickyMessage of stickyMessages) {
 			if (!stickyMessage.enabled) return;
 
 			if (stickyMessage.messageId) {
 				const oldSticky = await message.channel.messages.fetch(
-					stickyMessage.id,
+					stickyMessage.messageId,
 				);
 
 				if (oldSticky) await oldSticky.delete();
@@ -215,10 +217,20 @@ export default class MessageCreateEvent extends BaseEvent {
 				embeds,
 			});
 
-			await stickyMessage.updateOne({
-				$set: {
-					messageId: newSticky.id,
+			const res = await StickyMessage.findOneAndUpdate(
+				{
+					messageId: stickyMessage.messageId,
 				},
+				{
+					$set: {
+						messageId: newSticky.id,
+					},
+				},
+			);
+
+			await StickyMessageCache.set(res!.id, {
+				...stickyMessage,
+				messageId: newSticky.id,
 			});
 		}
 	}
