@@ -96,31 +96,31 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 					option
 						.setName("admin_role")
 						.setDescription("The role for admins")
-						.setRequired(true),
+						.setRequired(false),
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("moderator_role")
 						.setDescription("The role for moderators")
-						.setRequired(true),
+						.setRequired(false),
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("chat_moderator_role")
 						.setDescription("The role for chat moderators")
-						.setRequired(true),
+						.setRequired(false),
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("ig_helper_role")
 						.setDescription("The role for IG helpers")
-						.setRequired(true),
+						.setRequired(false),
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("al_helper_role")
 						.setDescription("The role for AL helpers")
-						.setRequired(true),
+						.setRequired(false),
 				)
 				.addStringOption((option) =>
 					option
