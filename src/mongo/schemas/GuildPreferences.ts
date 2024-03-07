@@ -7,8 +7,23 @@ export interface IGuildPreferences {
 	repDisabledChannelIds: string[];
 
 	modlogChannelId: string;
+	behaviorlogChannelId: string;
+	warnlogChannelId: string;
 	botlogChannelId: string;
+	actionRequiredChannelId: string;
+
 	welcomeChannelId: string;
+	modFeedbackChannelId: string;
+	confessionsChannelId: string;
+	confessionApprovalChannelId: string;
+	countingChannelId: string;
+	hotmResultsChannelId: string;
+	studySessionChannelId: string;
+
+	chatmodApplicationsChannelId: string;
+	modmailChannelId: string;
+
+	// TODO: DM Threads Stuff
 
 	// igHelperRoles: {
 	// 	roleId: string;
@@ -36,37 +51,29 @@ export interface IGuildPreferences {
 
 const schema = new Schema<IGuildPreferences>({
 	guildId: { type: String, required: true, unique: true },
-	modlogChannelId: { type: String, required: true },
-	botlogChannelId: { type: String, required: true },
-	welcomeChannelId: { type: String, required: true },
-	repEnabled: { type: Boolean, required: true },
-	repDisabledChannelIds: { type: [String], required: true },
-	// igHelperRoles: {
-	// 	roleId: { type: String, required: true },
-	// 	channelId: { type: String, required: true },
-	// },
-	// alHelperRoles: {
-	// 	roleId: { type: String, required: true },
-	// 	channelId: { type: String, required: true },
-	// },
-	igHelperRoleId: { type: String, required: true },
-	alHelperRoleId: { type: String, required: true },
-	adminRoleId: { type: String, required: true },
-	moderatorRoleId: { type: String, required: true },
-	chatModRoleId: { type: String, required: true },
-	banAppealFormLink: { type: String, required: true },
-	keywords: {
-		keyword: {
-			type: String,
-			required: true,
-			unique: true,
-		},
-		response: {
-			type: String,
-			required: true,
-			unique: false,
-		},
-	},
+	repEnabled: { type: Boolean, default: false },
+	repDisabledChannelIds: { type: [String], default: [] },
+	modlogChannelId: { type: String, default: null },
+	behaviorlogChannelId: { type: String, default: null },
+	warnlogChannelId: { type: String, default: null },
+	botlogChannelId: { type: String, default: null },
+	actionRequiredChannelId: { type: String, default: null },
+	welcomeChannelId: { type: String, default: null },
+	modFeedbackChannelId: { type: String, default: null },
+	confessionsChannelId: { type: String, default: null },
+	confessionApprovalChannelId: { type: String, default: null },
+	countingChannelId: { type: String, default: null },
+	hotmResultsChannelId: { type: String, default: null },
+	studySessionChannelId: { type: String, default: null },
+	chatmodApplicationsChannelId: { type: String, default: null },
+	modmailChannelId: { type: String, default: null },
+	igHelperRoleId: { type: String, default: null },
+	alHelperRoleId: { type: String, default: null },
+	adminRoleId: { type: String, default: null },
+	moderatorRoleId: { type: String, default: null },
+	chatModRoleId: { type: String, default: null },
+	banAppealFormLink: { type: String, default: null },
+	keywords: { type: [{ keyword: String, response: String }], default: [] },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

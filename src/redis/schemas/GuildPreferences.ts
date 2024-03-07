@@ -30,6 +30,17 @@ const schema = new Schema("GuildPreferences", {
 	banAppealFormLink: { type: "string" },
 	keyword: { type: "string", path: "$.keywords[*]" },
 	response: { type: "string", path: "$.keywords[*]" },
+	behaviorlogChannelId: { type: "string" },
+	warnlogChannelId: { type: "string" },
+	modmailChannelId: { type: "string" },
+	actionRequiredChannelId: { type: "string" },
+	modFeedbackChannelId: { type: "string" },
+	confessionsChannelId: { type: "string" },
+	confessionApprovalChannelId: { type: "string" },
+	countingChannelId: { type: "string" },
+	hotmResultsChannelId: { type: "string" },
+	studySessionChannelId: { type: "string" },
+	chatmodApplicationsChannelId: { type: "string" },
 });
 
 export class GuildPreferencesRepository extends Repository {
