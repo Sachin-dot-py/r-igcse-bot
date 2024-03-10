@@ -46,14 +46,9 @@ export default class StickMessageCommand extends BaseCommand {
 	// TODO: Logging
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		if (
-			!interaction.inGuild() ||
-			!interaction.channel ||
-			!interaction.channel.isTextBased()
-		)
-			return;
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		const time = Date.now();
 

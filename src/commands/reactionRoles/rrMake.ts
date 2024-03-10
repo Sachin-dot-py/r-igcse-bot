@@ -20,6 +20,6 @@ export default class rrMakeCommand extends BaseCommand {
 	// TODO: Reaction Roles Command
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {}
 }

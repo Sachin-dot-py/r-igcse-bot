@@ -23,10 +23,8 @@ export default class ReputationCommand extends BaseCommand {
 
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		if (!interaction.guild) return;
-
 		const user = interaction.options.getUser("user", false) ?? interaction.user;
 
 		const res = await Reputation.findOne({

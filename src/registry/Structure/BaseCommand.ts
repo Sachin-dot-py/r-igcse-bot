@@ -1,14 +1,14 @@
 import {
 	ChatInputCommandInteraction,
 	SlashCommandBuilder,
+	type CacheType,
 	type SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 import type { DiscordClient } from "../DiscordClient";
 
-export type DiscordChatInputCommandInteraction = Omit<
-	ChatInputCommandInteraction,
-	"client"
->;
+export type DiscordChatInputCommandInteraction<
+	Cached extends CacheType = CacheType,
+> = Omit<ChatInputCommandInteraction<Cached>, "client">;
 
 export default abstract class BaseCommand {
 	private _category: string = "";

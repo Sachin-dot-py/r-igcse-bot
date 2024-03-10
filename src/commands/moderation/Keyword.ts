@@ -23,10 +23,8 @@ export default class KeywordCommand extends BaseCommand {
 
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		if (!interaction.guild) return;
-
 		if (interaction.options.getSubcommand() === "add") {
 			// TODO: Add keyword
 		} else if (interaction.options.getSubcommand() === "remove") {

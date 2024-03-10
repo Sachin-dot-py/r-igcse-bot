@@ -170,10 +170,8 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 	// TODO: improve the command?
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		if (!interaction.guild) return;
-
 		await interaction.deferReply();
 
 		try {

@@ -30,7 +30,7 @@ export default class KickCommand extends BaseCommand {
 
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
@@ -44,10 +44,10 @@ export default class KickCommand extends BaseCommand {
 		// }
 
 		try {
-			await interaction.guild?.members.kick(user, reason);
+			await interaction.guild.members.kick(user, reason);
 
 			await user.send(
-				`Hi there from ${interaction.guild?.name}. You have been kicked from the server due to '${reason}'.`,
+				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to '${reason}'.`,
 			);
 
 			await interaction.reply({

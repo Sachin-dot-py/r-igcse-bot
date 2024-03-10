@@ -25,14 +25,9 @@ export default class ListKeywordsCommand extends BaseCommand {
 
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		if (
-			!interaction.guild ||
-			!interaction.channel ||
-			!interaction.channel.isTextBased()
-		)
-			return;
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		const keywords =
 			(await GuildPreferencesCache.get(interaction.guild.id)).keywords || [];

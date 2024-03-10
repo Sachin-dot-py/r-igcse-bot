@@ -47,9 +47,9 @@ export default class KickCommand extends BaseCommand {
 
 	async execute(
 		client: DiscordClient,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		if (!interaction.guild || !interaction.channel) return;
+		if (!interaction.channel) return;
 
 		if (interaction.options.getSubcommand() === "send") {
 			const channel =
