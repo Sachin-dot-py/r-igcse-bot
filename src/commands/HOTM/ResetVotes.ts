@@ -10,7 +10,7 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("reset_hotm")
-				.setDescription("// TODO")
+				.setDescription("Reset votes for Helper Of The Month (for mods)")
 				.setDefaultMemberPermissions(
 					PermissionFlagsBits.ManageGuild | PermissionFlagsBits.ManageRoles,
 				)
