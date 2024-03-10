@@ -45,6 +45,8 @@ export interface IGuildPreferences {
 		keyword: string;
 		response: string;
 	}[];
+
+	colorRolesRoleId: string;
 }
 
 const schema = new Schema<IGuildPreferences>({
@@ -72,6 +74,7 @@ const schema = new Schema<IGuildPreferences>({
 	chatModRoleId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
 	keywords: { type: [{ keyword: String, response: String }], default: [] },
+	colorRolesRoleId: { type: String, default: null },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(
