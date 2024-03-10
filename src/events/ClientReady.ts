@@ -130,6 +130,17 @@ export default class ClientReadyEvent extends BaseEvent {
 			repDisabledChannelIds,
 			welcomeChannelId,
 			keywords,
+			confessionApprovalChannelId,
+			modmailChannelId,
+			chatmodApplicationsChannelId,
+			confessionsChannelId,
+			countingChannelId,
+			hotmResultsChannelId,
+			behaviorlogChannelId,
+			warnlogChannelId,
+			actionRequiredChannelId,
+			modFeedbackChannelId,
+			studySessionChannelId,
 		} of guildPreferences)
 			await GuildPreferencesCache.set(guildId, {
 				adminRoleId,
@@ -144,6 +155,17 @@ export default class ClientReadyEvent extends BaseEvent {
 				repDisabledChannelIds,
 				welcomeChannelId,
 				keywords,
+				confessionApprovalChannelId,
+				modmailChannelId,
+				chatmodApplicationsChannelId,
+				confessionsChannelId,
+				countingChannelId,
+				hotmResultsChannelId,
+				behaviorlogChannelId,
+				warnlogChannelId,
+				actionRequiredChannelId,
+				modFeedbackChannelId,
+				studySessionChannelId,
 			});
 	}
 
