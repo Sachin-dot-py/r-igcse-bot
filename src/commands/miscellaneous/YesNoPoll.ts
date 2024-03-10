@@ -16,14 +16,17 @@ export default class YesNoPollCommand extends BaseCommand {
 						.setName("poll")
 						.setDescription("The poll to be created")
 						.setRequired(true),
-				),
+				)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
+		if (!interaction.channel) return;
+
 		const poll = interaction.options.getString("poll", true);
 
 		const embed = new EmbedBuilder()
@@ -35,18 +38,18 @@ export default class YesNoPollCommand extends BaseCommand {
 			});
 
 		try {
-			const message = await interaction.channel?.send({
+			const message = await interaction.channel.send({
 				embeds: [embed],
 			});
 
-			await message?.react("✅");
-			await message?.react("❌");
+			await message.react("✅");
+			await message.react("❌");
 		} catch (e) {
-			// TODO: Extract into logger
 			await interaction.reply({
 				content: "Failed to create poll",
 				ephemeral: true,
 			});
+
 			logger.error(e);
 		}
 	}
