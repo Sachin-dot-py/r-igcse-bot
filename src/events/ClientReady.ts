@@ -1,4 +1,3 @@
-import { BETA } from "@/constants";
 import { GuildPreferences, StickyMessage } from "@/mongo";
 import { syncInteractions } from "@/registry";
 import {
@@ -56,7 +55,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				.addFields([
 					{
 						name: "Bot Information",
-						value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(guild.joinedAt)}\nBeta: ${BETA}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
+						value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(guild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
 						inline: false,
 					},
 					{
