@@ -2,7 +2,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { SlashCommandBuilder } from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { GuildPreferences } from "../../mongo/schemas/GuildPreferences";
 import { logger } from "@/index";
 
@@ -32,7 +32,7 @@ export default class BanCommand extends BaseCommand {
 						.setMinValue(0)
 						.setRequired(false),
 				)
-				// .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 				.setDMPermission(false),
 		);
 	}

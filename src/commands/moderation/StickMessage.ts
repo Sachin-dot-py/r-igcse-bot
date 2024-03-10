@@ -3,7 +3,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { SlashCommandBuilder } from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { StickyMessageCache } from "@/redis";
 
 export default class StickMessageCommand extends BaseCommand {
@@ -12,7 +12,7 @@ export default class StickMessageCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("stick_message")
 				.setDescription("Sticks a message to a channel. Can be done in advance")
-				// .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.addStringOption((option) =>
 					option

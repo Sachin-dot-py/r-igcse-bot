@@ -3,7 +3,11 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import { ApplicationCommandOptionType, SlashCommandBuilder } from "discord.js";
+import {
+	ApplicationCommandOptionType,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
 
 const setPreference = async <T extends keyof IGuildPreferences>(
 	guildId: string,
@@ -157,9 +161,9 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 						.setName("ban_appeal_form_link")
 						.setDescription("The link to the ban appeal form")
 						.setRequired(false),
-				),
-			// .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-			// .setDMPermission(false),
+				)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+				.setDMPermission(false),
 		);
 	}
 
