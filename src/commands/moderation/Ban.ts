@@ -38,7 +38,7 @@ export default class BanCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);

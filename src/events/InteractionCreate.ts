@@ -13,7 +13,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		super(Events.InteractionCreate);
 	}
 
-	async execute(client: DiscordClient, interaction: Interaction) {
+	async execute(client: DiscordClient<true>, interaction: Interaction) {
 		if (interaction.isChatInputCommand())
 			this.handleCommand(client, interaction);
 		else if (interaction.isContextMenuCommand())
@@ -21,7 +21,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 	}
 
 	async handleCommand(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: ChatInputCommandInteraction,
 	) {
 		const command = client.commands.get(interaction.commandName);
@@ -49,7 +49,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 	}
 	async handleMenu(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: ContextMenuCommandInteraction,
 	) {
 		const menu = client.menus.get(interaction.commandName);

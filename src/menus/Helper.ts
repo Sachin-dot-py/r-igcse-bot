@@ -77,7 +77,7 @@ export default class HelperMenu extends BaseMenu {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: ContextMenuCommandInteraction,
 	) {
 		if (

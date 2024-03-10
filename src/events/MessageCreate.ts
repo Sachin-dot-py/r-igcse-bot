@@ -24,7 +24,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		super(Events.MessageCreate);
 	}
 
-	async execute(client: DiscordClient, message: Message) {
+	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
 
 		if (message.guild) {

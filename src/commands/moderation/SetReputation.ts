@@ -29,7 +29,7 @@ export default class extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", false) ?? interaction.user;

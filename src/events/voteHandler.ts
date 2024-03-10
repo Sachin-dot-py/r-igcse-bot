@@ -2,7 +2,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import { MessageReaction, User, EmbedBuilder } from "discord.js";
 
 export const handleVote = (
-	client: DiscordClient,
+	client: DiscordClient<true>,
 	reaction: MessageReaction,
 	user: User,
 ) => {

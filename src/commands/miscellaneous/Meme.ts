@@ -20,7 +20,7 @@ export default class MemeCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const subreddit = interaction.options.getString("subreddit", false) || "";

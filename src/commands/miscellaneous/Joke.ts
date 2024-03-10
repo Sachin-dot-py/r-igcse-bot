@@ -47,7 +47,7 @@ export default class JokeCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const category = interaction.options.getString("category", false);

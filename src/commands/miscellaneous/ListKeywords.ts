@@ -24,7 +24,7 @@ export default class ListKeywordsCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;

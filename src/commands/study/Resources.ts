@@ -24,7 +24,7 @@ export default class ResourcesCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		if (!interaction.channel) return;

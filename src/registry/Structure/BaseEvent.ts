@@ -7,5 +7,8 @@ export default abstract class BaseEvent {
 		return this._name;
 	}
 
-	abstract execute(client: DiscordClient, ...args: unknown[]): Promise<void>;
+	abstract execute(
+		client: DiscordClient<true>,
+		...args: unknown[]
+	): Promise<void>;
 }

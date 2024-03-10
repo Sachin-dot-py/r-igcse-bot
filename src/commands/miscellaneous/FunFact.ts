@@ -14,7 +14,7 @@ export default class FunFactCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();

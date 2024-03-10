@@ -19,7 +19,7 @@ export default class ResourcesCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const query = interaction.options.getString("query");

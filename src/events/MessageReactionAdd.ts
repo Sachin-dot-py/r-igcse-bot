@@ -8,7 +8,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 		super(Events.MessageReactionAdd);
 	}
 
-	async execute(client: DiscordClient, reaction: MessageReaction, user: User) {
+	async execute(
+		client: DiscordClient<true>,
+		reaction: MessageReaction,
+		user: User,
+	) {
 		handleVote(client, reaction, user);
 	}
 }

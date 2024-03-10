@@ -17,7 +17,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		super(Events.ClientReady);
 	}
 
-	async execute(client: DiscordClient) {
+	async execute(client: DiscordClient<true>) {
 		if (!client.user) return;
 
 		logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);

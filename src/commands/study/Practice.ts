@@ -65,7 +65,7 @@ export default class PracticeCommand extends BaseCommand {
 	};
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const action = interaction.options.getString("action");

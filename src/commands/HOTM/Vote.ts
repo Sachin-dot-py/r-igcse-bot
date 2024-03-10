@@ -22,7 +22,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const helper = interaction.options.getUser("helper", true);
