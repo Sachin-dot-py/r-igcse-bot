@@ -14,6 +14,8 @@ import Buttons from "@/components/practice/Buttons";
 import { practiceSubjects, subjectTopics } from "@/data";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "@/registry/DiscordClient";
+import { logger } from "@/index";
+import { PracticeSessionCache, UserCache } from "@/redis";
 
 type CommandOptions = {
 	[key: string]: (
@@ -43,7 +45,7 @@ export default class PracticeCommand extends BaseCommand {
 					option
 						.setName("action")
 						.addChoices(
-							...Object.keys(actions).map((key) => ({ name: key, value: key })),
+							...actions.map((key) => ({ name: key, value: key })),
 						)
 						.setDescription("Choose an action")
 						.setRequired(true),
@@ -70,126 +72,64 @@ export default class PracticeCommand extends BaseCommand {
 	) {
 		const action = interaction.options.getString("action");
 		if (action) {
-			this.options[action](interaction);
+			this.options[action].bind(this)(interaction);
 		}
 	}
 
 	private async newSession(interaction: DiscordChatInputCommandInteraction) {
-		// const sessionUser = await PracticeUserCache.get(interaction.user.id);
-		// if (sessionUser?.playing) {
-		// 	await interaction.reply({
-		// 		content: "You are already in a session",
-		// 		ephemeral: true,
-		// 	});
-		// 	return;
-		// }
-
+		await this.userInSessionCheck(interaction, false);
 		const modalCustomId = uuidv4();
-		const sessionInfoModal = new SessionInfoModal(modalCustomId);
+		const modal = new SessionInfoModal(modalCustomId);
 
-		await interaction.showModal(sessionInfoModal);
+		await interaction.showModal(modal);
+		const modalResponse = await modal.waitForResponse(modalCustomId, interaction);
+		if (!modalResponse) return;
+		const { minimumYear, numberOfQuestions, followUpInteraction } = modalResponse;
 
-		// collect the data from the modal
-		const sessionInfo = await interaction.awaitModalSubmit({
-			time: 60000,
-			filter: (i) => i.customId === modalCustomId,
-		});
-
-		const minimumYear = sessionInfo.fields.getTextInputValue("minimum_year");
-		const numberOfQuestions = sessionInfo.fields.getTextInputValue(
-			"number_of_questions",
-		);
-
-		if (!minimumYear || !numberOfQuestions) {
-			await interaction.reply({
-				content: "Please provide the minimum year and number of questions",
-				ephemeral: true,
-			});
-			return;
-		}
-
-		const subjectSelectOptions = Object.entries(practiceSubjects).map(
-			([key, value]) =>
-				new StringSelectMenuOptionBuilder()
-					.setLabel(`${value} (${key})`)
-					.setValue(key),
-		);
-		const SelectMenuCustomId = uuidv4();
+		const subjectCustomId = uuidv4();
 		const subjectSelect = new Select(
 			"subject",
 			"Select a subject",
-			subjectSelectOptions,
+			await this.getSubjects(),
 			1,
-			SelectMenuCustomId,
+			subjectCustomId,
 		);
 
-		const selectComponents = [
+		const subjectComponents = [
 			new ActionRowBuilder<Select>().addComponents(subjectSelect),
-			new Buttons(SelectMenuCustomId) as ActionRowBuilder<ButtonBuilder>,
-		];
+			new Buttons(subjectCustomId) as ActionRowBuilder<ButtonBuilder>,
+		]
 
-		const responseSubject = await interaction.reply({
+		const subjectInteraction = await followUpInteraction.reply({
 			content: "Select a subject",
-			components: selectComponents,
+			components: subjectComponents,
 			ephemeral: true,
+			fetchReply: true
 		});
 
-		const subject = await responseSubject.awaitMessageComponent({
-			time: 60000,
-			filter: (i) => i.customId === SelectMenuCustomId,
-			componentType: ComponentType.StringSelect,
+		const subject = await subjectSelect.waitForResponse(subjectCustomId, subjectInteraction);
+		if (!subject) return;
+
+		const topicCustomId = uuidv4();
+		const topicSelectOptions = await this.getTopics(subject[0]);
+		const topicSelects = await this.getTopicSelects(topicSelectOptions, topicCustomId);
+
+		const topicComponents = topicSelects.map((select) => new ActionRowBuilder<Select>().addComponents(select)) as ActionRowBuilder<any>[];
+		topicComponents.push(new Buttons(topicCustomId) as ActionRowBuilder<ButtonBuilder>);
+
+		const topicInteraction = await followUpInteraction.editReply({
+			content: "Select a topic",
+			components: topicComponents
 		});
 
-		const selectedSubject = subject.values?.[0];
-
-		if (!selectedSubject) {
-			await interaction.editReply("Please select a subject");
-			return;
-		}
-
-		const topicSelectOptions = subjectTopics[selectedSubject].map((topic) =>
-			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic),
-		);
-		const topicSelects: Select[] = [];
-		const topicSelectCustomId = uuidv4();
-
-		for (let i = 0; i < topicSelectOptions.length; i += 25) {
-			const topicSelect = new Select(
-				`topic_${i}`,
-				"Select a topic",
-				topicSelectOptions.slice(i, i + 25),
-				1,
-				`${topicSelectCustomId}_${i}`,
-			);
-			topicSelects.push(topicSelect);
-		}
-
-		const topicSelectComponents: ActionRowBuilder<any>[] = topicSelects.map(
-			(select, index) => new ActionRowBuilder<Select>().addComponents(select),
-		);
-		topicSelectComponents.push(
-			new Buttons(topicSelectCustomId) as ActionRowBuilder<ButtonBuilder>,
+		const topicArrays = await Promise.all(
+			topicSelects.map((select, index) => select.waitForResponse(`${topicCustomId}_${index}`, topicInteraction))
 		);
 
-		const responseTopic = await interaction.editReply({
-			content: "Select a topic. Select none for all topics",
-			components: topicSelectComponents,
-		});
+		const topics = topicArrays.flat();
+		if (!topics) return;
 
-		const selectedTopics: string[] = [];
-		for (let i = 0; i < topicSelects.length; i++) {
-			const topic = await responseTopic.awaitMessageComponent({
-				time: 60000,
-				filter: (i) => i.customId.startsWith(`${topicSelectCustomId}_${i}`),
-				componentType: ComponentType.StringSelect,
-			});
-
-			selectedTopics.push(...topic.values);
-		}
-
-		if (selectedTopics.length === 0) {
-			selectedTopics.push(...subjectTopics[selectedSubject]);
-		}
+		
 	}
 
 	private async leaveSession(interaction: DiscordChatInputCommandInteraction) {}
@@ -213,4 +153,70 @@ export default class PracticeCommand extends BaseCommand {
 	) {}
 
 	private async sessionInfo(interaction: DiscordChatInputCommandInteraction) {}
+
+	async getSubjects(): Promise<StringSelectMenuOptionBuilder[]> {
+		return Object.entries(practiceSubjects).map(
+			([key, value]) =>
+				new StringSelectMenuOptionBuilder()
+					.setLabel(`${value} (${key})`)
+					.setValue(key),
+		);
+	}
+
+	private async getTopics(subject: string): Promise<StringSelectMenuOptionBuilder[]> {
+		return subjectTopics[subject].map((topic) =>
+			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic),
+		);
+	}
+
+	private async getTopicSelects(
+		topicSelectOptions: StringSelectMenuOptionBuilder[],
+		customId: string,
+	): Promise<Select[]> {
+		const topicSelects: Select[] = [];
+		for (let i = 0; i < topicSelectOptions.length; i += 25) {
+			const topicSelect = new Select(
+				`topic_${i}`,
+				"Select a topic",
+				topicSelectOptions.slice(i, i + 25),
+				topicSelectOptions.length - i > 25 ? 25 : topicSelectOptions.length - i,
+				`${customId}_${i}`,
+			);
+			topicSelects.push(topicSelect);
+		}
+		return topicSelects;
+	}
+
+	/**
+	 * @param inSession - Whether the user needs to be in a session or not
+	 */
+	private async userInSessionCheck(interaction: DiscordChatInputCommandInteraction, inSession: boolean): Promise<void> {
+		const userId = interaction.user.id;
+		const user = await UserCache.get(userId);
+	
+		if (!user) {
+			return;
+		}
+
+		switch (inSession) {
+			case true:
+				if (!user?.sessionId) {
+					await interaction.reply({
+						content: "You need to be in a session to use this command.",
+						ephemeral: true,
+					});
+					return;
+				}
+				break;
+			case false:
+				if (user?.sessionId) {
+					await interaction.reply({
+						content: "You are already in a session",
+						ephemeral: true,
+					});
+					return;
+				}
+				break;
+		}
+	}
 }

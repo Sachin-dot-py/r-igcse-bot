@@ -1,3 +1,4 @@
+import SessionInfoModal from "@/components/practice/SessionInfoModal";
 import {
 	Schema,
 	Repository,
@@ -5,7 +6,8 @@ import {
 	type Entity,
 } from "redis-om";
 
-interface ICachedPracticeSession extends Entity {
+interface IPracticeSession extends Entity {
+	sessionId: string;
 	channelId: string;
 	threadId: string;
 	subject: string;
@@ -21,6 +23,7 @@ interface ICachedPracticeSession extends Entity {
 }
 
 const schema = new Schema("Session", {
+	sessionId: { type: "string" },
 	channelId: { type: "string" },
 	threadId: { type: "string" },
 	subject: { type: "string" },
@@ -42,10 +45,14 @@ export class PracticeSessionRepository extends Repository {
 	}
 
 	async get(sessionId: string) {
-		return (await this.fetch(sessionId)) as ICachedPracticeSession;
+		const session = await this.fetch(sessionId) as IPracticeSession;
+		if (session.sessionId === undefined) {
+			return null;
+		}
+		return session;
 	}
 
-	async set(sessionId: string, sessionData: ICachedPracticeSession) {
-		return (await this.save(sessionId, sessionData)) as ICachedPracticeSession;
+	async set(sessionId: string, sessionData: IPracticeSession) {
+		return (await this.save(sessionId, sessionData)) as IPracticeSession;
 	}
 }
