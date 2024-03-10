@@ -1,10 +1,12 @@
 import { GuildPreferences, type IGuildPreferences } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ApplicationCommandOptionType,
+	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -194,14 +196,14 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 					x.type === ApplicationCommandOptionType.Channel ||
 					x.type === ApplicationCommandOptionType.Role,
 			)) {
-				if (!channelOrRoleOption.channel && !channelOrRoleOption.role) return;
+				if (!channelOrRoleOption.channel || !channelOrRoleOption.role) return;
 
 				await setPreference(
 					interaction.guild.id,
 					channelOrRoleOption.name as keyof IGuildPreferences,
 					channelOrRoleOption.channel
 						? channelOrRoleOption.channel.id
-						: channelOrRoleOption.role!.id,
+						: channelOrRoleOption.role.id,
 				);
 			}
 
@@ -214,6 +216,28 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 				content: "Failed to update preferences",
 				ephemeral: true,
 			});
+
+			const guildPreferences = await GuildPreferencesCache.get(
+				interaction.guildId,
+			);
+
+			const botlogChannelId = guildPreferences.botlogChannelId;
+			const botlogChannel =
+				interaction.guild.channels.cache.get(botlogChannelId);
+
+			if (!botlogChannel || !botlogChannel.isTextBased()) return;
+
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: `Error | Set Preferences | By ${interaction.user.displayName}`,
+					iconURL: interaction.user.displayAvatarURL(),
+				})
+				.setDescription(`\`\`\`\n${error}\`\`\``);
+
+			await botlogChannel.send({
+				embeds: [embed],
+			});
+
 			return;
 		}
 	}
