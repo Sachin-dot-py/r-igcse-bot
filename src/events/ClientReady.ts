@@ -36,7 +36,6 @@ export default class ClientReadyEvent extends BaseEvent {
 		for (const guild of client.guilds.cache.values()) {
 			const guildPrefs = await GuildPreferencesCache.get(guild.id);
 
-			// TODO: Implement warning for server to set their guild prefs
 			if (!guildPrefs.botlogChannelId) continue;
 
 			const botlogChannel = await guild.channels.cache.get(

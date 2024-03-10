@@ -1,20 +1,6 @@
-import {
-	PrivateDmThread,
-	Reputation,
-	StickyMessage,
-	type IStickyMessage,
-} from "@/mongo";
+import { Reputation, StickyMessage, type IStickyMessage } from "@/mongo";
 import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
-import {
-	ChannelType,
-	Colors,
-	EmbedBuilder,
-	Events,
-	Guild,
-	Message,
-	TextChannel,
-	ThreadChannel,
-} from "discord.js";
+import { EmbedBuilder, Events, Message } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
@@ -40,12 +26,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				message.reply(keywords[0].response);
 			}
 
-			if (guildPreferences.repEnabled === null) {
-				// TODO: Bot logging for unset guild prefs
-				return;
-			}
-
-			if (message.reference && (guildPreferences.repEnabled || true))
+			if (message.reference && (guildPreferences.repEnabled ?? true))
 				this.handleRep(
 					message as Message<true>,
 					guildPreferences?.repDisabledChannelIds || [],
@@ -67,57 +48,58 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				client.stickyCounter[message.channelId] = 0;
 			}
-		} else
-			this.handleModMail(
-				message as Message<false>,
-				client.guilds.cache.get("894596848357089330")!,
-				"1204423423799988314",
-			);
+		}
+		// else
+		// 	this.handleModMail(
+		// 		message as Message<false>,
+		// 		client.guilds.cache.get("894596848357089330")!,
+		// 		"1204423423799988314",
+		// 	);
 	}
 
-	// TODO: Logging
-	private async handleModMail(
-		message: Message<false>,
-		guild: Guild,
-		threadsChannelId: string,
-	) {
-		const channel = guild.channels.cache.get(threadsChannelId);
+	// TODO: Redo Modmail
+	// private async handleModMail(
+	// 	message: Message<false>,
+	// 	guild: Guild,
+	// 	threadsChannelId: string,
+	// ) {
+	// 	const channel = guild.channels.cache.get(threadsChannelId);
 
-		if (!channel || !(channel instanceof TextChannel)) return;
+	// 	if (!channel || !(channel instanceof TextChannel)) return;
 
-		const res = await PrivateDmThread.findOne({
-			userId: message.author.id,
-		}).exec();
+	// 	const res = await PrivateDmThread.findOne({
+	// 		userId: message.author.id,
+	// 	}).exec();
 
-		let thread: ThreadChannel;
+	// 	let thread: ThreadChannel;
 
-		if (!res) {
-			thread = await channel.threads.create({
-				name: `${message.author.username} (${message.author.id})`,
-				type: ChannelType.PrivateThread,
-				startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``,
-			});
+	// 	if (!res) {
+	// 		thread = await channel.threads.create({
+	// 			name: `${message.author.username} (${message.author.id})`,
+	// 			type: ChannelType.PrivateThread,
+	// 			startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``,
+	// 		});
 
-			await PrivateDmThread.create({
-				userId: message.author.id,
-				threadId: thread.id,
-			});
-		} else thread = channel.threads.cache.get(res.threadId)!;
+	// 		await PrivateDmThread.create({
+	// 			userId: message.author.id,
+	// 			threadId: thread.id,
+	// 		});
+	// 	} else thread = channel.threads.cache.get(res.threadId)!;
 
-		const embed = new EmbedBuilder()
-			.setTitle("New DM Recieved")
-			.setAuthor({
-				name: message.author.username,
-				iconURL: message.author.displayAvatarURL(),
-			})
-			.setDescription(message.content)
-			.setTimestamp(message.createdTimestamp)
-			.setColor(Colors.Red);
+	// 	const embed = new EmbedBuilder()
+	// 		.setTitle("New DM Recieved")
+	// 		.setAuthor({
+	// 			name: message.author.username,
+	// 			iconURL: message.author.displayAvatarURL(),
+	// 		})
+	// 		.setDescription(message.content)
+	// 		.setTimestamp(message.createdTimestamp)
+	// 		.setColor(Colors.Red);
 
-		thread.send({
-			embeds: [embed],
-		});
-	}
+	// 	thread.send({
+	// 		embeds: [embed],
+	// 	});
+	// }
 
 	// TODO: Refactor reputation system
 	private async handleRep(

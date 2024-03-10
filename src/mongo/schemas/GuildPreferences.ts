@@ -23,8 +23,6 @@ export interface IGuildPreferences {
 	chatmodApplicationsChannelId: string;
 	modmailChannelId: string;
 
-	// TODO: DM Threads Stuff
-
 	// igHelperRoles: {
 	// 	roleId: string;
 	// 	channelId: string;
