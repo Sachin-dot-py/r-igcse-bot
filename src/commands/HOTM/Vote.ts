@@ -1,4 +1,5 @@
 import { HOTM } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -27,32 +28,44 @@ export default class HOTMVotingCommand extends BaseCommand {
 	) {
 		const helper = interaction.options.getUser("helper", true);
 
-		// const igHelperRoleId = (
-		// 	await GuildPreferencesCache.get(interaction.guild.id)
-		// )?.igHelperRoleId;
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guild.id,
+		);
 
-		// if (!igHelperRoleId) return;
+		const igHelperRoleId = guildPreferences.igHelperRoleId;
 
-		// const helperRoles = interaction.guild.roles.cache.filter(
-		// 	(role) => igHelperRoleId === role.id,
-		// );
+		if (!igHelperRoleId) return;
 
-		// if (!(helperRoles.size < 1)) {
-		// 	await interaction.reply({
-		// 		content: "Helper role not found",
-		// 		ephemeral: true,
-		// 	});
-		// 	// TODO: Logging for staff
-		// 	return;
-		// }
+		const helperRoles = interaction.guild.roles.cache.filter(
+			(role) => igHelperRoleId === role.id,
+		);
 
-		// if (!helperRoles.some((role) => role.members.has(helper.id))) {
-		// 	await interaction.reply({
-		// 		content: `${helper.displayName} is not a helper`,
-		// 		ephemeral: true,
-		// 	});
-		// 	return;
-		// }
+		if (helperRoles.size < 1) {
+			await interaction.reply({
+				content: "Helper roles not found",
+				ephemeral: true,
+			});
+
+			const botlogChannelId = guildPreferences.botlogChannelId;
+			const botlogChannel =
+				interaction.guild.channels.cache.get(botlogChannelId);
+
+			if (botlogChannel && botlogChannel.isTextBased())
+				await botlogChannel.send({
+					content: "Helper role not found",
+				});
+
+			return;
+		}
+
+		if (!helperRoles.some((role) => role.members.has(helper.id))) {
+			await interaction.reply({
+				content: `${helper.displayName} is not a helper`,
+				ephemeral: true,
+			});
+
+			return;
+		}
 
 		const hotm = await HOTM.updateOne(
 			{ guildId: interaction.guild.id, helperId: helper.id },
@@ -65,6 +78,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 				content: `You already voted for ${helper.displayName}`,
 				ephemeral: true,
 			});
+
 			return;
 		}
 
