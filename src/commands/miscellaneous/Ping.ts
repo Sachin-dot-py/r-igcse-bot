@@ -13,6 +13,8 @@ export default class PingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
+		await interaction.deferReply();
+
 		const time = Date.now();
 
 		const embed = new EmbedBuilder().setAuthor({
@@ -20,7 +22,7 @@ export default class PingCommand extends BaseCommand {
 			iconURL: interaction.user.displayAvatarURL(),
 		});
 
-		await interaction.reply({
+		await interaction.followUp({
 			embeds: [embed],
 		});
 	}

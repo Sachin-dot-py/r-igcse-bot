@@ -77,7 +77,7 @@ export async function registerMenus(client: DiscordClient) {
 	}
 }
 
-export async function registerEvents(client: DiscordClient) {
+export async function registerEvents(client: DiscordClient<true>) {
 	const eventsPath = joinPaths(`${import.meta.dir}`, "..", "events");
 	const eventFiles = (
 		await readdir(eventsPath, {
