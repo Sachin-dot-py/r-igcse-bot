@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -13,8 +13,15 @@ export default class PingCommand extends BaseCommand {
 		client: DiscordClient,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
-		await interaction.reply(
-			`Pong! | ${Date.now() - interaction.createdTimestamp}`,
-		);
+		const time = Date.now();
+
+		const embed = new EmbedBuilder().setAuthor({
+			name: `Pong! | ${time - interaction.createdTimestamp}ms`,
+			iconURL: interaction.user.displayAvatarURL(),
+		});
+
+		await interaction.reply({
+			embeds: [embed],
+		});
 	}
 }
