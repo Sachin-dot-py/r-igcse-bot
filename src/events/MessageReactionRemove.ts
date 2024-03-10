@@ -13,6 +13,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 		reaction: MessageReaction,
 		user: User,
 	) {
-		handleVote(client, reaction, user);
+		handleVote(reaction, user);
 	}
 }
