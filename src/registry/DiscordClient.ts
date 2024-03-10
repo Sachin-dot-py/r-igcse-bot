@@ -8,7 +8,9 @@ import {
 import type BaseCommand from "./Structure/BaseCommand";
 import type BaseMenu from "./Structure/BaseMenu";
 
-export class DiscordClient extends Client {
+export class DiscordClient<
+	Ready extends boolean = boolean,
+> extends Client<Ready> {
 	private _commands = new Collection<string, BaseCommand>();
 	private _menus = new Collection<string, BaseMenu>();
 
