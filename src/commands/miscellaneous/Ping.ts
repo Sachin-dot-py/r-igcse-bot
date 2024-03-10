@@ -13,6 +13,8 @@ export default class PingCommand extends BaseCommand {
 		client: DiscordClient,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
-		await interaction.reply("Pong!");
+		await interaction.reply(
+			`Pong! | ${Date.now() - interaction.createdTimestamp}`,
+		);
 	}
 }
