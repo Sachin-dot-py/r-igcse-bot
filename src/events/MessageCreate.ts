@@ -101,7 +101,6 @@ export default class MessageCreateEvent extends BaseEvent {
 	// 	});
 	// }
 
-	// TODO: Refactor reputation system
 	private async handleRep(
 		message: Message<true>,
 		repDisabledChannels: string[],
@@ -122,11 +121,13 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				if (
 					[
-						"you're welcome", // 'your welcome',
+						"you're welcome",
 						"ur welcome",
+						"yw",
 						"no problem",
 						"np",
-						"yw",
+						"no worries",
+						"nw",
 					].some((phrase) => message.content.toLowerCase().includes(phrase))
 				)
 					rep.push(message.author);
@@ -135,16 +136,14 @@ export default class MessageCreateEvent extends BaseEvent {
 					[
 						"ty",
 						"thanks",
-						"thank",
 						"thank you",
 						"thx",
 						"tysm",
 						"thank u",
 						"thnks",
-						"tanks",
 						"thanku",
 						"tyvm",
-						"thankyou",
+						"tq",
 					].some((phrase) => message.content.toLowerCase().includes(phrase))
 				)
 					rep.push(referenceMessage.author);
@@ -152,33 +151,39 @@ export default class MessageCreateEvent extends BaseEvent {
 				for (const user of rep) {
 					const member = await message.guild.members.fetch(user.id);
 
-					if (member) {
-						const res = await Reputation.findOneAndUpdate(
-							{
-								guildId: message.guildId,
-								userId: member.id,
-							},
-							{
-								$inc: {
-									rep: 1,
-								},
-							},
-							{
-								upsert: true,
-							},
-						).exec();
+					if (!member) return;
 
-						const rep = res?.rep;
+					const res = await Reputation.findOneAndUpdate(
+						{
+							guildId: message.guildId,
+							userId: member.id,
+						},
+						{
+							$inc: {
+								rep: 1,
+							},
+						},
+						{
+							upsert: true,
+						},
+					).exec();
 
-						if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
-							const role = message.guild.roles.cache.get(`${rep}+ Rep Club`);
-							message.channel.send(
-								`Gave +1 Rep to <@${member.id}> (${rep})${role ? `\nWelcome to the ${role.name}` : ""}`,
-							);
+					if (!res) return;
 
-							if (role) member.roles.add(role);
-						}
+					const rep = res.rep;
+
+					let content = `Gave +1 Rep to <@${member.id}> (${rep})`;
+
+					if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
+						const role = message.guild.roles.cache.get(`${rep}+ Rep Club`);
+
+						if (!role) return;
+
+						content += `\nWelcome to the ${role.name}`;
+						member.roles.add(role);
 					}
+
+					message.channel.send(content);
 				}
 			}
 		}
