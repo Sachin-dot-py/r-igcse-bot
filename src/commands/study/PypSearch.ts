@@ -3,6 +3,7 @@ import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
+import { GuildPreferencesCache } from "@/redis";
 
 export default class ResourcesCommand extends BaseCommand {
 	constructor() {
@@ -19,7 +20,7 @@ export default class ResourcesCommand extends BaseCommand {
 	}
 
 	async execute(
-		client: DiscordClient,
+		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const query = interaction.options.getString("query");
@@ -57,9 +58,33 @@ export default class ResourcesCommand extends BaseCommand {
 
 			await interaction.followUp({ embeds: [embed] });
 		} catch (error) {
-			console.error(error);
+			await interaction.reply({
+				content: "Error occured while searching past papers",
+				ephemeral: true,
+			});
 
-			// TODO: Logging ?
+			if (!interaction.inCachedGuild()) return;
+
+			const guildPreferences = await GuildPreferencesCache.get(
+				interaction.guild.id,
+			);
+
+			const botlogChannelId = guildPreferences.botlogChannelId;
+			const botlogChannel =
+				interaction.guild.channels.cache.get(botlogChannelId);
+
+			if (!botlogChannel || !botlogChannel.isTextBased()) return;
+
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "Error | PypSearch",
+					iconURL: interaction.user.displayAvatarURL(),
+				})
+				.setDescription(`${error}`);
+
+			botlogChannel.send({
+				embeds: [embed],
+			});
 		}
 	}
 }
