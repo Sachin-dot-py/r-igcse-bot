@@ -2,14 +2,14 @@ import { Schema, model as createModel } from "mongoose";
 
 export interface IReactionRole {
 	reaction: string;
-	role: string;
-	message: number;
+	roleId: string;
+	messageId: string;
 }
 
 const schema = new Schema<IReactionRole>({
 	reaction: { type: String, required: true },
-	role: { type: String, required: true },
-	message: { type: Number, required: true },
+	roleId: { type: String, required: true },
+	messageId: { type: String, required: true },
 });
 
 export const ReactionRole = createModel<IReactionRole>("ReactionRole", schema);
