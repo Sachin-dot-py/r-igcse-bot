@@ -47,6 +47,12 @@ export interface IGuildPreferences {
 	}[];
 
 	colorRolesRoleId: string;
+
+	colorRoles: {
+		emoji: string;
+		label: string;
+		id: string;
+	}[];
 }
 
 const schema = new Schema<IGuildPreferences>({
@@ -75,6 +81,16 @@ const schema = new Schema<IGuildPreferences>({
 	banAppealFormLink: { type: String, default: null },
 	keywords: { type: [{ keyword: String, response: String }], default: [] },
 	colorRolesRoleId: { type: String, default: null },
+	colorRoles: {
+		type: [
+			{
+				emoji: String,
+				label: String,
+				id: String,
+			},
+		],
+		default: [],
+	},
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

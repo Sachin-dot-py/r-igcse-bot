@@ -141,6 +141,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			modFeedbackChannelId,
 			studySessionChannelId,
 			colorRolesRoleId,
+			colorRoles,
 		} of guildPreferences)
 			await GuildPreferencesCache.set(guildId, {
 				adminRoleId,
@@ -167,6 +168,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				modFeedbackChannelId,
 				studySessionChannelId,
 				colorRolesRoleId,
+				colorRoles,
 			});
 	}
 

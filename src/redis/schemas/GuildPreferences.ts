@@ -41,6 +41,10 @@ const schema = new Schema("GuildPreferences", {
 	hotmResultsChannelId: { type: "string" },
 	studySessionChannelId: { type: "string" },
 	chatmodApplicationsChannelId: { type: "string" },
+	colorRolesRoleId: { type: "string" },
+	emoji: { type: "string", path: "$.colorRoles[*]" },
+	label: { type: "string", path: "$.colorRoles[*]" },
+	id: { type: "string", path: "$.colorRoles[*]" },
 });
 
 export class GuildPreferencesRepository extends Repository {
