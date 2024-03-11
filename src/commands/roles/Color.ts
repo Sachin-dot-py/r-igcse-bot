@@ -16,10 +16,8 @@ export default class ColorRolesCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("color_roles")
-				.setDescription(
-					"Choose a display colour for your name (for 100+ rep club)",
-				)
+				.setName("color")
+				.setDescription("Choose a display colour for your name")
 				.setDMPermission(false),
 		);
 	}
