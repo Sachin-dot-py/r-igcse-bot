@@ -1,6 +1,11 @@
-import { Reputation, StickyMessage, type IStickyMessage } from "@/mongo";
+import {
+	PrivateDmThread,
+	Reputation,
+	StickyMessage,
+	type IStickyMessage,
+} from "@/mongo";
 import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
-import { EmbedBuilder, Events, Message } from "discord.js";
+import { EmbedBuilder, Events, Message, TextChannel } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
@@ -44,6 +49,64 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 
 				client.stickyCounter[message.channelId] = 0;
+			}
+
+			if (message.channelId === guildPreferences.dmThreadsChannelId) {
+				const user = await message.guild.members.fetch(message.content);
+
+				if (!user) {
+					await message.reply("Invalid User ID");
+					return;
+				}
+
+				const res = await PrivateDmThread.findOne({
+					userId: user.id,
+				});
+
+				if (res) {
+					const thread = await message.guild.channels.fetch(res.threadId);
+
+					if (thread) {
+						await message.reply(
+							`DM Thread with this user already exists: <#${thread.id}>`,
+						);
+
+						return;
+					}
+				}
+
+				if (!(message.channel instanceof TextChannel)) {
+					await message.reply("Invalid Channel Type  (must be a text channel)");
+					return;
+				}
+
+				try {
+					await message.channel.threads.create({
+						name: user.id,
+						startMessage: `Username: \`${user.displayName}\`\nUser ID: \`${user.id}\``,
+					});
+				} catch (error) {
+					await message.reply("Unable to create thread");
+
+					const botlogChannelId = guildPreferences.botlogChannelId;
+
+					const botlogChannel =
+						await message.guild.channels.cache.get(botlogChannelId);
+
+					if (!botlogChannel || !botlogChannel.isTextBased()) return;
+
+					const embed = new EmbedBuilder()
+						.setAuthor({
+							name: "Failed: Create DM thread",
+							iconURL: client.user.displayAvatarURL(),
+						})
+						.setDescription(`${error}`)
+						.setTimestamp(Date.now());
+
+					botlogChannel.send({
+						embeds: [embed],
+					});
+				}
 			}
 		}
 		// else

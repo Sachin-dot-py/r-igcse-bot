@@ -132,6 +132,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				confessionApprovalChannelId:
 					guildPreferences.confessionApprovalChannelId,
 				modmailChannelId: guildPreferences.modmailChannelId,
+				dmThreadsChannelId: guildPreferences.dmThreadsChannelId,
 				confessionsChannelId: guildPreferences.confessionsChannelId,
 				countingChannelId: guildPreferences.countingChannelId,
 				hotmResultsChannelId: guildPreferences.hotmResultsChannelId,

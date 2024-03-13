@@ -21,6 +21,7 @@ export interface IGuildPreferences {
 	studySessionChannelId: string;
 
 	modmailChannelId: string;
+	dmThreadsChannelId: string;
 
 	// igHelperRoles: {
 	// 	roleId: string;
@@ -71,6 +72,7 @@ const schema = new Schema<IGuildPreferences>({
 	hotmResultsChannelId: { type: String, default: null },
 	studySessionChannelId: { type: String, default: null },
 	modmailChannelId: { type: String, default: null },
+	dmThreadsChannelId: { type: String, default: null },
 	igHelperRoleId: { type: String, default: null },
 	alHelperRoleId: { type: String, default: null },
 	adminRoleId: { type: String, default: null },
