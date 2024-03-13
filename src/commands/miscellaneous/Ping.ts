@@ -19,7 +19,7 @@ export default class PingCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder().setAuthor({
 			name: `Pong! | ${time - interaction.createdTimestamp}ms`,
-			iconURL: interaction.user.displayAvatarURL(),
+			iconURL: client.user.displayAvatarURL(),
 		});
 
 		await interaction.followUp({

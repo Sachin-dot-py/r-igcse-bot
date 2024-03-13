@@ -96,7 +96,7 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async populateStickyMessageCache(client: DiscordClient) {
-		const stickyMessages = await StickyMessage.find({}).exec();
+		const stickyMessages = await StickyMessage.find().exec();
 
 		for (const stickyMessage of stickyMessages) {
 			await StickyMessageCache.set(stickyMessage.id, {
@@ -113,62 +113,35 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async populateGuildPreferencesCache() {
-		const guildPreferences = await GuildPreferences.find().exec();
+		const guildPreferencess = await GuildPreferences.find().exec();
 
-		for (const {
-			guildId,
-			adminRoleId,
-			igHelperRoleId,
-			alHelperRoleId,
-			moderatorRoleId,
-			chatModRoleId,
-			botlogChannelId,
-			modlogChannelId,
-			banAppealFormLink,
-			repEnabled,
-			repDisabledChannelIds,
-			welcomeChannelId,
-			keywords,
-			confessionApprovalChannelId,
-			modmailChannelId,
-			chatmodApplicationsChannelId,
-			confessionsChannelId,
-			countingChannelId,
-			hotmResultsChannelId,
-			behaviorlogChannelId,
-			warnlogChannelId,
-			actionRequiredChannelId,
-			modFeedbackChannelId,
-			studySessionChannelId,
-			colorRolesRoleId,
-			colorRoles,
-		} of guildPreferences)
-			await GuildPreferencesCache.set(guildId, {
-				adminRoleId,
-				igHelperRoleId,
-				alHelperRoleId,
-				moderatorRoleId,
-				chatModRoleId,
-				botlogChannelId,
-				modlogChannelId,
-				banAppealFormLink,
-				repEnabled,
-				repDisabledChannelIds,
-				welcomeChannelId,
-				keywords,
-				confessionApprovalChannelId,
-				modmailChannelId,
-				chatmodApplicationsChannelId,
-				confessionsChannelId,
-				countingChannelId,
-				hotmResultsChannelId,
-				behaviorlogChannelId,
-				warnlogChannelId,
-				actionRequiredChannelId,
-				modFeedbackChannelId,
-				studySessionChannelId,
-				colorRolesRoleId,
-				colorRoles,
+		for (const guildPreferences of guildPreferencess)
+			await GuildPreferencesCache.set(guildPreferences.guildId, {
+				adminRoleId: guildPreferences.adminRoleId,
+				igHelperRoleId: guildPreferences.igHelperRoleId,
+				alHelperRoleId: guildPreferences.alHelperRoleId,
+				moderatorRoleId: guildPreferences.moderatorRoleId,
+				chatModRoleId: guildPreferences.chatModRoleId,
+				botlogChannelId: guildPreferences.botlogChannelId,
+				modlogChannelId: guildPreferences.modlogChannelId,
+				banAppealFormLink: guildPreferences.banAppealFormLink,
+				repEnabled: guildPreferences.repEnabled,
+				repDisabledChannelIds: guildPreferences.repDisabledChannelIds,
+				welcomeChannelId: guildPreferences.welcomeChannelId,
+				keywords: guildPreferences.keywords,
+				confessionApprovalChannelId:
+					guildPreferences.confessionApprovalChannelId,
+				modmailChannelId: guildPreferences.modmailChannelId,
+				confessionsChannelId: guildPreferences.confessionsChannelId,
+				countingChannelId: guildPreferences.countingChannelId,
+				hotmResultsChannelId: guildPreferences.hotmResultsChannelId,
+				behaviorlogChannelId: guildPreferences.behaviorlogChannelId,
+				warnlogChannelId: guildPreferences.warnlogChannelId,
+				actionRequiredChannelId: guildPreferences.actionRequiredChannelId,
+				modFeedbackChannelId: guildPreferences.modFeedbackChannelId,
+				studySessionChannelId: guildPreferences.studySessionChannelId,
+				colorRolesRoleId: guildPreferences.colorRolesRoleId,
+				colorRoles: guildPreferences.colorRoles,
 			});
 	}
 
