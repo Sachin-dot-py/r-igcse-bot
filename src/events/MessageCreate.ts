@@ -111,7 +111,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		}
 		// else
 		// 	this.handleModMail(
-		// 		message as Message<false>,
+		// 		message,
 		// 		client.guilds.cache.get("894596848357089330")!,
 		// 		"1204423423799988314",
 		// 	);
