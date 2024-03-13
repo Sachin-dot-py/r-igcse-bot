@@ -13,7 +13,7 @@ export default class MessageCreateEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
 
-		if (message.guild) {
+		if (message.inGuild()) {
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id,
 			);
@@ -27,21 +27,18 @@ export default class MessageCreateEvent extends BaseEvent {
 			}
 
 			if (message.reference && (guildPreferences.repEnabled ?? true))
-				this.handleRep(
-					message as Message<true>,
-					guildPreferences?.repDisabledChannelIds || [],
-				);
+				this.handleRep(message, guildPreferences.repDisabledChannelIds || []);
 
 			if (client.stickyChannelIds.some((id) => id === message.channelId)) {
-				if (!(client.stickyCounter[message.channelId] > 4)) {
-					if (isNaN(client.stickyCounter[message.channelId]))
-						client.stickyCounter[message.channelId] = 0;
-					client.stickyCounter[message.channelId]++;
+				if (client.stickyCounter[message.channelId] <= 4) {
+					client.stickyCounter[message.channelId] = ((x: number) =>
+						(isNaN(x) ? 0 : x) + 1)(client.stickyCounter[message.channelId]);
+
 					return;
 				}
 
 				try {
-					await this.handleStickyMessages(message as Message<true>);
+					await this.handleStickyMessages(message);
 				} catch (error) {
 					console.error(error);
 				}
