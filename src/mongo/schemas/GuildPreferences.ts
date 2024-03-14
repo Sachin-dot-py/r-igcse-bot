@@ -10,6 +10,7 @@ export interface IGuildPreferences {
 	behaviorlogChannelId: string;
 	warnlogChannelId: string;
 	botlogChannelId: string;
+	botNewsChannelId: string;
 	actionRequiredChannelId: string;
 
 	welcomeChannelId: string;
@@ -63,6 +64,7 @@ const schema = new Schema<IGuildPreferences>({
 	behaviorlogChannelId: { type: String, default: null },
 	warnlogChannelId: { type: String, default: null },
 	botlogChannelId: { type: String, default: null },
+	botNewsChannelId: { type: String, default: null },
 	actionRequiredChannelId: { type: String, default: null },
 	welcomeChannelId: { type: String, default: null },
 	modFeedbackChannelId: { type: String, default: null },

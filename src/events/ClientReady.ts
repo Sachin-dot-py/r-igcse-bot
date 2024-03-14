@@ -123,6 +123,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				moderatorRoleId: guildPreferences.moderatorRoleId,
 				chatModRoleId: guildPreferences.chatModRoleId,
 				botlogChannelId: guildPreferences.botlogChannelId,
+				botNewsChannelId: guildPreferences.botNewsChannelId,
 				modlogChannelId: guildPreferences.modlogChannelId,
 				banAppealFormLink: guildPreferences.banAppealFormLink,
 				repEnabled: guildPreferences.repEnabled,
