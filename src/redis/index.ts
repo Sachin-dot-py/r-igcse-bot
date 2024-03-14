@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 
 import { GuildPreferencesRepository } from "./schemas/GuildPreferences";
-import { DmGuildPreferenceRepository } from "./schemas/DmGuildPreferences";
+import { DmGuildPreferenceRepository } from "./schemas/DmGuildPreference";
 import { StickyMessageRepository } from "./schemas/StickyMessage";
 import { PracticeQuestionRepository } from "./schemas/Question";
 import { PracticeSessionRepository } from "./schemas/Session";
