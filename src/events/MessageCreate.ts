@@ -4,8 +4,24 @@ import {
 	StickyMessage,
 	type IStickyMessage,
 } from "@/mongo";
-import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
-import { EmbedBuilder, Events, Message, TextChannel } from "discord.js";
+import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
+import {
+	DmGuildPreferenceCache,
+	GuildPreferencesCache,
+	StickyMessageCache,
+} from "@/redis";
+import {
+	ActionRowBuilder,
+	ChannelType,
+	Colors,
+	ComponentType,
+	EmbedBuilder,
+	Events,
+	Message,
+	StringSelectMenuBuilder,
+	TextChannel,
+	ThreadChannel,
+} from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
@@ -108,58 +124,102 @@ export default class MessageCreateEvent extends BaseEvent {
 					});
 				}
 			}
-		}
-		// else
-		// 	this.handleModMail(
-		// 		message,
-		// 		client.guilds.cache.get("894596848357089330")!,
-		// 		"1204423423799988314",
-		// 	);
+		} else this.handleModMail(client, message as Message<false>);
 	}
 
-	// TODO: Redo Modmail
-	// private async handleModMail(
-	// 	message: Message<false>,
-	// 	guild: Guild,
-	// 	threadsChannelId: string,
-	// ) {
-	// 	const channel = guild.channels.cache.get(threadsChannelId);
+	private async handleModMail(
+		client: DiscordClient<true>,
+		message: Message<false>,
+	) {
+		let guildId = "";
 
-	// 	if (!channel || !(channel instanceof TextChannel)) return;
+		const cachedRes = await DmGuildPreferenceCache.get(message.author.id);
 
-	// 	const res = await PrivateDmThread.findOne({
-	// 		userId: message.author.id,
-	// 	}).exec();
+		if (cachedRes) guildId = cachedRes.guildId;
+		else {
+			const res = await DmGuildPreference.findOne({
+				userId: message.author.id,
+			});
 
-	// 	let thread: ThreadChannel;
+			if (res) guildId = res.guildId;
+			else {
+				const guildSelect = new StringSelectMenuBuilder()
+					.setCustomId("dm-guild-select")
+					.setMinValues(1)
+					.setMaxValues(1)
+					.addOptions(
+						client.guilds.cache.map((guild) => ({
+							label: guild.name,
+							value: guild.id,
+						})),
+					);
 
-	// 	if (!res) {
-	// 		thread = await channel.threads.create({
-	// 			name: `${message.author.username} (${message.author.id})`,
-	// 			type: ChannelType.PrivateThread,
-	// 			startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``,
-	// 		});
+				const row =
+					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+						guildSelect,
+					);
 
-	// 		await PrivateDmThread.create({
-	// 			userId: message.author.id,
-	// 			threadId: thread.id,
-	// 		});
-	// 	} else thread = channel.threads.cache.get(res.threadId)!;
+				const { awaitMessageComponent } = await message.author.send({
+					components: [row],
+				});
 
-	// 	const embed = new EmbedBuilder()
-	// 		.setTitle("New DM Recieved")
-	// 		.setAuthor({
-	// 			name: message.author.username,
-	// 			iconURL: message.author.displayAvatarURL(),
-	// 		})
-	// 		.setDescription(message.content)
-	// 		.setTimestamp(message.createdTimestamp)
-	// 		.setColor(Colors.Red);
+				awaitMessageComponent({
+					componentType: ComponentType.StringSelect,
+					filter: (i) => i.customId === "dm-guild-select",
+				})
+					.then(async (i) => {
+						await DmGuildPreference.create({
+							userId: message.author.id,
+							guildId: i.values[0],
+						});
+					})
+					.catch(console.error);
+			}
 
-	// 	thread.send({
-	// 		embeds: [embed],
-	// 	});
-	// }
+			await DmGuildPreferenceCache.set(message.author.id, guildId);
+		}
+
+		const guild = client.guilds.cache.get(guildId);
+
+		if (!guild) return;
+
+		const guildPreferences = await GuildPreferencesCache.get(guildId);
+
+		const channel = guild.channels.cache.get(guildPreferences.modmailChannelId);
+
+		if (!channel || !(channel instanceof TextChannel)) return;
+		const res = await PrivateDmThread.findOne({
+			userId: message.author.id,
+		}).exec();
+
+		let thread: ThreadChannel;
+
+		if (!res) {
+			thread = await channel.threads.create({
+				name: `${message.author.username} (${message.author.id})`,
+				type: ChannelType.PrivateThread,
+				startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``,
+			});
+			await PrivateDmThread.create({
+				userId: message.author.id,
+				threadId: thread.id,
+			});
+		} else thread = channel.threads.cache.get(res.threadId)!;
+
+		const embed = new EmbedBuilder()
+			.setTitle("New DM Recieved")
+			.setAuthor({
+				name: message.author.username,
+				iconURL: message.author.displayAvatarURL(),
+			})
+			.setDescription(message.content)
+			.setTimestamp(message.createdTimestamp)
+			.setColor(Colors.Red);
+
+		thread.send({
+			embeds: [embed],
+		});
+	}
 
 	private async handleRep(
 		message: Message<true>,
