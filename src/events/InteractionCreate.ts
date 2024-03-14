@@ -1,12 +1,14 @@
 import {
 	ChatInputCommandInteraction,
 	ContextMenuCommandInteraction,
+	EmbedBuilder,
 	Events,
 	type Interaction,
 } from "discord.js";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/DiscordClient";
 import { logger } from "..";
+import { GuildPreferencesCache } from "@/redis";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -14,10 +16,37 @@ export default class InteractionCreateEvent extends BaseEvent {
 	}
 
 	async execute(client: DiscordClient<true>, interaction: Interaction) {
-		if (interaction.isChatInputCommand())
-			this.handleCommand(client, interaction);
-		else if (interaction.isContextMenuCommand())
-			this.handleMenu(client, interaction);
+		try {
+			if (interaction.isChatInputCommand())
+				this.handleCommand(client, interaction);
+			else if (interaction.isContextMenuCommand())
+				this.handleMenu(client, interaction);
+		} catch (error) {
+			logger.error(error);
+
+			if (!interaction.inCachedGuild()) return;
+
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "An Exception Occured",
+					iconURL: client.user.displayAvatarURL(),
+				})
+				.setDescription(
+					`Channel: <#${interaction.channelId}> \nUser: <@${interaction.user.id}>\nError: ${error}`,
+				);
+
+			const guildPreferences = await GuildPreferencesCache.get(
+				interaction.guildId,
+			);
+
+			const botlogChannelId = guildPreferences.botlogChannelId;
+			if (!botlogChannelId) return;
+
+			const botlogChannel = client.channels.cache.get(botlogChannelId);
+			if (!botlogChannel || !botlogChannel.isTextBased()) return;
+
+			await botlogChannel.send({ embeds: [embed] });
+		}
 	}
 
 	async handleCommand(
@@ -25,55 +54,17 @@ export default class InteractionCreateEvent extends BaseEvent {
 		interaction: ChatInputCommandInteraction,
 	) {
 		const command = client.commands.get(interaction.commandName);
+		if (!command) return;
 
-		if (!command) {
-			logger.error(`No command matching ${interaction.commandName} was found.`);
-			return;
-		}
-
-		try {
-			await command.execute(client, interaction);
-		} catch (error) {
-			logger.error(error);
-
-			if (interaction.replied || interaction.deferred)
-				await interaction.followUp({
-					content: "There was an error while executing this command!",
-					ephemeral: true,
-				});
-			else
-				await interaction.reply({
-					content: "There was an error while executing this command!",
-					ephemeral: true,
-				});
-		}
+		await command.execute(client, interaction);
 	}
 	async handleMenu(
 		client: DiscordClient<true>,
 		interaction: ContextMenuCommandInteraction,
 	) {
 		const menu = client.menus.get(interaction.commandName);
+		if (!menu) return;
 
-		if (!menu) {
-			logger.error(`No menu matching ${interaction.commandName} was found.`);
-			return;
-		}
-
-		try {
-			await menu.execute(client, interaction);
-		} catch (error) {
-			logger.error(error);
-
-			if (interaction.replied || interaction.deferred)
-				await interaction.followUp({
-					content: "There was an error while executing this menu!",
-					ephemeral: true,
-				});
-			else
-				await interaction.reply({
-					content: "There was an error while executing this menu!",
-					ephemeral: true,
-				});
-		}
+		await menu.execute(client, interaction);
 	}
 }
