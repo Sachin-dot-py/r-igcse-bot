@@ -4,7 +4,7 @@ export const handleVote = (reaction: MessageReaction, user: User) => {
 	if (
 		user.bot ||
 		!(
-			reaction.message.guild &&
+			reaction.message.inGuild() &&
 			(reaction.emoji.name === "✅" || reaction.emoji.name === "❌")
 		)
 	)

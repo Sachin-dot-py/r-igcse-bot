@@ -1,8 +1,18 @@
 import {
 	ContextMenuCommandBuilder,
 	ContextMenuCommandInteraction,
+	type CacheType,
+	MessageContextMenuCommandInteraction,
 } from "discord.js";
 import type { DiscordClient } from "../DiscordClient";
+
+export type DiscordContextMenuCommandInteraction<
+	Cached extends CacheType = CacheType,
+> = Omit<ContextMenuCommandInteraction<Cached>, "client">;
+
+export type DiscordMessageContextMenuCommandInteraction<
+	Cached extends CacheType = CacheType,
+> = Omit<MessageContextMenuCommandInteraction<Cached>, "client">;
 
 export default abstract class BaseMenu {
 	constructor(private _data: ContextMenuCommandBuilder) {}
@@ -13,6 +23,6 @@ export default abstract class BaseMenu {
 
 	abstract execute(
 		client: DiscordClient<true>,
-		interaction: ContextMenuCommandInteraction,
+		interaction: DiscordContextMenuCommandInteraction,
 	): Promise<void>;
 }

@@ -1,5 +1,7 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
-import BaseMenu from "@/registry/Structure/BaseMenu";
+import BaseMenu, {
+	type DiscordMessageContextMenuCommandInteraction,
+} from "@/registry/Structure/BaseMenu";
 import {
 	ActionRowBuilder,
 	ApplicationCommandType,
@@ -7,7 +9,6 @@ import {
 	ButtonStyle,
 	ComponentType,
 	ContextMenuCommandBuilder,
-	ContextMenuCommandInteraction,
 	EmbedBuilder,
 	PermissionFlagsBits,
 } from "discord.js";
@@ -72,33 +73,25 @@ export default class HelperMenu extends BaseMenu {
 			new ContextMenuCommandBuilder()
 				.setName("helper")
 				.setType(ApplicationCommandType.Message)
-				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
+				.setDMPermission(false),
 		);
 	}
 
+	// TODO: Make multiguild
 	async execute(
 		client: DiscordClient<true>,
-		interaction: ContextMenuCommandInteraction,
+		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
 	) {
-		if (
-			!interaction.guild ||
-			!interaction.channel ||
-			!interaction.isMessageContextMenuCommand()
-		)
-			return;
+		if (!interaction.channel) return;
 
 		if (interaction.guild.id !== "576460042774118420") {
 			await interaction.reply(
 				"Functionality not yet implemented for your server",
 			);
+
 			return;
 		}
-
-		// const guildPreferences = await GuildPreferencesCache.get(
-		// 	interaction.guild.id,
-		// );
-
-		// if (!guildPreferences) return;
 
 		const roleId = tempHelperData[interaction.channel.id];
 		const role = interaction.guild.roles.cache.get(roleId);
@@ -167,6 +160,7 @@ export default class HelperMenu extends BaseMenu {
 				content: `<@${role.id}>`,
 				embeds: [embed],
 			});
+
 			await interaction.deleteReply();
 		});
 	}
