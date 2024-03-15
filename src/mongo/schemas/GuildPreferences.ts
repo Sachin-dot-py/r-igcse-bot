@@ -14,7 +14,6 @@ export interface IGuildPreferences {
 	actionRequiredChannelId: string;
 
 	welcomeChannelId: string;
-	modFeedbackChannelId: string;
 	confessionsChannelId: string;
 	confessionApprovalChannelId: string;
 	countingChannelId: string;
@@ -24,21 +23,10 @@ export interface IGuildPreferences {
 	modmailChannelId: string;
 	dmThreadsChannelId: string;
 
-	// igHelperRoles: {
-	// 	roleId: string;
-	// 	channelId: string;
-	// }[];
-	// alHelperRoles: {
-	// 	roleId: string;
-	// 	channelId: string;
-	// }[];
-
-	igHelperRoleId: string;
-	alHelperRoleId: string;
-
-	adminRoleId: string;
-	moderatorRoleId: string;
-	chatModRoleId: string;
+	helperRoles: {
+		roleId: string;
+		channelId: string;
+	}[];
 
 	banAppealFormLink: string;
 
@@ -47,12 +35,11 @@ export interface IGuildPreferences {
 		response: string;
 	}[];
 
-	colorRolesRoleId: string;
-
 	colorRoles: {
+		requirementRoldId: string;
 		emoji: string;
 		label: string;
-		id: string;
+		roleId: string;
 	}[];
 }
 
@@ -67,7 +54,6 @@ const schema = new Schema<IGuildPreferences>({
 	botNewsChannelId: { type: String, default: null },
 	actionRequiredChannelId: { type: String, default: null },
 	welcomeChannelId: { type: String, default: null },
-	modFeedbackChannelId: { type: String, default: null },
 	confessionsChannelId: { type: String, default: null },
 	confessionApprovalChannelId: { type: String, default: null },
 	countingChannelId: { type: String, default: null },
@@ -75,20 +61,24 @@ const schema = new Schema<IGuildPreferences>({
 	studySessionChannelId: { type: String, default: null },
 	modmailChannelId: { type: String, default: null },
 	dmThreadsChannelId: { type: String, default: null },
-	igHelperRoleId: { type: String, default: null },
-	alHelperRoleId: { type: String, default: null },
-	adminRoleId: { type: String, default: null },
-	moderatorRoleId: { type: String, default: null },
-	chatModRoleId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
 	keywords: { type: [{ keyword: String, response: String }], default: [] },
-	colorRolesRoleId: { type: String, default: null },
 	colorRoles: {
 		type: [
 			{
+				requirementRoleId: String,
 				emoji: String,
 				label: String,
 				id: String,
+			},
+		],
+		default: [],
+	},
+	helperRoles: {
+		type: [
+			{
+				roleId: String,
+				channelId: String,
 			},
 		],
 		default: [],

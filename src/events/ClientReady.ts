@@ -64,7 +64,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					},
 					{
 						name: "Role Statistics",
-						value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}\nIGCSE Helpers: ${guild.roles.cache.get(guildPrefs.igHelperRoleId)!.members.size}\nAS/AL Helpers: ${guild.roles.cache.get(guildPrefs.alHelperRoleId)!.members.size}\nStaff Moderators: ${guild.roles.cache.get(guildPrefs.moderatorRoleId)!.members.size}\nChat Moderators: ${guild.roles.cache.get(guildPrefs.chatModRoleId)!.members.size}\`\`\``,
+						value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}\nHelpers: // TODO\nModerators: // TODO\`\`\``,
 						inline: false,
 					},
 					{
@@ -115,36 +115,12 @@ export default class ClientReadyEvent extends BaseEvent {
 	private async populateGuildPreferencesCache() {
 		const guildPreferencess = await GuildPreferences.find().exec();
 
-		for (const guildPreferences of guildPreferencess)
-			await GuildPreferencesCache.set(guildPreferences.guildId, {
-				adminRoleId: guildPreferences.adminRoleId,
-				igHelperRoleId: guildPreferences.igHelperRoleId,
-				alHelperRoleId: guildPreferences.alHelperRoleId,
-				moderatorRoleId: guildPreferences.moderatorRoleId,
-				chatModRoleId: guildPreferences.chatModRoleId,
-				botlogChannelId: guildPreferences.botlogChannelId,
-				botNewsChannelId: guildPreferences.botNewsChannelId,
-				modlogChannelId: guildPreferences.modlogChannelId,
-				banAppealFormLink: guildPreferences.banAppealFormLink,
-				repEnabled: guildPreferences.repEnabled,
-				repDisabledChannelIds: guildPreferences.repDisabledChannelIds,
-				welcomeChannelId: guildPreferences.welcomeChannelId,
-				keywords: guildPreferences.keywords,
-				confessionApprovalChannelId:
-					guildPreferences.confessionApprovalChannelId,
-				modmailChannelId: guildPreferences.modmailChannelId,
-				dmThreadsChannelId: guildPreferences.dmThreadsChannelId,
-				confessionsChannelId: guildPreferences.confessionsChannelId,
-				countingChannelId: guildPreferences.countingChannelId,
-				hotmResultsChannelId: guildPreferences.hotmResultsChannelId,
-				behaviorlogChannelId: guildPreferences.behaviorlogChannelId,
-				warnlogChannelId: guildPreferences.warnlogChannelId,
-				actionRequiredChannelId: guildPreferences.actionRequiredChannelId,
-				modFeedbackChannelId: guildPreferences.modFeedbackChannelId,
-				studySessionChannelId: guildPreferences.studySessionChannelId,
-				colorRolesRoleId: guildPreferences.colorRolesRoleId,
-				colorRoles: guildPreferences.colorRoles,
-			});
+		for (const guildPreferences of guildPreferencess) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { _id, guildId, ...data } = guildPreferences.toObject();
+
+			await GuildPreferencesCache.set(guildId, data);
+		}
 	}
 
 	private async updateStickyMessages() {
