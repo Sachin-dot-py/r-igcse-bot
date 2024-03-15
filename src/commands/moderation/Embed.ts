@@ -14,12 +14,6 @@ export default class EmbedCommand extends BaseCommand {
 					command
 						.setName("send")
 						.setDescription("Send an embed")
-						.addChannelOption((option) =>
-							option
-								.setName("channel")
-								.setDescription("Channel to send the embed")
-								.setRequired(false),
-						)
 						.addStringOption((option) =>
 							option
 								.setName("message_id")
@@ -27,6 +21,12 @@ export default class EmbedCommand extends BaseCommand {
 									"ID of the message containing the embed (in current channel)",
 								)
 								.setRequired(true),
+						)
+						.addChannelOption((option) =>
+							option
+								.setName("channel")
+								.setDescription("Channel to send the embed")
+								.setRequired(false),
 						),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
@@ -47,7 +47,7 @@ export default class EmbedCommand extends BaseCommand {
 					interaction.channel;
 				const messageId = interaction.options.getString("message_id", true);
 
-				const message = interaction.channel.messages.cache.get(messageId);
+				const message = await interaction.channel.messages.fetch(messageId);
 
 				if (!message) {
 					await interaction.reply({
@@ -69,6 +69,11 @@ export default class EmbedCommand extends BaseCommand {
 
 				await channel.send({
 					embeds: message.embeds,
+				});
+
+				await interaction.reply({
+					content: "Sent successfully",
+					ephemeral: true,
 				});
 
 				break;
