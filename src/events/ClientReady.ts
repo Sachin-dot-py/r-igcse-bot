@@ -85,7 +85,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			.then(() => logger.info("Populated Sticky Messages Cache"))
 			.catch(logger.error);
 
-		await syncInteractions(client)
+		await syncInteractions(client, "1214367926820544512")
 			.then(() => logger.info("Synced application commands globally"))
 			.catch(logger.error);
 
