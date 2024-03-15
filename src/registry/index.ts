@@ -113,7 +113,7 @@ export async function syncInteractions(
 
 	if (!guildId || guildId !== "576460042774118420")
 		data = data.filter(({ name }) =>
-			["apply", "helper"].some((x) => name !== x),
+			["apply", "feedback", "study_session"].some((x) => name !== x),
 		);
 
 	try {

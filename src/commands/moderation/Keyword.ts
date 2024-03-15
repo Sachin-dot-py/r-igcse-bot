@@ -9,7 +9,7 @@ export default class KeywordCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("keyword")
-				.setDescription("// TODO")
+				.setDescription("Create / Delete keywords for a server")
 				.addSubcommand((command) =>
 					command.setName("add").setDescription("Add a keyword"),
 				)

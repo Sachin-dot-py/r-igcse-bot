@@ -63,8 +63,6 @@ export default class BanCommand extends BaseCommand {
 		// }
 
 		try {
-			// TODO: Guild Preferences Caching
-
 			const modlogChannelId = (
 				await GuildPreferences.findOne({
 					guildId: interaction.guild.id,
@@ -117,8 +115,6 @@ export default class BanCommand extends BaseCommand {
 				modlogChannel,
 			);
 		} catch (e) {
-			// TODO: Ban failed logging
-
 			await interaction.reply({
 				content: "Failed to ban user",
 				ephemeral: true,
