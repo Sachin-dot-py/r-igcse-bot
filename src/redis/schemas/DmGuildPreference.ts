@@ -1,7 +1,7 @@
 import type { IDmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
-	Schema,
 	Repository,
+	Schema,
 	type Entity,
 	type RedisConnection,
 } from "redis-om";
@@ -24,8 +24,12 @@ export class DmGuildPreferenceRepository extends Repository {
 	}
 
 	async set(userId: string, guildId: string) {
-		return (await this.save(userId, {
+		const res = (await this.save(userId, {
 			guildId,
 		})) as ICachedDmGuildPreference;
+
+		this.expire(userId, 120);
+
+		return res;
 	}
 }

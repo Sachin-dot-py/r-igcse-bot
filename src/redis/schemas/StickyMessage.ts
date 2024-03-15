@@ -6,15 +6,16 @@ import {
 	type RedisConnection,
 } from "redis-om";
 
-export type ICachedStickyMessage = IStickyMessage & Entity;
+export type ICachedStickyMessage = Omit<
+	Omit<IStickyMessage, "stickTime">,
+	"unstickTime"
+> &
+	Entity;
 
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
 	embeds: { type: "string[]" },
-	stickTime: { type: "string" },
-	unstickTime: { type: "string" },
-	enabled: { type: "boolean" },
 });
 
 export class StickyMessageRepository extends Repository {
@@ -30,16 +31,16 @@ export class StickyMessageRepository extends Repository {
 		return res as ICachedStickyMessage;
 	}
 
-	async set(id: string, stickyMessageData: IStickyMessage) {
+	async set(
+		id: string,
+		stickyMessageData: Omit<Omit<IStickyMessage, "stickTime">, "unstickTime">,
+	) {
 		const data = {
 			...stickyMessageData,
 			embeds: stickyMessageData.embeds.map((embed) => JSON.stringify(embed)),
 		};
 
-		const res = (await this.save(id, data)) as ICachedStickyMessage;
-
-		await this.expire(id, 90);
-
-		return res;
+		await this.save(id, data);
+		await this.expire(id, 60);
 	}
 }

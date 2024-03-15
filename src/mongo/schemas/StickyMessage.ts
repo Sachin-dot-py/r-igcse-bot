@@ -7,7 +7,6 @@ export interface IStickyMessage {
 	embeds: APIEmbed[];
 	stickTime: string;
 	unstickTime: string;
-	enabled: boolean;
 }
 
 const schema = new Schema<IStickyMessage>({
@@ -16,7 +15,6 @@ const schema = new Schema<IStickyMessage>({
 	embeds: { type: [Object], required: true, unique: false },
 	stickTime: { type: String, required: true, unique: false },
 	unstickTime: { type: String, required: true, unique: false },
-	enabled: { type: Boolean, required: true, unique: false },
 });
 
 export const StickyMessage = createModel<IStickyMessage>(

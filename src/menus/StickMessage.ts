@@ -145,21 +145,28 @@ export default class StickMessageCommand extends BaseMenu {
 			channelId: channel.id,
 			messageId: null,
 			embeds: interaction.targetMessage.embeds.map((embed) => embed.toJSON()),
-			enabled,
 			stickTime: stickTime.toString(),
 			unstickTime: unstickTime.toString(),
 		});
 
-		await StickyMessageCache.set(res!.id, {
-			channelId: channel.id,
-			messageId: null,
-			embeds: interaction.targetMessage.embeds.map((embed) => embed.toJSON()),
-			enabled,
-			stickTime: stickTime.toString(),
-			unstickTime: unstickTime.toString(),
-		});
+		if (!res) {
+			await interaction.followUp({
+				content: "Failed to create sticky message.",
+				ephemeral: true,
+			});
 
-		if (enabled) client.stickyChannelIds.push(channel.id);
+			return;
+		}
+
+		if (enabled) {
+			await StickyMessageCache.set(res.id, {
+				channelId: channel.id,
+				messageId: null,
+				embeds: interaction.targetMessage.embeds.map((embed) => embed.toJSON()),
+			});
+
+			client.stickyChannelIds.push(channel.id);
+		}
 
 		await interaction.followUp({
 			content: "Message scheduled to stick.",

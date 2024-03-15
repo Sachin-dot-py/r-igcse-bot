@@ -81,35 +81,18 @@ export default class ClientReadyEvent extends BaseEvent {
 			.then(() => logger.info("Populated Guild Preferences Cache"))
 			.catch(logger.error);
 
-		await this.populateStickyMessageCache(client)
-			.then(() => logger.info("Populated Sticky Messages Cache"))
-			.catch(logger.error);
+		// await this.populateStickyMessageCache(client)
+		// 	.then(() => logger.info("Populated Sticky Messages Cache"))
+		// 	.catch(logger.error);
 
 		await syncInteractions(client)
 			.then(() => logger.info("Synced application commands globally"))
 			.catch(logger.error);
 
 		setInterval(async () => {
-			await this.updateStickyMessages().catch(logger.error);
+			await this.updateStickyMessagesCache().catch(logger.error);
 			// .then(() => logger.info("Updated sticky messages (enabled or not)"))
 		}, 60000);
-	}
-
-	private async populateStickyMessageCache(client: DiscordClient) {
-		const stickyMessages = await StickyMessage.find().exec();
-
-		for (const stickyMessage of stickyMessages) {
-			await StickyMessageCache.set(stickyMessage.id, {
-				channelId: stickyMessage.channelId,
-				messageId: stickyMessage.messageId,
-				embeds: stickyMessage.embeds,
-				stickTime: stickyMessage.stickTime,
-				unstickTime: stickyMessage.unstickTime,
-				enabled: stickyMessage.enabled,
-			});
-
-			client.stickyChannelIds.push(stickyMessage.channelId);
-		}
 	}
 
 	private async populateGuildPreferencesCache() {
@@ -123,7 +106,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		}
 	}
 
-	private async updateStickyMessages() {
+	private async updateStickyMessagesCache() {
 		const time = Date.now();
 
 		const stickyMessages = await StickyMessage.find().exec();
@@ -132,23 +115,18 @@ export default class ClientReadyEvent extends BaseEvent {
 			const stickTime = parseInt(stickyMessage.stickTime);
 			const unstickTime = parseInt(stickyMessage.unstickTime);
 
-			if (stickTime <= time && unstickTime >= time) {
-				await StickyMessage.updateOne(
-					{ id: stickyMessage.id },
-					{ $set: { enabled: true } },
-				);
-
-				const res = await StickyMessageCache.get(stickyMessage.id);
-
+			if (stickTime <= time && unstickTime >= time)
 				await StickyMessageCache.set(stickyMessage.id, {
-					...res,
-					enabled: true,
+					channelId: stickyMessage.channelId,
+					messageId: stickyMessage.messageId,
+					embeds: stickyMessage.embeds,
 				});
-			} else if (unstickTime <= time) {
+			else if (unstickTime <= time) {
 				await StickyMessage.deleteOne({
 					messageId: stickyMessage.messageId,
 				}).exec();
-				StickyMessageCache.remove(stickyMessage.id);
+
+				await StickyMessageCache.remove(stickyMessage.id);
 			}
 		}
 	}
