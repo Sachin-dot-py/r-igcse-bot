@@ -3,9 +3,9 @@ import { ChannelType, Events, Guild } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 
-export default class GuildAvailableEvent extends BaseEvent {
+export default class GuildCreateEvent extends BaseEvent {
 	constructor() {
-		super(Events.GuildAvailable);
+		super(Events.GuildCreate);
 	}
 
 	async execute(client: DiscordClient<true>, guild: Guild) {
