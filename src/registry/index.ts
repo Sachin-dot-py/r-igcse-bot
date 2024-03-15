@@ -1,10 +1,10 @@
 import { Routes } from "discord.js";
 import { readdir } from "fs/promises";
 import { extname, join as joinPaths } from "path";
-import type BaseCommand from "./Structure/BaseCommand";
+import BaseCommand from "./Structure/BaseCommand";
 import type BaseEvent from "./Structure/BaseEvent";
 import { DiscordClient } from "./DiscordClient";
-import type BaseMenu from "./Structure/BaseMenu";
+import BaseMenu from "./Structure/BaseMenu";
 import { logger } from "..";
 
 export async function registerCommands(
@@ -41,7 +41,7 @@ export async function registerCommands(
 			const command = new BotCommand();
 			command.category = category;
 
-			if (command instanceof BotCommand)
+			if (command instanceof BaseCommand)
 				client.commands.set(command.data.name, command);
 			else
 				logger.warn(
@@ -66,7 +66,7 @@ export async function registerMenus(client: DiscordClient) {
 
 			const menu = new BotMenu();
 
-			if (menu instanceof BotMenu) client.menus.set(menu.data.name, menu);
+			if (menu instanceof BaseMenu) client.menus.set(menu.data.name, menu);
 			else
 				logger.warn(
 					`The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`,
@@ -77,7 +77,7 @@ export async function registerMenus(client: DiscordClient) {
 	}
 }
 
-export async function registerEvents(client: DiscordClient) {
+export async function registerEvents(client: DiscordClient<true>) {
 	const eventsPath = joinPaths(`${import.meta.dir}`, "..", "events");
 	const eventFiles = (
 		await readdir(eventsPath, {
@@ -109,12 +109,19 @@ export async function syncInteractions(
 		return;
 	}
 
+	let data = [...client.interactionData];
+
+	if (!guildId || guildId !== "576460042774118420")
+		data = data.filter(({ name }) =>
+			["apply", "helper"].some((x) => name !== x),
+		);
+
 	try {
 		await client.rest.put(
 			guildId
 				? Routes.applicationGuildCommands(client.application.id, guildId)
 				: Routes.applicationCommands(client.application.id),
-			{ body: client.interactionData },
+			{ body: data },
 		);
 	} catch (error) {
 		logger.error(error);

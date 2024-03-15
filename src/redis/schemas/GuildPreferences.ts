@@ -9,38 +9,30 @@ import type { IGuildPreferences } from "@/mongo";
 type ICachedGuildPreferences = Omit<IGuildPreferences, "guildId"> & Entity;
 
 const schema = new Schema("GuildPreferences", {
-	modlogChannelId: { type: "string" },
-	botlogChannelId: { type: "string" },
-	welcomeChannelId: { type: "string" },
 	repEnabled: { type: "boolean" },
 	repDisabledChannelIds: { type: "string[]" },
-	igHelperRoleId: { type: "string" },
-	alHelperRoleId: { type: "string" },
-	// igHelperRoles: {
-	// 	roleId: string;
-	// 	channelId: string;
-	// }[];
-	// alHelperRoles: {
-	// 	roleId: string;
-	// 	channelId: string;
-	// }[];
-	adminRoleId: { type: "string" },
-	moderatorRoleId: { type: "string" },
-	chatModRoleId: { type: "string" },
-	banAppealFormLink: { type: "string" },
-	keyword: { type: "string", path: "$.keywords[*]" },
-	response: { type: "string", path: "$.keywords[*]" },
+	modlogChannelId: { type: "string" },
 	behaviorlogChannelId: { type: "string" },
 	warnlogChannelId: { type: "string" },
-	modmailChannelId: { type: "string" },
+	botlogChannelId: { type: "string" },
+	botNewsChannelId: { type: "string" },
 	actionRequiredChannelId: { type: "string" },
-	modFeedbackChannelId: { type: "string" },
+	welcomeChannelId: { type: "string" },
 	confessionsChannelId: { type: "string" },
 	confessionApprovalChannelId: { type: "string" },
 	countingChannelId: { type: "string" },
 	hotmResultsChannelId: { type: "string" },
 	studySessionChannelId: { type: "string" },
-	chatmodApplicationsChannelId: { type: "string" },
+	modmailChannelId: { type: "string" },
+	dmThreadsChannelId: { type: "string" },
+	banAppealFormLink: { type: "string" },
+	keywords: { type: "string[]" },
+	emoji: { type: "string", path: "$.colorRoles[*]" },
+	label: { type: "string", path: "$.colorRoles[*]" },
+	id: { type: "string", path: "$.colorRoles[*]" },
+	requirementRoleId: { type: "string", path: "$.colorRoles[*]" },
+	roleId: { type: "string", path: "$.helperRoles[*]" },
+	channelId: { type: "string", path: "$.helperRoles[*]" },
 });
 
 export class GuildPreferencesRepository extends Repository {

@@ -1,15 +1,10 @@
-import type { DiscordClient } from "@/registry/DiscordClient";
 import { MessageReaction, User, EmbedBuilder } from "discord.js";
 
-export const handleVote = (
-	client: DiscordClient<true>,
-	reaction: MessageReaction,
-	user: User,
-) => {
+export const handleVote = (reaction: MessageReaction, user: User) => {
 	if (
 		user.bot ||
 		!(
-			reaction.message.guild &&
+			reaction.message.inGuild() &&
 			(reaction.emoji.name === "✅" || reaction.emoji.name === "❌")
 		)
 	)

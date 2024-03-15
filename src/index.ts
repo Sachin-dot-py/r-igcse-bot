@@ -43,8 +43,9 @@ export const client = new DiscordClient({
 
 await registerCommands(client);
 await registerMenus(client);
-await registerEvents(client);
 
 await mongo.connect(process.env.MONGO_URL);
 
-client.login(BOT_TOKEN);
+await client.login(BOT_TOKEN);
+
+await registerEvents(client as DiscordClient<true>);
