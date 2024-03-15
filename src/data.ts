@@ -3,7 +3,7 @@ export const practiceSubjects: Record<string, string> = {
 	//'0606': "Additional Mathematics",
 	//'0607': "International Mathematics",
 	"0620": "Chemistry",
-	//'0580': "Mathematics",
+	//"0580": "Mathematics",
 	"0625": "Physics",
 	"0610": "Biology",
 	//'0417': "Information & Communication Technology (ICT)"

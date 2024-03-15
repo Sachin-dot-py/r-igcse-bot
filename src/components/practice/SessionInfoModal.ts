@@ -26,7 +26,8 @@ class SessionInfoModal extends ModalBuilder {
 			.setStyle(TextInputStyle.Short)
 			.setRequired(true)
 			.setMinLength(4)
-			.setMaxLength(4);
+			.setMaxLength(4)
+			.setValue("2018");
 
 		const numberOfQuestions = new TextInputBuilder()
 			.setCustomId("number_of_questions")
@@ -35,7 +36,8 @@ class SessionInfoModal extends ModalBuilder {
 			.setStyle(TextInputStyle.Short)
 			.setRequired(true)
 			.setMinLength(1)
-			.setMaxLength(2);
+			.setMaxLength(2)
+			.setValue("10");
 
 		const actionRows = [
 			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
@@ -49,7 +51,10 @@ class SessionInfoModal extends ModalBuilder {
 		this.addComponents(...actionRows);
 	}
 
-	async waitForResponse(customId: string, interaction: DiscordChatInputCommandInteraction): Promise<SessionInfoModalResponse | false>  {
+	async waitForResponse(
+		customId: string,
+		interaction: DiscordChatInputCommandInteraction,
+	): Promise<SessionInfoModalResponse | false> {
 		try {
 			const sessionInfo = await interaction.awaitModalSubmit({
 				time: 300_000,
@@ -57,14 +62,15 @@ class SessionInfoModal extends ModalBuilder {
 			});
 
 			const minimumYear = sessionInfo.fields.getTextInputValue("minimum_year");
-			const numberOfQuestions = sessionInfo.fields.getTextInputValue("number_of_questions");
+			const numberOfQuestions = sessionInfo.fields.getTextInputValue(
+				"number_of_questions",
+			);
 
 			return {
 				minimumYear: parseInt(minimumYear),
 				numberOfQuestions: parseInt(numberOfQuestions),
 				followUpInteraction: sessionInfo,
-			}
-			
+			};
 		} catch (error) {
 			interaction.followUp({
 				content: "You took too long to respond",

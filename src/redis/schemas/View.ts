@@ -1,17 +1,19 @@
-import { Schema, type Entity, Repository, type RedisConnection } from "redis-om";
+import {
+	Schema,
+	type Entity,
+	Repository,
+	type RedisConnection,
+} from "redis-om";
 
 export interface IView extends Entity {
 	viewId: string;
 	messageId: string;
 }
 
-export const View = new Schema(
-	"View",
-	{
-		viewId: { type: "string" },
-		messageId: { type: "string" },
-	}
-);
+export const View = new Schema("View", {
+	viewId: { type: "string" },
+	messageId: { type: "string" },
+});
 
 export class ViewRepository extends Repository {
 	constructor(redis: RedisConnection) {
