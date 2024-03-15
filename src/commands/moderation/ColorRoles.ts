@@ -33,6 +33,12 @@ export default class ColorRolesCommand extends BaseCommand {
 								.setName("role")
 								.setDescription("The role to add")
 								.setRequired(true),
+						)
+						.addRoleOption((option) =>
+							option
+								.setName("required_role")
+								.setDescription("The role required to access this color role")
+								.setRequired(true),
 						),
 				)
 				.addSubcommand((subcommand) =>
@@ -63,11 +69,13 @@ export default class ColorRolesCommand extends BaseCommand {
 				const emoji = interaction.options.getString("emoji", true);
 				const label = interaction.options.getString("label", true);
 				const role = interaction.options.getRole("role", true);
+				const requiredRole = interaction.options.getRole("required_role", true);
 
 				const colorRole = {
 					emoji,
 					label,
-					id: role.id,
+					roleId: role.id,
+					requirementRoleId: requiredRole.id,
 				};
 
 				guildPreferences.colorRoles.push(colorRole);

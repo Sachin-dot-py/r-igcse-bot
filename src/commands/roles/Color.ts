@@ -26,35 +26,29 @@ export default class ColorRolesCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		const guildPrefs = await GuildPreferencesCache.get(interaction.guildId);
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId,
+		);
 
-		const colorRolesRoleId = guildPrefs.colorRolesRoleId;
-		const colorRolesRole = interaction.guild.roles.cache.get(colorRolesRoleId);
+		const colorRolesData = guildPreferences.colorRoles;
 
-		if (!colorRolesRole) {
-			interaction.reply({
-				content: "Color roles role not found",
+		if (!colorRolesData) {
+			await interaction.reply({
+				content: "Color roles not configured for this server",
 				ephemeral: true,
 			});
 
 			return;
 		}
+
+		const colorRoles = colorRolesData.filter(({ requirementRoleId }) =>
+			interaction.member.roles.cache.has(requirementRoleId),
+		);
 
 		// TODO: Allow server boosters to have this as a perk
-		if (!interaction.member.roles.cache.has(colorRolesRoleId)) {
-			interaction.reply({
-				content: "You do not meet the critera for this feature",
-				ephemeral: true,
-			});
-
-			return;
-		}
-
-		const colorRoles = guildPrefs.colorRoles;
-
 		if (colorRoles.length < 1) {
-			interaction.reply({
-				content: "Color roles not configured for this server",
+			await interaction.reply({
+				content: "No color roles are available for you ¯\\_(ツ)_/¯",
 				ephemeral: true,
 			});
 
@@ -71,7 +65,7 @@ export default class ColorRolesCommand extends BaseCommand {
 			roleSelect.addOptions({
 				emoji: colorRole.emoji,
 				label: colorRole.label,
-				value: colorRole.id,
+				value: colorRole.roleId,
 			});
 
 		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -96,7 +90,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				if (!role) {
 					i.reply({
-						content: "Roles not configured",
+						content: "Role not configured",
 						ephemeral: true,
 					});
 

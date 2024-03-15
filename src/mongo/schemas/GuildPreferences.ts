@@ -36,7 +36,7 @@ export interface IGuildPreferences {
 	}[];
 
 	colorRoles: {
-		requirementRoldId: string;
+		requirementRoleId: string;
 		emoji: string;
 		label: string;
 		roleId: string;
