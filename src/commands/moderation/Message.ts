@@ -22,7 +22,7 @@ export default class KickCommand extends BaseCommand {
 				.addSubcommand((command) =>
 					command
 						.setName("send")
-						.setDescription("// TODO")
+						.setDescription("Send a message")
 						.addChannelOption((option) =>
 							option
 								.setName("channel")
@@ -33,7 +33,7 @@ export default class KickCommand extends BaseCommand {
 				.addSubcommand((command) =>
 					command
 						.setName("edit")
-						.setDescription("// TODO")
+						.setDescription("Edit a message")
 						.addIntegerOption((option) =>
 							option
 								.setName("message_id")
@@ -116,10 +116,16 @@ export default class KickCommand extends BaseCommand {
 				messageContent,
 			);
 
-			const message = interaction.channel.messages.cache.get(messageId);
+			const message = await interaction.channel.messages.fetch(messageId);
 
-			// TODO: Logging
-			if (!message) return;
+			if (!message) {
+				await interaction.reply({
+					content: "Message not found",
+					ephemeral: true,
+				});
+
+				return;
+			}
 
 			const modal = new ModalBuilder()
 				.setTitle("Edit a message!")

@@ -60,7 +60,7 @@ export default class HelperMenu extends BaseMenu {
 			return;
 		}
 
-		const roles = rolesData
+		const roles: Role = rolesData
 			.map(({ roleId }) => interaction.guild.roles.cache.get(roleId))
 			.filter((role) => role !== undefined) as Role[];
 
@@ -72,8 +72,6 @@ export default class HelperMenu extends BaseMenu {
 
 			return;
 		}
-
-		// TODO: Server Booster perk
 
 		const embed = new EmbedBuilder()
 			.setDescription(

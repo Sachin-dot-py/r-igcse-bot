@@ -169,7 +169,6 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 		);
 	}
 
-	// TODO: improve the command?
 	async execute(
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,

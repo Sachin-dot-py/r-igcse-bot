@@ -27,7 +27,6 @@ export default class WarnCommand extends BaseCommand {
 		);
 	}
 
-	// TODO: Warn Command
 	async execute(
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
