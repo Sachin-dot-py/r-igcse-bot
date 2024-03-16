@@ -1,44 +1,56 @@
 import {
 	Schema,
-	Repository,
 	type Entity,
+	Repository,
 	type RedisConnection,
 } from "redis-om";
 
-interface ICachedPracticeQuestion extends Entity {
+export type PracticeQuestionResponse = {
+	user: string;
+	answer: string;
+};
+
+export interface IPracticeQuestion extends Entity {
+	questionName: string;
 	questions: string[];
-	answers: string[];
+	answers: string | string[];
 	solved: boolean;
-	userAnswers: {
-		solvedBy: string[];
-		answersByUsers: string[];
-	}[];
+	userAnswers: PracticeQuestionResponse[];
 	sessionId: string;
 }
 
-const schema = new Schema("Question", {
+export const PracticeQuestion = new Schema("Question", {
+	questionName: { type: "string" },
 	questions: { type: "string[]" },
-	answers: { type: "string[]" },
+	answers: { type: "string" },
 	solved: { type: "boolean" },
-	solvedBy: { type: "string[]", path: "$.userAnswers[*]" },
-	answersByUsers: { type: "string[]", path: "$.userAnswers[*]" },
+	solvedBy: { type: "string[]", path: "$.userAnswers[*].user" },
+	answersByUsers: { type: "string[]", path: "$.userAnswers[*].answer" },
 	sessionId: { type: "string" },
 });
 
 export class PracticeQuestionRepository extends Repository {
-	constructor(clientOrConnection: RedisConnection) {
-		super(schema, clientOrConnection);
-		this.createIndex();
+	constructor(redis: RedisConnection) {
+		super(PracticeQuestion, redis);
 	}
 
-	async get(questionName: string) {
-		return (await this.fetch(questionName)) as ICachedPracticeQuestion;
+	async get(questionName: string): Promise<IPracticeQuestion | null> {
+		const question = (await this.fetch(questionName)) as IPracticeQuestion;
+		if (!question.questionName) {
+			return null;
+		}
+		return question;
 	}
 
-	async set(questionName: string, questionData: ICachedPracticeQuestion) {
-		return (await this.save(
-			questionName,
-			questionData,
-		)) as ICachedPracticeQuestion;
+	async set(questionName: string, data: IPracticeQuestion): Promise<void> {
+		await this.save(questionName, data);
+	}
+
+	async delete(questionName: string): Promise<void> {
+		await this.remove(questionName);
+	}
+
+	async getAll(): Promise<IPracticeQuestion[]> {
+		return (await this.search().return.all()) as IPracticeQuestion[];
 	}
 }

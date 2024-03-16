@@ -1,4 +1,4 @@
-import { Schema, model as createModel } from "mongoose";
+import { Schema, model as createModel, Model } from "mongoose";
 
 export interface IQuestion {
 	subject: string;
@@ -9,9 +9,21 @@ export interface IQuestion {
 	questions: string[];
 	answers: string | string[];
 	topics: string[];
+	questionNumber: number;
+	board: string;
 }
 
-const schema = new Schema<IQuestion>({
+interface QuestionModel extends Model<IQuestion> {
+	getQuestions: (
+		subject: string,
+		minimumYear: number,
+		limit: number,
+		topics: string[],
+		type: "mcq" | "all",
+	) => Promise<IQuestion[]>;
+}
+
+const schema = new Schema<IQuestion, QuestionModel>({
 	subject: { type: String, required: true },
 	season: { type: String, required: true },
 	year: { type: Number, required: true },
@@ -20,6 +32,46 @@ const schema = new Schema<IQuestion>({
 	questions: { type: [String], required: true },
 	answers: { type: Schema.Types.Mixed, required: true },
 	topics: { type: [String], required: true },
+	questionNumber: { type: Number, required: true },
+	board: { type: String, required: true },
 });
 
-export const Question = createModel<IQuestion>("Question", schema);
+schema.statics.getQuestions = async function getQuestions(
+	subject: string,
+	minimumYear: number,
+	limit: number,
+	topics: string[],
+	type: "mcq" | "all",
+) {
+	const query = [
+		{
+			$match: {
+				subject: subject,
+				year: {
+					$gte: minimumYear,
+				},
+				topics: {
+					$elemMatch: { $in: topics },
+				},
+			},
+		},
+		{
+			$sample: {
+				size: limit,
+			},
+		},
+	];
+	if (type === "mcq") {
+		// @ts-expect-error
+		query[0]["$match"]["$expr"] = {
+			$eq: [{ $type: "$answers" }, "string"],
+		};
+	}
+
+	return this.aggregate(query);
+};
+
+export const Question = createModel<IQuestion, QuestionModel>(
+	"Question",
+	schema,
+);

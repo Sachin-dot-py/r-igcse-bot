@@ -6,10 +6,10 @@ import {
 } from "redis-om";
 import type { IGuildPreferences } from "@/mongo";
 
-export type ICachedGuildPreferences = Omit<IGuildPreferences, "guildId"> &
-	Entity;
+export type ICachedGuildPreferences = IGuildPreferences & Entity;
 
 const schema = new Schema("GuildPreferences", {
+	guildId: { type: "string" },
 	repEnabled: { type: "boolean" },
 	repDisabledChannelIds: { type: "string[]" },
 	modlogChannelId: { type: "string" },
@@ -39,11 +39,14 @@ const schema = new Schema("GuildPreferences", {
 export class GuildPreferencesRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
-		this.createIndex();
 	}
 
 	async get(guildId: string) {
-		return (await this.fetch(guildId)) as ICachedGuildPreferences;
+		const preferences = (await this.fetch(guildId)) as ICachedGuildPreferences;
+		if (!preferences.guildId) {
+			return null;
+		}
+		return preferences;
 	}
 
 	async set(guildId: string, preferences: ICachedGuildPreferences) {
