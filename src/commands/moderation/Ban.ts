@@ -5,6 +5,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
+	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -72,20 +73,20 @@ export default class BanCommand extends BaseCommand {
 
 		if (!guildPreferences) return;
 
-		const modlogChannel = interaction.guild.channels.cache.get(
-			guildPreferences.modlogChannelId,
-		);
-
-		if (!modlogChannel || !modlogChannel.isTextBased()) {
-			await interaction.reply(
-				"Please properly configure your guild preferences.",
-			);
-			return;
-		}
-
 		const latestPunishment = await Punishment.findOne().sort({ createdAt: -1 });
 
 		const caseNumber = latestPunishment?.caseId ?? 0;
+
+		const dmEmbed = new EmbedBuilder()
+			.setTitle(`You have been banned from ${interaction.guild.name}!`)
+			.setDescription(
+				`Hi there from ${interaction.guild.name}. You have been banned from the server due to \`${reason}\`. ${guildPreferences.banAppealFormLink ? `If you feel this ban was done in error, to appeal your ban, please fill the form [here](${guildPreferences.banAppealFormLink}).` : ""}`,
+			)
+			.setColor(Colors.Red);
+
+		await user.send({
+			embeds: [dmEmbed],
+		});
 
 		try {
 			await interaction.guild.bans.create(user, {
@@ -124,6 +125,38 @@ export default class BanCommand extends BaseCommand {
 			caseId: caseNumber,
 			reason,
 		});
+
+		const modlogChannel = interaction.guild.channels.cache.get(
+			guildPreferences.modlogChannelId,
+		);
+
+		if (modlogChannel && modlogChannel.isTextBased()) {
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`User Banned | Case #${caseNumber}`)
+				.setDescription(reason)
+				.setFooter({
+					text: `${deleteMessagesDays} days of messages deleted`,
+				})
+				.setColor(Colors.Red)
+				.setAuthor({
+					name: user.displayName,
+					iconURL: user.displayAvatarURL(),
+				})
+				.addFields([
+					{
+						name: "User ID",
+						value: user.id,
+						inline: true,
+					},
+					{
+						name: "Moderator",
+						value: interaction.user.displayName,
+						inline: true,
+					},
+				]);
+
+			await modlogChannel.send({ embeds: [modEmbed] });
+		}
 
 		await interaction.reply({
 			content: `Successfully banned @${user.displayName}`,
