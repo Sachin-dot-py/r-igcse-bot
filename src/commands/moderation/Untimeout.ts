@@ -11,30 +11,17 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
-import parse from "parse-duration";
 
-export default class TimeoutCommand extends BaseCommand {
+export default class UntimeoutCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("timeout")
-				.setDescription("Timeout a user (for mods)")
+				.setName("untimeout")
+				.setDescription("Untimeout a user (for mods)")
 				.addUserOption((option) =>
 					option
 						.setName("user")
 						.setDescription("User to timeout")
-						.setRequired(true),
-				)
-				.addStringOption((option) =>
-					option
-						.setName("reason")
-						.setDescription("Reason for timeout")
-						.setRequired(true),
-				)
-				.addStringOption((option) =>
-					option
-						.setName("duration")
-						.setDescription("Duration for timeout")
 						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
@@ -47,16 +34,16 @@ export default class TimeoutCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
-		const reason = interaction.options.getString("reason", true);
-		const durationString = interaction.options.getString("duration", true);
+		const member = await interaction.guild.members.fetch(user.id);
 
-		// if (user.id === interaction.user.id) {
-		// 	await interaction.reply({
-		// 		content: "You cannot warn yourself!",
-		// 		ephemeral: true,
-		// 	});
-		// 	return;
-		// }
+		if (!member.communicationDisabledUntil) {
+			await interaction.reply({
+				content: "User is not timed out!",
+				ephemeral: true,
+			});
+
+			return;
+		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
@@ -64,40 +51,17 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (!guildPreferences) return;
 
-		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: -1 })
-			.exec();
-
-		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
-
-		const duration = ["unspecified", "permanent", "undecided"].some((s) =>
-			durationString.includes(s),
-		)
-			? 2419200
-			: parse(durationString, "second") ?? 86400;
-
-		if (duration <= 0) {
-			await interaction.reply({
-				content: "Invalid duration!",
-				ephemeral: true,
-			});
-
-			return;
-		}
-
 		try {
-			const member = await interaction.guild.members.fetch(user.id);
-
-			await member.timeout(duration, reason);
+			await member.timeout(null);
 		} catch (error) {
 			await interaction.reply({
-				content: "Failed to timeout user",
+				content: "Failed to untimeout user",
 				ephemeral: true,
 			});
 
 			const embed = new EmbedBuilder()
 				.setAuthor({
-					name: "Error | Timing Out User",
+					name: "Error | Untiming Out User",
 					iconURL: interaction.user.displayAvatarURL(),
 				})
 				.setDescription(`${error}`);
@@ -111,21 +75,26 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
+		const undoPunishment = await Punishment.findOne({
+			guildId: interaction.guild.id,
+			actionAgainst: user.id,
+			action: "Timeout",
+		})
+			.sort({ createdAt: -1 })
+			.exec();
+
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
-			action: "Timeout",
-			caseId: caseNumber,
-			duration,
-			reason,
-			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+			action: "Remove Timeout",
+			reason: "",
+			points: -(undoPunishment?.points ?? 2),
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Timed Out | Case #${caseNumber}`)
-			.setDescription(reason)
-			.setColor(Colors.Red)
+			.setTitle(`User Untimed Out`)
+			.setColor(Colors.Green)
 			.setAuthor({
 				name: user.displayName,
 				iconURL: user.displayAvatarURL(),

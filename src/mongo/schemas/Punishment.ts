@@ -1,21 +1,36 @@
 import { Schema, model as createModel } from "mongoose";
 
-export interface IPunishment {
-	caseId: number;
+export type IPunishment = {
 	actionAgainst: number;
 	actionBy: number;
-	reason: string;
-	action: "Timeout" | "Remove Timeout" | "Warn" | "Kick" | "Ban" | "Unban";
-	duration: string | null;
 	when: Date;
 	points: number;
 	guildId: string;
-}
+} & (
+	| {
+			action: "Remove Timeout";
+			caseId: null;
+			reason: "";
+			duration: null;
+	  }
+	| {
+			action: "Warn" | "Kick" | "Ban" | "Unban";
+			caseId: number;
+			reason: string;
+			duration: null;
+	  }
+	| {
+			action: "Timeout";
+			caseId: number;
+			reason: string;
+			duration: number;
+	  }
+);
 
 const schema = new Schema<IPunishment>({
 	caseId: {
 		type: Number,
-		required: true,
+		required: false,
 		unique: false,
 	},
 	actionAgainst: {
@@ -30,7 +45,7 @@ const schema = new Schema<IPunishment>({
 	},
 	reason: {
 		type: String,
-		required: true,
+		required: false,
 		unique: false,
 	},
 	action: {
@@ -39,14 +54,15 @@ const schema = new Schema<IPunishment>({
 		unique: false,
 	},
 	duration: {
-		type: String,
+		type: Number,
 		required: false,
 		unique: false,
 	},
 	when: {
 		type: Date,
-		required: true,
+		required: false,
 		unique: false,
+		default: new Date(),
 	},
 	points: {
 		type: Number,
