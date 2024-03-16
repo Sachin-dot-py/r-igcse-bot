@@ -1,9 +1,15 @@
-import { logger } from "@/index";
+import { Punishment } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+	Colors,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
 
 export default class KickCommand extends BaseCommand {
 	constructor() {
@@ -43,25 +49,99 @@ export default class KickCommand extends BaseCommand {
 		//     return;
 		// }
 
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId,
+		);
+
+		if (!guildPreferences) return;
+
+		const latestPunishment = await Punishment.findOne()
+			.sort({ createdAt: -1 })
+			.exec();
+
+		const caseNumber = latestPunishment?.caseId ?? 0;
+
+		const dmEmbed = new EmbedBuilder()
+			.setAuthor({
+				name: `You have been kicked from ${interaction.guild.name}!`,
+				iconURL: client.user.displayAvatarURL(),
+			})
+			.setDescription(
+				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to \`${reason}\`.`,
+			)
+			.setColor(Colors.Red);
+
+		await user.send({
+			embeds: [dmEmbed],
+		});
+
 		try {
 			await interaction.guild.members.kick(user, reason);
-
-			await user.send(
-				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to '${reason}'.`,
-			);
-
-			await interaction.reply({
-				content: `Successfully kicked @${user.displayName}`,
-				ephemeral: true,
-			});
-		} catch (e) {
+		} catch (error) {
 			await interaction.reply({
 				content: "Failed to kick user",
 				ephemeral: true,
 			});
 
-			logger.error(e);
-			return;
+			const botlogChannel = interaction.guild.channels.cache.get(
+				guildPreferences.botlogChannelId,
+			);
+
+			if (!botlogChannel || !botlogChannel.isTextBased()) return;
+
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "Error | Kicking User",
+					iconURL: interaction.user.displayAvatarURL(),
+				})
+				.setDescription(`${error}`);
+
+			await botlogChannel.send({
+				embeds: [embed],
+			});
 		}
+
+		await Punishment.create({
+			guildId: interaction.guild.id,
+			actionAgainst: user.id,
+			actionBy: interaction.user.id,
+			action: "Kick",
+			caseId: caseNumber,
+			reason,
+		});
+
+		const modlogChannel = interaction.guild.channels.cache.get(
+			guildPreferences.modlogChannelId,
+		);
+
+		if (modlogChannel && modlogChannel.isTextBased()) {
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`User Kicked | Case #${caseNumber}`)
+				.setDescription(reason)
+				.setColor(Colors.Red)
+				.setAuthor({
+					name: user.displayName,
+					iconURL: user.displayAvatarURL(),
+				})
+				.addFields([
+					{
+						name: "User ID",
+						value: user.id,
+						inline: true,
+					},
+					{
+						name: "Moderator",
+						value: interaction.user.displayName,
+						inline: true,
+					},
+				]);
+
+			await modlogChannel.send({ embeds: [modEmbed] });
+		}
+
+		await interaction.reply({
+			content: `Successfully kicked @${user.displayName}`,
+			ephemeral: true,
+		});
 	}
 }

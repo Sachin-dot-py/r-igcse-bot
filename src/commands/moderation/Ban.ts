@@ -73,7 +73,9 @@ export default class BanCommand extends BaseCommand {
 
 		if (!guildPreferences) return;
 
-		const latestPunishment = await Punishment.findOne().sort({ createdAt: -1 });
+		const latestPunishment = await Punishment.findOne()
+			.sort({ createdAt: -1 })
+			.exec();
 
 		const caseNumber = latestPunishment?.caseId ?? 0;
 
@@ -107,7 +109,7 @@ export default class BanCommand extends BaseCommand {
 
 			const embed = new EmbedBuilder()
 				.setAuthor({
-					name: "Error | Creating Reaction role",
+					name: "Error | Banning User",
 					iconURL: interaction.user.displayAvatarURL(),
 				})
 				.setDescription(`${error}`);
