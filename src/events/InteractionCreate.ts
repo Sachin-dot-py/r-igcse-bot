@@ -1,4 +1,3 @@
-import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
 import {
 	ChatInputCommandInteraction,
@@ -45,18 +44,15 @@ export default class InteractionCreateEvent extends BaseEvent {
 					iconURL: client.user.displayAvatarURL(),
 				})
 				.setDescription(
-					`Channel: <#${interaction.channelId}> \nUser: <@${interaction.user.id}>\nError: ${error}`,
+					`Channel: <#${interaction.channelId}> \nUser: <@${interaction.user.id}>\nError: \`\`\`${(error as Error)?.stack || error}\`\`\``,
 				);
 
-			const guildPreferences = await GuildPreferencesCache.get(
-				interaction.guildId,
-			);
+			const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
+			if (!mainGuild) return;
 
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{ embeds: [embed] },
-			);
+			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
+				embeds: [embed],
+			});
 		}
 	}
 
@@ -83,13 +79,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction,
 	) {
-		const matchCustomIdRegex = /A|B|C|D_\d\d\d\d_[msw]\d\d_qp_q.*_.*/
+		const matchCustomIdRegex = /A|B|C|D_\d\d\d\d_[msw]\d\d_qp_q.*_.*/;
 		if (!matchCustomIdRegex.test(interaction.customId)) return;
 		const customId = interaction.customId.split("_").slice(1).join("_");
 		const button = await ButtonInteractionCache.get(customId);
 		if (!button) return;
 
-		const question = await PracticeQuestionCache.get(customId)
+		const question = await PracticeQuestionCache.get(customId);
 		if (!question) {
 			ButtonInteractionCache.remove(customId);
 			return;
@@ -132,10 +128,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 			});
 		}
 
-		const allUsersSorted = session.users.sort()
-		
+		const allUsersSorted = session.users.sort();
+
 		if (
-			question.userAnswers.map((x) => x.user).sort().every((x, i) => x === allUsersSorted[i])
+			question.userAnswers
+				.map((x) => x.user)
+				.sort()
+				.every((x, i) => x === allUsersSorted[i])
 		) {
 			question.solved = true;
 			ButtonInteractionCache.remove(customId);
@@ -143,25 +142,31 @@ export default class InteractionCreateEvent extends BaseEvent {
 			const thread = interaction.guild?.channels.cache.get(session.threadId);
 
 			if (thread && thread.isThread()) {
-
-				const message = await thread.messages.fetch(button.messageId)
+				const message = await thread.messages.fetch(button.messageId);
 
 				await message.edit({
-					components: [new DisabledMCQButtons(customId, question.answers) as ActionRowBuilder<ButtonBuilder>]
+					components: [
+						new DisabledMCQButtons(
+							customId,
+							question.answers,
+						) as ActionRowBuilder<ButtonBuilder>,
+					],
 				});
 				await thread.send({
 					embeds: [
 						new EmbedBuilder()
 							.setTitle("Question Solved!")
-							.setDescription(`Correct answer: ${question.answers}\n\n${question.userAnswers.map(x => `<@${x.user}>: ${x.answer}`).join("\n")}`)
+							.setDescription(
+								`Correct answer: ${question.answers}\n\n${question.userAnswers.map((x) => `<@${x.user}>: ${x.answer}`).join("\n")}`,
+							),
 					],
 				});
 
-				session.currentlySolving = "none"
-				await session.save()
+				session.currentlySolving = "none";
+				await session.save();
 			}
 		}
 
-		await PracticeQuestionCache.save(question)
+		await PracticeQuestionCache.save(question);
 	}
 }

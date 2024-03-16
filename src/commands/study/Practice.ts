@@ -23,7 +23,7 @@ import { PracticeSession, Question, type IPracticeSession } from "@/mongo";
 import { practiceSubjects, subjectTopics } from "@/data";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { logger } from "@/index";
+import Logger from "@/utils/Logger";
 import {
 	UserCache,
 	PracticeQuestionCache,
@@ -93,7 +93,7 @@ export default class PracticeCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
-		this.client = client
+		this.client = client;
 		const action = interaction.options.getString("action");
 		if (action) {
 			this.options[action].bind(this)(interaction);
@@ -140,26 +140,26 @@ export default class PracticeCommand extends BaseCommand {
 				content: "Select a subject to practice!",
 				view: SubjectSelect,
 				key: "subject",
-				required: true
+				required: true,
 			},
 			{
 				content:
 					"Select the topics you want to practice! Click continue if you want to select all topics.",
 				view: TopicSelect,
 				key: "topics",
-				required: false
+				required: false,
 			},
 			{
 				content: "Do you want the session to be private or public?",
 				view: VisibiltySelect,
 				key: "visibility",
-				required: true
+				required: true,
 			},
 			{
-				content: "Select the users you want to add to the session",
+				content: "Select the users you want to add to the session! Leave empty for a solo session.",
 				view: UserSelectView,
 				key: "users",
-				required: false
+				required: false,
 			},
 		];
 
@@ -198,7 +198,7 @@ export default class PracticeCommand extends BaseCommand {
 						`${customId}_${index}`,
 						viewInteraction,
 						followUpInteraction,
-						required
+						required,
 					);
 				}),
 			);
@@ -285,7 +285,7 @@ export default class PracticeCommand extends BaseCommand {
 			private: collectedData.visibility[0] === "private",
 			paused: false,
 			currentlySolving: "none",
-			expireTime: new Date(Date.now() + 60 * 60 * 2),
+			expireTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
 		});
 
 		await session.save();
@@ -325,7 +325,7 @@ Session ID: ${sessionId}`,
 				content: "An error occurred, please try again.",
 				ephemeral: true,
 			});
-			logger.error(
+			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
 			);
 			return;
@@ -370,7 +370,7 @@ Session ID: ${sessionId}`,
 				content: "An error occurred, please try again.",
 				ephemeral: true,
 			});
-			logger.error(
+			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
 			);
 			return;
@@ -459,7 +459,7 @@ Session ID: ${sessionId}`,
 				content: "An error occurred, please try again.",
 				components: [],
 			});
-			logger.error(`Session not found: ${sessionId}`);
+			Logger.error(`Session not found: ${sessionId}`);
 			return;
 		}
 
@@ -506,7 +506,7 @@ Session ID: ${sessionId}`,
 				content: "An error occurred, please try again.",
 				ephemeral: true,
 			});
-			logger.error(
+			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
 			);
 			return;
@@ -556,7 +556,7 @@ Session ID: ${sessionId}`,
 				try {
 					member = await interaction.guild?.members.fetch(user);
 				} catch (error) {
-					logger.error(`Error fetching user: ${error} for user: ${user}`);
+					Logger.error(`Error fetching user: ${error} for user: ${user}`);
 				}
 			}
 			if (!member) continue;
@@ -602,7 +602,7 @@ Session ID: ${sessionId}`,
 				content: "An error occurred, please try again.",
 				ephemeral: true,
 			});
-			logger.error(
+			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
 			);
 			return;
@@ -652,7 +652,7 @@ Session ID: ${sessionId}`,
 				try {
 					member = await interaction.guild?.members.fetch(user);
 				} catch (error) {
-					logger.error(`Error fetching user: ${error} for user: ${user}`);
+					Logger.error(`Error fetching user: ${error} for user: ${user}`);
 				}
 			}
 			if (!member) continue;
@@ -718,19 +718,19 @@ Session ID: ${sessionId}`,
 			try {
 				guild = await client.guilds.fetch(session.guildId);
 			} catch (error) {
-				logger.error(
+				Logger.error(
 					`Error fetching guild: ${error} for session: ${session.sessionId}`,
 				);
 			}
 		}
 		if (!guild) {
-			logger.error(`Guild not found for session: ${session.sessionId}`);
+			Logger.error(`Guild not found for session: ${session.sessionId}`);
 			return;
 		}
 
 		const thread = guild.channels.cache.get(session.threadId);
 		if (!thread?.isThread()) {
-			logger.error(`Thread not found for session: ${session.sessionId}`);
+			Logger.error(`Thread not found for session: ${session.sessionId}`);
 			return;
 		}
 
@@ -786,7 +786,7 @@ Session ID: ${sessionId}`,
 					try {
 						discordUser = await guild.members.fetch(user);
 					} catch (error) {
-						logger.error(
+						Logger.error(
 							`Error fetching user: ${error} in session: ${session.sessionId} for user: ${user}`,
 						);
 					}
@@ -822,7 +822,7 @@ Session ID: ${sessionId}`,
 				content: "An error occurred, please try again.",
 				components: [],
 			});
-			logger.error(`Thread not found for session: ${session.sessionId}`);
+			Logger.error(`Thread not found for session: ${session.sessionId}`);
 			return undefined;
 		}
 		try {
@@ -830,7 +830,7 @@ Session ID: ${sessionId}`,
 				(await interaction.guild?.channels.fetch(session.threadId)) ??
 				undefined;
 		} catch (error) {
-			logger.error(
+			Logger.error(
 				`Error fetching thread: ${error} for session: ${session.sessionId}`,
 			);
 		}
@@ -841,10 +841,14 @@ Session ID: ${sessionId}`,
 		const sessions = await PracticeSession.find();
 
 		for (const session of sessions) {
-			if (session.expireTime > new Date()) {
-				this.endAndSendResults(client, session, "Session ended automatically after 2 hours.");
+			if (new Date() > session.expireTime) {
+				this.endAndSendResults(
+					client,
+					session,
+					"Session ended automatically after 2 hours.",
+				);
 			}
-			if (session.currentlySolving !== "none") continue; 
+			if (session.currentlySolving !== "none") continue;
 			const questions = (await PracticeQuestionCache.search()
 				.where("sessionId")
 				.equals(session.sessionId)
@@ -865,7 +869,7 @@ Session ID: ${sessionId}`,
 
 			const thread = await client?.channels.fetch(session.threadId);
 			if (!thread?.isThread()) {
-				logger.error(`Thread not found for session: ${session.sessionId}`);
+				Logger.error(`Thread not found for session: ${session.sessionId}`);
 				continue;
 			}
 

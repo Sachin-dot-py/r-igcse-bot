@@ -9,8 +9,10 @@ class DisabledMCQButtons extends ActionRowBuilder {
 			const button = new ButtonBuilder()
 				.setCustomId(`${label}_${customId}_disabled`)
 				.setLabel(label)
-				.setStyle(label === correctAnswer ? ButtonStyle.Success : ButtonStyle.Danger)
-                .setDisabled(true);
+				.setStyle(
+					label === correctAnswer ? ButtonStyle.Success : ButtonStyle.Danger,
+				)
+				.setDisabled(true);
 			this.addComponents(button);
 		}
 	}

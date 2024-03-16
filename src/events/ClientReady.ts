@@ -1,5 +1,4 @@
 import { GuildPreferences, StickyMessage } from "@/mongo";
-import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
@@ -35,40 +34,54 @@ export default class ClientReadyEvent extends BaseEvent {
 			day: "numeric",
 		});
 
-		for (const guild of client.guilds.cache.values()) {
-			const guildPreferences = await GuildPreferencesCache.get(guild.id);
+		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
+		if (mainGuild) {
 
-			const readyEmbed = new EmbedBuilder()
-				.setTitle(`${client.user.displayName} restarted successfully!`)
-				.setColor(Colors.Green)
-				.setAuthor({
-					name: client.user.displayName,
-					iconURL: client.user.displayAvatarURL(),
-				})
-				.addFields([
-					{
-						name: "Bot Information",
-						value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(guild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
-						inline: false,
-					},
-					{
-						name: "Guild Information",
-						value: `\`\`\`Name: ${guild.name}\nOwner: ${(await guild.fetchOwner()).displayName}}\nCreated on: ${timeFormatter(guild.createdAt)}\nMembers: ${guild.memberCount}\nBoosts: ${guild.premiumSubscriptionCount}\nID: ${guild.id}\`\`\``,
-						inline: false,
-					},
-					{
-						name: "Role Statistics",
-						value: `\`\`\`No. of roles: ${guild.roles.cache.size}\nNo. of members: ${guild.memberCount}\nHelpers: // TODO\nModerators: // TODO\`\`\``,
-						inline: false,
-					},
-					{
-						name: "Channels & Commands",
-						value: `\`\`\`No. of users: ${guild.members.cache.filter((member) => !member.user.bot).size}\nNo. of bots: ${guild.members.cache.filter((member) => member.user.bot).size}\nNo. of catagories: ${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildCategory).size}\nNo. of text-channels: ${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size}\nNo. of voice-channels: ${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size}\nNo. of forum-channels: ${guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildForum).size}\nNo. of slash-commands: ${client.commands.size}\`\`\``,
-						inline: false,
-					},
-				]);
+		const readyEmbed = new EmbedBuilder()
+			.setTitle(`${client.user.displayName} restarted successfully!`)
+			.setColor(Colors.Green)
+			.setAuthor({
+				name: client.user.displayName,
+				iconURL: client.user.displayAvatarURL(),
+			})
+			.addFields([
+				{
+					name: "Bot Information",
+					value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
+					inline: false,
+				},
+				{
+					name: "Guild Information",
+					value: `\`\`\`Name: ${mainGuild.name}
+Owner: ${(await mainGuild.fetchOwner()).displayName}}
+Created on: ${timeFormatter(mainGuild.createdAt)}
+Members: ${mainGuild.memberCount}
+Boosts: ${mainGuild.premiumSubscriptionCount}
+ID: ${mainGuild.id}\`\`\``,
+					inline: false,
+				},
+				{
+					name: "Role Statistics",
+					value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
+No. of members: ${mainGuild.memberCount}
+Helpers: // TODO\nModerators: // TODO\`\`\``,
+					inline: false,
+				},
+				{
+					name: "Channels & Commands",
+					value: `\`\`\`No. of users: ${mainGuild.members.cache.filter((member) => !member.user.bot).size}
+No. of bots: ${mainGuild.members.cache.filter((member) => member.user.bot).size}
+No. of catagories: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildCategory).size}
+No. of text-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size}
+No. of voice-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size}
+No. of forum-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildForum).size}
+No. of slash-commands: ${client.commands.size}\`\`\``,
+					inline: false,
+				},
+			]);
 
-			await Logger.channel(guild, guildPreferences.botlogChannelId, {
+		
+			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [readyEmbed],
 			});
 		}
@@ -81,14 +94,17 @@ export default class ClientReadyEvent extends BaseEvent {
 		// 	.then(() => Logger.info("Populated Sticky Messages Cache"))
 		// 	.catch(Logger.error);
 
-		const practiceCommand = client.commands.get("practice") as PracticeCommand | undefined;
+		const practiceCommand = client.commands.get("practice") as
+			| PracticeCommand
+			| undefined;
 		if (practiceCommand) {
+			Logger.info("Starting practice questions loop")
 			setInterval(() => practiceCommand.sendQuestions(client), 3500);
 		}
 
 		await syncInteractions(client)
 			.then(() => Logger.info("Synced application commands globally"))
-			.catch(Logger.error);
+			.catch(Logger.error)
 
 		setInterval(async () => {
 			await this.updateStickyMessagesCache().catch(Logger.error);
@@ -101,9 +117,9 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		for (const guildPreferences of guildPreferencess) {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { _id, guildId, ...data } = guildPreferences.toObject();
+			const { _id, ...data } = guildPreferences.toObject();
 
-			await GuildPreferencesCache.set(guildId, data);
+			await GuildPreferencesCache.set(data.guildId, data);
 		}
 	}
 

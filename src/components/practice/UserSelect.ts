@@ -21,7 +21,7 @@ class UserSelect extends UserSelectMenuBuilder {
 		this.setPlaceholder(placeholder)
 			.setMaxValues(max_values)
 			.setCustomId(customId)
-			.setMinValues(0)
+			.setMinValues(0);
 	}
 
 	async waitForResponse(

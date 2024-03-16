@@ -6,8 +6,7 @@ import {
 } from "redis-om";
 import type { IGuildPreferences } from "@/mongo";
 
-export type ICachedGuildPreferences = Omit<IGuildPreferences, "guildId"> &
-	Entity;
+export type ICachedGuildPreferences = IGuildPreferences & Entity;
 
 const schema = new Schema("GuildPreferences", {
 	guildId: { type: "string" },
