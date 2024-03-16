@@ -25,6 +25,7 @@ import {
 import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import Logger from "@/utils/Logger";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -104,13 +105,6 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					const botlogChannelId = guildPreferences.botlogChannelId;
-
-					const botlogChannel =
-						await message.guild.channels.cache.get(botlogChannelId);
-
-					if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
 					const embed = new EmbedBuilder()
 						.setAuthor({
 							name: "Failed: Create DM thread",
@@ -119,9 +113,13 @@ export default class MessageCreateEvent extends BaseEvent {
 						.setDescription(`${error}`)
 						.setTimestamp(Date.now());
 
-					botlogChannel.send({
-						embeds: [embed],
-					});
+					await Logger.channel(
+						message.guild,
+						guildPreferences.botlogChannelId,
+						{
+							embeds: [embed],
+						},
+					);
 				}
 			}
 

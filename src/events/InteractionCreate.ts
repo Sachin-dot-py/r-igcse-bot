@@ -1,3 +1,5 @@
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 import {
 	ChatInputCommandInteraction,
 	ContextMenuCommandInteraction,
@@ -8,9 +10,7 @@ import {
 	type ActionRowBuilder,
 	type ButtonBuilder,
 } from "discord.js";
-import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/DiscordClient";
-import { logger } from "..";
 import {
 	ButtonInteractionCache,
 	GuildPreferencesCache,
@@ -18,6 +18,7 @@ import {
 } from "@/redis";
 import { PracticeSession } from "@/mongo";
 import DisabledMCQButtons from "@/components/practice/DisabledMCQButtons";
+import BaseEvent from "../registry/Structure/BaseEvent";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -34,7 +35,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleMCQButton(client, interaction);
 			}
 		} catch (error) {
-			logger.error(error);
+			Logger.error(error);
 
 			if (!interaction.inCachedGuild()) return;
 
@@ -51,13 +52,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 				interaction.guildId,
 			);
 
-			const botlogChannelId = guildPreferences?.botlogChannelId;
-			if (!botlogChannelId) return;
-
-			const botlogChannel = client.channels.cache.get(botlogChannelId);
-			if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
-			await botlogChannel.send({ embeds: [embed] });
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{ embeds: [embed] },
+			);
 		}
 	}
 

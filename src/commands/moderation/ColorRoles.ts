@@ -4,6 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
@@ -120,12 +121,6 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true,
 					});
 
-					const botlogChannelId = guildPreferences.botlogChannelId;
-					const botlogChannel =
-						interaction.guild.channels.cache.get(botlogChannelId);
-
-					if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
 					const embed = new EmbedBuilder()
 						.setAuthor({
 							name: "Error | Removing Color role",
@@ -133,9 +128,13 @@ export default class ColorRolesCommand extends BaseCommand {
 						})
 						.setDescription(`${error}`);
 
-					botlogChannel.send({
-						embeds: [embed],
-					});
+					await Logger.channel(
+						interaction.guild,
+						guildPreferences.botlogChannelId,
+						{
+							embeds: [embed],
+						},
+					);
 				}
 
 				break;

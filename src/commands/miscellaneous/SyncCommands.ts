@@ -5,6 +5,7 @@ import BaseCommand, {
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 
 export default class SyncCommandsCommand extends BaseCommand {
 	constructor() {
@@ -37,13 +38,6 @@ export default class SyncCommandsCommand extends BaseCommand {
 				interaction.guildId,
 			);
 
-			const botlogChannelId = guildPreferences.botlogChannelId;
-
-			const botlogChannel =
-				await interaction.guild.channels.cache.get(botlogChannelId);
-
-			if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: "Failed: Sync Commands",
@@ -52,9 +46,13 @@ export default class SyncCommandsCommand extends BaseCommand {
 				.setDescription(`${error}`)
 				.setTimestamp(Date.now());
 
-			botlogChannel.send({
-				embeds: [embed],
-			});
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{
+					embeds: [embed],
+				},
+			);
 		}
 	}
 }

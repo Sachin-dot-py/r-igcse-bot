@@ -1,8 +1,8 @@
-import { logger } from "@/index";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 
 export default class YesNoPollCommand extends BaseCommand {
@@ -50,7 +50,7 @@ export default class YesNoPollCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			logger.error(e);
+			Logger.error(e);
 		}
 	}
 }

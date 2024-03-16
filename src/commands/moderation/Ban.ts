@@ -1,10 +1,16 @@
+import { Punishment } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
+import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import type { DiscordClient } from "@/registry/DiscordClient";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import { GuildPreferences } from "../../mongo/schemas/GuildPreferences";
-import { logger } from "@/index";
+import Logger from "@/utils/Logger";
+import {
+	Colors,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
 
 export default class BanCommand extends BaseCommand {
 	constructor() {
@@ -44,7 +50,7 @@ export default class BanCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 		const deleteMessagesDays =
-			interaction.options.getInteger("delete_messages", false) || 0;
+			interaction.options.getInteger("delete_messages", false) ?? 0;
 
 		// if (user.id === interaction.user.id) {
 		//     await interaction.reply({
@@ -54,74 +60,104 @@ export default class BanCommand extends BaseCommand {
 		//     return;
 		// }
 
-		// if (interaction.guild?.bans.cache.has(user.id)) {
-		//     await interaction.followUp({
+		// if (interaction.guild.bans.cache.has(user.id)) {
+		//     await interaction.reply({
 		//         content: 'User is already banned!',
 		//         ephemeral: true,
 		//     });
 		//     return;
 		// }
 
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId,
+		);
+
+		if (!guildPreferences) return;
+
+		const latestPunishment = await Punishment.findOne()
+			.sort({ createdAt: -1 })
+			.exec();
+
+		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
+
+		const dmEmbed = new EmbedBuilder()
+			.setTitle(`You have been banned from ${interaction.guild.name}!`)
+			.setDescription(
+				`Hi there from ${interaction.guild.name}. You have been banned from the server due to \`${reason}\`. ${guildPreferences.banAppealFormLink ? `If you feel this ban was done in error, to appeal your ban, please fill the form [here](${guildPreferences.banAppealFormLink}).` : ""}`,
+			)
+			.setColor(Colors.Red);
+
+		await user.send({
+			embeds: [dmEmbed],
+		});
+
 		try {
-			const modlogChannelId = (
-				await GuildPreferences.findOne({
-					guildId: interaction.guild.id,
-				}).exec()
-			)?.modlogChannelId;
-
-			const modlogChannel = interaction.guild.channels.cache.get(
-				modlogChannelId!,
-			);
-
-			if (!modlogChannel || !modlogChannel.isTextBased()) {
-				await interaction.reply(
-					"Please properly configure your guild preferences.",
-				);
-				return;
-			}
-
-			const lastMessageContent =
-				await modlogChannel.messages.cache.last()?.content;
-
-			const caseNumber =
-				parseInt(lastMessageContent?.match(/\d/g)?.join("") || "0") + 1;
-
-			// await interaction.guild?.bans.create(user, {
-			// 	reason: reason,
-			// 	deleteMessageSeconds: deleteMessagesDays * 86400,
-			// });
-
-			// await Punishment.create({
-			// 	guildId: interaction.guild.id,
-			// 	actionAgainst: user.id,
-			// 	actionBy: interaction.user.id,
-			// 	action: "Ban",
-			// 	caseId: caseNumber,
-			// 	reason,
-			// });
-
-			await interaction.reply({
-				content: `Successfully banned @${user.displayName}`,
-				ephemeral: true,
+			await interaction.guild.bans.create(user, {
+				reason: reason,
+				deleteMessageSeconds: deleteMessagesDays * 86400,
 			});
-
-			await logger.ban(
-				user,
-				interaction.user,
-				interaction.guild,
-				reason,
-				caseNumber,
-				deleteMessagesDays,
-				modlogChannel,
-			);
-		} catch (e) {
+		} catch (error) {
 			await interaction.reply({
 				content: "Failed to ban user",
 				ephemeral: true,
 			});
 
-			logger.error(e);
-			return;
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "Error | Banning User",
+					iconURL: interaction.user.displayAvatarURL(),
+				})
+				.setDescription(`${error}`);
+
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{
+					embeds: [embed],
+				},
+			);
 		}
+
+		await Punishment.create({
+			guildId: interaction.guild.id,
+			actionAgainst: user.id,
+			actionBy: interaction.user.id,
+			action: "Ban",
+			caseId: caseNumber,
+			reason,
+		});
+
+		const modEmbed = new EmbedBuilder()
+			.setTitle(`User Banned | Case #${caseNumber}`)
+			.setDescription(reason)
+			.setFooter({
+				text: `${deleteMessagesDays} days of messages deleted`,
+			})
+			.setColor(Colors.Red)
+			.setAuthor({
+				name: user.displayName,
+				iconURL: user.displayAvatarURL(),
+			})
+			.addFields([
+				{
+					name: "User ID",
+					value: user.id,
+					inline: true,
+				},
+				{
+					name: "Moderator",
+					value: interaction.user.displayName,
+					inline: true,
+				},
+			]);
+
+		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
+			embeds: [modEmbed],
+		});
+
+		await interaction.reply({
+			content: `Successfully banned @${user.displayName}`,
+			ephemeral: true,
+		});
 	}
 }

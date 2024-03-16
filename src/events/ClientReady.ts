@@ -1,4 +1,5 @@
 import { GuildPreferences, StickyMessage } from "@/mongo";
+import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
@@ -7,7 +8,7 @@ import {
 	EmbedBuilder,
 	Events,
 } from "discord.js";
-import { logger } from "..";
+import Logger from "@/utils/Logger";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
@@ -21,7 +22,7 @@ export default class ClientReadyEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>) {
 		if (!client.user) return;
 
-		logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
+		Logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
 
 		client.user.setPresence({
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
@@ -35,15 +36,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const guild of client.guilds.cache.values()) {
-			const guildPrefs = await GuildPreferencesCache.get(guild.id);
-
-			if (!guildPrefs.botlogChannelId) continue;
-
-			const botlogChannel = await guild.channels.cache.get(
-				guildPrefs.botlogChannelId,
-			);
-
-			if (!guild || !botlogChannel || !botlogChannel.isTextBased()) return;
+			const guildPreferences = await GuildPreferencesCache.get(guild.id);
 
 			const readyEmbed = new EmbedBuilder()
 				.setTitle(`${client.user.displayName} restarted successfully!`)
@@ -75,21 +68,32 @@ export default class ClientReadyEvent extends BaseEvent {
 					},
 				]);
 
-			await botlogChannel.send({ embeds: [readyEmbed] });
+			await Logger.channel(guild, guildPreferences.botlogChannelId, {
+				embeds: [readyEmbed],
+			});
 		}
 
 		await this.populateGuildPreferencesCache()
-			.then(() => logger.info("Populated Guild Preferences Cache"))
-			.catch(logger.error);
+			.then(() => Logger.info("Populated Guild Preferences Cache"))
+			.catch(Logger.error);
 
 		// await this.populateStickyMessageCache(client)
-		// 	.then(() => logger.info("Populated Sticky Messages Cache"))
-		// 	.catch(logger.error);
+		// 	.then(() => Logger.info("Populated Sticky Messages Cache"))
+		// 	.catch(Logger.error);
 
 		const practiceCommand = client.commands.get("practice") as PracticeCommand | undefined;
 		if (practiceCommand) {
 			setInterval(practiceCommand.sendQuestions(client), 3500);
 		}
+
+		await syncInteractions(client)
+			.then(() => Logger.info("Synced application commands globally"))
+			.catch(Logger.error);
+
+		setInterval(async () => {
+			await this.updateStickyMessagesCache().catch(Logger.error);
+			// .then(() => Logger.info("Updated sticky messages (enabled or not)"))
+		}, 60000);
 	}
 
 	private async populateGuildPreferencesCache() {

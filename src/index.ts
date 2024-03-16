@@ -12,9 +12,7 @@ import mongo from "mongoose";
 import { redis } from "./redis";
 import Logger from "./utils/Logger";
 
-export const logger = new Logger();
-
-redis.on("error", logger.error);
+redis.on("error", Logger.error);
 
 export const client = new DiscordClient({
 	intents: [

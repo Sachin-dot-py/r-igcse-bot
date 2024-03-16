@@ -1,59 +1,28 @@
-import {
-	Colors,
-	EmbedBuilder,
-	type Guild,
-	type GuildBasedChannel,
-	type User,
-} from "discord.js";
+import { Guild, MessagePayload, type MessageCreateOptions } from "discord.js";
 
 export default class Logger {
-	public info(message: unknown) {
+	public static info(message: unknown) {
 		console.log(`[ \x1b[0;34mi\x1b[0m ] ${message}`);
 	}
 
-	public warn(message: unknown) {
+	public static warn(message: unknown) {
 		console.log(`[ \x1b[0;33m!\x1b[0m ] ${message}`);
 	}
 
-	public error(message: unknown) {
+	public static error(message: unknown) {
 		console.error(`[ \x1b[0;31mx\x1b[0m ] ${message}`);
 	}
 
-	public async ban(
-		user: User,
-		by: User,
+	public static async channel(
 		guild: Guild,
-		reason: string,
-		caseNumber: number,
-		daysOfMessagesDeleted: number,
-		modlogChannel: GuildBasedChannel,
+		channelId: string,
+		options: string | MessagePayload | MessageCreateOptions,
 	) {
-		if (modlogChannel.isTextBased()) {
-			const embed = new EmbedBuilder()
-				.setTitle(`User Banned | Case #${caseNumber}`)
-				.setDescription(reason)
-				.setFooter({
-					text: `${daysOfMessagesDeleted} days of messages deleted`,
-				})
-				.setColor(Colors.Red)
-				.setAuthor({
-					name: user.displayName,
-					iconURL: user.displayAvatarURL(),
-				})
-				.addFields([
-					{
-						name: "User ID",
-						value: user.id,
-						inline: true,
-					},
-					{
-						name: "Moderator",
-						value: by.displayName,
-						inline: true,
-					},
-				]);
+		const channel = guild.channels.cache.get(channelId);
 
-			await modlogChannel.send({ embeds: [embed] });
-		}
+		if (!channel || !channel.isTextBased())
+			throw new Error("Channel not found or is not a text-based channel.");
+
+		return await channel.send(options);
 	}
 }

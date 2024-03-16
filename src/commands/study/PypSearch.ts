@@ -4,6 +4,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
 import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 
 export default class ResourcesCommand extends BaseCommand {
 	constructor() {
@@ -69,12 +70,6 @@ export default class ResourcesCommand extends BaseCommand {
 				interaction.guild.id,
 			);
 
-			const botlogChannelId = guildPreferences.botlogChannelId;
-			const botlogChannel =
-				interaction.guild.channels.cache.get(botlogChannelId);
-
-			if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: "Error | PypSearch",
@@ -82,9 +77,13 @@ export default class ResourcesCommand extends BaseCommand {
 				})
 				.setDescription(`${error}`);
 
-			botlogChannel.send({
-				embeds: [embed],
-			});
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{
+					embeds: [embed],
+				},
+			);
 		}
 	}
 }

@@ -4,6 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
 
 export default class HOTMVotingCommand extends BaseCommand {
@@ -46,14 +47,13 @@ export default class HOTMVotingCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const botlogChannelId = guildPreferences.botlogChannelId;
-			const botlogChannel =
-				interaction.guild.channels.cache.get(botlogChannelId);
-
-			if (botlogChannel && botlogChannel.isTextBased())
-				await botlogChannel.send({
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{
 					content: "Helper role not found",
-				});
+				},
+			);
 
 			return;
 		}

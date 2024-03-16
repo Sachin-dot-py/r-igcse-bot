@@ -60,7 +60,7 @@ export default class HelperMenu extends BaseMenu {
 			return;
 		}
 
-		const roles: Role = rolesData
+		const roles = rolesData
 			.map(({ roleId }) => interaction.guild.roles.cache.get(roleId))
 			.filter((role) => role !== undefined) as Role[];
 
