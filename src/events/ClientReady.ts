@@ -11,6 +11,7 @@ import { logger } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
+import type PracticeCommand from "@/commands/study/Practice";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -85,14 +86,10 @@ export default class ClientReadyEvent extends BaseEvent {
 		// 	.then(() => logger.info("Populated Sticky Messages Cache"))
 		// 	.catch(logger.error);
 
-		await syncInteractions(client)
-			.then(() => logger.info("Synced application commands globally"))
-			.catch(logger.error);
-
-		setInterval(async () => {
-			await this.updateStickyMessagesCache().catch(logger.error);
-			// .then(() => logger.info("Updated sticky messages (enabled or not)"))
-		}, 60000);
+		const practiceCommand = client.commands.get("practice") as PracticeCommand | undefined;
+		if (practiceCommand) {
+			setInterval(practiceCommand.sendQuestions(client), 3500);
+		}
 	}
 
 	private async populateGuildPreferencesCache() {

@@ -33,7 +33,7 @@ class Select extends StringSelectMenuBuilder {
 			| ModalSubmitInteraction
 			| DiscordChatInputCommandInteraction,
 		required: boolean,
-	): Promise<string[] | false> {
+	): Promise<string[] | false | "Timed out"> {
 		try {
 			let value: string[] = [];
 			const selectCollector = interaction.createMessageComponentCollector({
@@ -44,8 +44,6 @@ class Select extends StringSelectMenuBuilder {
 
 			selectCollector.on("collect", async (i) => {
 				await i.deferUpdate();
-				console.log(i.values);
-				console.log(i.customId);
 				value = i.values;
 			});
 
@@ -95,7 +93,7 @@ class Select extends StringSelectMenuBuilder {
 					components: [],
 				});
 			}
-			return false;
+			return "Timed out";
 		}
 	}
 }

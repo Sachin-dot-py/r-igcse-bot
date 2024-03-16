@@ -21,11 +21,13 @@ const schema = new Schema("StickyMessage", {
 export class StickyMessageRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
-		this.createIndex();
 	}
 
 	async get(id: string) {
 		const res = await this.fetch(id);
+		if (!res.channelId) {
+			return null;
+		}
 		res.embeds = (res.embeds as string[]).map((embed) => JSON.parse(embed));
 
 		return res as ICachedStickyMessage;

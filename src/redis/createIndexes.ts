@@ -19,3 +19,12 @@ export const StickyMessageCache = new StickyMessageRepository(redis);
 export const PracticeQuestionCache = new PracticeQuestionRepository(redis);
 export const UserCache = new UserRepository(redis);
 export const ButtonInteractionCache = new ButtonInteractionRepository(redis);
+
+await GuildPreferencesCache.createIndex()
+await DmGuildPreferenceCache.createIndex()
+await StickyMessageCache.createIndex()
+await PracticeQuestionCache.createIndex()
+await UserCache.createIndex()
+await ButtonInteractionCache.createIndex()
+
+await redis.disconnect();

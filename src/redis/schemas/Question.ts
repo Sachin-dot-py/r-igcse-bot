@@ -32,11 +32,14 @@ export const PracticeQuestion = new Schema("Question", {
 export class PracticeQuestionRepository extends Repository {
 	constructor(redis: RedisConnection) {
 		super(PracticeQuestion, redis);
-		this.createIndex();
 	}
 
 	async get(questionName: string): Promise<IPracticeQuestion | null> {
-		return (await this.fetch(questionName)) as IPracticeQuestion;
+		const question = (await this.fetch(questionName)) as IPracticeQuestion;
+		if (!question.questionName) {
+			return null;
+		}
+		return question;
 	}
 
 	async set(questionName: string, data: IPracticeQuestion): Promise<void> {

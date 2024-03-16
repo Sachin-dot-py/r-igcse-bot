@@ -22,12 +22,11 @@ export const User = new Schema("User", {
 export class UserRepository extends Repository {
 	constructor(redis: RedisConnection) {
 		super(User, redis);
-		this.createIndex();
 	}
 
 	async get(userId: string): Promise<IUser | null> {
 		const user = (await this.fetch(userId)) as IUser;
-		if (user.userId === undefined) {
+		if (!user.userId) {
 			return null;
 		}
 		return user;

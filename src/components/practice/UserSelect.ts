@@ -20,7 +20,8 @@ class UserSelect extends UserSelectMenuBuilder {
 		this.isFirstComponent = customId.split("_")[1] === "0";
 		this.setPlaceholder(placeholder)
 			.setMaxValues(max_values)
-			.setCustomId(customId);
+			.setCustomId(customId)
+			.setMinValues(0)
 	}
 
 	async waitForResponse(

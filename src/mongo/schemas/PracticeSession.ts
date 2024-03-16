@@ -4,6 +4,7 @@ export interface IPracticeSession {
 	sessionId: string;
 	channelId: string;
 	threadId: string;
+	guildId: string;
 	subject: string;
 	topics: string[];
 	limit: number;
@@ -19,6 +20,7 @@ const schema = new Schema<IPracticeSession>({
 	sessionId: { type: String, required: true, unique: true },
 	channelId: { type: String, required: true },
 	threadId: { type: String, required: true },
+	guildId: { type: String, required: true },
 	subject: { type: String, required: true },
 	topics: { type: [String], required: true },
 	limit: { type: Number, required: true },

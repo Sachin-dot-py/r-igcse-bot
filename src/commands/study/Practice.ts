@@ -8,6 +8,7 @@ import {
 	StringSelectMenuOptionBuilder,
 	type GuildBasedChannel,
 	type AnyThreadChannel,
+	Guild,
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -23,7 +24,11 @@ import { practiceSubjects, subjectTopics } from "@/data";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { logger } from "@/index";
-import { UserCache, PracticeQuestionCache } from "@/redis";
+import {
+	UserCache,
+	PracticeQuestionCache,
+	ButtonInteractionCache,
+} from "@/redis";
 import type { Document } from "mongoose";
 import type {
 	IPracticeQuestion,
@@ -31,6 +36,7 @@ import type {
 } from "@/redis/schemas/Question";
 import Select from "@/components/Select";
 import UserSelect from "@/components/practice/UserSelect";
+import MCQButtons from "@/components/practice/MCQButtons";
 
 type CommandOptions = {
 	[key: string]: (
@@ -50,6 +56,7 @@ type CollectedData = {
 type PracticeQuestionCount = { [key: string]: number };
 
 export default class PracticeCommand extends BaseCommand {
+	client: DiscordClient | undefined;
 	constructor() {
 		const actions = [
 			"New Session",
@@ -58,7 +65,6 @@ export default class PracticeCommand extends BaseCommand {
 			"Join Session",
 			"Add to Session",
 			"Remove from Session",
-			"Session Info",
 		];
 		super(
 			new SlashCommandBuilder()
@@ -81,13 +87,13 @@ export default class PracticeCommand extends BaseCommand {
 		"Join Session": this.joinSession,
 		"Add to Session": this.addToSession,
 		"Remove from Session": this.removeFromSession,
-		"Session Info": this.sessionInfo,
 	};
 
 	async execute(
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
+		this.client = client
 		const action = interaction.options.getString("action");
 		if (action) {
 			this.options[action].bind(this)(interaction);
@@ -188,14 +194,17 @@ export default class PracticeCommand extends BaseCommand {
 						`${customId}_${index}`,
 						viewInteraction,
 						followUpInteraction,
-						key === "topics" ? false : true,
+						(key === "topics" || key === "users") ? false : true,
 					);
 				}),
 			);
 
 			let data = arrays.flat();
+			if (data[0] === "Timed out") {
+				return;
+			}
 			if (!data || data.every((x) => x === false)) {
-				if (key !== "topics") break;
+				if (key !== "topics") return;
 				data = subjectTopics[collectedData["subject"][0]];
 			}
 			data = data.filter((x) => typeof x === "string");
@@ -216,9 +225,8 @@ export default class PracticeCommand extends BaseCommand {
 		);
 
 		if (questions.length === 0) {
-			await interaction.reply({
+			await followUpInteraction.editReply({
 				content: "No questions found, try again.",
-				ephemeral: true,
 			});
 			return;
 		}
@@ -263,6 +271,7 @@ export default class PracticeCommand extends BaseCommand {
 			sessionId,
 			channelId: interaction.channel.id,
 			threadId: thread.id,
+			guildId: interaction.guild.id,
 			subject: collectedData.subject[0],
 			topics: collectedData.topics,
 			limit: collectedData.numberOfQuestions,
@@ -373,7 +382,7 @@ Session ID: ${sessionId}`,
 		}
 
 		await this.endAndSendResults(
-			interaction,
+			this.client,
 			session,
 			`Session ended by <@${interaction.user.id}>`,
 		);
@@ -399,7 +408,8 @@ Session ID: ${sessionId}`,
 		const sessionOpts: StringSelectMenuOptionBuilder[] = sessions.map(
 			(session) => {
 				const sessionOwner =
-					interaction.guild?.members.cache.get(session.owner)?.displayName || session.owner;
+					interaction.guild?.members.cache.get(session.owner)?.displayName ||
+					session.owner;
 				return new StringSelectMenuOptionBuilder()
 					.setLabel(session.sessionId)
 					.setDescription(
@@ -554,7 +564,6 @@ Session ID: ${sessionId}`,
 				sessionId,
 			});
 			UserCache.expire(user, 60 * 60 * 2);
-			await thread.send(`<@${user}> has been added to the session.`);
 		}
 
 		session.users.push(...userResponse);
@@ -568,9 +577,98 @@ Session ID: ${sessionId}`,
 
 	private async removeFromSession(
 		interaction: DiscordChatInputCommandInteraction,
-	) {}
+	) {
+		const inSessionCheck = await this.userInSessionCheck(interaction, true);
+		if (inSessionCheck) return;
 
-	private async sessionInfo(interaction: DiscordChatInputCommandInteraction) {}
+		const user = await UserCache.get(interaction.user.id);
+		if (!user) {
+			await interaction.reply({
+				content: "An error occurred, please try again.",
+				ephemeral: true,
+			});
+			return;
+		}
+
+		const sessionId = user.sessionId;
+		const session = await PracticeSession.findOne({ sessionId });
+
+		if (!session) {
+			await interaction.reply({
+				content: "An error occurred, please try again.",
+				ephemeral: true,
+			});
+			logger.error(
+				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
+			);
+			return;
+		}
+
+		if (session.owner !== interaction.user.id) {
+			await interaction.reply({
+				content: "You are not the owner of the session.",
+				ephemeral: true,
+			});
+			return;
+		}
+
+		const customId = uuidv4();
+		const userSelect = new UserSelect(
+			customId,
+			"Select users to remove from the session",
+			25,
+			customId,
+		);
+
+		const selectInteraction = await interaction.reply({
+			content: "Select users to remove from the session",
+			components: [
+				new ActionRowBuilder<UserSelect>().addComponents(userSelect),
+				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
+			],
+			ephemeral: true,
+			fetchReply: true,
+		});
+
+		const userResponse = await userSelect.waitForResponse(
+			customId,
+			selectInteraction,
+			interaction,
+			true,
+		);
+
+		if (!userResponse) return;
+
+		const thread = await this.getThread(interaction, session);
+		if (!thread) return;
+
+		for (const user of userResponse) {
+			let member = interaction.guild?.members.cache.get(user);
+			if (!member) {
+				try {
+					member = await interaction.guild?.members.fetch(user);
+				} catch (error) {
+					logger.error(`Error fetching user: ${error} for user: ${user}`);
+				}
+			}
+			if (!member) continue;
+			await thread.members.remove(
+				member.id,
+				`Removed from practice session by ${interaction.user.username}`,
+			);
+			await UserCache.remove(user);
+		}
+
+		session.users = session.users.filter(
+			(user) => !userResponse.includes(user),
+		);
+		await session.save();
+
+		await interaction.editReply({
+			content: "User(s) have been removed from the session.",
+			components: [],
+		});
+	}
 
 	/**
 	 * @param inSession - Whether the user needs to be in a session or not
@@ -581,10 +679,6 @@ Session ID: ${sessionId}`,
 	): Promise<boolean> {
 		const userId = interaction.user.id;
 		const user = await UserCache.get(userId);
-
-		if (!user) {
-			return false;
-		}
 
 		switch (inSession) {
 			case true:
@@ -609,12 +703,32 @@ Session ID: ${sessionId}`,
 	}
 
 	private async endAndSendResults(
-		interaction: DiscordChatInputCommandInteraction,
+		client: DiscordClient | undefined,
 		session: Document<any, {}, IPracticeSession> & IPracticeSession,
 		message: string,
 	): Promise<void> {
-		const thread = await this.getThread(interaction, session);
-		if (!thread) return;
+		if (!client) return;
+
+		let guild = client.guilds.cache.get(session.guildId);
+		if (!guild) {
+			try {
+				guild = await client.guilds.fetch(session.guildId);
+			} catch (error) {
+				logger.error(
+					`Error fetching guild: ${error} for session: ${session.sessionId}`,
+				);
+			}
+		}
+		if (!guild) {
+			logger.error(`Guild not found for session: ${session.sessionId}`);
+			return;
+		}
+
+		const thread = guild.channels.cache.get(session.threadId);
+		if (!thread?.isThread()) {
+			logger.error(`Thread not found for session: ${session.sessionId}`);
+			return;
+		}
 
 		const questions = (await PracticeQuestionCache.search()
 			.where("sessionId")
@@ -663,10 +777,10 @@ Session ID: ${sessionId}`,
 			for (const user of users) {
 				const correct = correctAnswers[user] || 0;
 				const total = totalAnswers[user] || 0;
-				let discordUser = interaction.guild?.members.cache.get(user);
+				let discordUser = guild.members.cache.get(user);
 				if (!user) {
 					try {
-						discordUser = await interaction.guild?.members.fetch(user);
+						discordUser = await guild.members.fetch(user);
 					} catch (error) {
 						logger.error(
 							`Error fetching user: ${error} in session: ${session.sessionId} for user: ${user}`,
@@ -717,5 +831,72 @@ Session ID: ${sessionId}`,
 			);
 		}
 		return thread as AnyThreadChannel;
+	}
+
+	async sendQuestions(client: DiscordClient) {
+		const sessions = await PracticeSession.find();
+
+		for (const session of sessions) {
+			if (session.expireTime > new Date()) {
+				this.endAndSendResults(client, session, "Session ended automatically after 2 hours.");
+			}
+			if (session.currentlySolving !== "none") continue; 
+			const questions = (await PracticeQuestionCache.search()
+				.where("sessionId")
+				.equals(session.sessionId)
+				.where("solved")
+				.equals(false)
+				.return.all()) as IPracticeQuestion[];
+
+			if (questions.length === 0) {
+				this.endAndSendResults(
+					client,
+					session,
+					`Session ended due to no questions left.`,
+				);
+				continue;
+			}
+
+			const question = questions[Math.floor(Math.random() * questions.length)];
+
+			const thread = await client?.channels.fetch(session.threadId);
+			if (!thread?.isThread()) {
+				logger.error(`Thread not found for session: ${session.sessionId}`);
+				continue;
+			}
+
+			const questionNumber = session.limit - questions.length + 1;
+			const embeds = [];
+			let embed = new EmbedBuilder()
+				.setTitle(question.questionName.split("_").slice(0, -1).join("_"))
+				.setFooter({
+					text: `Question ${questionNumber}/${session.limit}`,
+				});
+
+			for (const questionImage of question.questions) {
+				embed.setImage(
+					`https://pub-8153dcb2290449f2924ed014b10896ee.r2.dev/${questionImage}`,
+				);
+				embeds.push(embed);
+				embed = new EmbedBuilder();
+			}
+
+			session.currentlySolving = question.questionName;
+			await session.save();
+
+			const buttonsRow = new MCQButtons(question.questionName);
+			const message = await thread.send({
+				embeds,
+				components: [buttonsRow as ActionRowBuilder<ButtonBuilder>],
+			});
+
+			await ButtonInteractionCache.set(question.questionName, {
+				customId: question.questionName,
+				messageId: message.id,
+			});
+
+			ButtonInteractionCache.expire(question.questionName, 60 * 60 * 2);
+			// Interactions are stored in redis and will be handled using the InteractionCreate event.
+		}
 	}
 }

@@ -6,21 +6,24 @@ import {
 	type RedisConnection,
 } from "redis-om";
 
-export type ICachedDmGuildPreference = Omit<IDmGuildPreference, "userId"> &
-	Entity;
+export type ICachedDmGuildPreference = IDmGuildPreference & Entity;
 
 const schema = new Schema("Question", {
+	userId: { type: "string" },
 	guildId: { type: "string" },
 });
 
 export class DmGuildPreferenceRepository extends Repository {
 	constructor(clientOrConnection: RedisConnection) {
 		super(schema, clientOrConnection);
-		this.createIndex();
 	}
 
 	async get(userId: string) {
-		return (await this.fetch(userId)) as ICachedDmGuildPreference;
+		const preferences = (await this.fetch(userId)) as ICachedDmGuildPreference;
+		if (!preferences.userId) {
+			return null;
+		}
+		return preferences;
 	}
 
 	async set(userId: string, guildId: string) {
