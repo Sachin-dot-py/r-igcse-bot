@@ -11,23 +11,30 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
+import parse from "parse-duration";
 
-export default class WarnCommand extends BaseCommand {
+export default class TimeoutCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("warn")
+				.setName("timeout")
 				.setDescription("Warn a user (for mods)")
 				.addUserOption((option) =>
 					option
 						.setName("user")
-						.setDescription("User to warn")
+						.setDescription("User to timeout")
 						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
-						.setDescription("Reason for warn")
+						.setDescription("Reason for timeout")
+						.setRequired(true),
+				)
+				.addStringOption((option) =>
+					option
+						.setName("duration")
+						.setDescription("Duration for timeout")
 						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
@@ -41,6 +48,7 @@ export default class WarnCommand extends BaseCommand {
 	) {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
+		const durationString = interaction.options.getString("duration", true);
 
 		// if (user.id === interaction.user.id) {
 		// 	await interaction.reply({
@@ -62,18 +70,60 @@ export default class WarnCommand extends BaseCommand {
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
+		const duration = ["unspecified", "permanent", "undecided"].some((s) =>
+			durationString.includes(s),
+		)
+			? 2419200
+			: parse(durationString, "second") ?? 86400;
+
+		if (duration <= 0) {
+			await interaction.reply({
+				content: "Invalid duration!",
+				ephemeral: true,
+			});
+
+			return;
+		}
+
+		try {
+			const member = await interaction.guild.members.fetch(user.id);
+
+			await member.timeout(duration, reason);
+		} catch (error) {
+			await interaction.reply({
+				content: "Failed to timeout user",
+				ephemeral: true,
+			});
+
+			const embed = new EmbedBuilder()
+				.setAuthor({
+					name: "Error | Timing Out User",
+					iconURL: interaction.user.displayAvatarURL(),
+				})
+				.setDescription(`${error}`);
+
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{
+					embeds: [embed],
+				},
+			);
+		}
+
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
-			action: "Warn",
+			action: "Timeout",
 			caseId: caseNumber,
+			duration,
 			reason,
-			points: 1,
+			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Warned | Case #${caseNumber}`)
+			.setTitle(`User Timed Out | Case #${caseNumber}`)
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
@@ -98,7 +148,7 @@ export default class WarnCommand extends BaseCommand {
 		});
 
 		await interaction.reply({
-			content: `Successfully warned @${user.displayName}`,
+			content: `Successfully timed out @${user.displayName}`,
 			ephemeral: true,
 		});
 	}
