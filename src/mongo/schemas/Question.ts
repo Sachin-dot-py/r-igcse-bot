@@ -31,7 +31,7 @@ const schema = new Schema<IQuestion, QuestionModel>({
 	variant: { type: Number, required: true },
 	questions: { type: [String], required: true },
 	answers: { type: Schema.Types.Mixed, required: true },
-	topics: { type: [String], required: true },
+	topics: { type: [String], required: true, index: true },
 	questionNumber: { type: Number, required: true },
 	board: { type: String, required: true },
 });

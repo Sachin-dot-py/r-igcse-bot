@@ -4,6 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import DM from "@/utils/DM";
 import Logger from "@/utils/Logger";
 import {
 	Colors,
@@ -52,27 +53,33 @@ export default class BanCommand extends BaseCommand {
 		const deleteMessagesDays =
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
-		// if (user.id === interaction.user.id) {
-		//     await interaction.reply({
-		//         content: 'You cannot ban yourself!',
-		//         ephemeral: true,
-		//     });
-		//     return;
-		// }
+		if (user.id === interaction.user.id) {
+		    await interaction.reply({
+		        content: "Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
+		        ephemeral: true,
+		    });
+		    return;
+		}
 
-		// if (interaction.guild.bans.cache.has(user.id)) {
-		//     await interaction.reply({
-		//         content: 'User is already banned!',
-		//         ephemeral: true,
-		//     });
-		//     return;
-		// }
+		if (interaction.guild.bans.cache.has(user.id)) {
+		    await interaction.reply({
+		        content: "I cannot ban a user that's already banned.",
+		        ephemeral: true,
+		    });
+		    return;
+		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
 
-		if (!guildPreferences) return;
+		if (!guildPreferences) {
+			await interaction.reply({
+				content: "Please configure the bot using `/set_preferences` command first.",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const latestPunishment = await Punishment.findOne()
 			.sort({ createdAt: -1 })
@@ -83,13 +90,17 @@ export default class BanCommand extends BaseCommand {
 		const dmEmbed = new EmbedBuilder()
 			.setTitle(`You have been banned from ${interaction.guild.name}!`)
 			.setDescription(
-				`Hi there from ${interaction.guild.name}. You have been banned from the server due to \`${reason}\`. ${guildPreferences.banAppealFormLink ? `If you feel this ban was done in error, to appeal your ban, please fill the form [here](${guildPreferences.banAppealFormLink}).` : ""}`,
+				`You have been banned from **${interaction.guild.name}** due to \`${reason}\`. ${guildPreferences.banAppealFormLink ? `Please fill the appeal form [here](${guildPreferences.banAppealFormLink}) to appeal your ban.` : ""}`,
 			)
 			.setColor(Colors.Red);
 
-		await user.send({
-			embeds: [dmEmbed],
-		});
+		const guildMember = await interaction.guild.members.cache.get(user.id)
+		
+		if (guildMember) {
+			await DM.send(guildMember, {
+				embeds: [dmEmbed],
+			});
+		}
 
 		try {
 			await interaction.guild.bans.create(user, {

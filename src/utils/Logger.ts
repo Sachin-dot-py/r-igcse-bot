@@ -10,7 +10,7 @@ export default class Logger {
 	}
 
 	public static error(message: unknown) {
-		console.error(`[ \x1b[0;31mx\x1b[0m ] ${message}`);
+		console.error(message);
 	}
 
 	public static async channel(
