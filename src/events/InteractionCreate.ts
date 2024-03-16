@@ -1,3 +1,5 @@
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 import {
 	ChatInputCommandInteraction,
 	ContextMenuCommandInteraction,
@@ -5,10 +7,8 @@ import {
 	Events,
 	type Interaction,
 } from "discord.js";
-import BaseEvent from "../registry/Structure/BaseEvent";
 import type { DiscordClient } from "../registry/DiscordClient";
-import { logger } from "..";
-import { GuildPreferencesCache } from "@/redis";
+import BaseEvent from "../registry/Structure/BaseEvent";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -22,7 +22,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			else if (interaction.isContextMenuCommand())
 				this.handleMenu(client, interaction);
 		} catch (error) {
-			logger.error(error);
+			Logger.error(error);
 
 			if (!interaction.inCachedGuild()) return;
 

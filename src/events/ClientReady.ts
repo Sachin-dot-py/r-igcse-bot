@@ -1,4 +1,5 @@
 import { GuildPreferences, StickyMessage } from "@/mongo";
+import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import {
 	ActivityType,
@@ -7,10 +8,9 @@ import {
 	EmbedBuilder,
 	Events,
 } from "discord.js";
-import { logger } from "..";
+import Logger from "@/utils/Logger";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -20,7 +20,7 @@ export default class ClientReadyEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>) {
 		if (!client.user) return;
 
-		logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
+		Logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
 
 		client.user.setPresence({
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
@@ -78,20 +78,20 @@ export default class ClientReadyEvent extends BaseEvent {
 		}
 
 		await this.populateGuildPreferencesCache()
-			.then(() => logger.info("Populated Guild Preferences Cache"))
-			.catch(logger.error);
+			.then(() => Logger.info("Populated Guild Preferences Cache"))
+			.catch(Logger.error);
 
 		// await this.populateStickyMessageCache(client)
-		// 	.then(() => logger.info("Populated Sticky Messages Cache"))
-		// 	.catch(logger.error);
+		// 	.then(() => Logger.info("Populated Sticky Messages Cache"))
+		// 	.catch(Logger.error);
 
 		await syncInteractions(client)
-			.then(() => logger.info("Synced application commands globally"))
-			.catch(logger.error);
+			.then(() => Logger.info("Synced application commands globally"))
+			.catch(Logger.error);
 
 		setInterval(async () => {
-			await this.updateStickyMessagesCache().catch(logger.error);
-			// .then(() => logger.info("Updated sticky messages (enabled or not)"))
+			await this.updateStickyMessagesCache().catch(Logger.error);
+			// .then(() => Logger.info("Updated sticky messages (enabled or not)"))
 		}, 60000);
 	}
 

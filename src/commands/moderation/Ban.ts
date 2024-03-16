@@ -77,7 +77,7 @@ export default class BanCommand extends BaseCommand {
 			.sort({ createdAt: -1 })
 			.exec();
 
-		const caseNumber = latestPunishment?.caseId ?? 0;
+		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		const dmEmbed = new EmbedBuilder()
 			.setTitle(`You have been banned from ${interaction.guild.name}!`)

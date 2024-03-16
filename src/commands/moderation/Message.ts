@@ -1,8 +1,8 @@
-import { logger } from "@/index";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	ModalBuilder,
@@ -101,7 +101,7 @@ export default class KickCommand extends BaseCommand {
 						},
 					});
 				})
-				.catch(logger.error);
+				.catch(Logger.error);
 		} else if (interaction.options.getSubcommand() === "edit") {
 			const messageId = interaction.options.getString("message_id", true);
 
@@ -147,7 +147,7 @@ export default class KickCommand extends BaseCommand {
 						content: i.fields.getTextInputValue("message_content"),
 					});
 				})
-				.catch(logger.error);
+				.catch(Logger.error);
 		}
 	}
 }
