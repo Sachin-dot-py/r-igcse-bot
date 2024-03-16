@@ -83,7 +83,7 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		const practiceCommand = client.commands.get("practice") as PracticeCommand | undefined;
 		if (practiceCommand) {
-			setInterval(practiceCommand.sendQuestions(client), 3500);
+			setInterval(() => practiceCommand.sendQuestions(client), 3500);
 		}
 
 		await syncInteractions(client)

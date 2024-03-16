@@ -140,27 +140,31 @@ export default class PracticeCommand extends BaseCommand {
 				content: "Select a subject to practice!",
 				view: SubjectSelect,
 				key: "subject",
+				required: true
 			},
 			{
 				content:
 					"Select the topics you want to practice! Click continue if you want to select all topics.",
 				view: TopicSelect,
 				key: "topics",
+				required: false
 			},
 			{
 				content: "Do you want the session to be private or public?",
 				view: VisibiltySelect,
 				key: "visibility",
+				required: true
 			},
 			{
 				content: "Select the users you want to add to the session",
 				view: UserSelectView,
 				key: "users",
+				required: false
 			},
 		];
 
 		for (const interaction in dataInteractions) {
-			const { content, view, key } = dataInteractions[interaction];
+			const { content, view, key, required } = dataInteractions[interaction];
 			const customId = uuidv4();
 			const viewInstance = new view(
 				customId,
@@ -194,7 +198,7 @@ export default class PracticeCommand extends BaseCommand {
 						`${customId}_${index}`,
 						viewInteraction,
 						followUpInteraction,
-						(key === "topics" || key === "users") ? false : true,
+						required
 					);
 				}),
 			);
@@ -204,8 +208,8 @@ export default class PracticeCommand extends BaseCommand {
 				return;
 			}
 			if (!data || data.every((x) => x === false)) {
-				if (key !== "topics") return;
-				data = subjectTopics[collectedData["subject"][0]];
+				if (required) return;
+				if (key === "topics") data = subjectTopics[collectedData["subject"][0]];
 			}
 			data = data.filter((x) => typeof x === "string");
 			// @ts-ignore
