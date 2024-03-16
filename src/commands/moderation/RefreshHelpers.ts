@@ -3,6 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
@@ -57,12 +58,6 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			changed.push(channel.name);
 		}
 
-		const modlogChannel = interaction.guild.channels.cache.get(
-			guildPreferences.modlogChannelId,
-		);
-
-		if (!modlogChannel || !modlogChannel.isTextBased()) return;
-
 		const embed = new EmbedBuilder()
 			.setAuthor({
 				name: `Helpers Refreshed - ${interaction.user.displayName}`,
@@ -81,7 +76,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 				},
 			);
 
-		await modlogChannel.send({
+		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
 			embeds: [embed],
 		});
 	}

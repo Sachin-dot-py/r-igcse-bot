@@ -4,6 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	Colors,
 	EmbedBuilder,
@@ -83,12 +84,6 @@ export default class KickCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const botlogChannel = interaction.guild.channels.cache.get(
-				guildPreferences.botlogChannelId,
-			);
-
-			if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: "Error | Kicking User",
@@ -96,9 +91,13 @@ export default class KickCommand extends BaseCommand {
 				})
 				.setDescription(`${error}`);
 
-			await botlogChannel.send({
-				embeds: [embed],
-			});
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{
+					embeds: [embed],
+				},
+			);
 		}
 
 		await Punishment.create({
@@ -110,34 +109,30 @@ export default class KickCommand extends BaseCommand {
 			reason,
 		});
 
-		const modlogChannel = interaction.guild.channels.cache.get(
-			guildPreferences.modlogChannelId,
-		);
+		const modEmbed = new EmbedBuilder()
+			.setTitle(`User Kicked | Case #${caseNumber}`)
+			.setDescription(reason)
+			.setColor(Colors.Red)
+			.setAuthor({
+				name: user.displayName,
+				iconURL: user.displayAvatarURL(),
+			})
+			.addFields([
+				{
+					name: "User ID",
+					value: user.id,
+					inline: true,
+				},
+				{
+					name: "Moderator",
+					value: interaction.user.displayName,
+					inline: true,
+				},
+			]);
 
-		if (modlogChannel && modlogChannel.isTextBased()) {
-			const modEmbed = new EmbedBuilder()
-				.setTitle(`User Kicked | Case #${caseNumber}`)
-				.setDescription(reason)
-				.setColor(Colors.Red)
-				.setAuthor({
-					name: user.displayName,
-					iconURL: user.displayAvatarURL(),
-				})
-				.addFields([
-					{
-						name: "User ID",
-						value: user.id,
-						inline: true,
-					},
-					{
-						name: "Moderator",
-						value: interaction.user.displayName,
-						inline: true,
-					},
-				]);
-
-			await modlogChannel.send({ embeds: [modEmbed] });
-		}
+		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
+			embeds: [modEmbed],
+		});
 
 		await interaction.reply({
 			content: `Successfully kicked @${user.displayName}`,

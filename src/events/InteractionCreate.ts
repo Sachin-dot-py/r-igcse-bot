@@ -39,13 +39,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 				interaction.guildId,
 			);
 
-			const botlogChannelId = guildPreferences.botlogChannelId;
-			if (!botlogChannelId) return;
-
-			const botlogChannel = client.channels.cache.get(botlogChannelId);
-			if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
-			await botlogChannel.send({ embeds: [embed] });
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.botlogChannelId,
+				{ embeds: [embed] },
+			);
 		}
 	}
 

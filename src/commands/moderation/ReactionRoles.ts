@@ -4,6 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 
 export default class ReactionRolesCommand extends BaseCommand {
@@ -86,12 +87,6 @@ export default class ReactionRolesCommand extends BaseCommand {
 
 					if (!guildPreferences) return;
 
-					const botlogChannelId = guildPreferences.botlogChannelId;
-					const botlogChannel =
-						interaction.guild.channels.cache.get(botlogChannelId);
-
-					if (!botlogChannel || !botlogChannel.isTextBased()) return;
-
 					const embed = new EmbedBuilder()
 						.setAuthor({
 							name: "Error | Creating Reaction role",
@@ -99,9 +94,13 @@ export default class ReactionRolesCommand extends BaseCommand {
 						})
 						.setDescription(`${error}`);
 
-					await botlogChannel.send({
-						embeds: [embed],
-					});
+					await Logger.channel(
+						interaction.guild,
+						guildPreferences.botlogChannelId,
+						{
+							embeds: [embed],
+						},
+					);
 				}
 
 				break;

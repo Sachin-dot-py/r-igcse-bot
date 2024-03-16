@@ -13,15 +13,16 @@ export default class Logger {
 		console.error(`[ \x1b[0;31mx\x1b[0m ] ${message}`);
 	}
 
-	public async bot(
+	public static async channel(
 		guild: Guild,
-		botlogChannelId: string,
+		channelId: string,
 		options: string | MessagePayload | MessageCreateOptions,
 	) {
-		const botlogChannel = guild.channels.cache.get(botlogChannelId);
+		const channel = guild.channels.cache.get(channelId);
 
-		if (!botlogChannel || !botlogChannel.isTextBased()) return;
+		if (!channel || !channel.isTextBased())
+			throw new Error("Channel not found or is not a text-based channel.");
 
-		await botlogChannel.send(options);
+		return await channel.send(options);
 	}
 }

@@ -34,15 +34,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const guild of client.guilds.cache.values()) {
-			const guildPrefs = await GuildPreferencesCache.get(guild.id);
-
-			if (!guildPrefs.botlogChannelId) continue;
-
-			const botlogChannel = await guild.channels.cache.get(
-				guildPrefs.botlogChannelId,
-			);
-
-			if (!guild || !botlogChannel || !botlogChannel.isTextBased()) return;
+			const guildPreferences = await GuildPreferencesCache.get(guild.id);
 
 			const readyEmbed = new EmbedBuilder()
 				.setTitle(`${client.user.displayName} restarted successfully!`)
@@ -74,7 +66,9 @@ export default class ClientReadyEvent extends BaseEvent {
 					},
 				]);
 
-			await botlogChannel.send({ embeds: [readyEmbed] });
+			await Logger.channel(guild, guildPreferences.botlogChannelId, {
+				embeds: [readyEmbed],
+			});
 		}
 
 		await this.populateGuildPreferencesCache()
