@@ -22,6 +22,7 @@ export interface IGuildPreferences {
 
 	modmailChannelId: string;
 	dmThreadsChannelId: string;
+	closedDmChannelId: string;
 
 	helperRoles: {
 		roleId: string;
@@ -61,6 +62,7 @@ const schema = new Schema<IGuildPreferences>({
 	studySessionChannelId: { type: String, default: null },
 	modmailChannelId: { type: String, default: null },
 	dmThreadsChannelId: { type: String, default: null },
+	closedDmChannelId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
 	keywords: { type: [{ keyword: String, response: String }], default: [] },
 	colorRoles: {

@@ -26,6 +26,7 @@ const schema = new Schema("GuildPreferences", {
 	studySessionChannelId: { type: "string" },
 	modmailChannelId: { type: "string" },
 	dmThreadsChannelId: { type: "string" },
+	closedDmChannelId: { type: "string" },
 	banAppealFormLink: { type: "string" },
 	keywords: { type: "string[]" },
 	emoji: { type: "string", path: "$.colorRoles[*]" },

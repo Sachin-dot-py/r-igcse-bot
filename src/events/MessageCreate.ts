@@ -26,6 +26,7 @@ import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import Logger from "@/utils/Logger";
+import DM from "@/utils/DM";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -39,6 +40,8 @@ export default class MessageCreateEvent extends BaseEvent {
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id,
 			);
+
+			if (!guildPreferences) return;
 
 			const keywords = (guildPreferences.keywords || []).filter(
 				({ keyword }) => keyword === message.content.toLowerCase(),
@@ -161,7 +164,9 @@ export default class MessageCreateEvent extends BaseEvent {
 					.setMinValues(1)
 					.setMaxValues(1)
 					.addOptions(
-						client.guilds.cache.map((guild) => ({
+						client.guilds.cache.filter(guild => {
+							guild.members.cache.has(message.author.id);
+						}).map((guild) => ({
 							label: guild.name,
 							value: guild.id,
 						})),
@@ -197,6 +202,8 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (!guild) return;
 
 		const guildPreferences = await GuildPreferencesCache.get(guildId);
+
+		if (!guildPreferences) return;
 
 		const channel = guild.channels.cache.get(guildPreferences.modmailChannelId);
 
