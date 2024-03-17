@@ -77,7 +77,12 @@ export default class ResourcesCommand extends BaseCommand {
 				})
 				.setDescription(`${error}`);
 
-			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
+			Logger.errorLog(
+				client,
+				error as Error,
+				this.data.name,
+				interaction.user.id,
+			);
 		}
 	}
 }

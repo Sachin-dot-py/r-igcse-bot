@@ -30,10 +30,16 @@ class Select extends StringSelectMenuBuilder {
 		customId: string,
 		interaction: Message,
 		editableMessage:
+			| Message
 			| ModalSubmitInteraction
 			| DiscordChatInputCommandInteraction,
 		required: boolean,
 	): Promise<string[] | false | "Timed out"> {
+		const editMessage =
+			editableMessage instanceof Message
+				? editableMessage.edit
+				: editableMessage.editReply;
+
 		try {
 			let value: string[] = [];
 			const selectCollector = interaction.createMessageComponentCollector({
@@ -65,7 +71,7 @@ class Select extends StringSelectMenuBuilder {
 					switch (required) {
 						case true:
 							if (this.isFirstComponent) {
-								editableMessage.editReply({
+								await editMessage({
 									content: "You must select at least one option",
 									components: [],
 								});
@@ -79,7 +85,7 @@ class Select extends StringSelectMenuBuilder {
 				return value;
 			} else {
 				if (this.isFirstComponent) {
-					editableMessage.editReply({
+					await editMessage({
 						content: "Cancelled",
 						components: [],
 					});
@@ -88,7 +94,7 @@ class Select extends StringSelectMenuBuilder {
 			}
 		} catch (error) {
 			if (this.isFirstComponent) {
-				editableMessage.editReply({
+				await editMessage({
 					content: "Timed out",
 					components: [],
 				});

@@ -12,13 +12,14 @@ import {
 } from "@/redis";
 import {
 	ActionRowBuilder,
+	ButtonBuilder,
 	ChannelType,
 	Colors,
-	ComponentType,
 	EmbedBuilder,
 	Events,
 	Message,
 	StringSelectMenuBuilder,
+	StringSelectMenuOptionBuilder,
 	TextChannel,
 	ThreadChannel,
 } from "discord.js";
@@ -26,7 +27,9 @@ import { EntityId, type Entity } from "redis-om";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import Logger from "@/utils/Logger";
-import DM from "@/utils/DM";
+import { v4 as uuidv4 } from "uuid";
+import Select from "@/components/Select";
+import Buttons from "@/components/practice/views/Buttons";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -108,7 +111,12 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					Logger.errorLog(client, error as Error, "Create DM Thread", message.author.id)
+					Logger.errorLog(
+						client,
+						error as Error,
+						"Create DM Thread",
+						message.author.id,
+					);
 				}
 			}
 		} else this.handleModMail(client, message as Message<false>);
@@ -130,41 +138,51 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (res) guildId = res.guildId;
 			else {
-				const guildSelect = new StringSelectMenuBuilder()
-					.setCustomId("dm-guild-select")
-					.setMinValues(1)
-					.setMaxValues(1)
-					.addOptions(
-						client.guilds.cache
-							.filter((guild) => {
-								guild.members.cache.has(message.author.id);
-							})
-							.map((guild) => ({
-								label: guild.name,
-								value: guild.id,
-							})),
-					);
+				const guilds = client.guilds.cache.filter((guild) =>
+					guild.members.cache.has(message.author.id),
+				);
+				const selectCustomId = uuidv4();
+				const guildSelect = new Select(
+					"guildSelect",
+					"Select a server",
+					guilds.map((guild) => {
+						return new StringSelectMenuOptionBuilder()
+							.setLabel(guild.name)
+							.setValue(guild.id);
+					}),
+					1,
+					selectCustomId,
+				);
 
-				const row =
-					new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-						guildSelect,
-					);
+				const row = new ActionRowBuilder<Select>().addComponents(guildSelect);
 
-				const { awaitMessageComponent } = await message.author.send({
-					components: [row],
+				const selectInteraction = await message.author.send({
+					content: "Select a server to send a message to",
+					components: [
+						row,
+						new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
+					],
 				});
 
-				awaitMessageComponent({
-					componentType: ComponentType.StringSelect,
-					filter: (i) => i.customId === "dm-guild-select",
+				const guildResponse = await guildSelect.waitForResponse(
+					selectCustomId,
+					selectInteraction,
+					message,
+					true,
+				);
+
+				if (!guildResponse || guildResponse === "Timed out") return;
+
+				await selectInteraction.reply({
+					content: `Server ${guildResponse[0]} selected.`,
 				})
-					.then(async (i) => {
-						await DmGuildPreference.create({
-							userId: message.author.id,
-							guildId: i.values[0],
-						});
-					})
-					.catch(console.error);
+
+				guildId = guildResponse[0];
+
+				await DmGuildPreference.create({
+					userId: message.author.id,
+					guildId: guildId,
+				});
 			}
 
 			await DmGuildPreferenceCache.set(message.author.id, guildId);
@@ -177,9 +195,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		const guildPreferences = await GuildPreferencesCache.get(guildId);
 
 		if (!guildPreferences || !guildPreferences.modmailChannelId) {
-			await message.author.send(
-				"Modmail is not set up in this server.",
-			);
+			await message.author.send(`Modmail is not set up in **${guild.name}**`);
 			return;
 		}
 

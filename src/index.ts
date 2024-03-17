@@ -1,13 +1,12 @@
 import "dotenv/config";
 
-import { GatewayIntentBits } from "discord.js";
+import { GatewayIntentBits, Partials } from "discord.js";
 import { DiscordClient } from "./registry/DiscordClient";
 import {
 	registerCommands,
 	registerEvents,
 	registerMenus,
 } from "./registry/index";
-import { BOT_TOKEN } from "./constants";
 import mongo from "mongoose";
 import { redis } from "./redis";
 import Logger from "./utils/Logger";
@@ -37,6 +36,7 @@ export const client = new DiscordClient({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.MessageContent,
 	],
+	partials: [Partials.Message, Partials.Channel],
 });
 
 await registerCommands(client);
@@ -44,6 +44,6 @@ await registerMenus(client);
 
 await mongo.connect(process.env.MONGO_URL);
 
-await client.login(BOT_TOKEN);
+await client.login(process.env.BOT_TOKEN);
 
 await registerEvents(client as DiscordClient<true>);

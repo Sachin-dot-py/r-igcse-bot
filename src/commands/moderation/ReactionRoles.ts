@@ -87,13 +87,19 @@ export default class ReactionRolesCommand extends BaseCommand {
 
 					if (!guildPreferences) {
 						await interaction.reply({
-							content: "Please setup the bot using the command `/set_preferences` first.",
+							content:
+								"Please setup the bot using the command `/set_preferences` first.",
 							ephemeral: true,
 						});
-						return
+						return;
 					}
 
-					Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
+					Logger.errorLog(
+						client,
+						error as Error,
+						this.data.name,
+						interaction.user.id,
+					);
 				}
 
 				break;

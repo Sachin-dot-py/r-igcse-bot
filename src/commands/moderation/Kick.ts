@@ -45,7 +45,8 @@ export default class KickCommand extends BaseCommand {
 
 		if (user.id === interaction.user.id) {
 			await interaction.reply({
-				content: 'You cannot kick yourself, ||consider leaving the server instead||.',
+				content:
+					"You cannot kick yourself, ||consider leaving the server instead||.",
 				ephemeral: true,
 			});
 			return;
@@ -57,7 +58,8 @@ export default class KickCommand extends BaseCommand {
 
 		if (!guildPreferences) {
 			await interaction.reply({
-				content: "Please setup the bot using the command `/set_preferences` first.",
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
 				ephemeral: true,
 			});
 			return;
@@ -79,7 +81,6 @@ export default class KickCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-
 		const guildMember = interaction.guild.members.cache.get(user.id);
 		if (guildMember) {
 			await sendDm(guildMember, {
@@ -95,7 +96,12 @@ export default class KickCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
+			Logger.errorLog(
+				client,
+				error as Error,
+				this.data.name,
+				interaction.user.id,
+			);
 		}
 
 		await Punishment.create({
@@ -129,11 +135,13 @@ export default class KickCommand extends BaseCommand {
 			]);
 
 		if (guildPreferences.modlogChannelId) {
-
-			await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-				embeds: [modEmbed],
-			});
-
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [modEmbed],
+				},
+			);
 		}
 
 		await interaction.reply({

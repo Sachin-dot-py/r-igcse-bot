@@ -8,7 +8,7 @@ import {
 
 export type ICachedDmGuildPreference = IDmGuildPreference & Entity;
 
-const schema = new Schema("Question", {
+const schema = new Schema("DmGuildPreference", {
 	userId: { type: "string" },
 	guildId: { type: "string" },
 });

@@ -48,10 +48,11 @@ export default class WarnCommand extends BaseCommand {
 
 		if (!guildPreferences) {
 			await interaction.reply({
-				content: "Please setup the bot using the command `/set_preferences` first.",
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
 				ephemeral: true,
 			});
-			return
+			return;
 		}
 
 		const latestPunishment = await Punishment.findOne()
@@ -92,9 +93,13 @@ export default class WarnCommand extends BaseCommand {
 			]);
 
 		if (guildPreferences.modlogChannelId) {
-			await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-				embeds: [modEmbed],
-			});
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [modEmbed],
+				},
+			);
 		}
 
 		await interaction.reply({

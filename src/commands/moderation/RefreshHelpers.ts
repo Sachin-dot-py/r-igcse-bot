@@ -32,10 +32,11 @@ export default class RefreshHelpersCommand extends BaseCommand {
 
 		if (!guildPreferences) {
 			await interaction.reply({
-				content: "Please setup the bot using the command `/set_preferences` first.",
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
 				ephemeral: true,
 			});
-			return
+			return;
 		}
 
 		const helperData = guildPreferences.helperRoles;
@@ -85,9 +86,13 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			);
 
 		if (guildPreferences.modlogChannelId) {
-		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [embed],
-		});
-	}
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [embed],
+				},
+			);
+		}
 	}
 }

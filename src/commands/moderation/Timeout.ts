@@ -56,7 +56,8 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (!guildPreferences) {
 			await interaction.reply({
-				content: "Please setup the bot using the command `/set_preferences` first.",
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
 				ephemeral: true,
 			});
 			return;
@@ -93,7 +94,12 @@ export default class TimeoutCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
+			Logger.errorLog(
+				client,
+				error as Error,
+				this.data.name,
+				interaction.user.id,
+			);
 		}
 
 		await Punishment.create({
@@ -129,9 +135,13 @@ export default class TimeoutCommand extends BaseCommand {
 			]);
 
 		if (guildPreferences.modlogChannelId) {
-			await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-				embeds: [modEmbed],
-			});
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [modEmbed],
+				},
+			);
 		}
 
 		await interaction.reply({

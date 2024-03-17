@@ -5,7 +5,11 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
-import { EmbedBuilder, SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import {
+	EmbedBuilder,
+	SlashCommandBuilder,
+	PermissionFlagsBits,
+} from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
 	constructor() {
@@ -68,7 +72,8 @@ export default class ColorRolesCommand extends BaseCommand {
 
 		if (!guildPreferences) {
 			await interaction.reply({
-				content: "Please setup the bot using the command `/set_preferences` first.",
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
 				ephemeral: true,
 			});
 			return;
@@ -130,7 +135,12 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true,
 					});
 
-					Logger.errorLog(client, error as Error, "Removing color role", interaction.user.id)
+					Logger.errorLog(
+						client,
+						error as Error,
+						"Removing color role",
+						interaction.user.id,
+					);
 				}
 
 				break;
