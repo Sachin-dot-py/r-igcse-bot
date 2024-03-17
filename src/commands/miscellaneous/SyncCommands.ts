@@ -38,6 +38,8 @@ export default class SyncCommandsCommand extends BaseCommand {
 				interaction.guildId,
 			);
 
+			if (!guildPreferences || !guildPreferences.botlogChannelId) return;
+
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: "Failed: Sync Commands",

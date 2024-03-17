@@ -156,7 +156,8 @@ export default class PracticeCommand extends BaseCommand {
 				required: true,
 			},
 			{
-				content: "Select the users you want to add to the session! Leave empty for a solo session.",
+				content:
+					"Select the users you want to add to the session! Leave empty for a solo session.",
 				view: UserSelectView,
 				key: "users",
 				required: false,

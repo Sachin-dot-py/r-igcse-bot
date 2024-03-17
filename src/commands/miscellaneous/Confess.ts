@@ -40,13 +40,27 @@ export default class FunFactCommand extends BaseCommand {
 			interaction.guildId,
 		);
 
+		if (
+			!guildPreferences ||
+			!guildPreferences.confessionApprovalChannelId ||
+			!guildPreferences.confessionsChannelId
+		) {
+			await interaction.reply({
+				content: "Confessions not configured",
+				ephemeral: true,
+			});
+
+			return;
+		}
+
 		const approvalChannel = interaction.guild.channels.cache.get(
 			guildPreferences.confessionApprovalChannelId,
 		);
 
 		if (!approvalChannel || !approvalChannel.isTextBased()) {
 			await interaction.reply({
-				content: "Confessions not configured",
+				content:
+					"Invalid configuration for confessions. Please contact an admin.",
 				ephemeral: true,
 			});
 
@@ -94,12 +108,13 @@ export default class FunFactCommand extends BaseCommand {
 				switch (i.customId) {
 					case "approve-confession": {
 						const confessionChannel = interaction.guild.channels.cache.get(
-							guildPreferences.confessionsChannelId,
+							guildPreferences.confessionsChannelId!,
 						);
 
 						if (!confessionChannel || !confessionChannel.isTextBased()) {
 							await i.reply({
-								content: "Confessions not configured",
+								content:
+									"Invalid configuration for confessions. Please contact an admin.",
 
 								ephemeral: true,
 							});

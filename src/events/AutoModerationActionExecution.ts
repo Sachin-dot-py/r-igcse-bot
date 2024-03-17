@@ -44,12 +44,6 @@ export default class ErrorEvent extends BaseEvent {
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			autoModerationActionExecution.guild.id,
-		);
-
-		if (!guildPreferences) return;
-
 		await Punishment.create({
 			guildId: autoModerationActionExecution.guild.id,
 			actionAgainst: autoModerationActionExecution.userId,
@@ -86,6 +80,12 @@ export default class ErrorEvent extends BaseEvent {
 					inline: false,
 				},
 			]);
+
+		const guildPreferences = await GuildPreferencesCache.get(
+			autoModerationActionExecution.guild.id,
+		);
+
+		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
 
 		await Logger.channel(
 			autoModerationActionExecution.guild,

@@ -33,12 +33,18 @@ export default class HOTMVotingCommand extends BaseCommand {
 			interaction.guild.id,
 		);
 
-		const igHelperRoleId = guildPreferences.igHelperRoleId;
+		if (!guildPreferences) {
+			await interaction.reply({
+				content: "This feature hasn't been configured.",
+			});
 
-		if (!igHelperRoleId) return;
+			return;
+		}
 
-		const helperRoles = interaction.guild.roles.cache.filter(
-			(role) => igHelperRoleId === role.id,
+		const helperRoles = interaction.guild.roles.cache.filter((role) =>
+			guildPreferences.helperRoles.some(
+				(helperRole) => helperRole.roleId === role.id,
+			),
 		);
 
 		if (helperRoles.size < 1) {
@@ -47,13 +53,14 @@ export default class HOTMVotingCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					content: "Helper role not found",
-				},
-			);
+			if (guildPreferences.botlogChannelId)
+				await Logger.channel(
+					interaction.guild,
+					guildPreferences.botlogChannelId,
+					{
+						content: "Helper role not found",
+					},
+				);
 
 			return;
 		}

@@ -90,7 +90,9 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 				.addChannelOption((option) =>
 					option
 						.setName("closed_dm_channel")
-						.setDescription("The channel to send messages to users which have dms closed")
+						.setDescription(
+							"The channel to send messages to users which have dms closed",
+						)
 						.setRequired(false),
 				)
 				.addChannelOption((option) =>

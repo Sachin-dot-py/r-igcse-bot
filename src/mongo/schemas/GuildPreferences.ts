@@ -1,11 +1,28 @@
 import { Schema, model as createModel } from "mongoose";
 
-export interface IGuildPreferences {
+export type IGuildPreferences = {
 	guildId: string;
 
 	repEnabled: boolean;
 	repDisabledChannelIds: string[];
 
+	keywords: {
+		keyword: string;
+		response: string;
+	}[];
+
+	colorRoles: {
+		requirementRoleId: string;
+		emoji: string;
+		label: string;
+		roleId: string;
+	}[];
+
+	helperRoles: {
+		roleId: string;
+		channelId: string;
+	}[];
+} & Partial<{
 	modlogChannelId: string;
 	behaviorlogChannelId: string;
 	warnlogChannelId: string;
@@ -24,25 +41,8 @@ export interface IGuildPreferences {
 	dmThreadsChannelId: string;
 	closedDmChannelId: string;
 
-	helperRoles: {
-		roleId: string;
-		channelId: string;
-	}[];
-
 	banAppealFormLink: string;
-
-	keywords: {
-		keyword: string;
-		response: string;
-	}[];
-
-	colorRoles: {
-		requirementRoleId: string;
-		emoji: string;
-		label: string;
-		roleId: string;
-	}[];
-}
+}>;
 
 const schema = new Schema<IGuildPreferences>({
 	guildId: { type: String, required: true, unique: true },

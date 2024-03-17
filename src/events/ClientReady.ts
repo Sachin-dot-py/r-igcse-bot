@@ -36,51 +36,49 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
-
-		const readyEmbed = new EmbedBuilder()
-			.setTitle(`${client.user.displayName} restarted successfully!`)
-			.setColor(Colors.Green)
-			.setAuthor({
-				name: client.user.displayName,
-				iconURL: client.user.displayAvatarURL(),
-			})
-			.addFields([
-				{
-					name: "Bot Information",
-					value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
-					inline: false,
-				},
-				{
-					name: "Guild Information",
-					value: `\`\`\`Name: ${mainGuild.name}
+			const readyEmbed = new EmbedBuilder()
+				.setTitle(`${client.user.displayName} restarted successfully!`)
+				.setColor(Colors.Green)
+				.setAuthor({
+					name: client.user.displayName,
+					iconURL: client.user.displayAvatarURL(),
+				})
+				.addFields([
+					{
+						name: "Bot Information",
+						value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
+						inline: false,
+					},
+					{
+						name: "Guild Information",
+						value: `\`\`\`Name: ${mainGuild.name}
 Owner: ${(await mainGuild.fetchOwner()).displayName}}
 Created on: ${timeFormatter(mainGuild.createdAt)}
 Members: ${mainGuild.memberCount}
 Boosts: ${mainGuild.premiumSubscriptionCount}
 ID: ${mainGuild.id}\`\`\``,
-					inline: false,
-				},
-				{
-					name: "Role Statistics",
-					value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
+						inline: false,
+					},
+					{
+						name: "Role Statistics",
+						value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
 No. of members: ${mainGuild.memberCount}
 Helpers: // TODO\nModerators: // TODO\`\`\``,
-					inline: false,
-				},
-				{
-					name: "Channels & Commands",
-					value: `\`\`\`No. of users: ${mainGuild.members.cache.filter((member) => !member.user.bot).size}
+						inline: false,
+					},
+					{
+						name: "Channels & Commands",
+						value: `\`\`\`No. of users: ${mainGuild.members.cache.filter((member) => !member.user.bot).size}
 No. of bots: ${mainGuild.members.cache.filter((member) => member.user.bot).size}
 No. of catagories: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildCategory).size}
 No. of text-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size}
 No. of voice-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size}
 No. of forum-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildForum).size}
 No. of slash-commands: ${client.commands.size}\`\`\``,
-					inline: false,
-				},
-			]);
+						inline: false,
+					},
+				]);
 
-		
 			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [readyEmbed],
 			});
@@ -98,13 +96,13 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			| PracticeCommand
 			| undefined;
 		if (practiceCommand) {
-			Logger.info("Starting practice questions loop")
+			Logger.info("Starting practice questions loop");
 			setInterval(() => practiceCommand.sendQuestions(client), 3500);
 		}
 
 		await syncInteractions(client)
 			.then(() => Logger.info("Synced application commands globally"))
-			.catch(Logger.error)
+			.catch(Logger.error);
 
 		setInterval(async () => {
 			await this.updateStickyMessagesCache().catch(Logger.error);

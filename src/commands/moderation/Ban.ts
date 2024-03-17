@@ -54,19 +54,20 @@ export default class BanCommand extends BaseCommand {
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
 		if (user.id === interaction.user.id) {
-		    await interaction.reply({
-		        content: "Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
-		        ephemeral: true,
-		    });
-		    return;
+			await interaction.reply({
+				content:
+					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
+				ephemeral: true,
+			});
+			return;
 		}
 
 		if (interaction.guild.bans.cache.has(user.id)) {
-		    await interaction.reply({
-		        content: "I cannot ban a user that's already banned.",
-		        ephemeral: true,
-		    });
-		    return;
+			await interaction.reply({
+				content: "I cannot ban a user that's already banned.",
+				ephemeral: true,
+			});
+			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
@@ -75,7 +76,8 @@ export default class BanCommand extends BaseCommand {
 
 		if (!guildPreferences) {
 			await interaction.reply({
-				content: "Please configure the bot using `/set_preferences` command first.",
+				content:
+					"Please configure the bot using `/set_preferences` command first.",
 				ephemeral: true,
 			});
 			return;
@@ -94,8 +96,8 @@ export default class BanCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-		const guildMember = await interaction.guild.members.cache.get(user.id)
-		
+		const guildMember = await interaction.guild.members.cache.get(user.id);
+
 		if (guildMember) {
 			await DM.send(guildMember, {
 				embeds: [dmEmbed],
@@ -112,6 +114,8 @@ export default class BanCommand extends BaseCommand {
 				content: "Failed to ban user",
 				ephemeral: true,
 			});
+
+			if (!guildPreferences.botlogChannelId) return;
 
 			const embed = new EmbedBuilder()
 				.setAuthor({
@@ -138,33 +142,39 @@ export default class BanCommand extends BaseCommand {
 			reason,
 		});
 
-		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Banned | Case #${caseNumber}`)
-			.setDescription(reason)
-			.setFooter({
-				text: `${deleteMessagesDays} days of messages deleted`,
-			})
-			.setColor(Colors.Red)
-			.setAuthor({
-				name: user.displayName,
-				iconURL: user.displayAvatarURL(),
-			})
-			.addFields([
-				{
-					name: "User ID",
-					value: user.id,
-					inline: true,
-				},
-				{
-					name: "Moderator",
-					value: interaction.user.displayName,
-					inline: true,
-				},
-			]);
+		if (guildPreferences.modlogChannelId) {
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`User Banned | Case #${caseNumber}`)
+				.setDescription(reason)
+				.setFooter({
+					text: `${deleteMessagesDays} days of messages deleted`,
+				})
+				.setColor(Colors.Red)
+				.setAuthor({
+					name: user.displayName,
+					iconURL: user.displayAvatarURL(),
+				})
+				.addFields([
+					{
+						name: "User ID",
+						value: user.id,
+						inline: true,
+					},
+					{
+						name: "Moderator",
+						value: interaction.user.displayName,
+						inline: true,
+					},
+				]);
 
-		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [modEmbed],
-		});
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [modEmbed],
+				},
+			);
+		}
 
 		await interaction.reply({
 			content: `Successfully banned @${user.displayName}`,

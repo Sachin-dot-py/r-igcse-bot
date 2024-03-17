@@ -164,12 +164,14 @@ export default class MessageCreateEvent extends BaseEvent {
 					.setMinValues(1)
 					.setMaxValues(1)
 					.addOptions(
-						client.guilds.cache.filter(guild => {
-							guild.members.cache.has(message.author.id);
-						}).map((guild) => ({
-							label: guild.name,
-							value: guild.id,
-						})),
+						client.guilds.cache
+							.filter((guild) => {
+								guild.members.cache.has(message.author.id);
+							})
+							.map((guild) => ({
+								label: guild.name,
+								value: guild.id,
+							})),
 					);
 
 				const row =

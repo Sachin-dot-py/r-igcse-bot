@@ -121,6 +121,8 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true,
 					});
 
+					if (!guildPreferences.botlogChannelId) return;
+
 					const embed = new EmbedBuilder()
 						.setAuthor({
 							name: "Error | Removing Color role",

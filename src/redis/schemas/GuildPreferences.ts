@@ -4,7 +4,7 @@ import {
 	type RedisConnection,
 	type Entity,
 } from "redis-om";
-import type { IGuildPreferences } from "@/mongo";
+import { GuildPreferences, type IGuildPreferences } from "@/mongo";
 
 export type ICachedGuildPreferences = IGuildPreferences & Entity;
 
@@ -43,14 +43,27 @@ export class GuildPreferencesRepository extends Repository {
 	}
 
 	async get(guildId: string) {
-		const preferences = (await this.fetch(guildId)) as ICachedGuildPreferences;
-		if (!preferences.guildId) {
-			return null;
-		}
-		return preferences;
+		const cachedRes = (await this.fetch(guildId)) as IGuildPreferences;
+
+		if (cachedRes.guildId) return cachedRes;
+
+		const res = await GuildPreferences.findOne({ guildId });
+
+		if (!res) return null;
+
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { _id, ...data } = res.toObject();
+
+		await this.set(guildId, data);
+
+		return data as IGuildPreferences;
 	}
 
-	async set(guildId: string, preferences: ICachedGuildPreferences) {
-		return (await this.save(guildId, preferences)) as ICachedGuildPreferences;
+	async set(guildId: string, preferences: IGuildPreferences) {
+		const res = (await this.save(guildId, preferences)) as IGuildPreferences;
+
+		await this.expire(guildId, 120);
+
+		return res;
 	}
 }
