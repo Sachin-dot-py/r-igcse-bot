@@ -10,6 +10,7 @@ export default class Logger {
 	}
 
 	public static error(message: unknown) {
+		// replace with console.error(message) to print stack traces when fixing errors
 		console.error(`[ \x1b[0;31mx\x1b[0m ] ${message}`);
 	}
 

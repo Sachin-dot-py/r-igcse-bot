@@ -69,7 +69,7 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 				)
 				.addChannelOption((option) =>
 					option
-						.setName("behaviorlof_channel")
+						.setName("behaviorlog_channel")
 						.setDescription("The channel to log behavior logs")
 						.setRequired(false),
 				)
@@ -85,6 +85,12 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 						.setDescription(
 							"The channel to send users with >= 10 infraction points",
 						)
+						.setRequired(false),
+				)
+				.addChannelOption((option) =>
+					option
+						.setName("closed_dm_channel")
+						.setDescription("The channel to send messages to users which have dms closed")
 						.setRequired(false),
 				)
 				.addChannelOption((option) =>
