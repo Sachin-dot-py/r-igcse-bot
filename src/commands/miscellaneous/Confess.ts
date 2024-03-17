@@ -46,7 +46,7 @@ export default class FunFactCommand extends BaseCommand {
 			!guildPreferences.confessionsChannelId
 		) {
 			await interaction.reply({
-				content: "Confessions not configured",
+				content: "Please setup the bot using the command `/set_preferences` first.",
 				ephemeral: true,
 			});
 

@@ -9,6 +9,7 @@ import {
 	type GuildBasedChannel,
 	type AnyThreadChannel,
 	Guild,
+	Message,
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -171,7 +172,7 @@ export default class PracticeCommand extends BaseCommand {
 				customId,
 				collectedData["subject"]?.[0] || "",
 			);
-			let viewInteraction;
+			let viewInteraction: Message;
 			if (interaction === "0") {
 				viewInteraction = await followUpInteraction.reply({
 					content,

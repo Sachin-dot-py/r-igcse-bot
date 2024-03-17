@@ -4,6 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import sendDm from "@/utils/DM";
 import Logger from "@/utils/Logger";
 import {
 	Colors,
@@ -42,19 +43,25 @@ export default class KickCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
-		// if (user.id === interaction.user.id) {
-		//     await interaction.reply({
-		//         content: 'You cannot kick yourself!',
-		//         ephemeral: true,
-		//     });
-		//     return;
-		// }
+		if (user.id === interaction.user.id) {
+			await interaction.reply({
+				content: 'You cannot kick yourself, ||consider leaving the server instead||.',
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
 
-		if (!guildPreferences) return;
+		if (!guildPreferences) {
+			await interaction.reply({
+				content: "Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const latestPunishment = await Punishment.findOne()
 			.sort({ createdAt: -1 })
@@ -72,9 +79,13 @@ export default class KickCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-		await user.send({
-			embeds: [dmEmbed],
-		});
+
+		const guildMember = interaction.guild.members.cache.get(user.id);
+		if (guildMember) {
+			await sendDm(guildMember, {
+				embeds: [dmEmbed],
+			});
+		}
 
 		try {
 			await interaction.guild.members.kick(user, reason);
@@ -84,20 +95,7 @@ export default class KickCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "Error | Kicking User",
-					iconURL: interaction.user.displayAvatarURL(),
-				})
-				.setDescription(`${error}`);
-
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
-			);
+			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
 		}
 
 		await Punishment.create({
@@ -110,7 +108,7 @@ export default class KickCommand extends BaseCommand {
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Kicked | Case #${caseNumber}`)
+			.setTitle(`Kick | Case #${caseNumber}`)
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
@@ -130,9 +128,13 @@ export default class KickCommand extends BaseCommand {
 				},
 			]);
 
-		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [modEmbed],
-		});
+		if (guildPreferences.modlogChannelId) {
+
+			await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed],
+			});
+
+		}
 
 		await interaction.reply({
 			content: `Successfully kicked @${user.displayName}`,

@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import DM from "@/utils/DM";
+import sendDm from "@/utils/DM";
 import Logger from "@/utils/Logger";
 import {
 	Colors,
@@ -99,7 +99,7 @@ export default class BanCommand extends BaseCommand {
 		const guildMember = await interaction.guild.members.cache.get(user.id);
 
 		if (guildMember) {
-			await DM.send(guildMember, {
+			await sendDm(guildMember, {
 				embeds: [dmEmbed],
 			});
 		}
@@ -115,22 +115,7 @@ export default class BanCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			if (!guildPreferences.botlogChannelId) return;
-
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "Error | Banning User",
-					iconURL: interaction.user.displayAvatarURL(),
-				})
-				.setDescription(`${error}`);
-
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
-			);
+			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
 		}
 
 		await Punishment.create({
@@ -144,7 +129,7 @@ export default class BanCommand extends BaseCommand {
 
 		if (guildPreferences.modlogChannelId) {
 			const modEmbed = new EmbedBuilder()
-				.setTitle(`User Banned | Case #${caseNumber}`)
+				.setTitle(`Ban | Case #${caseNumber}`)
 				.setDescription(reason)
 				.setFooter({
 					text: `${deleteMessagesDays} days of messages deleted`,
@@ -177,7 +162,7 @@ export default class BanCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully banned @${user.displayName}`,
+			content: `Successfully banned ${user.tag}`,
 			ephemeral: true,
 		});
 	}

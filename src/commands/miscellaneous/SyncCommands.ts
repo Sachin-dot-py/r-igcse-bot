@@ -34,27 +34,7 @@ export default class SyncCommandsCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const guildPreferences = await GuildPreferencesCache.get(
-				interaction.guildId,
-			);
-
-			if (!guildPreferences || !guildPreferences.botlogChannelId) return;
-
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "Failed: Sync Commands",
-					iconURL: client.user.displayAvatarURL(),
-				})
-				.setDescription(`${error}`)
-				.setTimestamp(Date.now());
-
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
-			);
+			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
 		}
 	}
 }

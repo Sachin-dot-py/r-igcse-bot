@@ -36,6 +36,14 @@ export default class HelperMenu extends BaseMenu {
 			interaction.guildId,
 		);
 
+		if (!guildPreferences) {
+			await interaction.reply({
+				content: "Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return;
+		}
+
 		const helperData = guildPreferences.helperRoles;
 
 		if (!helperData || helperData.length < 1) {

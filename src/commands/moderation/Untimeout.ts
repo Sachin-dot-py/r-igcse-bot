@@ -49,7 +49,13 @@ export default class UntimeoutCommand extends BaseCommand {
 			interaction.guildId,
 		);
 
-		if (!guildPreferences) return;
+		if (!guildPreferences) {
+			await interaction.reply({
+				content: "Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return
+		}
 
 		try {
 			await member.timeout(null);
@@ -59,21 +65,14 @@ export default class UntimeoutCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "Error | Untiming Out User",
-					iconURL: interaction.user.displayAvatarURL(),
-				})
-				.setDescription(`${error}`);
-
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
-			);
+			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
 		}
+
+		const latestPunishment = await Punishment.findOne()
+			.sort({ createdAt: -1 })
+			.exec();
+
+		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		const undoPunishment = await Punishment.findOne({
 			guildId: interaction.guild.id,
@@ -90,10 +89,11 @@ export default class UntimeoutCommand extends BaseCommand {
 			action: "Remove Timeout",
 			reason: "",
 			points: -(undoPunishment?.points ?? 2),
+			caseId: caseNumber,
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Untimed Out`)
+			.setTitle(`Timeout Removed | Case #${caseNumber}`)
 			.setColor(Colors.Green)
 			.setAuthor({
 				name: user.displayName,
@@ -112,9 +112,11 @@ export default class UntimeoutCommand extends BaseCommand {
 				},
 			]);
 
-		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [modEmbed],
-		});
+		if (guildPreferences.modlogChannelId) {
+			await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed],
+			});
+		}
 
 		await interaction.reply({
 			content: `Successfully timed out @${user.displayName}`,

@@ -24,6 +24,8 @@ export default class MessageUpdateEvent extends BaseEvent {
 			oldMessage.guildId,
 		);
 
+		if (!guildPreferences) return;
+
 		if (oldMessage.channelId === guildPreferences.countingChannelId)
 			await newMessage.delete();
 	}

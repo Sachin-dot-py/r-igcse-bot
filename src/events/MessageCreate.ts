@@ -108,38 +108,9 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					const embed = new EmbedBuilder()
-						.setAuthor({
-							name: "Failed: Create DM thread",
-							iconURL: client.user.displayAvatarURL(),
-						})
-						.setDescription(`${error}`)
-						.setTimestamp(Date.now());
-
-					await Logger.channel(
-						message.guild,
-						guildPreferences.botlogChannelId,
-						{
-							embeds: [embed],
-						},
-					);
+					Logger.errorLog(client, error as Error, "Create DM Thread", message.author.id)
 				}
 			}
-
-			// if (
-			// 	message.content.includes("ban") &&
-			// 	message.author.id === "604335693757677588" &&
-			// 	message.reference
-			// ) {
-			// 	const reference = await message.fetchReference();
-
-			// 	if (reference.author.id === "739852947571343492") return;
-
-			// 	await message.guild.bans.create(reference.author, {
-			// 		deleteMessageSeconds: 0,
-			// 		reason: "because og",
-			// 	});
-			// }
 		} else this.handleModMail(client, message as Message<false>);
 	}
 
@@ -205,7 +176,12 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		const guildPreferences = await GuildPreferencesCache.get(guildId);
 
-		if (!guildPreferences) return;
+		if (!guildPreferences || !guildPreferences.modmailChannelId) {
+			await message.author.send(
+				"Modmail is not set up in this server.",
+			);
+			return;
+		}
 
 		const channel = guild.channels.cache.get(guildPreferences.modmailChannelId);
 

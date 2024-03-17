@@ -77,13 +77,7 @@ export default class ResourcesCommand extends BaseCommand {
 				})
 				.setDescription(`${error}`);
 
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
-			);
+			Logger.errorLog(client, error as Error, this.data.name, interaction.user.id)
 		}
 	}
 }
