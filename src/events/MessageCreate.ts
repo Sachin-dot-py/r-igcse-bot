@@ -123,20 +123,20 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 			}
 
-			if (
-				message.author.id === "604335693757677588" &&
-				message.content.includes("ban") &&
-				message.reference
-			) {
-				const reference = await message.fetchReference();
+			// if (
+			// 	message.content.includes("ban") &&
+			// 	message.author.id === "604335693757677588" &&
+			// 	message.reference
+			// ) {
+			// 	const reference = await message.fetchReference();
 
-				if (reference.author.id === "739852947571343492") return;
+			// 	if (reference.author.id === "739852947571343492") return;
 
-				await message.guild.bans.create(reference.author, {
-					deleteMessageSeconds: 0,
-					reason: "because og",
-				});
-			}
+			// 	await message.guild.bans.create(reference.author, {
+			// 		deleteMessageSeconds: 0,
+			// 		reason: "because og",
+			// 	});
+			// }
 		} else this.handleModMail(client, message as Message<false>);
 	}
 
