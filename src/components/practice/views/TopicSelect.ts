@@ -1,13 +1,6 @@
 import Select from "../../Select";
-import { v4 as uuidv4 } from "uuid";
 import { subjectTopics } from "@/data";
-import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	ComponentType,
-	StringSelectMenuOptionBuilder
-} from "discord.js";
+import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 
 class TopicSelect {
 	rows: ActionRowBuilder<Select>[];

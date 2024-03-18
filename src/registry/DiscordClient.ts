@@ -5,8 +5,7 @@ import {
 	type APIEmbedField,
 	type ClientOptions,
 	type RESTPostAPIApplicationCommandsJSONBody,
-	type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-	type RestOrArray
+	type RESTPostAPIContextMenuApplicationCommandsJSONBody
 } from "discord.js";
 import type BaseCommand from "./Structure/BaseCommand";
 import type BaseMenu from "./Structure/BaseMenu";

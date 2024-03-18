@@ -10,11 +10,7 @@ import {
 	type ButtonBuilder
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
-import {
-	ButtonInteractionCache,
-	GuildPreferencesCache,
-	PracticeQuestionCache
-} from "@/redis";
+import { ButtonInteractionCache, PracticeQuestionCache } from "@/redis";
 import { PracticeSession } from "@/mongo";
 import DisabledMCQButtons from "@/components/practice/DisabledMCQButtons";
 import BaseEvent from "../registry/Structure/BaseEvent";
