@@ -1,12 +1,12 @@
-import { PrivateDmThread, type IPrivateDmThread } from "@/mongo";
+import { PrivateDmThread } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import {
+	ChannelType,
 	GuildMember,
 	MessagePayload,
 	TextChannel,
-	ChannelType,
-	type MessageCreateOptions,
 	ThreadChannel,
+	type MessageCreateOptions,
 } from "discord.js";
 import Logger from "./Logger";
 
@@ -27,7 +27,7 @@ const sendDm = async (
 
 		let thread: ThreadChannel | undefined;
 
-		let dmThread =
+		const dmThread =
 			(await PrivateDmThread.findOne({
 				userId: member.id,
 				guildId: member.guild.id,

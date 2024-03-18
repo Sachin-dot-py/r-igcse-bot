@@ -225,12 +225,9 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			Logger.errorLog(
-				client,
-				error as Error,
-				this.data.name,
-				interaction.user.id,
-			);
+			client.log(error, `${this.data.name} Command`, [
+				{ name: "User ID", value: interaction.user.id },
+			]);
 
 			return;
 		}

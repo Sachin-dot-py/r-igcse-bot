@@ -1,3 +1,5 @@
+import Select from "@/components/Select";
+import Buttons from "@/components/practice/views/Buttons";
 import {
 	PrivateDmThread,
 	Reputation,
@@ -18,18 +20,14 @@ import {
 	EmbedBuilder,
 	Events,
 	Message,
-	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 	TextChannel,
 	ThreadChannel,
 } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
+import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import Logger from "@/utils/Logger";
-import { v4 as uuidv4 } from "uuid";
-import Select from "@/components/Select";
-import Buttons from "@/components/practice/views/Buttons";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -111,12 +109,9 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					Logger.errorLog(
-						client,
-						error as Error,
-						"Create DM Thread",
-						message.author.id,
-					);
+					client.log(error, `Create DM Thread`, [
+						{ name: "User ID", value: message.author.id },
+					]);
 				}
 			}
 		} else this.handleModMail(client, message as Message<false>);
@@ -175,7 +170,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				await selectInteraction.reply({
 					content: `Server ${guildResponse[0]} selected.`,
-				})
+				});
 
 				guildId = guildResponse[0];
 

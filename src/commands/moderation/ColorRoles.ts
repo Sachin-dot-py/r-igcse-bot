@@ -135,12 +135,9 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true,
 					});
 
-					Logger.errorLog(
-						client,
-						error as Error,
-						"Removing color role",
-						interaction.user.id,
-					);
+					client.log(error, `${this.data.name} Command`, [
+						{ name: "User ID", value: interaction.user.id },
+					]);
 				}
 
 				break;

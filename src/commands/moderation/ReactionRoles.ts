@@ -4,8 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 
 export default class ReactionRolesCommand extends BaseCommand {
 	constructor() {
@@ -94,12 +93,9 @@ export default class ReactionRolesCommand extends BaseCommand {
 						return;
 					}
 
-					Logger.errorLog(
-						client,
-						error as Error,
-						this.data.name,
-						interaction.user.id,
-					);
+					client.log(error, `${this.data.name} Command`, [
+						{ name: "User ID", value: interaction.user.id },
+					]);
 				}
 
 				break;
