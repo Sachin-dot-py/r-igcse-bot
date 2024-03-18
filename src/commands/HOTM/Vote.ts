@@ -1,5 +1,5 @@
 import { HOTM, HOTMUser } from "@/mongo";
-import { GuildPreferencesCache } from "@/redis";
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -28,11 +28,11 @@ export default class HOTMVotingCommand extends BaseCommand {
 	) {
 		const helper = interaction.options.getUser("helper", true);
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guild.id
-		);
+		const studyChannels = await StudyChannel.find({
+			guildId: interaction.guild.id
+		});
 
-		if (!guildPreferences) {
+		if (studyChannels.length < 1) {
 			await interaction.reply({
 				content: "This feature hasn't been configured."
 			});
@@ -55,9 +55,9 @@ export default class HOTMVotingCommand extends BaseCommand {
 		}
 
 		const helperRoles = interaction.guild.roles.cache.filter((role) =>
-			guildPreferences.helperRoles.some(
-				(helperRole) => helperRole.roleId === role.id
-			)
+			studyChannels
+				.map((studyChannel) => studyChannel.helperRoleId)
+				.some((helperRoleId) => helperRoleId === role.id)
 		);
 
 		if (helperRoles.size < 1) {

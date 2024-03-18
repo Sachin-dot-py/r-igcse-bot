@@ -17,11 +17,6 @@ export type IGuildPreferences = {
 		label: string;
 		roleId: string;
 	}[];
-
-	helperRoles: {
-		roleId: string;
-		channelId: string;
-	}[];
 } & Partial<{
 	modlogChannelId: string;
 	behaviorlogChannelId: string;
@@ -70,15 +65,6 @@ const schema = new Schema<IGuildPreferences>({
 				emoji: String,
 				label: String,
 				id: String
-			}
-		],
-		default: []
-	},
-	helperRoles: {
-		type: [
-			{
-				roleId: String,
-				channelId: String
 			}
 		],
 		default: []
