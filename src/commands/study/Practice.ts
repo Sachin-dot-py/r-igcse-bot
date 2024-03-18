@@ -31,10 +31,7 @@ import {
 	ButtonInteractionCache
 } from "@/redis";
 import type { Document } from "mongoose";
-import type {
-	IPracticeQuestion,
-	PracticeQuestionResponse
-} from "@/redis/schemas/Question";
+import type { IPracticeQuestion } from "@/redis/schemas/Question";
 import Select from "@/components/Select";
 import UserSelect from "@/components/practice/UserSelect";
 import MCQButtons from "@/components/practice/MCQButtons";
