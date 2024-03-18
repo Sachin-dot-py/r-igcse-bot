@@ -1,3 +1,11 @@
 {
+	"arrowParens": "always",
+	"bracketSameLine": false,
+	"bracketSpacing": true,
+	"endOfLine": "lf",
+	"quoteProps": "preserve",
+	"semi": true,
+	"trailingComma": "none",
+	"tabWidth": 4,
 	"useTabs": true
 }
