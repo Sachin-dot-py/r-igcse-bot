@@ -319,6 +319,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 					content: "Confession rejected and user banned",
 					ephemeral: true
 				});
+				break;
+
+			default:
+				break;
 		}
+
+		await ButtonInteractionCache.remove(confessionId);
 	}
 }
