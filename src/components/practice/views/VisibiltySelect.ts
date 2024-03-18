@@ -1,12 +1,5 @@
 import Select from "../../Select";
-import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	ComponentType,
-	StringSelectMenuOptionBuilder,
-	type AnyComponent
-} from "discord.js";
+import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 
 class VisibiltySelect {
 	rows: ActionRowBuilder<Select>[];

@@ -1,12 +1,5 @@
 import UserSelect from "../UserSelect";
-import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	ComponentType,
-	UserSelectMenuBuilder,
-	type AnyComponent
-} from "discord.js";
+import { ActionRowBuilder } from "discord.js";
 
 class UserSelectView {
 	rows: ActionRowBuilder<UserSelect>[];

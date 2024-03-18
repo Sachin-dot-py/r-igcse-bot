@@ -1,10 +1,9 @@
-import { HOTM } from "@/mongo";
+import { HOTM, HOTMUser } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
 
 export default class HOTMVotingCommand extends BaseCommand {
@@ -41,6 +40,20 @@ export default class HOTMVotingCommand extends BaseCommand {
 			return;
 		}
 
+		const userVotes = await HOTMUser.findOne({
+			guildId: interaction.guild.id,
+			userId: interaction.user.id
+		});
+
+		if (userVotes?.votesLeft === 0) {
+			await interaction.reply({
+				content: "You don't have any votes left",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		const helperRoles = interaction.guild.roles.cache.filter((role) =>
 			guildPreferences.helperRoles.some(
 				(helperRole) => helperRole.roleId === role.id
@@ -65,23 +78,20 @@ export default class HOTMVotingCommand extends BaseCommand {
 			return;
 		}
 
-		const hotm = await HOTM.updateOne(
+		await HOTM.updateOne(
 			{ guildId: interaction.guild.id, helperId: helper.id },
-			{ $addToSet: { voters: interaction.user.id } },
+			{ $inc: { votes: 1 } },
 			{ upsert: true }
-		).exec();
+		);
 
-		if (hotm.modifiedCount < 1) {
-			await interaction.reply({
-				content: `You already voted for ${helper.displayName}`,
-				ephemeral: true
-			});
-
-			return;
-		}
+		await HOTMUser.updateOne(
+			{ guildId: interaction.guild.id, userId: interaction.user.id },
+			{ $inc: { votesLeft: -1 } },
+			{ upsert: true }
+		);
 
 		await interaction.reply({
-			content: `You voted for ${helper.displayName}`,
+			content: `You voted for ${helper.displayName} and have ${(userVotes?.votesLeft ?? 3) - 1} votes left.`,
 			ephemeral: true
 		});
 	}

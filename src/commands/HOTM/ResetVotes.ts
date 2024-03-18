@@ -1,4 +1,4 @@
-import { HOTM } from "@/mongo";
+import { HOTM, HOTMUser } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -13,10 +13,7 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 				.setDescription(
 					"Reset votes for Helper Of The Month (for mods)"
 				)
-				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ManageGuild |
-						PermissionFlagsBits.ManageRoles
-				)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 				.setDMPermission(false)
 		);
 	}
@@ -26,6 +23,7 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		await HOTM.deleteMany({ guildId: interaction.guild.id });
+		await HOTMUser.deleteMany({ guildId: interaction.guild.id });
 
 		await interaction.reply({
 			content: "Votes have been reset",

@@ -16,3 +16,4 @@ export {
 	PracticeSession,
 	type IPracticeSession
 } from "./schemas/PracticeSession";
+export { HOTMUser, type IHOTMUser } from "./schemas/HOTMUser";

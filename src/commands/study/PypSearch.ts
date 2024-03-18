@@ -66,17 +66,6 @@ export default class ResourcesCommand extends BaseCommand {
 
 			if (!interaction.inCachedGuild()) return;
 
-			const guildPreferences = await GuildPreferencesCache.get(
-				interaction.guild.id
-			);
-
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "Error | PypSearch",
-					iconURL: interaction.user.displayAvatarURL()
-				})
-				.setDescription(`${error}`);
-
 			client.log(error, `${this.data.name} Command`, [
 				{ name: "User ID", value: interaction.user.id }
 			]);

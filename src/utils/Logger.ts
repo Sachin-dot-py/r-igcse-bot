@@ -1,10 +1,4 @@
-import type { DiscordClient } from "@/registry/DiscordClient";
-import {
-	EmbedBuilder,
-	Guild,
-	MessagePayload,
-	type MessageCreateOptions
-} from "discord.js";
+import { Guild, MessagePayload, type MessageCreateOptions } from "discord.js";
 
 export default class Logger {
 	public static info(message: unknown) {
