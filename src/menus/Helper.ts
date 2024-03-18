@@ -1,4 +1,4 @@
-import { GuildPreferencesCache } from "@/redis";
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseMenu, {
 	type DiscordMessageContextMenuCommandInteraction
@@ -11,8 +11,7 @@ import {
 	ComponentType,
 	ContextMenuCommandBuilder,
 	EmbedBuilder,
-	PermissionFlagsBits,
-	Role
+	PermissionFlagsBits
 } from "discord.js";
 
 export default class HelperMenu extends BaseMenu {
@@ -32,48 +31,12 @@ export default class HelperMenu extends BaseMenu {
 	) {
 		if (!interaction.channel) return;
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
-		);
+		const studyChannel = await StudyChannel.findOne({
+			guildId: interaction.guildId,
+			channelId: interaction.channelId
+		});
 
-		if (!guildPreferences) {
-			await interaction.reply({
-				content:
-					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true
-			});
-			return;
-		}
-
-		const helperData = guildPreferences.helperRoles;
-
-		if (!helperData || helperData.length < 1) {
-			await interaction.reply({
-				content: "No helper roles set for this server",
-				ephemeral: true
-			});
-
-			return;
-		}
-
-		const rolesData = helperData.filter(
-			(data) => data.channelId === interaction.channelId
-		);
-
-		if (!rolesData || rolesData.length < 1) {
-			await interaction.reply({
-				content: "No helpers for this channel",
-				ephemeral: true
-			});
-
-			return;
-		}
-
-		const roles = rolesData
-			.map(({ roleId }) => interaction.guild.roles.cache.get(roleId))
-			.filter((role) => role !== undefined) as Role[];
-
-		if (roles.length < 1) {
+		if (!studyChannel) {
 			await interaction.reply({
 				content: "No helper for this channel",
 				ephemeral: true
@@ -82,13 +45,23 @@ export default class HelperMenu extends BaseMenu {
 			return;
 		}
 
+		const role = await interaction.guild.roles.cache.get(
+			studyChannel.helperRoleId
+		);
+
+		if (!role) {
+			await interaction.reply({
+				content:
+					"Invalid configuration for this channel's helper role. Please contact an admin.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		const embed = new EmbedBuilder()
 			.setDescription(
-				`The helper role(s) for this channel (${roles
-					.map((role) => `\`@${role.name}\``)
-					.join(
-						", "
-					)}) will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
+				`The helper role(s) for this channel (@${role.name}) will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
 			)
 			.setAuthor({
 				name: interaction.user.displayName,
@@ -137,7 +110,7 @@ export default class HelperMenu extends BaseMenu {
 				});
 
 			await interaction.channel.send({
-				content: `${roles.map((role) => `\`@${role.id}\``).join(" ")}`,
+				content: `@<${role.id}>`,
 				embeds: [embed]
 			});
 

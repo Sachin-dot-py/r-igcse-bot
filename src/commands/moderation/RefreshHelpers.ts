@@ -1,3 +1,4 @@
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -39,18 +40,22 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			return;
 		}
 
-		const helperData = guildPreferences.helperRoles;
+		const studyChannels = await StudyChannel.find({
+			guildId: interaction.guildId
+		}).exec();
 
 		const changed: string[] = [];
 
-		for (const data of helperData) {
+		for (const studyChannel of studyChannels) {
 			const channel = interaction.guild.channels.cache.get(
-				data.channelId
+				studyChannel.channelId
 			);
 
 			if (!channel || !(channel instanceof TextChannel)) continue;
 
-			const role = interaction.guild.roles.cache.get(data.roleId);
+			const role = interaction.guild.roles.cache.get(
+				studyChannel.helperRoleId
+			);
 
 			if (!role) continue;
 
