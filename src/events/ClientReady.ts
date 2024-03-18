@@ -1,5 +1,8 @@
-import { GuildPreferences, StickyMessage } from "@/mongo";
+import type PracticeCommand from "@/commands/study/Practice";
+import { StickyMessage } from "@/mongo";
+import { StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
+import Logger from "@/utils/Logger";
 import {
 	ActivityType,
 	ChannelType,
@@ -7,11 +10,8 @@ import {
 	EmbedBuilder,
 	Events,
 } from "discord.js";
-import Logger from "@/utils/Logger";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache, StickyMessageCache } from "@/redis";
-import type PracticeCommand from "@/commands/study/Practice";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -63,7 +63,8 @@ ID: ${mainGuild.id}\`\`\``,
 						name: "Role Statistics",
 						value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
 No. of members: ${mainGuild.memberCount}
-Helpers: // TODO\nModerators: // TODO\`\`\``,
+Helpers: // TODO
+Moderators: // TODO\`\`\``,
 						inline: false,
 					},
 					{
@@ -84,17 +85,10 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			});
 		}
 
-		await this.populateGuildPreferencesCache()
-			.then(() => Logger.info("Populated Guild Preferences Cache"))
-			.catch(Logger.error);
-
-		// await this.populateStickyMessageCache(client)
-		// 	.then(() => Logger.info("Populated Sticky Messages Cache"))
-		// 	.catch(Logger.error);
-
 		const practiceCommand = client.commands.get("practice") as
 			| PracticeCommand
 			| undefined;
+
 		if (practiceCommand) {
 			Logger.info("Starting practice questions loop");
 			setInterval(() => practiceCommand.sendQuestions(client), 3500);
@@ -104,24 +98,13 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			.then(() => Logger.info("Synced application commands globally"))
 			.catch(Logger.error);
 
-		setInterval(async () => {
-			await this.updateStickyMessagesCache().catch(Logger.error);
-			// .then(() => Logger.info("Updated sticky messages (enabled or not)"))
-		}, 60000);
+		setInterval(
+			async () => await this.refreshStickyMessagesCache().catch(Logger.error),
+			60000,
+		);
 	}
 
-	private async populateGuildPreferencesCache() {
-		const guildPreferencess = await GuildPreferences.find().exec();
-
-		for (const guildPreferences of guildPreferencess) {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { _id, ...data } = guildPreferences.toObject();
-
-			await GuildPreferencesCache.set(data.guildId, data);
-		}
-	}
-
-	private async updateStickyMessagesCache() {
+	private async refreshStickyMessagesCache() {
 		const time = Date.now();
 
 		const stickyMessages = await StickyMessage.find().exec();
