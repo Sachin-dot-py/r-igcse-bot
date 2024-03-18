@@ -42,7 +42,12 @@ export const client = new DiscordClient({
 await registerCommands(client);
 await registerMenus(client);
 
-await mongo.connect(process.env.MONGO_URL);
+await mongo.connect(process.env.MONGO_URL, {
+	retryWrites: true,
+	writeConcern: {
+		w: "majority",
+	},
+});
 
 await client.login(process.env.BOT_TOKEN);
 
