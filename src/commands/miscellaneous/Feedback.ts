@@ -3,6 +3,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	ModalBuilder,
+	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle
@@ -23,6 +24,7 @@ export default class FeedbackCommand extends BaseCommand {
 				.addStringOption((option) =>
 					option
 						.setName("team")
+						.setDescription("To whomst u have feedback for")
 						.setChoices(
 							{
 								name: "Moderators",
@@ -39,6 +41,8 @@ export default class FeedbackCommand extends BaseCommand {
 						)
 						.setRequired(true)
 				)
+				.setDMPermission(false)
+				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
 		);
 	}
 
