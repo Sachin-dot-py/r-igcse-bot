@@ -26,7 +26,6 @@ export type IGuildPreferences = {
 	modlogChannelId: string;
 	behaviorlogChannelId: string;
 	warnlogChannelId: string;
-	botlogChannelId: string;
 	botNewsChannelId: string;
 	actionRequiredChannelId: string;
 
@@ -51,7 +50,6 @@ const schema = new Schema<IGuildPreferences>({
 	modlogChannelId: { type: String, default: null },
 	behaviorlogChannelId: { type: String, default: null },
 	warnlogChannelId: { type: String, default: null },
-	botlogChannelId: { type: String, default: null },
 	botNewsChannelId: { type: String, default: null },
 	actionRequiredChannelId: { type: String, default: null },
 	welcomeChannelId: { type: String, default: null },

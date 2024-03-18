@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import sendDm from "@/utils/DM";
+import sendDm from "@/utils/sendDm";
 import Logger from "@/utils/Logger";
 import {
 	Colors,

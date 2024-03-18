@@ -15,7 +15,6 @@ const schema = new Schema("GuildPreferences", {
 	modlogChannelId: { type: "string" },
 	behaviorlogChannelId: { type: "string" },
 	warnlogChannelId: { type: "string" },
-	botlogChannelId: { type: "string" },
 	botNewsChannelId: { type: "string" },
 	actionRequiredChannelId: { type: "string" },
 	welcomeChannelId: { type: "string" },
