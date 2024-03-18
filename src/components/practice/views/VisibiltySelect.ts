@@ -5,7 +5,7 @@ import {
 	ButtonStyle,
 	ComponentType,
 	StringSelectMenuOptionBuilder,
-	type AnyComponent,
+	type AnyComponent
 } from "discord.js";
 
 class VisibiltySelect {
@@ -22,13 +22,15 @@ class VisibiltySelect {
 				new StringSelectMenuOptionBuilder()
 					.setLabel("Private")
 					.setValue("private")
-					.setDescription("Only invited members can join"),
+					.setDescription("Only invited members can join")
 			],
 			1,
-			`${customId}_0`,
+			`${customId}_0`
 		);
 
-		const row = new ActionRowBuilder<Select>().addComponents(visbilitySelect);
+		const row = new ActionRowBuilder<Select>().addComponents(
+			visbilitySelect
+		);
 		this.rows = [row];
 	}
 }

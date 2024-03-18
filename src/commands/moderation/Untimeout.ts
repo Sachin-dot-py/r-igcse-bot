@@ -2,14 +2,14 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 
 export default class UntimeoutCommand extends BaseCommand {
@@ -22,16 +22,18 @@ export default class UntimeoutCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to timeout")
-						.setRequired(true),
+						.setRequired(true)
 				)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-				.setDMPermission(false),
+				.setDefaultMemberPermissions(
+					PermissionFlagsBits.ModerateMembers
+				)
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
 		const member = await interaction.guild.members.fetch(user.id);
@@ -39,21 +41,21 @@ export default class UntimeoutCommand extends BaseCommand {
 		if (!member.communicationDisabledUntil) {
 			await interaction.reply({
 				content: "User is not timed out!",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -63,11 +65,11 @@ export default class UntimeoutCommand extends BaseCommand {
 		} catch (error) {
 			await interaction.reply({
 				content: "Failed to untimeout user",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
-				{ name: "User ID", value: interaction.user.id },
+				{ name: "User ID", value: interaction.user.id }
 			]);
 		}
 
@@ -80,7 +82,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		const undoPunishment = await Punishment.findOne({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
-			action: "Timeout",
+			action: "Timeout"
 		})
 			.sort({ createdAt: -1 })
 			.exec();
@@ -92,7 +94,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			action: "Remove Timeout",
 			reason: "",
 			points: -(undoPunishment?.points ?? 2),
-			caseId: caseNumber,
+			caseId: caseNumber
 		});
 
 		const modEmbed = new EmbedBuilder()
@@ -100,19 +102,19 @@ export default class UntimeoutCommand extends BaseCommand {
 			.setColor(Colors.Green)
 			.setAuthor({
 				name: user.displayName,
-				iconURL: user.displayAvatarURL(),
+				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
 				{
 					name: "User ID",
 					value: user.id,
-					inline: true,
+					inline: true
 				},
 				{
 					name: "Moderator",
 					value: interaction.user.displayName,
-					inline: true,
-				},
+					inline: true
+				}
 			]);
 
 		if (guildPreferences.modlogChannelId) {
@@ -120,14 +122,14 @@ export default class UntimeoutCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed],
-				},
+					embeds: [modEmbed]
+				}
 			);
 		}
 
 		await interaction.reply({
 			content: `Successfully timed out @${user.displayName}`,
-			ephemeral: true,
+			ephemeral: true
 		});
 	}
 }

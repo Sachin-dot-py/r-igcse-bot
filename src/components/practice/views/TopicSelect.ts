@@ -6,7 +6,7 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	ComponentType,
-	StringSelectMenuOptionBuilder,
+	StringSelectMenuOptionBuilder
 } from "discord.js";
 
 class TopicSelect {
@@ -20,13 +20,13 @@ class TopicSelect {
 
 	private getTopics(subject: string): StringSelectMenuOptionBuilder[] {
 		return subjectTopics[subject].map((topic) =>
-			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic),
+			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic)
 		);
 	}
 
 	private getTopicRows(
 		topicSelectOptions: StringSelectMenuOptionBuilder[],
-		customId: string,
+		customId: string
 	): ActionRowBuilder<Select>[] {
 		const topicRows: ActionRowBuilder<Select>[] = [];
 		for (let i = 0; i < topicSelectOptions.length; i += 25) {
@@ -34,10 +34,14 @@ class TopicSelect {
 				`topic_${i / 25}`,
 				`Select a topic (page ${(i + 25) / 25})`,
 				topicSelectOptions.slice(i, i + 25),
-				topicSelectOptions.length - i > 25 ? 25 : topicSelectOptions.length - i,
-				`${customId}_${i / 25}`,
+				topicSelectOptions.length - i > 25
+					? 25
+					: topicSelectOptions.length - i,
+				`${customId}_${i / 25}`
 			);
-			const row = new ActionRowBuilder<Select>().addComponents(topicSelect);
+			const row = new ActionRowBuilder<Select>().addComponents(
+				topicSelect
+			);
 			topicRows.push(row);
 		}
 		return topicRows;

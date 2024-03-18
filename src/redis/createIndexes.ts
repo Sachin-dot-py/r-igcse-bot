@@ -8,7 +8,7 @@ import { UserRepository } from "./schemas/User";
 import { ButtonInteractionRepository } from "./schemas/ButtonInteraction";
 
 export const redis = createClient({
-	url: process.env.REDIS_URL,
+	url: process.env.REDIS_URL
 });
 
 await redis.connect();

@@ -2,7 +2,7 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import sendDm from "@/utils/sendDm";
 import Logger from "@/utils/Logger";
@@ -10,7 +10,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 
 export default class BanCommand extends BaseCommand {
@@ -23,13 +23,13 @@ export default class BanCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to ban")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
 						.setDescription("Reason for ban")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addIntegerOption((option) =>
 					option
@@ -37,16 +37,16 @@ export default class BanCommand extends BaseCommand {
 						.setDescription("Days to delete messages for")
 						.setMaxValue(7)
 						.setMinValue(0)
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
@@ -57,7 +57,7 @@ export default class BanCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -65,20 +65,20 @@ export default class BanCommand extends BaseCommand {
 		if (interaction.guild.bans.cache.has(user.id)) {
 			await interaction.reply({
 				content: "I cannot ban a user that's already banned.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please configure the bot using `/set_preferences` command first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -92,7 +92,7 @@ export default class BanCommand extends BaseCommand {
 		const dmEmbed = new EmbedBuilder()
 			.setTitle(`You have been banned from ${interaction.guild.name}!`)
 			.setDescription(
-				`You have been banned from **${interaction.guild.name}** due to \`${reason}\`. ${guildPreferences.banAppealFormLink ? `Please fill the appeal form [here](${guildPreferences.banAppealFormLink}) to appeal your ban.` : ""}`,
+				`You have been banned from **${interaction.guild.name}** due to \`${reason}\`. ${guildPreferences.banAppealFormLink ? `Please fill the appeal form [here](${guildPreferences.banAppealFormLink}) to appeal your ban.` : ""}`
 			)
 			.setColor(Colors.Red);
 
@@ -100,23 +100,23 @@ export default class BanCommand extends BaseCommand {
 
 		if (guildMember) {
 			await sendDm(guildMember, {
-				embeds: [dmEmbed],
+				embeds: [dmEmbed]
 			});
 		}
 
 		try {
 			await interaction.guild.bans.create(user, {
 				reason: reason,
-				deleteMessageSeconds: deleteMessagesDays * 86400,
+				deleteMessageSeconds: deleteMessagesDays * 86400
 			});
 		} catch (error) {
 			await interaction.reply({
 				content: "Failed to ban user",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
-				{ name: "User ID", value: interaction.user.id },
+				{ name: "User ID", value: interaction.user.id }
 			]);
 		}
 
@@ -126,7 +126,7 @@ export default class BanCommand extends BaseCommand {
 			actionBy: interaction.user.id,
 			action: "Ban",
 			caseId: caseNumber,
-			reason,
+			reason
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -134,38 +134,38 @@ export default class BanCommand extends BaseCommand {
 				.setTitle(`Ban | Case #${caseNumber}`)
 				.setDescription(reason)
 				.setFooter({
-					text: `${deleteMessagesDays} days of messages deleted`,
+					text: `${deleteMessagesDays} days of messages deleted`
 				})
 				.setColor(Colors.Red)
 				.setAuthor({
 					name: user.displayName,
-					iconURL: user.displayAvatarURL(),
+					iconURL: user.displayAvatarURL()
 				})
 				.addFields([
 					{
 						name: "User ID",
 						value: user.id,
-						inline: true,
+						inline: true
 					},
 					{
 						name: "Moderator",
 						value: interaction.user.displayName,
-						inline: true,
-					},
+						inline: true
+					}
 				]);
 
 			await Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed],
-				},
+					embeds: [modEmbed]
+				}
 			);
 		}
 
 		await interaction.reply({
 			content: `Successfully banned ${user.tag}`,
-			ephemeral: true,
+			ephemeral: true
 		});
 	}
 }

@@ -7,10 +7,10 @@ import {
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
 	StringSelectMenuInteraction,
-	StringSelectMenuOptionBuilder,
+	StringSelectMenuOptionBuilder
 } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import { resourceRepositories } from "@/data";
 
@@ -19,13 +19,13 @@ export default class ResourcesCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("resources")
-				.setDescription("View the r/igcse resources repository"),
+				.setDescription("View the r/igcse resources repository")
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
 		if (!interaction.channel) return;
 
@@ -33,21 +33,23 @@ export default class ResourcesCommand extends BaseCommand {
 			.setCustomId("level")
 			.setPlaceholder("Choose a level...")
 			.addOptions(
-				new StringSelectMenuOptionBuilder().setLabel("IGCSE").setValue("ig"),
+				new StringSelectMenuOptionBuilder()
+					.setLabel("IGCSE")
+					.setValue("ig"),
 				new StringSelectMenuOptionBuilder()
 					.setLabel("AS / A Level")
-					.setValue("al"),
+					.setValue("al")
 			)
 			.setMaxValues(1)
 			.setMinValues(1);
 
 		const levelRow =
 			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-				levelSelect,
+				levelSelect
 			);
 
 		await interaction.reply({
-			components: [levelRow],
+			components: [levelRow]
 		});
 
 		let level: "ig" | "al" = "ig";
@@ -56,7 +58,7 @@ export default class ResourcesCommand extends BaseCommand {
 			.createMessageComponentCollector({
 				filter: (i) => i.user.id === interaction.user.id,
 				componentType: ComponentType.StringSelect,
-				time: 45000,
+				time: 45000
 			})
 			.on("collect", async (i: StringSelectMenuInteraction) => {
 				await i.deferUpdate();
@@ -69,22 +71,23 @@ export default class ResourcesCommand extends BaseCommand {
 							.setCustomId("subject_group")
 							.setPlaceholder("Choose a subject group...")
 							.addOptions(
-								Object.keys(resourceRepositories[level]).map((subject) =>
-									new StringSelectMenuOptionBuilder()
-										.setLabel(subject)
-										.setValue(subject),
-								),
+								Object.keys(resourceRepositories[level]).map(
+									(subject) =>
+										new StringSelectMenuOptionBuilder()
+											.setLabel(subject)
+											.setValue(subject)
+								)
 							)
 							.setMinValues(1)
 							.setMaxValues(1);
 
 						const selectRow =
 							new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-								subjectSelect,
+								subjectSelect
 							);
 
 						interaction.editReply({
-							components: [selectRow],
+							components: [selectRow]
 						});
 
 						break;
@@ -93,17 +96,18 @@ export default class ResourcesCommand extends BaseCommand {
 					case "subject_group": {
 						const resourceRow =
 							new ActionRowBuilder<ButtonBuilder>().addComponents(
-								Object.entries(resourceRepositories[level][i.values[0]]).map(
-									([label, link]) =>
-										new ButtonBuilder()
-											.setLabel(label)
-											.setURL(link)
-											.setStyle(ButtonStyle.Link),
-								),
+								Object.entries(
+									resourceRepositories[level][i.values[0]]
+								).map(([label, link]) =>
+									new ButtonBuilder()
+										.setLabel(label)
+										.setURL(link)
+										.setStyle(ButtonStyle.Link)
+								)
 							);
 
 						interaction.editReply({
-							components: [resourceRow],
+							components: [resourceRow]
 						});
 
 						break;

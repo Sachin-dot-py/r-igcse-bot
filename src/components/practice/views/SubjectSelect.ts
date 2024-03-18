@@ -7,7 +7,7 @@ import {
 	ButtonStyle,
 	ComponentType,
 	StringSelectMenuOptionBuilder,
-	type AnyComponent,
+	type AnyComponent
 } from "discord.js";
 
 class SubjectSelect {
@@ -18,7 +18,7 @@ class SubjectSelect {
 			"Select a subject",
 			this.getSubjects(),
 			1,
-			`${customId}_0`,
+			`${customId}_0`
 		);
 
 		const row = new ActionRowBuilder<Select>().addComponents(subjectSelect);
@@ -29,7 +29,7 @@ class SubjectSelect {
 		return Object.entries(practiceSubjects).map(([key, value]) =>
 			new StringSelectMenuOptionBuilder()
 				.setLabel(`${value} (${key})`)
-				.setValue(key),
+				.setValue(key)
 		);
 	}
 }

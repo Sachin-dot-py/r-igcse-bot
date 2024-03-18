@@ -3,7 +3,7 @@ import {
 	EmbedBuilder,
 	Guild,
 	MessagePayload,
-	type MessageCreateOptions,
+	type MessageCreateOptions
 } from "discord.js";
 
 export default class Logger {
@@ -17,19 +17,21 @@ export default class Logger {
 
 	public static error(message: unknown) {
 		console.error(
-			`[ \x1b[0;31mx\x1b[0m ] ${message instanceof Error ? message.stack : message}`,
+			`[ \x1b[0;31mx\x1b[0m ] ${message instanceof Error ? message.stack : message}`
 		);
 	}
 
 	public static async channel(
 		guild: Guild,
 		channelId: string,
-		options: string | MessagePayload | MessageCreateOptions,
+		options: string | MessagePayload | MessageCreateOptions
 	) {
 		const channel = guild.channels.cache.get(channelId);
 
 		if (!channel || !channel.isTextBased())
-			throw new Error("Channel not found or is not a text-based channel.");
+			throw new Error(
+				"Channel not found or is not a text-based channel."
+			);
 
 		return await channel.send(options);
 	}

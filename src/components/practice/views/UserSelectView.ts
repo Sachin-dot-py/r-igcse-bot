@@ -5,7 +5,7 @@ import {
 	ButtonStyle,
 	ComponentType,
 	UserSelectMenuBuilder,
-	type AnyComponent,
+	type AnyComponent
 } from "discord.js";
 
 class UserSelectView {
@@ -15,10 +15,12 @@ class UserSelectView {
 			"users",
 			"Select a user",
 			25,
-			`${customId}_0`,
+			`${customId}_0`
 		);
 
-		const row = new ActionRowBuilder<UserSelect>().addComponents(userSelect);
+		const row = new ActionRowBuilder<UserSelect>().addComponents(
+			userSelect
+		);
 		this.rows = [row];
 	}
 }

@@ -9,7 +9,7 @@ export interface IHOTM {
 const schema = new Schema<IHOTM>({
 	helperId: { type: String, required: true },
 	guildId: { type: String, required: true },
-	voterIds: { type: [String], required: true },
+	voterIds: { type: [String], required: true }
 });
 
 export const HOTM = createModel<IHOTM>("HOTM", schema);

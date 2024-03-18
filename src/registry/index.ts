@@ -9,13 +9,13 @@ import Logger from "@/utils/Logger";
 
 export async function registerCommands(
 	client: DiscordClient,
-	category: string = "",
+	category: string = ""
 ) {
 	const commandsPath = joinPaths(
 		`${import.meta.dir}`,
 		"..",
 		"commands",
-		category,
+		category
 	);
 
 	const commandItems = await readdir(commandsPath, { withFileTypes: true });
@@ -28,7 +28,7 @@ export async function registerCommands(
 		.filter(
 			(dirent) =>
 				dirent.isFile() &&
-				((x: string) => x !== x.toLowerCase())(dirent.name[0]),
+				((x: string) => x !== x.toLowerCase())(dirent.name[0])
 		)
 		.map((dirent) => dirent.name);
 
@@ -45,7 +45,7 @@ export async function registerCommands(
 				client.commands.set(command.data.name, command);
 			else
 				Logger.warn(
-					`The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
+					`The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`
 				);
 		} catch (error) {
 			Logger.error(error);
@@ -66,10 +66,11 @@ export async function registerMenus(client: DiscordClient) {
 
 			const menu = new BotMenu();
 
-			if (menu instanceof BaseMenu) client.menus.set(menu.data.name, menu);
+			if (menu instanceof BaseMenu)
+				client.menus.set(menu.data.name, menu);
 			else
 				Logger.warn(
-					`The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`,
+					`The menu at ${filePath} is missing a required "data" or "execute" property. Ignoring.`
 				);
 		} catch (error) {
 			Logger.error(error);
@@ -81,12 +82,12 @@ export async function registerEvents(client: DiscordClient<true>) {
 	const eventsPath = joinPaths(`${import.meta.dir}`, "..", "events");
 	const eventFiles = (
 		await readdir(eventsPath, {
-			recursive: true,
+			recursive: true
 		})
 	).filter(
 		(file) =>
 			((x: string) => x !== x.toLowerCase())(file[0]) &&
-			(extname(file) == ".js" || extname(file) == ".ts"),
+			(extname(file) == ".js" || extname(file) == ".ts")
 	);
 
 	for (const file of eventFiles) {
@@ -102,7 +103,7 @@ export async function registerEvents(client: DiscordClient<true>) {
 
 export async function syncInteractions(
 	client: DiscordClient,
-	guildId?: string,
+	guildId?: string
 ) {
 	if (!client.application?.id) {
 		Logger.error("No application id");
@@ -113,15 +114,18 @@ export async function syncInteractions(
 
 	if (!guildId || guildId !== "576460042774118420")
 		data = data.filter(({ name }) =>
-			["apply", "feedback", "study_session"].some((x) => name !== x),
+			["apply", "feedback", "study_session"].some((x) => name !== x)
 		);
 
 	try {
 		await client.rest.put(
 			guildId
-				? Routes.applicationGuildCommands(client.application.id, guildId)
+				? Routes.applicationGuildCommands(
+						client.application.id,
+						guildId
+					)
 				: Routes.applicationCommands(client.application.id),
-			{ body: data },
+			{ body: data }
 		);
 	} catch (error) {
 		Logger.error(error);

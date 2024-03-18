@@ -8,7 +8,7 @@ import {
 	ChannelType,
 	Colors,
 	EmbedBuilder,
-	Events,
+	Events
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
@@ -25,13 +25,13 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		client.user.setPresence({
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
-			status: "online",
+			status: "online"
 		});
 
 		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
 			year: "numeric",
 			month: "numeric",
-			day: "numeric",
+			day: "numeric"
 		});
 
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
@@ -41,13 +41,13 @@ export default class ClientReadyEvent extends BaseEvent {
 				.setColor(Colors.Green)
 				.setAuthor({
 					name: client.user.displayName,
-					iconURL: client.user.displayAvatarURL(),
+					iconURL: client.user.displayAvatarURL()
 				})
 				.addFields([
 					{
 						name: "Bot Information",
 						value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
-						inline: false,
+						inline: false
 					},
 					{
 						name: "Guild Information",
@@ -57,7 +57,7 @@ Created on: ${timeFormatter(mainGuild.createdAt)}
 Members: ${mainGuild.memberCount}
 Boosts: ${mainGuild.premiumSubscriptionCount}
 ID: ${mainGuild.id}\`\`\``,
-						inline: false,
+						inline: false
 					},
 					{
 						name: "Role Statistics",
@@ -65,7 +65,7 @@ ID: ${mainGuild.id}\`\`\``,
 No. of members: ${mainGuild.memberCount}
 Helpers: // TODO
 Moderators: // TODO\`\`\``,
-						inline: false,
+						inline: false
 					},
 					{
 						name: "Channels & Commands",
@@ -76,12 +76,12 @@ No. of text-channels: ${mainGuild.channels.cache.filter((channel) => channel.typ
 No. of voice-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size}
 No. of forum-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildForum).size}
 No. of slash-commands: ${client.commands.size}\`\`\``,
-						inline: false,
-					},
+						inline: false
+					}
 				]);
 
 			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
-				embeds: [readyEmbed],
+				embeds: [readyEmbed]
 			});
 		}
 
@@ -99,8 +99,9 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			.catch(Logger.error);
 
 		setInterval(
-			async () => await this.refreshStickyMessagesCache().catch(Logger.error),
-			60000,
+			async () =>
+				await this.refreshStickyMessagesCache().catch(Logger.error),
+			60000
 		);
 	}
 
@@ -117,11 +118,11 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 				await StickyMessageCache.set(stickyMessage.id, {
 					channelId: stickyMessage.channelId,
 					messageId: stickyMessage.messageId,
-					embeds: stickyMessage.embeds,
+					embeds: stickyMessage.embeds
 				});
 			else if (unstickTime <= time) {
 				await StickyMessage.deleteOne({
-					messageId: stickyMessage.messageId,
+					messageId: stickyMessage.messageId
 				}).exec();
 
 				await StickyMessageCache.remove(stickyMessage.id);

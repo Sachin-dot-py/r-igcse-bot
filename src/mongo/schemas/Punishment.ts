@@ -23,49 +23,49 @@ const schema = new Schema<IPunishment>({
 	caseId: {
 		type: Number,
 		required: false,
-		unique: false,
+		unique: false
 	},
 	actionAgainst: {
 		type: Number,
 		required: true,
-		unique: false,
+		unique: false
 	},
 	actionBy: {
 		type: Number,
 		required: true,
-		unique: false,
+		unique: false
 	},
 	reason: {
 		type: String,
 		required: false,
-		unique: false,
+		unique: false
 	},
 	action: {
 		type: String,
 		required: true,
-		unique: false,
+		unique: false
 	},
 	duration: {
 		type: Number,
 		required: false,
-		unique: false,
+		unique: false
 	},
 	when: {
 		type: Date,
 		required: false,
 		unique: false,
-		default: new Date(),
+		default: new Date()
 	},
 	points: {
 		type: Number,
 		required: false,
-		unique: false,
+		unique: false
 	},
 	guildId: {
 		type: String,
 		required: true,
-		unique: false,
-	},
+		unique: false
+	}
 });
 
 export const Punishment = createModel<IPunishment>("Punishment", schema);

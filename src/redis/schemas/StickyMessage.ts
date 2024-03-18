@@ -3,7 +3,7 @@ import {
 	Repository,
 	Schema,
 	type Entity,
-	type RedisConnection,
+	type RedisConnection
 } from "redis-om";
 
 export type ICachedStickyMessage = Omit<
@@ -15,7 +15,7 @@ export type ICachedStickyMessage = Omit<
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
-	embeds: { type: "string[]" },
+	embeds: { type: "string[]" }
 });
 
 export class StickyMessageRepository extends Repository {
@@ -35,11 +35,16 @@ export class StickyMessageRepository extends Repository {
 
 	async set(
 		id: string,
-		stickyMessageData: Omit<Omit<IStickyMessage, "stickTime">, "unstickTime">,
+		stickyMessageData: Omit<
+			Omit<IStickyMessage, "stickTime">,
+			"unstickTime"
+		>
 	) {
 		const data = {
 			...stickyMessageData,
-			embeds: stickyMessageData.embeds.map((embed) => JSON.stringify(embed)),
+			embeds: stickyMessageData.embeds.map((embed) =>
+				JSON.stringify(embed)
+			)
 		};
 
 		await this.save(id, data);

@@ -5,7 +5,7 @@ import { DiscordClient } from "./registry/DiscordClient";
 import {
 	registerCommands,
 	registerEvents,
-	registerMenus,
+	registerMenus
 } from "./registry/index";
 import mongo from "mongoose";
 import { redis } from "./redis";
@@ -34,9 +34,9 @@ export const client = new DiscordClient({
 		GatewayIntentBits.GuildVoiceStates,
 		GatewayIntentBits.GuildWebhooks,
 		GatewayIntentBits.Guilds,
-		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.MessageContent
 	],
-	partials: [Partials.Message, Partials.Channel],
+	partials: [Partials.Message, Partials.Channel]
 });
 
 await registerCommands(client);
@@ -45,8 +45,8 @@ await registerMenus(client);
 await mongo.connect(process.env.MONGO_URL, {
 	retryWrites: true,
 	writeConcern: {
-		w: "majority",
-	},
+		w: "majority"
+	}
 });
 
 await client.login(process.env.BOT_TOKEN);

@@ -1,7 +1,7 @@
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
@@ -10,7 +10,7 @@ import {
 	Colors,
 	ComponentType,
 	EmbedBuilder,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 
 export default class ListKeywordsCommand extends BaseCommand {
@@ -18,25 +18,27 @@ export default class ListKeywordsCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("list_keywords")
-				.setDescription("Display all the keywords in the current server")
-				.setDMPermission(false),
+				.setDescription(
+					"Display all the keywords in the current server"
+				)
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guild.id,
+			interaction.guild.id
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content: "Keywords haven't been configured for this server",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -46,14 +48,14 @@ export default class ListKeywordsCommand extends BaseCommand {
 		if (keywords.length === 0) {
 			await interaction.reply({
 				content: "There are no keywords in this server",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
 
 		const chunks = Array.from(
 			{ length: Math.ceil(keywords.length / 9) },
-			(_, i) => keywords.slice(i * 9, i * 9 + 9),
+			(_, i) => keywords.slice(i * 9, i * 9 + 9)
 		);
 
 		const embeds: EmbedBuilder[] = [];
@@ -100,18 +102,18 @@ export default class ListKeywordsCommand extends BaseCommand {
 			firstButton,
 			previousButton,
 			lastButton,
-			nextButton,
+			nextButton
 		);
 
 		await interaction.reply({
 			embeds: [embeds[page]],
 			components: [buttonsRow],
-			ephemeral: true,
+			ephemeral: true
 		});
 
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
-			filter: (i) => i.user.id === interaction.user.id,
+			filter: (i) => i.user.id === interaction.user.id
 		});
 
 		collector.on("collect", async (i) => {
@@ -122,7 +124,7 @@ export default class ListKeywordsCommand extends BaseCommand {
 
 			await interaction.editReply({
 				embeds: [embeds[page]],
-				components: [buttonsRow],
+				components: [buttonsRow]
 			});
 		});
 	}

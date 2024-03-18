@@ -69,23 +69,23 @@ const schema = new Schema<IGuildPreferences>({
 				requirementRoleId: String,
 				emoji: String,
 				label: String,
-				id: String,
-			},
+				id: String
+			}
 		],
-		default: [],
+		default: []
 	},
 	helperRoles: {
 		type: [
 			{
 				roleId: String,
-				channelId: String,
-			},
+				channelId: String
+			}
 		],
-		default: [],
-	},
+		default: []
+	}
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(
 	"GuildPreferences",
-	schema,
+	schema
 );

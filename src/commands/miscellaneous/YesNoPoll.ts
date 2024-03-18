@@ -1,6 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
@@ -15,15 +15,15 @@ export default class YesNoPollCommand extends BaseCommand {
 					option
 						.setName("poll")
 						.setDescription("The poll to be created")
-						.setRequired(true),
+						.setRequired(true)
 				)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		if (!interaction.channel) return;
 
@@ -34,12 +34,12 @@ export default class YesNoPollCommand extends BaseCommand {
 			.setDescription("Total Votes: 0\n\nNo one has voted")
 			.setAuthor({
 				name: interaction.user.displayName,
-				iconURL: interaction.user.displayAvatarURL(),
+				iconURL: interaction.user.displayAvatarURL()
 			});
 
 		try {
 			const message = await interaction.channel.send({
-				embeds: [embed],
+				embeds: [embed]
 			});
 
 			await message.react("✅");
@@ -47,7 +47,7 @@ export default class YesNoPollCommand extends BaseCommand {
 		} catch (e) {
 			await interaction.reply({
 				content: "Failed to create poll",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			Logger.error(e);

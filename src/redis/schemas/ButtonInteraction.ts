@@ -2,7 +2,7 @@ import {
 	Schema,
 	type Entity,
 	Repository,
-	type RedisConnection,
+	type RedisConnection
 } from "redis-om";
 
 export interface IButtonInteraction extends Entity {
@@ -12,7 +12,7 @@ export interface IButtonInteraction extends Entity {
 
 export const ButtonInteraction = new Schema("ButtonInteraction", {
 	customId: { type: "string" },
-	messageId: { type: "string" },
+	messageId: { type: "string" }
 });
 
 export class ButtonInteractionRepository extends Repository {

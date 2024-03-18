@@ -10,10 +10,10 @@ import {
 	StringSelectMenuInteraction,
 	StringSelectMenuOptionBuilder,
 	TextInputBuilder,
-	TextInputStyle,
+	TextInputStyle
 } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 
 export default class ApplyCommand extends BaseCommand {
@@ -21,13 +21,13 @@ export default class ApplyCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("apply")
-				.setDescription("Apply for positions in the server"),
+				.setDescription("Apply for positions in the server")
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const positionSelect = new StringSelectMenuBuilder()
 			.setCustomId("position_select")
@@ -35,34 +35,39 @@ export default class ApplyCommand extends BaseCommand {
 			.addOptions(
 				new StringSelectMenuOptionBuilder()
 					.setLabel("Chat Moderator")
-					.setValue("chat_mod"),
+					.setValue("chat_mod")
 			);
 
-		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-			positionSelect,
-		);
+		const row =
+			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+				positionSelect
+			);
 
 		const message = await interaction.reply({
-			components: [row],
+			components: [row]
 		});
 
 		message
 			.awaitMessageComponent({
 				filter: (i: StringSelectMenuInteraction) =>
-					i.customId === "chat_mod" && i.user.id === interaction.user.id,
-				componentType: ComponentType.StringSelect,
+					i.customId === "chat_mod" &&
+					i.user.id === interaction.user.id,
+				componentType: ComponentType.StringSelect
 			})
 			.then(async () => {
 				const timezoneInput = new TextInputBuilder()
 					.setCustomId("timezone_input")
 					.setLabel("Timezone")
 					.setStyle(TextInputStyle.Short)
-					.setPlaceholder("Please specify your timezone in UTC/GMT time")
+					.setPlaceholder(
+						"Please specify your timezone in UTC/GMT time"
+					)
 					.setRequired(true);
 
-				const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-					timezoneInput,
-				);
+				const row =
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						timezoneInput
+					);
 
 				const modal = new ModalBuilder()
 					.setTitle("Chat Moderator Application")
@@ -76,19 +81,25 @@ export default class ApplyCommand extends BaseCommand {
 						filter: (i: ModalSubmitInteraction) =>
 							i.customId === "chat_mod_app" &&
 							i.user.id === interaction.user.id,
-						time: 90000,
+						time: 90000
 					})
 					.then(async (i) => {
-						const timezone = i.fields.getTextInputValue("timezone_input");
+						const timezone =
+							i.fields.getTextInputValue("timezone_input");
 
 						const chatModAppsChannelId = "1070571771423621191";
 						const chatModAppsChannel =
-							interaction.guild.channels.cache.get(chatModAppsChannelId);
+							interaction.guild.channels.cache.get(
+								chatModAppsChannelId
+							);
 
-						if (!chatModAppsChannel || !chatModAppsChannel.isTextBased()) {
+						if (
+							!chatModAppsChannel ||
+							!chatModAppsChannel.isTextBased()
+						) {
 							await interaction.editReply({
 								content:
-									"Error occured whilst processing application. Please try again later.",
+									"Error occured whilst processing application. Please try again later."
 							});
 
 							return;
@@ -97,26 +108,26 @@ export default class ApplyCommand extends BaseCommand {
 						const embed = new EmbedBuilder()
 							.setAuthor({
 								name: "Chat Mod Application",
-								iconURL: interaction.user.displayAvatarURL(),
+								iconURL: interaction.user.displayAvatarURL()
 							})
 							.addFields(
 								{
 									name: "Name",
-									value: interaction.user.displayName,
+									value: interaction.user.displayName
 								},
 								{
 									name: "Timezone",
-									value: timezone,
-								},
+									value: timezone
+								}
 							);
 
 						await chatModAppsChannel.send({
-							embeds: [embed],
+							embeds: [embed]
 						});
 
 						await interaction.editReply({
 							content:
-								"Thank you for applying. If you are selected as a Chat Moderator, we will send you a modmail with more information. Good luck!",
+								"Thank you for applying. If you are selected as a Chat Moderator, we will send you a modmail with more information. Good luck!"
 						});
 					});
 			});

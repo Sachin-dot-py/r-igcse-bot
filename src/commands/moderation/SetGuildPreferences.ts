@@ -2,20 +2,20 @@ import { GuildPreferences, type IGuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
 	ApplicationCommandOptionType,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 
 const setPreference = async <T extends keyof IGuildPreferences>(
 	guildId: string,
 	preference: T,
-	value: IGuildPreferences[T],
+	value: IGuildPreferences[T]
 ) => {
 	const $set: Partial<IGuildPreferences> = {};
 
@@ -23,14 +23,14 @@ const setPreference = async <T extends keyof IGuildPreferences>(
 
 	const prefs = await GuildPreferences.updateOne(
 		{
-			guildId: guildId,
+			guildId: guildId
 		},
 		{
-			$set,
+			$set
 		},
 		{
-			upsert: true,
-		},
+			upsert: true
+		}
 	);
 
 	if (prefs.modifiedCount + prefs.upsertedCount === 0)
@@ -47,140 +47,142 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 					option
 						.setName("rep_enabled")
 						.setDescription("Whether to enable reputation")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("modlog_channel")
 						.setDescription("The channel to log moderation actions")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("botlog_channel")
 						.setDescription("The channel to log bot actions")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("welcome_channel")
 						.setDescription("The channel to welcome new members")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("behaviorlog_channel")
 						.setDescription("The channel to log behavior logs")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("warnlog_channel")
 						.setDescription("The channel to log warns")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("action_required_channel")
 						.setDescription(
-							"The channel to send users with >= 10 infraction points",
+							"The channel to send users with >= 10 infraction points"
 						)
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("closed_dm_channel")
 						.setDescription(
-							"The channel to send messages to users which have dms closed",
+							"The channel to send messages to users which have dms closed"
 						)
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("mod_feedback_channel")
 						.setDescription("The channel to send mod feedback to")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addChannelOption((option) =>
 					option
 						.setName("confession_approval_channel")
-						.setDescription("The channel to send confessions to for approval")
-						.setRequired(false),
+						.setDescription(
+							"The channel to send confessions to for approval"
+						)
+						.setRequired(false)
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("admin_role")
 						.setDescription("The role for admins")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("moderator_role")
 						.setDescription("The role for moderators")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("chat_moderator_role")
 						.setDescription("The role for chat moderators")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("ig_helper_role")
 						.setDescription("The role for IG helpers")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addRoleOption((option) =>
 					option
 						.setName("al_helper_role")
 						.setDescription("The role for AL helpers")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("modmail_channel")
 						.setDescription("The channel for modmail")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("chatmod_applications_channel")
 						.setDescription("The channel for chatmod applications")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("confessions_channel")
 						.setDescription("The channel for confessions")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("counting_channel")
 						.setDescription("The channel for the counting game")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("hotm_results_channel")
 						.setDescription("The channel for the HOTM results")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("ban_appeal_form_link")
 						.setDescription("The link to the ban appeal form")
-						.setRequired(false),
+						.setRequired(false)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		await interaction.deferReply();
 
@@ -188,45 +190,46 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 			for (const stringOrBooleanOption of interaction.options.data.filter(
 				(x) =>
 					x.type === ApplicationCommandOptionType.String ||
-					x.type === ApplicationCommandOptionType.Boolean,
+					x.type === ApplicationCommandOptionType.Boolean
 			)) {
 				if (stringOrBooleanOption.value === undefined) return;
 
 				await setPreference(
 					interaction.guild.id,
 					stringOrBooleanOption.name as keyof IGuildPreferences,
-					stringOrBooleanOption.value as string | boolean,
+					stringOrBooleanOption.value as string | boolean
 				);
 			}
 
 			for (const channelOrRoleOption of interaction.options.data.filter(
 				(x) =>
 					x.type === ApplicationCommandOptionType.Channel ||
-					x.type === ApplicationCommandOptionType.Role,
+					x.type === ApplicationCommandOptionType.Role
 			)) {
-				if (!channelOrRoleOption.channel || !channelOrRoleOption.role) return;
+				if (!channelOrRoleOption.channel || !channelOrRoleOption.role)
+					return;
 
 				await setPreference(
 					interaction.guild.id,
 					channelOrRoleOption.name as keyof IGuildPreferences,
 					channelOrRoleOption.channel
 						? channelOrRoleOption.channel.id
-						: channelOrRoleOption.role.id,
+						: channelOrRoleOption.role.id
 				);
 			}
 
 			await interaction.followUp({
 				content: "Preferences updated",
-				ephemeral: true,
+				ephemeral: true
 			});
 		} catch (error) {
 			await interaction.followUp({
 				content: "Failed to update preferences",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
-				{ name: "User ID", value: interaction.user.id },
+				{ name: "User ID", value: interaction.user.id }
 			]);
 
 			return;

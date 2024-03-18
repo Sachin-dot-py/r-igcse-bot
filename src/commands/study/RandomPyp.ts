@@ -1,7 +1,7 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 
 const SUBJECT_CODES = [
@@ -27,7 +27,7 @@ const SUBJECT_CODES = [
 	"0516",
 	"0518",
 	"0538",
-	"9609",
+	"9609"
 ];
 
 export default class RandomPypCommand extends BaseCommand {
@@ -43,37 +43,37 @@ export default class RandomPypCommand extends BaseCommand {
 						.addChoices(
 							{
 								name: "IGCSE",
-								value: "ig",
+								value: "ig"
 							},
 							{
 								name: "O-Level",
-								value: "ol",
+								value: "ol"
 							},
 							{
 								name: "A-Level",
-								value: "al",
-							},
+								value: "al"
+							}
 						)
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("subject_code")
 						.setDescription("The code for the subject")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("paper_number")
 						.setDescription("The paper number")
-						.setRequired(true),
-				),
+						.setRequired(true)
+				)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
 		const programme = interaction.options.getString("programme", true) as
 			| "ig"
@@ -84,7 +84,7 @@ export default class RandomPypCommand extends BaseCommand {
 
 		if (!SUBJECT_CODES.some((code) => code === subjectCode)) {
 			await interaction.reply({
-				content: "Invalid / Unsupported subject code",
+				content: "Invalid / Unsupported subject code"
 			});
 
 			return;

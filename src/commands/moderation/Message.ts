@@ -1,6 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
@@ -10,7 +10,7 @@ import {
 	SlashCommandBuilder,
 	TextChannel,
 	TextInputBuilder,
-	TextInputStyle,
+	TextInputStyle
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -27,8 +27,8 @@ export default class KickCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription("Channel to send message")
-								.setRequired(false),
-						),
+								.setRequired(false)
+						)
 				)
 				.addSubcommand((command) =>
 					command
@@ -37,23 +37,24 @@ export default class KickCommand extends BaseCommand {
 						.addIntegerOption((option) =>
 							option
 								.setName("message_id")
-								.setDescription("Id of message to send"),
-						),
+								.setDescription("Id of message to send")
+						)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		if (!interaction.channel) return;
 
 		if (interaction.options.getSubcommand() === "send") {
 			const channel =
-				interaction.options.getChannel("channel", false) || interaction.channel;
+				interaction.options.getChannel("channel", false) ||
+				interaction.channel;
 
 			if (!(channel instanceof TextChannel)) return;
 
@@ -72,11 +73,11 @@ export default class KickCommand extends BaseCommand {
 				.setStyle(TextInputStyle.Paragraph);
 
 			const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(
-				replyMessageId,
+				replyMessageId
 			);
 
 			const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(
-				messageContent,
+				messageContent
 			);
 
 			const modal = new ModalBuilder()
@@ -89,16 +90,18 @@ export default class KickCommand extends BaseCommand {
 			interaction
 				.awaitModalSubmit({
 					filter: (i) =>
-						i.customId === "send_message" && i.user.id === interaction.user.id,
+						i.customId === "send_message" &&
+						i.user.id === interaction.user.id,
 
-					time: 24000000,
+					time: 24000000
 				})
 				.then(async (i) => {
 					await channel.send({
 						content: i.fields.getTextInputValue("message_content"),
 						reply: {
-							messageReference: i.fields.getTextInputValue("reply_message_id"),
-						},
+							messageReference:
+								i.fields.getTextInputValue("reply_message_id")
+						}
 					});
 				})
 				.catch(Logger.error);
@@ -113,7 +116,7 @@ export default class KickCommand extends BaseCommand {
 				.setStyle(TextInputStyle.Paragraph);
 
 			const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-				messageContent,
+				messageContent
 			);
 
 			const message = await interaction.channel.messages.fetch(messageId);
@@ -121,7 +124,7 @@ export default class KickCommand extends BaseCommand {
 			if (!message) {
 				await interaction.reply({
 					content: "Message not found",
-					ephemeral: true,
+					ephemeral: true
 				});
 
 				return;
@@ -137,14 +140,15 @@ export default class KickCommand extends BaseCommand {
 			interaction
 				.awaitModalSubmit({
 					filter: (i) =>
-						i.customId === "edit_message" && i.user.id === interaction.user.id,
-					time: 24000000,
+						i.customId === "edit_message" &&
+						i.user.id === interaction.user.id,
+					time: 24000000
 				})
 				.then(async (i) => {
 					if (!interaction.channel) return;
 
 					await message.edit({
-						content: i.fields.getTextInputValue("message_content"),
+						content: i.fields.getTextInputValue("message_content")
 					});
 				})
 				.catch(Logger.error);

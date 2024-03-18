@@ -4,13 +4,13 @@ import {
 	PrivateDmThread,
 	Reputation,
 	StickyMessage,
-	type IStickyMessage,
+	type IStickyMessage
 } from "@/mongo";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
 	DmGuildPreferenceCache,
 	GuildPreferencesCache,
-	StickyMessageCache,
+	StickyMessageCache
 } from "@/redis";
 import {
 	ActionRowBuilder,
@@ -22,7 +22,7 @@ import {
 	Message,
 	StringSelectMenuOptionBuilder,
 	TextChannel,
-	ThreadChannel,
+	ThreadChannel
 } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import { v4 as uuidv4 } from "uuid";
@@ -39,13 +39,13 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		if (message.inGuild()) {
 			const guildPreferences = await GuildPreferencesCache.get(
-				message.guild.id,
+				message.guild.id
 			);
 
 			if (!guildPreferences) return;
 
 			const keywords = (guildPreferences.keywords || []).filter(
-				({ keyword }) => keyword === message.content.toLowerCase(),
+				({ keyword }) => keyword === message.content.toLowerCase()
 			);
 
 			if (keywords.length > 0) {
@@ -53,12 +53,19 @@ export default class MessageCreateEvent extends BaseEvent {
 			}
 
 			if (message.reference && (guildPreferences.repEnabled ?? true))
-				this.handleRep(message, guildPreferences.repDisabledChannelIds || []);
+				this.handleRep(
+					message,
+					guildPreferences.repDisabledChannelIds || []
+				);
 
-			if (client.stickyChannelIds.some((id) => id === message.channelId)) {
+			if (
+				client.stickyChannelIds.some((id) => id === message.channelId)
+			) {
 				if (client.stickyCounter[message.channelId] <= 4) {
 					client.stickyCounter[message.channelId] = ((x: number) =>
-						(isNaN(x) ? 0 : x) + 1)(client.stickyCounter[message.channelId]);
+						(isNaN(x) ? 0 : x) + 1)(
+						client.stickyCounter[message.channelId]
+					);
 
 					return;
 				}
@@ -81,15 +88,17 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 
 				const res = await PrivateDmThread.findOne({
-					userId: user.id,
+					userId: user.id
 				});
 
 				if (res) {
-					const thread = await message.guild.channels.fetch(res.threadId);
+					const thread = await message.guild.channels.fetch(
+						res.threadId
+					);
 
 					if (thread) {
 						await message.reply(
-							`DM Thread with this user already exists: <#${thread.id}>`,
+							`DM Thread with this user already exists: <#${thread.id}>`
 						);
 
 						return;
@@ -97,20 +106,22 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 
 				if (!(message.channel instanceof TextChannel)) {
-					await message.reply("Invalid Channel Type  (must be a text channel)");
+					await message.reply(
+						"Invalid Channel Type  (must be a text channel)"
+					);
 					return;
 				}
 
 				try {
 					await message.channel.threads.create({
 						name: user.id,
-						startMessage: `Username: \`${user.displayName}\`\nUser ID: \`${user.id}\``,
+						startMessage: `Username: \`${user.displayName}\`\nUser ID: \`${user.id}\``
 					});
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
 					client.log(error, `Create DM Thread`, [
-						{ name: "User ID", value: message.author.id },
+						{ name: "User ID", value: message.author.id }
 					]);
 				}
 			}
@@ -119,7 +130,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 	private async handleModMail(
 		client: DiscordClient<true>,
-		message: Message<false>,
+		message: Message<false>
 	) {
 		let guildId = "";
 
@@ -128,13 +139,13 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (cachedRes) guildId = cachedRes.guildId;
 		else {
 			const res = await DmGuildPreference.findOne({
-				userId: message.author.id,
+				userId: message.author.id
 			});
 
 			if (res) guildId = res.guildId;
 			else {
 				const guilds = client.guilds.cache.filter((guild) =>
-					guild.members.cache.has(message.author.id),
+					guild.members.cache.has(message.author.id)
 				);
 				const selectCustomId = uuidv4();
 				const guildSelect = new Select(
@@ -146,37 +157,41 @@ export default class MessageCreateEvent extends BaseEvent {
 							.setValue(guild.id);
 					}),
 					1,
-					selectCustomId,
+					selectCustomId
 				);
 
-				const row = new ActionRowBuilder<Select>().addComponents(guildSelect);
+				const row = new ActionRowBuilder<Select>().addComponents(
+					guildSelect
+				);
 
 				const selectInteraction = await message.author.send({
 					content: "Select a server to send a message to",
 					components: [
 						row,
-						new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
-					],
+						new Buttons(
+							selectCustomId
+						) as ActionRowBuilder<ButtonBuilder>
+					]
 				});
 
 				const guildResponse = await guildSelect.waitForResponse(
 					selectCustomId,
 					selectInteraction,
 					message,
-					true,
+					true
 				);
 
 				if (!guildResponse || guildResponse === "Timed out") return;
 
 				await selectInteraction.reply({
-					content: `Server ${guildResponse[0]} selected.`,
+					content: `Server ${guildResponse[0]} selected.`
 				});
 
 				guildId = guildResponse[0];
 
 				await DmGuildPreference.create({
 					userId: message.author.id,
-					guildId: guildId,
+					guildId: guildId
 				});
 			}
 
@@ -190,15 +205,19 @@ export default class MessageCreateEvent extends BaseEvent {
 		const guildPreferences = await GuildPreferencesCache.get(guildId);
 
 		if (!guildPreferences || !guildPreferences.modmailChannelId) {
-			await message.author.send(`Modmail is not set up in **${guild.name}**`);
+			await message.author.send(
+				`Modmail is not set up in **${guild.name}**`
+			);
 			return;
 		}
 
-		const channel = guild.channels.cache.get(guildPreferences.modmailChannelId);
+		const channel = guild.channels.cache.get(
+			guildPreferences.modmailChannelId
+		);
 
 		if (!channel || !(channel instanceof TextChannel)) return;
 		const res = await PrivateDmThread.findOne({
-			userId: message.author.id,
+			userId: message.author.id
 		}).exec();
 
 		let thread: ThreadChannel;
@@ -207,11 +226,11 @@ export default class MessageCreateEvent extends BaseEvent {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
 				type: ChannelType.PrivateThread,
-				startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``,
+				startMessage: `Username: \`${message.author.username}\`\nUser ID: \`${message.author.id}\``
 			});
 			await PrivateDmThread.create({
 				userId: message.author.id,
-				threadId: thread.id,
+				threadId: thread.id
 			});
 		} else thread = channel.threads.cache.get(res.threadId)!;
 
@@ -219,20 +238,20 @@ export default class MessageCreateEvent extends BaseEvent {
 			.setTitle("New DM Recieved")
 			.setAuthor({
 				name: message.author.username,
-				iconURL: message.author.displayAvatarURL(),
+				iconURL: message.author.displayAvatarURL()
 			})
 			.setDescription(message.content)
 			.setTimestamp(message.createdTimestamp)
 			.setColor(Colors.Red);
 
 		thread.send({
-			embeds: [embed],
+			embeds: [embed]
 		});
 	}
 
 	private async handleRep(
 		message: Message<true>,
-		repDisabledChannels: string[],
+		repDisabledChannels: string[]
 	) {
 		const referenceMessage = await message.fetchReference();
 
@@ -256,8 +275,10 @@ export default class MessageCreateEvent extends BaseEvent {
 						"no problem",
 						"np",
 						"no worries",
-						"nw",
-					].some((phrase) => message.content.toLowerCase().includes(phrase))
+						"nw"
+					].some((phrase) =>
+						message.content.toLowerCase().includes(phrase)
+					)
 				)
 					rep.push(message.author);
 
@@ -272,8 +293,10 @@ export default class MessageCreateEvent extends BaseEvent {
 						"thnks",
 						"thanku",
 						"tyvm",
-						"tq",
-					].some((phrase) => message.content.toLowerCase().includes(phrase))
+						"tq"
+					].some((phrase) =>
+						message.content.toLowerCase().includes(phrase)
+					)
 				)
 					rep.push(referenceMessage.author);
 
@@ -285,16 +308,16 @@ export default class MessageCreateEvent extends BaseEvent {
 					const res = await Reputation.findOneAndUpdate(
 						{
 							guildId: message.guildId,
-							userId: member.id,
+							userId: member.id
 						},
 						{
 							$inc: {
-								rep: 1,
-							},
+								rep: 1
+							}
 						},
 						{
-							upsert: true,
-						},
+							upsert: true
+						}
 					).exec();
 
 					if (!res) return;
@@ -304,7 +327,9 @@ export default class MessageCreateEvent extends BaseEvent {
 					let content = `Gave +1 Rep to <@${member.id}> (${rep})`;
 
 					if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
-						const role = message.guild.roles.cache.get(`${rep}+ Rep Club`);
+						const role = message.guild.roles.cache.get(
+							`${rep}+ Rep Club`
+						);
 
 						if (!role) return;
 
@@ -331,35 +356,35 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (stickyMessage.messageId) {
 				const oldSticky = await message.channel.messages.cache.get(
-					stickyMessage.messageId,
+					stickyMessage.messageId
 				);
 
 				if (oldSticky) await oldSticky.delete();
 			}
 
 			const embeds = (stickyMessage.embeds as string[]).map(
-				(embed) => new EmbedBuilder(JSON.parse(embed)),
+				(embed) => new EmbedBuilder(JSON.parse(embed))
 			);
 
 			const newSticky = await message.channel.send({
-				embeds,
+				embeds
 			});
 
 			await StickyMessage.findOneAndUpdate(
 				{
-					id: stickyMessage[EntityId]!,
+					id: stickyMessage[EntityId]!
 				},
 				{
 					$set: {
-						messageId: newSticky.id,
-					},
-				},
+						messageId: newSticky.id
+					}
+				}
 			);
 
 			await StickyMessageCache.set(stickyMessage[EntityId]!, {
 				...stickyMessage,
 				embeds: stickyMessage.embeds.map((embed) => JSON.parse(embed)),
-				messageId: newSticky.id,
+				messageId: newSticky.id
 			});
 		}
 	}

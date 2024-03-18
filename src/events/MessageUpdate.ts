@@ -11,7 +11,7 @@ export default class MessageUpdateEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		oldMessage: Message,
-		newMessage: Message,
+		newMessage: Message
 	) {
 		if (
 			oldMessage.author.bot ||
@@ -21,7 +21,7 @@ export default class MessageUpdateEvent extends BaseEvent {
 			return;
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			oldMessage.guildId,
+			oldMessage.guildId
 		);
 
 		if (!guildPreferences) return;

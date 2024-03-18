@@ -1,7 +1,7 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
@@ -12,17 +12,17 @@ export default class ResourcesCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("search_pyp")
 				.setDescription(
-					"Search for IGCSE past papers with subject code/question text",
+					"Search for IGCSE past papers with subject code/question text"
 				)
 				.addStringOption((option) =>
-					option.setName("query").setDescription("Search Query"),
-				),
+					option.setName("query").setDescription("Search Query")
+				)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
 		const query = interaction.options.getString("query");
 
@@ -30,7 +30,7 @@ export default class ResourcesCommand extends BaseCommand {
 
 		try {
 			const res = await fetch(
-				`https://paper.sc/search/?as=json&query=${query}`,
+				`https://paper.sc/search/?as=json&query=${query}`
 			);
 
 			if (!res.ok) throw Error(res.statusText);
@@ -44,7 +44,7 @@ export default class ResourcesCommand extends BaseCommand {
 				interaction.followUp({
 					content:
 						"No results found in past papers. Try changing your query for better results.",
-					ephemeral: true,
+					ephemeral: true
 				});
 
 				return;
@@ -61,24 +61,24 @@ export default class ResourcesCommand extends BaseCommand {
 		} catch (error) {
 			await interaction.reply({
 				content: "Error occured while searching past papers",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			if (!interaction.inCachedGuild()) return;
 
 			const guildPreferences = await GuildPreferencesCache.get(
-				interaction.guild.id,
+				interaction.guild.id
 			);
 
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: "Error | PypSearch",
-					iconURL: interaction.user.displayAvatarURL(),
+					iconURL: interaction.user.displayAvatarURL()
 				})
 				.setDescription(`${error}`);
 
 			client.log(error, `${this.data.name} Command`, [
-				{ name: "User ID", value: interaction.user.id },
+				{ name: "User ID", value: interaction.user.id }
 			]);
 		}
 	}

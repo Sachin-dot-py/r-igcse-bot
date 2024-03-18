@@ -2,7 +2,7 @@ import {
 	Schema,
 	Repository,
 	type RedisConnection,
-	type Entity,
+	type Entity
 } from "redis-om";
 import { GuildPreferences, type IGuildPreferences } from "@/mongo";
 
@@ -33,7 +33,7 @@ const schema = new Schema("GuildPreferences", {
 	id: { type: "string", path: "$.colorRoles[*]" },
 	requirementRoleId: { type: "string", path: "$.colorRoles[*]" },
 	roleId: { type: "string", path: "$.helperRoles[*]" },
-	channelId: { type: "string", path: "$.helperRoles[*]" },
+	channelId: { type: "string", path: "$.helperRoles[*]" }
 });
 
 export class GuildPreferencesRepository extends Repository {
@@ -59,7 +59,10 @@ export class GuildPreferencesRepository extends Repository {
 	}
 
 	async set(guildId: string, preferences: IGuildPreferences) {
-		const res = (await this.save(guildId, preferences)) as IGuildPreferences;
+		const res = (await this.save(
+			guildId,
+			preferences
+		)) as IGuildPreferences;
 
 		await this.expire(guildId, 120);
 

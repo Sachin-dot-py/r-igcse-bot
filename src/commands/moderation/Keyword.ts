@@ -1,6 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
@@ -11,19 +11,19 @@ export default class KeywordCommand extends BaseCommand {
 				.setName("keyword")
 				.setDescription("Create / Delete keywords for a server")
 				.addSubcommand((command) =>
-					command.setName("add").setDescription("Add a keyword"),
+					command.setName("add").setDescription("Add a keyword")
 				)
 				.addSubcommand((command) =>
-					command.setName("remove").setDescription("Remove a keyword"),
+					command.setName("remove").setDescription("Remove a keyword")
 				)
 				.setDMPermission(false)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		if (interaction.options.getSubcommand() === "add") {
 			// TODO: Add keyword

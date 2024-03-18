@@ -1,7 +1,7 @@
 import { Reputation } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
@@ -16,51 +16,52 @@ export default class extends BaseCommand {
 					option
 						.setName("new_rep")
 						.setDescription("New reputation")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addUserOption((option) =>
 					option
 						.setName("user")
 						.setDescription("The user to change the rep of")
-						.setRequired(false),
+						.setRequired(false)
 				)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const user = interaction.options.getUser("user", false) ?? interaction.user;
+		const user =
+			interaction.options.getUser("user", false) ?? interaction.user;
 		const newRep = interaction.options.getInteger("new_rep", true);
 
 		const res = await Reputation.updateOne(
 			{
 				guildId: interaction.guild.id,
-				userId: user.id,
+				userId: user.id
 			},
 			{
 				$set: {
-					rep: newRep,
-				},
+					rep: newRep
+				}
 			},
 			{
-				upsert: true,
-			},
+				upsert: true
+			}
 		);
 
 		if (res.modifiedCount + res.upsertedCount === 0) {
 			await interaction.reply({
 				content: "Failed to change rep",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
 
 		await interaction.reply({
 			content: `Changed ${user.displayName} rep to ${newRep}`,
-			ephemeral: true,
+			ephemeral: true
 		});
 	}
 }

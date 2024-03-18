@@ -5,7 +5,7 @@ export const practiceSubjects: Record<string, string> = {
 	"0620": "Chemistry",
 	//"0580": "Mathematics",
 	"0625": "Physics",
-	"0610": "Biology",
+	"0610": "Biology"
 	//'0417': "Information & Communication Technology (ICT)"
 };
 
@@ -18,7 +18,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 5 - Role Of Government In Economy",
 		"CH 6 - Economic Indicators",
 		"CH 7 - Developed And Developing Economies: Trends In Production, Population And Living Standards",
-		"CH 8 - International Aspects",
+		"CH 8 - International Aspects"
 	],
 	"0606": [
 		"CH 1 - SETS",
@@ -38,7 +38,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 15 - KINEMATICS",
 		"CH 16 - VECTORS",
 		"CH 17 - RELATIVE VELOCITY",
-		"CH 18 - SEQUENCES AND SERIES",
+		"CH 18 - SEQUENCES AND SERIES"
 	],
 	"0607": [
 		"CH 6 - Vectors And Transformations",
@@ -51,7 +51,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 8 - Trigonometry",
 		"CH 9 - Sets",
 		"CH 10 - Probability",
-		"CH 11 - Statistics",
+		"CH 11 - Statistics"
 	],
 	"0620": [
 		"CH 1 - STATES OF MATTER",
@@ -72,7 +72,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 16 - SOME NON-METALS AND THEIR COMPOUNDS",
 		"CH 17 - ORGANIC CHEMISTRY",
 		"CH 18 - POLYMERS",
-		"CH 19 - IN THE LAB (CHEMICAL TEST& SALT ANALYSIS)",
+		"CH 19 - IN THE LAB (CHEMICAL TEST& SALT ANALYSIS)"
 	],
 	"0580": [
 		"CH 1 - DECIMALS",
@@ -124,7 +124,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 48 - SEQUENCES",
 		"CH 49 - ANGLES",
 		"CH 50 - NET",
-		"CH 51 - DIFFERENIATION",
+		"CH 51 - DIFFERENIATION"
 	],
 	"0625": [
 		"CH 1 - MEASUREMENTS AND UNITS",
@@ -137,7 +137,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 10 - ELECTRON AND ELECTRONICS",
 		"CH 6 - WAVES AND SOUNDS",
 		"CH 8 - ELECTRICITY",
-		"CH 11 - ATOMS AND RADIOACTIVITY",
+		"CH 11 - ATOMS AND RADIOACTIVITY"
 	],
 	"0610": [
 		"CH 1 - CHARACTERISTICS AND CLASSIFICATION OF LIVING ORGANISMS",
@@ -160,7 +160,7 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 18 - VARIATION AND SELECTION",
 		"CH 19 - ORGANISMS AND THEIR ENVIRONMENT",
 		"CH 20 - BIOTECHNOLOGY AND GENETIC ENGINEERING",
-		"CH 21 - HUMAN INFLUENCES ON ECOSYSTEMS",
+		"CH 21 - HUMAN INFLUENCES ON ECOSYSTEMS"
 	],
 	"0417": [
 		"CH 1 - Types And Components Of Computer Systems",
@@ -183,8 +183,8 @@ export const subjectTopics: Record<string, string[]> = {
 		"CH 18 - Data Manipulation",
 		"CH 19 - Presentations",
 		"CH 20 - Data Analysis",
-		"CH 21 - Website Authoring",
-	],
+		"CH 21 - Website Authoring"
+	]
 };
 
 export const resourceRepositories: Record<
@@ -201,7 +201,7 @@ export const resourceRepositories: Record<
 				"https://sites.google.com/view/igcseresources/languages/hindi",
 			French: "https://sites.google.com/view/igcseresources/languages/french",
 			"Other Languages":
-				"https://sites.google.com/view/igcseresources/languages/other-languages",
+				"https://sites.google.com/view/igcseresources/languages/other-languages"
 		},
 		"Humanities and Social Sciences": {
 			Economics:
@@ -217,13 +217,15 @@ export const resourceRepositories: Record<
 			Sociology:
 				"https://sites.google.com/view/igcseresources/humanities-and-social-sciences/sociology",
 			"Pakistan Studies":
-				"https://sites.google.com/view/igcseresources/humanities-and-social-sciences/pakistan-studies",
+				"https://sites.google.com/view/igcseresources/humanities-and-social-sciences/pakistan-studies"
 		},
 		Sciences: {
-			Biology: "https://sites.google.com/view/igcseresources/sciences/biology",
+			Biology:
+				"https://sites.google.com/view/igcseresources/sciences/biology",
 			Chemistry:
 				"https://sites.google.com/view/igcseresources/sciences/chemistry",
-			Physics: "https://sites.google.com/view/igcseresources/sciences/physics",
+			Physics:
+				"https://sites.google.com/view/igcseresources/sciences/physics",
 			"Combined/Coordinated Sciences":
 				"https://sites.google.com/view/igcseresources/sciences/combinedcoordinated-sciences",
 			"Environmental Management":
@@ -231,7 +233,7 @@ export const resourceRepositories: Record<
 			"Physical Education":
 				"https://sites.google.com/view/igcseresources/sciences/physical-education",
 			Psychology:
-				"https://sites.google.com/view/igcseresources/sciences/psychology",
+				"https://sites.google.com/view/igcseresources/sciences/psychology"
 		},
 		Mathematics: {
 			Mathematics:
@@ -239,7 +241,7 @@ export const resourceRepositories: Record<
 			"Additional Mathematics":
 				"https://sites.google.com/view/igcseresources/mathematics/additional-mathematics",
 			"International Mathematics":
-				"https://sites.google.com/view/igcseresources/mathematics/international-mathematics",
+				"https://sites.google.com/view/igcseresources/mathematics/international-mathematics"
 		},
 		"Creative and Professional": {
 			ICT: "https://sites.google.com/view/igcseresources/professional-and-creative/ict",
@@ -254,8 +256,8 @@ export const resourceRepositories: Record<
 			"Travel and Tourism":
 				"https://sites.google.com/view/igcseresources/professional-and-creative/travel-and-tourism",
 			"Food and Nutrition":
-				"https://sites.google.com/view/igcseresources/professional-and-creative/food-and-nutrition",
-		},
+				"https://sites.google.com/view/igcseresources/professional-and-creative/food-and-nutrition"
+		}
 	},
 	al: {
 		Sciences: {
@@ -266,15 +268,15 @@ export const resourceRepositories: Record<
 			Physics:
 				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-physics",
 			Psychology:
-				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-psychology",
+				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-psychology"
 		},
 		Mathematics: {
 			Mathematics:
-				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-mathematics",
+				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-mathematics"
 		},
 		"Professional and Creative": {
 			"Computer Science":
-				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-computer-science",
-		},
-	},
+				"https://sites.google.com/view/igcseresources/asa-level-resources_1/asal-computer-science"
+		}
+	}
 };

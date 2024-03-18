@@ -2,7 +2,7 @@ import {
 	Schema,
 	type Entity,
 	Repository,
-	type RedisConnection,
+	type RedisConnection
 } from "redis-om";
 
 export type PracticeQuestionResponse = {
@@ -26,7 +26,7 @@ export const PracticeQuestion = new Schema("Question", {
 	solved: { type: "boolean" },
 	solvedBy: { type: "string[]", path: "$.userAnswers[*].user" },
 	answersByUsers: { type: "string[]", path: "$.userAnswers[*].answer" },
-	sessionId: { type: "string" },
+	sessionId: { type: "string" }
 });
 
 export class PracticeQuestionRepository extends Repository {

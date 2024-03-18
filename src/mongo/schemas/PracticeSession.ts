@@ -29,10 +29,10 @@ const schema = new Schema<IPracticeSession>({
 	owner: { type: String, required: true },
 	private: { type: Boolean, required: true },
 	currentlySolving: { type: String, required: true },
-	expireTime: { type: Date, required: true },
+	expireTime: { type: Date, required: true }
 });
 
 export const PracticeSession = createModel<IPracticeSession>(
 	"PracticeSession",
-	schema,
+	schema
 );

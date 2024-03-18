@@ -2,7 +2,7 @@ import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	ComponentType,
+	ComponentType
 } from "discord.js";
 
 class Buttons extends ActionRowBuilder {

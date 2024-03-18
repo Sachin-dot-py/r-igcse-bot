@@ -1,14 +1,14 @@
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	TextChannel,
+	TextChannel
 } from "discord.js";
 
 export default class RefreshHelpersCommand extends BaseCommand {
@@ -18,23 +18,23 @@ export default class RefreshHelpersCommand extends BaseCommand {
 				.setName("refresh_helpers")
 				.setDescription("Update helper channel descriptions (for mods)")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -44,7 +44,9 @@ export default class RefreshHelpersCommand extends BaseCommand {
 		const changed: string[] = [];
 
 		for (const data of helperData) {
-			const channel = interaction.guild.channels.cache.get(data.channelId);
+			const channel = interaction.guild.channels.cache.get(
+				data.channelId
+			);
 
 			if (!channel || !(channel instanceof TextChannel)) continue;
 
@@ -57,11 +59,14 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			if (topic.includes("No. of helpers")) {
 				for (const line of topic.split("\n"))
 					if (line.includes("No. of helpers"))
-						topic.replace(line, `No. of helpers: ${role.members.size}`);
+						topic.replace(
+							line,
+							`No. of helpers: ${role.members.size}`
+						);
 			} else topic += `\nNo. of helpers: ${role.members.size}`;
 
 			await channel.edit({
-				topic,
+				topic
 			});
 
 			changed.push(channel.name);
@@ -70,19 +75,19 @@ export default class RefreshHelpersCommand extends BaseCommand {
 		const embed = new EmbedBuilder()
 			.setAuthor({
 				name: `Helpers Refreshed - ${interaction.user.displayName}`,
-				iconURL: interaction.user.displayAvatarURL(),
+				iconURL: interaction.user.displayAvatarURL()
 			})
 			.addFields(
 				{
 					name: "Channels",
 					value: changed.join(", "),
-					inline: false,
+					inline: false
 				},
 				{
 					name: "Date",
 					value: `<t:${Date.now()}:F>`,
-					inline: false,
-				},
+					inline: false
+				}
 			);
 
 		if (guildPreferences.modlogChannelId) {
@@ -90,8 +95,8 @@ export default class RefreshHelpersCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [embed],
-				},
+					embeds: [embed]
+				}
 			);
 		}
 	}

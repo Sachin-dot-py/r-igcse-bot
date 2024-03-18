@@ -5,10 +5,10 @@ import {
 	Colors,
 	ComponentType,
 	EmbedBuilder,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { GuildPreferencesCache } from "@/redis";
@@ -23,21 +23,21 @@ export default class FunFactCommand extends BaseCommand {
 					option
 						.setName("confession")
 						.setDescription(
-							"Write your confession and it will be sent anonymously",
+							"Write your confession and it will be sent anonymously"
 						)
-						.setRequired(true),
-				),
+						.setRequired(true)
+				)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const confession = interaction.options.getString("confession", true);
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (
@@ -48,21 +48,21 @@ export default class FunFactCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
 		}
 
 		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences.confessionApprovalChannelId,
+			guildPreferences.confessionApprovalChannelId
 		);
 
 		if (!approvalChannel || !approvalChannel.isTextBased()) {
 			await interaction.reply({
 				content:
 					"Invalid configuration for confessions. Please contact an admin.",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
@@ -84,18 +84,18 @@ export default class FunFactCommand extends BaseCommand {
 
 		const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			approveButton,
-			rejectButton,
+			rejectButton
 		);
 
 		const message = await approvalChannel.send({
 			embeds: [embed],
-			components: [buttonsRow],
+			components: [buttonsRow]
 		});
 
 		await interaction.reply({
 			content:
 				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
-			ephemeral: true,
+			ephemeral: true
 		});
 
 		message
@@ -103,21 +103,25 @@ export default class FunFactCommand extends BaseCommand {
 				filter: (i) =>
 					i.customId === "approve-confession" ||
 					i.customId === "reject-confession",
-				componentType: ComponentType.Button,
+				componentType: ComponentType.Button
 			})
 			.then(async (i) => {
 				switch (i.customId) {
 					case "approve-confession": {
-						const confessionChannel = interaction.guild.channels.cache.get(
-							guildPreferences.confessionsChannelId!,
-						);
+						const confessionChannel =
+							interaction.guild.channels.cache.get(
+								guildPreferences.confessionsChannelId!
+							);
 
-						if (!confessionChannel || !confessionChannel.isTextBased()) {
+						if (
+							!confessionChannel ||
+							!confessionChannel.isTextBased()
+						) {
 							await i.reply({
 								content:
 									"Invalid configuration for confessions. Please contact an admin.",
 
-								ephemeral: true,
+								ephemeral: true
 							});
 
 							return;
@@ -126,13 +130,13 @@ export default class FunFactCommand extends BaseCommand {
 						const approvalEmbed = new EmbedBuilder()
 							.setAuthor({
 								name: `Approved by ${i.user.displayName}`,
-								iconURL: i.user.displayAvatarURL(),
+								iconURL: i.user.displayAvatarURL()
 							})
 							.setColor(Colors.Green);
 
 						message.edit({
 							embeds: [approvalEmbed],
-							components: [],
+							components: []
 						});
 
 						break;
@@ -141,13 +145,13 @@ export default class FunFactCommand extends BaseCommand {
 						const rejectionEmbed = new EmbedBuilder()
 							.setAuthor({
 								name: `Rejected by ${i.user.displayName}`,
-								iconURL: i.user.displayAvatarURL(),
+								iconURL: i.user.displayAvatarURL()
 							})
 							.setColor(Colors.Red);
 
 						message.edit({
 							embeds: [rejectionEmbed],
-							components: [],
+							components: []
 						});
 
 						break;

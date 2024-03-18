@@ -1,17 +1,19 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 
 export default class PingCommand extends BaseCommand {
 	constructor() {
-		super(new SlashCommandBuilder().setName("ping").setDescription("Pong!"));
+		super(
+			new SlashCommandBuilder().setName("ping").setDescription("Pong!")
+		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
 		await interaction.deferReply();
 
@@ -19,11 +21,11 @@ export default class PingCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder().setAuthor({
 			name: `Pong! | ${time - interaction.createdTimestamp}ms`,
-			iconURL: client.user.displayAvatarURL(),
+			iconURL: client.user.displayAvatarURL()
 		});
 
 		await interaction.followUp({
-			embeds: [embed],
+			embeds: [embed]
 		});
 	}
 }

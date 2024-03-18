@@ -2,12 +2,12 @@ import { StickyMessage } from "@/mongo";
 import { StickyMessageCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseMenu, {
-	type DiscordMessageContextMenuCommandInteraction,
+	type DiscordMessageContextMenuCommandInteraction
 } from "@/registry/Structure/BaseMenu";
 import {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
-	PermissionFlagsBits,
+	PermissionFlagsBits
 } from "discord.js";
 
 export default class StickMessageCommand extends BaseMenu {
@@ -17,24 +17,24 @@ export default class StickMessageCommand extends BaseMenu {
 				.setName("unstick")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
-				.setType(ApplicationCommandType.Message),
+				.setType(ApplicationCommandType.Message)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
+		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
 	) {
 		if (!interaction.channel) return;
 
 		const res = await StickyMessage.findOne({
-			messageId: interaction.targetMessage.id,
+			messageId: interaction.targetMessage.id
 		});
 
 		if (!res) {
 			await interaction.reply({
 				content: "Couldn't find sticky message.",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;

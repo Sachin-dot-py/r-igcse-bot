@@ -2,12 +2,12 @@ import {
 	ChatInputCommandInteraction,
 	SlashCommandBuilder,
 	type CacheType,
-	type SlashCommandSubcommandsOnlyBuilder,
+	type SlashCommandSubcommandsOnlyBuilder
 } from "discord.js";
 import type { DiscordClient } from "../DiscordClient";
 
 export type DiscordChatInputCommandInteraction<
-	Cached extends CacheType = CacheType,
+	Cached extends CacheType = CacheType
 > = Omit<ChatInputCommandInteraction<Cached>, "client">;
 
 export default abstract class BaseCommand {
@@ -16,7 +16,7 @@ export default abstract class BaseCommand {
 	constructor(
 		private _data:
 			| Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-			| SlashCommandSubcommandsOnlyBuilder,
+			| SlashCommandSubcommandsOnlyBuilder
 	) {}
 
 	set category(category: string) {
@@ -33,6 +33,6 @@ export default abstract class BaseCommand {
 
 	abstract execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	): Promise<void>;
 }

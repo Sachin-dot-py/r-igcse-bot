@@ -6,22 +6,24 @@ import {
 	MessagePayload,
 	TextChannel,
 	ThreadChannel,
-	type MessageCreateOptions,
+	type MessageCreateOptions
 } from "discord.js";
 import Logger from "./Logger";
 
 const sendDm = async (
 	member: GuildMember,
-	message: string | MessagePayload | MessageCreateOptions,
+	message: string | MessagePayload | MessageCreateOptions
 ): Promise<void> => {
 	try {
 		await member.send(message);
 	} catch (error) {
-		const guildPreferences = await GuildPreferencesCache.get(member.guild.id);
+		const guildPreferences = await GuildPreferencesCache.get(
+			member.guild.id
+		);
 		if (!guildPreferences || !guildPreferences.closedDmChannelId) return;
 
 		const channel = member.guild.channels.cache.get(
-			guildPreferences.closedDmChannelId,
+			guildPreferences.closedDmChannelId
 		);
 		if (!channel || !(channel instanceof TextChannel)) return;
 
@@ -30,12 +32,12 @@ const sendDm = async (
 		const dmThread =
 			(await PrivateDmThread.findOne({
 				userId: member.id,
-				guildId: member.guild.id,
+				guildId: member.guild.id
 			})) ?? null;
 		if (!dmThread) {
 			const newThread = await channel.threads.create({
 				name: `${member.user.username} (${member.id})`,
-				type: ChannelType.PrivateThread,
+				type: ChannelType.PrivateThread
 			});
 
 			await newThread.members
@@ -47,7 +49,7 @@ const sendDm = async (
 			await PrivateDmThread.create({
 				userId: member.id,
 				threadId: newThread.id,
-				guildId: member.guild.id,
+				guildId: member.guild.id
 			});
 		} else {
 			thread = channel.threads.cache.get(dmThread.threadId);
@@ -55,7 +57,7 @@ const sendDm = async (
 
 		if (!thread) {
 			Logger.error(
-				`Thread not found for user ${member.id} in guild ${member.guild.id}`,
+				`Thread not found for user ${member.id} in guild ${member.guild.id}`
 			);
 			return;
 		}

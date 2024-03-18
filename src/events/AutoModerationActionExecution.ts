@@ -6,7 +6,7 @@ import {
 	AutoModerationActionType,
 	Colors,
 	EmbedBuilder,
-	Events,
+	Events
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -19,7 +19,7 @@ export default class ErrorEvent extends BaseEvent {
 
 	async execute(
 		client: DiscordClient<true>,
-		autoModerationActionExecution: AutoModerationActionExecution,
+		autoModerationActionExecution: AutoModerationActionExecution
 	) {
 		if (
 			!(
@@ -52,7 +52,7 @@ export default class ErrorEvent extends BaseEvent {
 			caseId: caseNumber,
 			duration,
 			reason,
-			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2
 		});
 
 		const modEmbed = new EmbedBuilder()
@@ -61,28 +61,28 @@ export default class ErrorEvent extends BaseEvent {
 			.setColor(Colors.Red)
 			.setAuthor({
 				name: autoModerationActionExecution.user.displayName,
-				iconURL: autoModerationActionExecution.user.displayAvatarURL(),
+				iconURL: autoModerationActionExecution.user.displayAvatarURL()
 			})
 			.addFields([
 				{
 					name: "User ID",
 					value: autoModerationActionExecution.user.id,
-					inline: true,
+					inline: true
 				},
 				{
 					name: "Duration",
 					value: durationString,
-					inline: true,
+					inline: true
 				},
 				{
 					name: "Reason",
 					value: reason || "No reason provided.",
-					inline: false,
-				},
+					inline: false
+				}
 			]);
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			autoModerationActionExecution.guild.id,
+			autoModerationActionExecution.guild.id
 		);
 
 		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
@@ -91,8 +91,8 @@ export default class ErrorEvent extends BaseEvent {
 			autoModerationActionExecution.guild,
 			guildPreferences.modlogChannelId,
 			{
-				embeds: [modEmbed],
-			},
+				embeds: [modEmbed]
+			}
 		);
 	}
 }

@@ -10,7 +10,7 @@ export default class ThreadCreateEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		thread: ThreadChannel,
-		newlyCreated: boolean,
+		newlyCreated: boolean
 	) {
 		if (newlyCreated) thread.join();
 	}

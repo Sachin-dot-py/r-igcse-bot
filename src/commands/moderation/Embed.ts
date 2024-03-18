@@ -1,6 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
@@ -18,25 +18,25 @@ export default class EmbedCommand extends BaseCommand {
 							option
 								.setName("message_id")
 								.setDescription(
-									"ID of the message containing the embed (in current channel)",
+									"ID of the message containing the embed (in current channel)"
 								)
-								.setRequired(true),
+								.setRequired(true)
 						)
 						.addChannelOption((option) =>
 							option
 								.setName("channel")
 								.setDescription("Channel to send the embed")
-								.setRequired(false),
-						),
+								.setRequired(false)
+						)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		if (!interaction.channel) return;
 
@@ -45,14 +45,18 @@ export default class EmbedCommand extends BaseCommand {
 				const channel =
 					interaction.options.getChannel("channel", false) ||
 					interaction.channel;
-				const messageId = interaction.options.getString("message_id", true);
+				const messageId = interaction.options.getString(
+					"message_id",
+					true
+				);
 
-				const message = await interaction.channel.messages.fetch(messageId);
+				const message =
+					await interaction.channel.messages.fetch(messageId);
 
 				if (!message) {
 					await interaction.reply({
 						content: "Message not found",
-						ephemeral: true,
+						ephemeral: true
 					});
 
 					return;
@@ -60,20 +64,21 @@ export default class EmbedCommand extends BaseCommand {
 
 				if (!channel.isTextBased()) {
 					await interaction.reply({
-						content: "Invalid channel type, must be a text channel.",
-						ephemeral: true,
+						content:
+							"Invalid channel type, must be a text channel.",
+						ephemeral: true
 					});
 
 					return;
 				}
 
 				await channel.send({
-					embeds: message.embeds,
+					embeds: message.embeds
 				});
 
 				await interaction.reply({
 					content: "Sent successfully",
-					ephemeral: true,
+					ephemeral: true
 				});
 
 				break;

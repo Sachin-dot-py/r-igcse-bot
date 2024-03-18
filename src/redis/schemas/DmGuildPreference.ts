@@ -3,14 +3,14 @@ import {
 	Repository,
 	Schema,
 	type Entity,
-	type RedisConnection,
+	type RedisConnection
 } from "redis-om";
 
 export type ICachedDmGuildPreference = IDmGuildPreference & Entity;
 
 const schema = new Schema("DmGuildPreference", {
 	userId: { type: "string" },
-	guildId: { type: "string" },
+	guildId: { type: "string" }
 });
 
 export class DmGuildPreferenceRepository extends Repository {
@@ -19,7 +19,9 @@ export class DmGuildPreferenceRepository extends Repository {
 	}
 
 	async get(userId: string) {
-		const preferences = (await this.fetch(userId)) as ICachedDmGuildPreference;
+		const preferences = (await this.fetch(
+			userId
+		)) as ICachedDmGuildPreference;
 		if (!preferences.userId) {
 			return null;
 		}
@@ -28,7 +30,7 @@ export class DmGuildPreferenceRepository extends Repository {
 
 	async set(userId: string, guildId: string) {
 		const res = (await this.save(userId, {
-			guildId,
+			guildId
 		})) as ICachedDmGuildPreference;
 
 		this.expire(userId, 120);

@@ -12,7 +12,7 @@ export default class MessageReactionAddEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		reaction: MessageReaction,
-		user: User,
+		user: User
 	) {
 		handleVote(reaction, user);
 
@@ -20,7 +20,7 @@ export default class MessageReactionAddEvent extends BaseEvent {
 
 		const res = await ReactionRole.findOne({
 			messageId: reaction.message.id,
-			emoji: reaction.emoji.toString(),
+			emoji: reaction.emoji.toString()
 		});
 
 		if (!res) return;

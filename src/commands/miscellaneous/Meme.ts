@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 
@@ -14,16 +14,17 @@ export default class MemeCommand extends BaseCommand {
 					option
 						.setName("subreddit")
 						.setDescription("From which subreddit")
-						.setRequired(false),
-				),
+						.setRequired(false)
+				)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
-		const subreddit = interaction.options.getString("subreddit", false) || "";
+		const subreddit =
+			interaction.options.getString("subreddit", false) || "";
 
 		await interaction.deferReply();
 

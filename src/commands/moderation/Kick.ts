@@ -2,7 +2,7 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import sendDm from "@/utils/sendDm";
 import Logger from "@/utils/Logger";
@@ -10,7 +10,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -23,22 +23,22 @@ export default class KickCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to kick")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
 						.setDescription("Reason for kick")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
@@ -47,20 +47,20 @@ export default class KickCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"You cannot kick yourself, ||consider leaving the server instead||.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -74,17 +74,17 @@ export default class KickCommand extends BaseCommand {
 		const dmEmbed = new EmbedBuilder()
 			.setAuthor({
 				name: `You have been kicked from ${interaction.guild.name}!`,
-				iconURL: client.user.displayAvatarURL(),
+				iconURL: client.user.displayAvatarURL()
 			})
 			.setDescription(
-				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to \`${reason}\`.`,
+				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to \`${reason}\`.`
 			)
 			.setColor(Colors.Red);
 
 		const guildMember = interaction.guild.members.cache.get(user.id);
 		if (guildMember) {
 			await sendDm(guildMember, {
-				embeds: [dmEmbed],
+				embeds: [dmEmbed]
 			});
 		}
 
@@ -93,11 +93,11 @@ export default class KickCommand extends BaseCommand {
 		} catch (error) {
 			await interaction.reply({
 				content: "Failed to kick user",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
-				{ name: "User ID", value: interaction.user.id },
+				{ name: "User ID", value: interaction.user.id }
 			]);
 		}
 
@@ -107,7 +107,7 @@ export default class KickCommand extends BaseCommand {
 			actionBy: interaction.user.id,
 			action: "Kick",
 			caseId: caseNumber,
-			reason,
+			reason
 		});
 
 		const modEmbed = new EmbedBuilder()
@@ -116,19 +116,19 @@ export default class KickCommand extends BaseCommand {
 			.setColor(Colors.Red)
 			.setAuthor({
 				name: user.displayName,
-				iconURL: user.displayAvatarURL(),
+				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
 				{
 					name: "User ID",
 					value: user.id,
-					inline: true,
+					inline: true
 				},
 				{
 					name: "Moderator",
 					value: interaction.user.displayName,
-					inline: true,
-				},
+					inline: true
+				}
 			]);
 
 		if (guildPreferences.modlogChannelId) {
@@ -136,14 +136,14 @@ export default class KickCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed],
-				},
+					embeds: [modEmbed]
+				}
 			);
 		}
 
 		await interaction.reply({
 			content: `Successfully kicked @${user.displayName}`,
-			ephemeral: true,
+			ephemeral: true
 		});
 	}
 }

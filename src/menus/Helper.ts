@@ -1,7 +1,7 @@
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseMenu, {
-	type DiscordMessageContextMenuCommandInteraction,
+	type DiscordMessageContextMenuCommandInteraction
 } from "@/registry/Structure/BaseMenu";
 import {
 	ActionRowBuilder,
@@ -12,7 +12,7 @@ import {
 	ContextMenuCommandBuilder,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	Role,
+	Role
 } from "discord.js";
 
 export default class HelperMenu extends BaseMenu {
@@ -22,25 +22,25 @@ export default class HelperMenu extends BaseMenu {
 				.setName("helper")
 				.setType(ApplicationCommandType.Message)
 				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
+		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
 	) {
 		if (!interaction.channel) return;
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -50,20 +50,20 @@ export default class HelperMenu extends BaseMenu {
 		if (!helperData || helperData.length < 1) {
 			await interaction.reply({
 				content: "No helper roles set for this server",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
 		}
 
 		const rolesData = helperData.filter(
-			(data) => data.channelId === interaction.channelId,
+			(data) => data.channelId === interaction.channelId
 		);
 
 		if (!rolesData || rolesData.length < 1) {
 			await interaction.reply({
 				content: "No helpers for this channel",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
@@ -76,7 +76,7 @@ export default class HelperMenu extends BaseMenu {
 		if (roles.length < 1) {
 			await interaction.reply({
 				content: "No helper for this channel",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
@@ -87,12 +87,12 @@ export default class HelperMenu extends BaseMenu {
 				`The helper role(s) for this channel (${roles
 					.map((role) => `\`@${role.name}\``)
 					.join(
-						", ",
-					)}) will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`,
+						", "
+					)}) will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
 			)
 			.setAuthor({
 				name: interaction.user.displayName,
-				iconURL: interaction.user.displayAvatarURL(),
+				iconURL: interaction.user.displayAvatarURL()
 			});
 
 		const cancelButton = new ButtonBuilder()
@@ -101,12 +101,12 @@ export default class HelperMenu extends BaseMenu {
 			.setStyle(ButtonStyle.Danger);
 
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-			cancelButton,
+			cancelButton
 		);
 
 		await interaction.channel.send({
 			embeds: [embed],
-			components: [row],
+			components: [row]
 		});
 
 		const collector = interaction.channel.createMessageComponentCollector({
@@ -114,13 +114,13 @@ export default class HelperMenu extends BaseMenu {
 			time: 890,
 			filter: (i) =>
 				i.user.id === interaction.user.id ||
-				i.memberPermissions.has(PermissionFlagsBits.ModerateMembers),
+				i.memberPermissions.has(PermissionFlagsBits.ModerateMembers)
 		});
 
 		collector.on("collect", async (i) => {
 			if (!(i.customId === "cancel_ping")) return;
 			interaction.editReply({
-				content: `Ping cancelled by ${i.user.displayName}`,
+				content: `Ping cancelled by ${i.user.displayName}`
 			});
 		});
 
@@ -129,16 +129,16 @@ export default class HelperMenu extends BaseMenu {
 
 			const embed = new EmbedBuilder()
 				.setDescription(
-					`[Jump to the message.](${interaction.targetMessage.url})`,
+					`[Jump to the message.](${interaction.targetMessage.url})`
 				)
 				.setAuthor({
 					name: interaction.user.displayName,
-					iconURL: interaction.user.displayAvatarURL(),
+					iconURL: interaction.user.displayAvatarURL()
 				});
 
 			await interaction.channel.send({
 				content: `${roles.map((role) => `\`@${role.id}\``).join(" ")}`,
-				embeds: [embed],
+				embeds: [embed]
 			});
 
 			await interaction.deleteReply();

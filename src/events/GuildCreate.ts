@@ -11,17 +11,17 @@ export default class GuildCreateEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>, guild: Guild) {
 		const channel = await guild.channels.create({
 			name: "bot-news",
-			type: ChannelType.GuildText,
+			type: ChannelType.GuildText
 		});
 
 		await GuildPreferences.updateOne(
 			{ guildId: guild.id },
 			{
 				$set: {
-					botNewsChannelId: channel.id,
-				},
+					botNewsChannelId: channel.id
+				}
 			},
-			{ upsert: true },
+			{ upsert: true }
 		);
 	}
 }

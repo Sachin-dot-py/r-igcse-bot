@@ -1,7 +1,7 @@
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
@@ -9,7 +9,7 @@ import {
 	ComponentType,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
-	StringSelectMenuInteraction,
+	StringSelectMenuInteraction
 } from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
@@ -18,23 +18,23 @@ export default class ColorRolesCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("color")
 				.setDescription("Choose a display colour for your name")
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -44,21 +44,21 @@ export default class ColorRolesCommand extends BaseCommand {
 		if (!colorRolesData) {
 			await interaction.reply({
 				content: "Color roles not configured for this server",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
 		}
 
 		const colorRoles = colorRolesData.filter(({ requirementRoleId }) =>
-			interaction.member.roles.cache.has(requirementRoleId),
+			interaction.member.roles.cache.has(requirementRoleId)
 		);
 
 		// TODO: Allow server boosters to have this as a perk
 		if (colorRoles.length < 1) {
 			await interaction.reply({
 				content: "No color roles are available for you ¯\\_(ツ)_/¯",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;
@@ -74,23 +74,24 @@ export default class ColorRolesCommand extends BaseCommand {
 			roleSelect.addOptions({
 				emoji: colorRole.emoji,
 				label: colorRole.label,
-				value: colorRole.roleId,
+				value: colorRole.roleId
 			});
 
-		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-			roleSelect,
-		);
+		const row =
+			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+				roleSelect
+			);
 
 		const component = await interaction.reply({
 			components: [row],
-			ephemeral: true,
+			ephemeral: true
 		});
 
 		component
 			.awaitMessageComponent({
 				filter: (i) => i.user.id === interaction.user.id,
 				time: 120000,
-				componentType: ComponentType.StringSelect,
+				componentType: ComponentType.StringSelect
 			})
 			.then((i: StringSelectMenuInteraction<"cached">) => {
 				i.deferUpdate();
@@ -100,7 +101,7 @@ export default class ColorRolesCommand extends BaseCommand {
 				if (!role) {
 					i.reply({
 						content: "Role not configured",
-						ephemeral: true,
+						ephemeral: true
 					});
 
 					return;
@@ -110,7 +111,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				i.reply({
 					content: `Added role ${role.name}`,
-					ephemeral: true,
+					ephemeral: true
 				});
 			})
 			.catch(Logger.error);

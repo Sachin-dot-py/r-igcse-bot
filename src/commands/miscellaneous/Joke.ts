@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import { getJoke } from "../../utils/apis/joke";
 import { type Category as JokeCategory } from "chucklejs";
@@ -19,36 +19,36 @@ export default class JokeCommand extends BaseCommand {
 						.addChoices(
 							{
 								name: "programming",
-								value: "Programming",
+								value: "Programming"
 							},
 							{
 								name: "dark",
-								value: "Dark",
+								value: "Dark"
 							},
 							{
 								name: "pun",
-								value: "Pun",
+								value: "Pun"
 							},
 							{
 								name: "misc",
-								value: "Misc",
+								value: "Misc"
 							},
 							{
 								name: "spooky",
-								value: "Spooky",
+								value: "Spooky"
 							},
 							{
 								name: "christmas",
-								value: "Christmas",
-							},
-						),
-				),
+								value: "Christmas"
+							}
+						)
+				)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
 		const category = interaction.options.getString("category", false);
 		const categories: JokeCategory[] = category

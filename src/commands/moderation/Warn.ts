@@ -2,14 +2,14 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 
 export default class WarnCommand extends BaseCommand {
@@ -22,35 +22,37 @@ export default class WarnCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to warn")
-						.setRequired(true),
+						.setRequired(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
 						.setDescription("Reason for warn")
-						.setRequired(true),
+						.setRequired(true)
 				)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-				.setDMPermission(false),
+				.setDefaultMemberPermissions(
+					PermissionFlagsBits.ModerateMembers
+				)
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId,
+			interaction.guildId
 		);
 
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true,
+				ephemeral: true
 			});
 			return;
 		}
@@ -68,7 +70,7 @@ export default class WarnCommand extends BaseCommand {
 			action: "Warn",
 			caseId: caseNumber,
 			reason,
-			points: 1,
+			points: 1
 		});
 
 		const modEmbed = new EmbedBuilder()
@@ -77,19 +79,19 @@ export default class WarnCommand extends BaseCommand {
 			.setColor(Colors.Red)
 			.setAuthor({
 				name: user.displayName,
-				iconURL: user.displayAvatarURL(),
+				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
 				{
 					name: "User ID",
 					value: user.id,
-					inline: true,
+					inline: true
 				},
 				{
 					name: "Moderator",
 					value: interaction.user.displayName,
-					inline: true,
-				},
+					inline: true
+				}
 			]);
 
 		if (guildPreferences.modlogChannelId) {
@@ -97,14 +99,14 @@ export default class WarnCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed],
-				},
+					embeds: [modEmbed]
+				}
 			);
 		}
 
 		await interaction.reply({
 			content: `Successfully warned @${user.displayName}`,
-			ephemeral: true,
+			ephemeral: true
 		});
 	}
 }

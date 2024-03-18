@@ -1,7 +1,7 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 
 const SUBJECT_CODES = [
@@ -27,7 +27,7 @@ const SUBJECT_CODES = [
 	"0516",
 	"0518",
 	"0538",
-	"9609",
+	"9609"
 ];
 
 export default class StudySessionCommand extends BaseCommand {
@@ -35,18 +35,18 @@ export default class StudySessionCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("study_session")
-				.setDescription("Start a study session"),
+				.setDescription("Start a study session")
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
+		interaction: DiscordChatInputCommandInteraction
 	) {
 		if (interaction.guildId !== "576460042774118420") {
 			await interaction.reply({
 				content: "Feature not yet implemented for your server.",
-				ephemeral: true,
+				ephemeral: true
 			});
 
 			return;

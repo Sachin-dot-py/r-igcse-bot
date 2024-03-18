@@ -14,10 +14,10 @@ const schema = new Schema<IStickyMessage>({
 	messageId: { type: String, required: false, unique: false },
 	embeds: { type: [Object], required: true, unique: false },
 	stickTime: { type: String, required: true, unique: false },
-	unstickTime: { type: String, required: true, unique: false },
+	unstickTime: { type: String, required: true, unique: false }
 });
 
 export const StickyMessage = createModel<IStickyMessage>(
 	"StickyMessage",
-	schema,
+	schema
 );

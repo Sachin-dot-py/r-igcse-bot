@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { Reputation } from "@/mongo";
@@ -15,27 +15,28 @@ export default class ReputationCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("The user to view the rep of")
-						.setRequired(false),
+						.setRequired(false)
 				)
-				.setDMPermission(false),
+				.setDMPermission(false)
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
+		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const user = interaction.options.getUser("user", false) ?? interaction.user;
+		const user =
+			interaction.options.getUser("user", false) ?? interaction.user;
 
 		const res = await Reputation.findOne({
 			guildId: interaction.guild.id,
-			userId: user.id,
+			userId: user.id
 		}).exec();
 
 		const rep = res?.rep || 0;
 
 		await interaction.reply({
-			content: `${user.username} has ${rep} rep`,
+			content: `${user.username} has ${rep} rep`
 		});
 	}
 }
