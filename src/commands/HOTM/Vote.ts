@@ -53,15 +53,6 @@ export default class HOTMVotingCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			if (guildPreferences.botlogChannelId)
-				await Logger.channel(
-					interaction.guild,
-					guildPreferences.botlogChannelId,
-					{
-						content: "Helper role not found",
-					},
-				);
-
 			return;
 		}
 

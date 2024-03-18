@@ -225,23 +225,11 @@ export default class SetGuildPreferenceCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const guildPreferences = await GuildPreferencesCache.get(
-				interaction.guildId,
-			);
-
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: `Error | Set Preferences | By ${interaction.user.displayName}`,
-					iconURL: interaction.user.displayAvatarURL(),
-				})
-				.setDescription(`\`\`\`\n${error}\`\`\``);
-
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
+			Logger.errorLog(
+				client,
+				error as Error,
+				this.data.name,
+				interaction.user.id,
 			);
 
 			return;

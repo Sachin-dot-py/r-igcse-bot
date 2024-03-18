@@ -42,19 +42,18 @@ export default class WarnCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
-		// if (user.id === interaction.user.id) {
-		// 	await interaction.reply({
-		// 		content: "You cannot warn yourself!",
-		// 		ephemeral: true,
-		// 	});
-		// 	return;
-		// }
-
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
 
-		if (!guildPreferences) return;
+		if (!guildPreferences) {
+			await interaction.reply({
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const latestPunishment = await Punishment.findOne()
 			.sort({ createdAt: -1 })
@@ -73,7 +72,7 @@ export default class WarnCommand extends BaseCommand {
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Warned | Case #${caseNumber}`)
+			.setTitle(`Warn | Case #${caseNumber}`)
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
@@ -93,9 +92,15 @@ export default class WarnCommand extends BaseCommand {
 				},
 			]);
 
-		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [modEmbed],
-		});
+		if (guildPreferences.modlogChannelId) {
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [modEmbed],
+				},
+			);
+		}
 
 		await interaction.reply({
 			content: `Successfully warned @${user.displayName}`,

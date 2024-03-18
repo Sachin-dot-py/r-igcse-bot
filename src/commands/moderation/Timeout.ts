@@ -50,19 +50,18 @@ export default class TimeoutCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 		const durationString = interaction.options.getString("duration", true);
 
-		// if (user.id === interaction.user.id) {
-		// 	await interaction.reply({
-		// 		content: "You cannot warn yourself!",
-		// 		ephemeral: true,
-		// 	});
-		// 	return;
-		// }
-
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
 
-		if (!guildPreferences) return;
+		if (!guildPreferences) {
+			await interaction.reply({
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const latestPunishment = await Punishment.findOne()
 			.sort({ createdAt: -1 })
@@ -95,19 +94,11 @@ export default class TimeoutCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: "Error | Timing Out User",
-					iconURL: interaction.user.displayAvatarURL(),
-				})
-				.setDescription(`${error}`);
-
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.botlogChannelId,
-				{
-					embeds: [embed],
-				},
+			Logger.errorLog(
+				client,
+				error as Error,
+				this.data.name,
+				interaction.user.id,
 			);
 		}
 
@@ -123,7 +114,7 @@ export default class TimeoutCommand extends BaseCommand {
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Timed Out | Case #${caseNumber}`)
+			.setTitle(`Timeout | Case #${caseNumber}`)
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
@@ -143,9 +134,15 @@ export default class TimeoutCommand extends BaseCommand {
 				},
 			]);
 
-		await Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [modEmbed],
-		});
+		if (guildPreferences.modlogChannelId) {
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.modlogChannelId,
+				{
+					embeds: [modEmbed],
+				},
+			);
+		}
 
 		await interaction.reply({
 			content: `Successfully timed out @${user.displayName}`,

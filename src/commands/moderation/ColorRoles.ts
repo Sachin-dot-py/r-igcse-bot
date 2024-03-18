@@ -5,7 +5,11 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import {
+	EmbedBuilder,
+	SlashCommandBuilder,
+	PermissionFlagsBits,
+} from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
 	constructor() {
@@ -53,7 +57,8 @@ export default class ColorRolesCommand extends BaseCommand {
 								.setRequired(true),
 						),
 				)
-				.setDMPermission(false),
+				.setDMPermission(false)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 		);
 	}
 
@@ -64,6 +69,15 @@ export default class ColorRolesCommand extends BaseCommand {
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
+
+		if (!guildPreferences) {
+			await interaction.reply({
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		switch (interaction.options.getSubcommand()) {
 			case "add": {
@@ -121,21 +135,11 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true,
 					});
 
-					if (!guildPreferences.botlogChannelId) return;
-
-					const embed = new EmbedBuilder()
-						.setAuthor({
-							name: "Error | Removing Color role",
-							iconURL: interaction.user.displayAvatarURL(),
-						})
-						.setDescription(`${error}`);
-
-					await Logger.channel(
-						interaction.guild,
-						guildPreferences.botlogChannelId,
-						{
-							embeds: [embed],
-						},
+					Logger.errorLog(
+						client,
+						error as Error,
+						"Removing color role",
+						interaction.user.id,
 					);
 				}
 

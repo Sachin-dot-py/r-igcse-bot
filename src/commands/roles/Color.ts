@@ -30,6 +30,15 @@ export default class ColorRolesCommand extends BaseCommand {
 			interaction.guildId,
 		);
 
+		if (!guildPreferences) {
+			await interaction.reply({
+				content:
+					"Please setup the bot using the command `/set_preferences` first.",
+				ephemeral: true,
+			});
+			return;
+		}
+
 		const colorRolesData = guildPreferences.colorRoles;
 
 		if (!colorRolesData) {

@@ -85,21 +85,20 @@ export default class ReactionRolesCommand extends BaseCommand {
 						interaction.guildId,
 					);
 
-					if (!guildPreferences) return;
+					if (!guildPreferences) {
+						await interaction.reply({
+							content:
+								"Please setup the bot using the command `/set_preferences` first.",
+							ephemeral: true,
+						});
+						return;
+					}
 
-					const embed = new EmbedBuilder()
-						.setAuthor({
-							name: "Error | Creating Reaction role",
-							iconURL: interaction.user.displayAvatarURL(),
-						})
-						.setDescription(`${error}`);
-
-					await Logger.channel(
-						interaction.guild,
-						guildPreferences.botlogChannelId,
-						{
-							embeds: [embed],
-						},
+					Logger.errorLog(
+						client,
+						error as Error,
+						this.data.name,
+						interaction.user.id,
 					);
 				}
 

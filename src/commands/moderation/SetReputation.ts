@@ -24,7 +24,7 @@ export default class extends BaseCommand {
 						.setDescription("The user to change the rep of")
 						.setRequired(false),
 				)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 		);
 	}
 
