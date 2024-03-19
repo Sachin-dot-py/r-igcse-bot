@@ -2,7 +2,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
-} from "../../registry/Structure/BaseCommand";
+} from "../../../registry/Structure/BaseCommand";
 
 const SUBJECT_CODES = [
 	"0410",

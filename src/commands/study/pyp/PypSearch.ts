@@ -2,7 +2,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
-} from "../../registry/Structure/BaseCommand";
+} from "../../../registry/Structure/BaseCommand";
 import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
 
