@@ -9,10 +9,19 @@ import Logger from "@/utils/Logger";
 export async function registerCommands(client: DiscordClient) {
 	const commandsPath = joinPaths(`${import.meta.dir}`, "..", "commands");
 
-	const commandFiles = await readdir(commandsPath, { recursive: true });
+	const commandFiles = (
+		await readdir(commandsPath, {
+			recursive: true
+		})
+	).filter(
+		(file) =>
+			((x: string) => x !== x.toLowerCase())(file[0]) &&
+			(extname(file) == ".js" || extname(file) == ".ts")
+	);
 
 	for (const file of commandFiles) {
 		const filePath = joinPaths(commandsPath, file);
+
 		try {
 			const { default: BotCommand }: { default: new () => BaseCommand } =
 				await import(filePath);
