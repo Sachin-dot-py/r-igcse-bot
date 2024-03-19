@@ -12,16 +12,16 @@ import {
 	SlashCommandBuilder
 } from "discord.js";
 
-export default class BanCommand extends BaseCommand {
+export default class UnbanCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("Unban")
-				.setDescription("Ban a user from the server (for mods)")
+				.setName("unban")
+				.setDescription("Unban a user from the server (for mods)")
 				.addUserOption((option) =>
 					option
 						.setName("user")
-						.setDescription("User to ban")
+						.setDescription("User to unban")
 						.setRequired(true)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
