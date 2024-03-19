@@ -11,7 +11,14 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { GuildPreferencesCache } from "@/redis";
+import { ButtonInteractionCache, GuildPreferencesCache } from "@/redis";
+import { v4 as uuidv4 } from "uuid";
+import { ConfessionBan } from "@/mongo";
+
+interface IBannedData {
+	_id: string;
+	bannedUsers: string[];
+};
 
 export default class FunFactCommand extends BaseCommand {
 	constructor() {
@@ -68,23 +75,61 @@ export default class FunFactCommand extends BaseCommand {
 			return;
 		}
 
+		const bannedQuery: IBannedData[] | null = await ConfessionBan.aggregate([
+			{
+				$match: {
+					guildId: interaction.guild.id
+				}
+			},
+			{
+				$group: {
+					_id: "$guildId",
+					bannedUsers: {
+						$push: "$userHash"
+					}
+				}
+			}
+		]) ?? null;
+
+		const bannedUsers = bannedQuery[0]?.bannedUsers || [];
+
+		for (const userHash of bannedUsers) {
+			if (await Bun.password.verify(interaction.user.id, userHash)) {
+				await interaction.reply({
+					content:
+						"You have been banned from making confessions in this server.",
+					ephemeral: true
+				});
+
+				return;
+			}
+		}
+
 		const embed = new EmbedBuilder()
 			.setDescription(confession)
 			.setColor("Random");
 
+		const customId = uuidv4();
+
 		const approveButton = new ButtonBuilder()
 			.setLabel("Approve")
-			.setStyle(ButtonStyle.Success)
-			.setCustomId("approve-confession");
+			.setStyle(ButtonStyle.Primary)
+			.setCustomId(`${customId}_confession_accept`);
 
 		const rejectButton = new ButtonBuilder()
 			.setLabel("Reject")
+			.setStyle(ButtonStyle.Secondary)
+			.setCustomId(`${customId}_confession_reject`);
+
+		const banButton = new ButtonBuilder()
+			.setLabel("Ban")
 			.setStyle(ButtonStyle.Danger)
-			.setCustomId("reject-confession");
+			.setCustomId(`${customId}_confession_ban`);
 
 		const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			approveButton,
-			rejectButton
+			rejectButton,
+			banButton
 		);
 
 		const message = await approvalChannel.send({
@@ -98,68 +143,12 @@ export default class FunFactCommand extends BaseCommand {
 			ephemeral: true
 		});
 
-		message
-			.awaitMessageComponent({
-				filter: (i) =>
-					i.customId === "approve-confession" ||
-					i.customId === "reject-confession",
-				componentType: ComponentType.Button
-			})
-			.then(async (i) => {
-				switch (i.customId) {
-					case "approve-confession": {
-						const confessionChannel =
-							interaction.guild.channels.cache.get(
-								guildPreferences.confessionsChannelId!
-							);
-
-						if (
-							!confessionChannel ||
-							!confessionChannel.isTextBased()
-						) {
-							await i.reply({
-								content:
-									"Invalid configuration for confessions. Please contact an admin.",
-
-								ephemeral: true
-							});
-
-							return;
-						}
-
-						const approvalEmbed = new EmbedBuilder()
-							.setAuthor({
-								name: `Approved by ${i.user.displayName}`,
-								iconURL: i.user.displayAvatarURL()
-							})
-							.setColor(Colors.Green);
-
-						message.edit({
-							embeds: [approvalEmbed],
-							components: []
-						});
-
-						break;
-					}
-					case "reject-confession": {
-						const rejectionEmbed = new EmbedBuilder()
-							.setAuthor({
-								name: `Rejected by ${i.user.displayName}`,
-								iconURL: i.user.displayAvatarURL()
-							})
-							.setColor(Colors.Red);
-
-						message.edit({
-							embeds: [rejectionEmbed],
-							components: []
-						});
-
-						break;
-					}
-
-					default:
-						break;
-				}
-			});
+		await ButtonInteractionCache.set(`${customId}_confession`, {
+			customId: `${customId}_confession`,
+			messageId: message.id,
+			guildId: interaction.guild.id,
+			userHash: await Bun.password.hash(interaction.user.id)
+		});
+		// Interaction will be handled in the InteractionCreate event and is stored in redis (@/events/InteractionCreate.ts)
 	}
 }
