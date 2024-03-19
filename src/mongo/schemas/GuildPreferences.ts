@@ -10,13 +10,6 @@ export type IGuildPreferences = {
 		keyword: string;
 		response: string;
 	}[];
-
-	colorRoles: {
-		requirementRoleId: string;
-		emoji: string;
-		label: string;
-		roleId: string;
-	}[];
 } & Partial<{
 	modlogChannelId: string;
 	behaviorlogChannelId: string;
@@ -57,18 +50,7 @@ const schema = new Schema<IGuildPreferences>({
 	dmThreadsChannelId: { type: String, default: null },
 	closedDmChannelId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
-	keywords: { type: [{ keyword: String, response: String }], default: [] },
-	colorRoles: {
-		type: [
-			{
-				requirementRoleId: String,
-				emoji: String,
-				label: String,
-				id: String
-			}
-		],
-		default: []
-	}
+	keywords: { type: [{ keyword: String, response: String }], default: [] }
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

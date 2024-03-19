@@ -1,15 +1,10 @@
 import { GuildPreferences } from "@/mongo";
-import { GuildPreferencesCache } from "@/redis";
+import { ColorRole } from "@/mongo/schemas/ColorRole";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
-import {
-	EmbedBuilder,
-	SlashCommandBuilder,
-	PermissionFlagsBits
-} from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
 	constructor() {
@@ -70,19 +65,6 @@ export default class ColorRolesCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
-		);
-
-		if (!guildPreferences) {
-			await interaction.reply({
-				content:
-					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true
-			});
-			return;
-		}
-
 		switch (interaction.options.getSubcommand()) {
 			case "add": {
 				const emoji = interaction.options.getString("emoji", true);
@@ -93,63 +75,23 @@ export default class ColorRolesCommand extends BaseCommand {
 					true
 				);
 
-				const colorRole = {
+				await ColorRole.create({
+					guildId: interaction.guildId,
 					emoji,
 					label,
 					roleId: role.id,
 					requirementRoleId: requiredRole.id
-				};
-
-				guildPreferences.colorRoles.push(colorRole);
-
-				await GuildPreferencesCache.save(guildPreferences);
-
-				await GuildPreferences.updateOne(
-					{
-						guildId: interaction.guildId
-					},
-					{
-						$push: {
-							colorRoles: colorRole
-						}
-					}
-				);
+				});
 
 				break;
 			}
 			case "remove": {
 				const label = interaction.options.getString("label", true);
 
-				try {
-					for (const [
-						i,
-						colorRole
-					] of guildPreferences.colorRoles.entries())
-						if (colorRole.label === label)
-							guildPreferences.colorRoles[i];
-
-					await GuildPreferencesCache.save(guildPreferences);
-
-					await GuildPreferences.updateOne(
-						{
-							guildId: interaction.guildId
-						},
-						{
-							$pullAll: {
-								colorRoles: [{ label }]
-							}
-						}
-					);
-				} catch (error) {
-					await interaction.reply({
-						content: "Error occured while removing color role",
-						ephemeral: true
-					});
-
-					client.log(error, `${this.data.name} Command`, [
-						{ name: "User ID", value: interaction.user.id }
-					]);
-				}
+				await GuildPreferences.deleteOne({
+					guildId: interaction.guildId,
+					label
+				});
 
 				break;
 			}

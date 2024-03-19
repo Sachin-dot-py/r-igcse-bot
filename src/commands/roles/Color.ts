@@ -1,4 +1,4 @@
-import { GuildPreferencesCache } from "@/redis";
+import { ColorRole } from "@/mongo/schemas/ColorRole";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -26,22 +26,11 @@ export default class ColorRolesCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
-		);
+		const guildColorRoles = await ColorRole.find({
+			guildId: interaction.guildId
+		});
 
-		if (!guildPreferences) {
-			await interaction.reply({
-				content:
-					"Please setup the bot using the command `/set_preferences` first.",
-				ephemeral: true
-			});
-			return;
-		}
-
-		const colorRolesData = guildPreferences.colorRoles;
-
-		if (!colorRolesData) {
+		if (guildColorRoles.length < 1) {
 			await interaction.reply({
 				content: "Color roles not configured for this server",
 				ephemeral: true
@@ -50,7 +39,7 @@ export default class ColorRolesCommand extends BaseCommand {
 			return;
 		}
 
-		const colorRoles = colorRolesData.filter(({ requirementRoleId }) =>
+		const colorRoles = guildColorRoles.filter(({ requirementRoleId }) =>
 			interaction.member.roles.cache.has(requirementRoleId)
 		);
 
@@ -68,14 +57,14 @@ export default class ColorRolesCommand extends BaseCommand {
 			.setCustomId("color_roles")
 			.setPlaceholder("Choose a color role")
 			.setMinValues(0)
-			.setMaxValues(1);
-
-		for (const colorRole of colorRoles)
-			roleSelect.addOptions({
-				emoji: colorRole.emoji,
-				label: colorRole.label,
-				value: colorRole.roleId
-			});
+			.setMaxValues(1)
+			.addOptions(
+				colorRoles.map((colorRole) => ({
+					emoji: colorRole.emoji,
+					label: colorRole.label,
+					value: colorRole.roleId
+				}))
+			);
 
 		const row =
 			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
