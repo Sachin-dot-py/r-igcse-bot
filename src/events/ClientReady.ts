@@ -95,7 +95,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			setInterval(() => practiceCommand.sendQuestions(client), 3500);
 		}
 
-		await syncInteractions(client)
+		await syncInteractions(client, "1214367926820544512")
 			.then(() => Logger.info("Synced application commands globally"))
 			.catch(Logger.error);
 

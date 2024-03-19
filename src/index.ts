@@ -1,14 +1,10 @@
 import "dotenv/config";
 
 import { GatewayIntentBits, Partials } from "discord.js";
-import { DiscordClient } from "./registry/DiscordClient";
-import {
-	registerCommands,
-	registerEvents,
-	registerMenus
-} from "./registry/index";
 import mongo from "mongoose";
 import { redis } from "./redis";
+import { DiscordClient } from "./registry/DiscordClient";
+import { registerCommands, registerEvents } from "./registry/index";
 import Logger from "./utils/Logger";
 
 redis.on("error", Logger.error);
@@ -40,7 +36,6 @@ export const client = new DiscordClient({
 });
 
 await registerCommands(client);
-await registerMenus(client);
 
 await mongo.connect(process.env.MONGO_URL, {
 	retryWrites: true,

@@ -1,31 +1,37 @@
 import {
 	ChatInputCommandInteraction,
+	CommandInteraction,
+	ContextMenuCommandBuilder,
+	ContextMenuCommandInteraction,
+	MessageContextMenuCommandInteraction,
 	SlashCommandBuilder,
 	type CacheType,
 	type SlashCommandSubcommandsOnlyBuilder
 } from "discord.js";
 import type { DiscordClient } from "../DiscordClient";
 
+export type DiscordCommandInteraction<Cached extends CacheType = CacheType> =
+	Omit<CommandInteraction<Cached>, "client">;
+
 export type DiscordChatInputCommandInteraction<
 	Cached extends CacheType = CacheType
 > = Omit<ChatInputCommandInteraction<Cached>, "client">;
 
-export default abstract class BaseCommand {
-	private _category: string = "";
+export type DiscordContextMenuCommandInteraction<
+	Cached extends CacheType = CacheType
+> = Omit<ContextMenuCommandInteraction<Cached>, "client">;
 
+export type DiscordMessageContextMenuCommandInteraction<
+	Cached extends CacheType = CacheType
+> = Omit<MessageContextMenuCommandInteraction<Cached>, "client">;
+
+export default abstract class BaseCommand {
 	constructor(
 		private _data:
 			| Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
 			| SlashCommandSubcommandsOnlyBuilder
+			| ContextMenuCommandBuilder
 	) {}
-
-	set category(category: string) {
-		this._category = category;
-	}
-
-	get category() {
-		return this._category;
-	}
 
 	get data() {
 		return this._data;
@@ -33,6 +39,6 @@ export default abstract class BaseCommand {
 
 	abstract execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordCommandInteraction
 	): Promise<void>;
 }

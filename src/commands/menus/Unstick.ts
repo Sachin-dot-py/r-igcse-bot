@@ -1,16 +1,16 @@
 import { StickyMessage } from "@/mongo";
 import { StickyMessageCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import BaseMenu, {
+import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
-} from "@/registry/Structure/BaseMenu";
+} from "@/registry/Structure/BaseCommand";
 import {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
 	PermissionFlagsBits
 } from "discord.js";
 
-export default class StickMessageCommand extends BaseMenu {
+export default class StickMessageCommand extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()

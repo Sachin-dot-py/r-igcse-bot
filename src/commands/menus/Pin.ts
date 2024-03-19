@@ -1,14 +1,14 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
-import BaseMenu, {
+import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
-} from "@/registry/Structure/BaseMenu";
+} from "@/registry/Structure/BaseCommand";
 import {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
 	PermissionFlagsBits
 } from "discord.js";
 
-export default class PinMenu extends BaseMenu {
+export default class PinMenu extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
