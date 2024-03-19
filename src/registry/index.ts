@@ -18,7 +18,9 @@ export async function registerCommands(client: DiscordClient, path = "") {
 
 	commandItems
 		.filter((dirent) => dirent.isDirectory())
-		.forEach((dirent) => registerCommands(client, dirent.name));
+		.forEach((dirent) =>
+			registerCommands(client, joinPaths(path, dirent.name))
+		);
 
 	const commandFiles = commandItems
 		.filter(
