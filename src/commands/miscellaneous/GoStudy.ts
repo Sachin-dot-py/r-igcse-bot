@@ -119,9 +119,9 @@ export default class GoStudyCommand extends BaseCommand {
 			return;
 		}
 
-        await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply({ ephemeral: true });
 
-        const expiration = new Date(Date.now() + duration * 1000);
+		const expiration = new Date(Date.now() + duration * 1000);
 
 		const alreadyMuted = await ForcedMute.findOne({
 			userId: user.id,
@@ -131,7 +131,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (alreadyMuted?.expiration && alreadyMuted.expiration > expiration) {
 			await interaction.editReply({
 				content:
-					"You cannot reduce the duration of an existing forced mute but feel free to extend it!"
+					"You cannot reduce the duration of an existing forced mute! Feel free to extend it though."
 			});
 
 			return;
@@ -149,7 +149,7 @@ export default class GoStudyCommand extends BaseCommand {
 				{ name: "Member ID", value: member.id },
 				{ name: "Guild ID", value: interaction.guild.id }
 			]);
-            Logger.error(error);
+			Logger.error(error);
 		}
 
 		await new ForcedMute({
@@ -159,15 +159,13 @@ export default class GoStudyCommand extends BaseCommand {
 		}).save();
 
 		const dmEmbed = new EmbedBuilder()
-			.setTitle(
-				`It's time to study!`
-			)
+			.setTitle(`It's time to study!`)
 			.setDescription(
 				`Time to study! You've been given a temporary break from the off-topic channels${user.id !== interaction.user.id ? ` thanks to ${interaction.user.tag}` : ""}. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
 			)
-            .setFooter({
-                text: `From ${interaction.guild.name}`
-            })
+			.setFooter({
+				text: `From ${interaction.guild.name}`
+			})
 			.setColor("Random");
 
 		await sendDm(member, {
@@ -175,59 +173,57 @@ export default class GoStudyCommand extends BaseCommand {
 		});
 
 		await interaction.editReply({
-			content: `Alright, you can study in peace now, make sure to actually study though. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`,
+			content: `Alright, you can study in peace now, make sure to actually study though. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
 		});
 	}
 
-    async expireForcedMute(client: DiscordClient<true>) {
-        const expiredMutes = await ForcedMute.find({
-            expiration: { $lte: new Date() }
-        });
+	async expireForcedMute(client: DiscordClient<true>) {
+		const expiredMutes = await ForcedMute.find({
+			expiration: { $lte: new Date() }
+		});
 
-        for (const mute of expiredMutes) {
-            const guild = await client.guilds.fetch(mute.guildId);
+		for (const mute of expiredMutes) {
+			const guild = await client.guilds.fetch(mute.guildId);
 
-            if (!guild) {
-                await mute.deleteOne();
-                continue;
-            }
+			if (!guild) {
+				await mute.deleteOne();
+				continue;
+			}
 
-            const member = await guild.members.fetch(mute.userId);
+			const member = await guild.members.fetch(mute.userId);
 
-            if (!member) {
-                await mute.deleteOne();
-                continue;
-            }
+			if (!member) {
+				await mute.deleteOne();
+				continue;
+			}
 
-            const guildPreferences = await GuildPreferencesCache.get(
-                guild.id
-            );
+			const guildPreferences = await GuildPreferencesCache.get(guild.id);
 
-            if (!guildPreferences || !guildPreferences.forcedMuteRoleId) {
-                await mute.deleteOne();
-                continue;
-            }
+			if (!guildPreferences || !guildPreferences.forcedMuteRoleId) {
+				await mute.deleteOne();
+				continue;
+			}
 
-            const role = guild.roles.cache.get(
-                guildPreferences.forcedMuteRoleId
-            );
+			const role = guild.roles.cache.get(
+				guildPreferences.forcedMuteRoleId
+			);
 
-            if (!role) {
-                await mute.deleteOne();
-                continue;
-            }
+			if (!role) {
+				await mute.deleteOne();
+				continue;
+			}
 
-            try {
-                await member.roles.remove(role);
-            } catch (error) {
-                client.log(error, `${this.data.name} Command (removing role)`, [
-                    { name: "User ID", value: member.id },
-                    { name: "Guild ID", value: guild.id }
-                ]);
-                Logger.error(error);
-            }
+			try {
+				await member.roles.remove(role);
+			} catch (error) {
+				client.log(error, `${this.data.name} Command (removing role)`, [
+					{ name: "User ID", value: member.id },
+					{ name: "Guild ID", value: guild.id }
+				]);
+				Logger.error(error);
+			}
 
-            await mute.deleteOne();
-        }
-    }
+			await mute.deleteOne();
+		}
+	}
 }
