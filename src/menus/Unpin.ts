@@ -8,11 +8,11 @@ import {
 	PermissionFlagsBits
 } from "discord.js";
 
-export default class PinMenu extends BaseMenu {
+export default class UnpinMenu extends BaseMenu {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("pin")
+				.setName("unpin")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message)
@@ -23,9 +23,9 @@ export default class PinMenu extends BaseMenu {
 		client: DiscordClient<true>,
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
 	) {
-		if (!interaction.targetMessage.pinnable) {
+		if (!interaction.targetMessage.pinned) {
 			await interaction.reply({
-				content: "Message isn't pinnable.",
+				content: "Message isn't pinned.",
 				ephemeral: true
 			});
 
@@ -33,10 +33,10 @@ export default class PinMenu extends BaseMenu {
 		}
 
 		try {
-			await interaction.targetMessage.pin();
+			await interaction.targetMessage.unpin();
 		} catch (error) {
 			await interaction.reply({
-				content: "Couldn't pin message.",
+				content: "Couldn't unpin message.",
 				ephemeral: true
 			});
 
@@ -47,7 +47,7 @@ export default class PinMenu extends BaseMenu {
 		}
 
 		await interaction.reply({
-			content: "Successfully pinned message.",
+			content: "Successfully unpinned message.",
 			ephemeral: true
 		});
 	}
