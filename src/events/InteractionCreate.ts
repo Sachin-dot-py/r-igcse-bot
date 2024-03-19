@@ -1,26 +1,26 @@
+import ConfessionBanModal from "@/components/ConfessionBanModal";
+import DisabledMCQButtons from "@/components/practice/DisabledMCQButtons";
+import { ConfessionBan, PracticeSession } from "@/mongo";
+import {
+	ButtonInteractionCache,
+	GuildPreferencesCache,
+	PracticeQuestionCache
+} from "@/redis";
 import Logger from "@/utils/Logger";
 import {
 	ChatInputCommandInteraction,
 	ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
-	type Interaction,
-	type ButtonInteraction,
+	TextChannel,
 	type ActionRowBuilder,
 	type ButtonBuilder,
-	TextChannel
+	type ButtonInteraction,
+	type Interaction
 } from "discord.js";
-import type { DiscordClient } from "../registry/DiscordClient";
-import {
-	ButtonInteractionCache,
-	PracticeQuestionCache,
-	GuildPreferencesCache
-} from "@/redis";
-import { ConfessionBan, PracticeSession } from "@/mongo";
-import DisabledMCQButtons from "@/components/practice/DisabledMCQButtons";
-import BaseEvent from "../registry/Structure/BaseEvent";
-import ConfessionBanModal from "@/components/ConfessionBanModal";
 import { v4 as uuidv4 } from "uuid";
+import type { DiscordClient } from "../registry/DiscordClient";
+import BaseEvent from "../registry/Structure/BaseEvent";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -29,10 +29,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async execute(client: DiscordClient<true>, interaction: Interaction) {
 		try {
-			if (interaction.isChatInputCommand())
+			if (
+				interaction.isChatInputCommand() ||
+				interaction.isContextMenuCommand()
+			)
 				this.handleCommand(client, interaction);
-			else if (interaction.isContextMenuCommand())
-				this.handleMenu(client, interaction);
 			else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
@@ -64,21 +65,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async handleCommand(
 		client: DiscordClient<true>,
-		interaction: ChatInputCommandInteraction
+		interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction
 	) {
 		const command = client.commands.get(interaction.commandName);
 		if (!command) return;
 
 		await command.execute(client, interaction);
-	}
-	async handleMenu(
-		client: DiscordClient<true>,
-		interaction: ContextMenuCommandInteraction
-	) {
-		const menu = client.menus.get(interaction.commandName);
-		if (!menu) return;
-
-		await menu.execute(client, interaction);
 	}
 
 	async handleMCQButton(

@@ -105,7 +105,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
-		await syncInteractions(client)
+		await syncInteractions(client, "1214367926820544512")
 			.then(() => Logger.info("Synced application commands globally"))
 			.catch(Logger.error);
 

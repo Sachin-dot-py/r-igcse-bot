@@ -1,8 +1,8 @@
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import BaseMenu, {
+import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
-} from "@/registry/Structure/BaseMenu";
+} from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
 	ApplicationCommandType,
@@ -14,7 +14,7 @@ import {
 	PermissionFlagsBits
 } from "discord.js";
 
-export default class HelperMenu extends BaseMenu {
+export default class HelperMenu extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()

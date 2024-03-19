@@ -13,11 +13,11 @@ import {
 	TextInputStyle
 } from "discord.js";
 import { StickyMessageCache } from "@/redis";
-import BaseMenu, {
+import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
-} from "@/registry/Structure/BaseMenu";
+} from "@/registry/Structure/BaseCommand";
 
-export default class StickMessageCommand extends BaseMenu {
+export default class StickMessageCommand extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
