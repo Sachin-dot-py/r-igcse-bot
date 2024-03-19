@@ -119,6 +119,8 @@ export default class GoStudyCommand extends BaseCommand {
 			return;
 		}
 
+        await interaction.deferReply({ ephemeral: true });
+
         const expiration = new Date(Date.now() + duration * 1000);
 
 		const alreadyMuted = await ForcedMute.findOne({
@@ -127,10 +129,9 @@ export default class GoStudyCommand extends BaseCommand {
 		});
 
 		if (alreadyMuted?.expiration && alreadyMuted.expiration > expiration) {
-			await interaction.reply({
+			await interaction.editReply({
 				content:
-					"You cannot reduce the duration of an existing forced mute but feel free to extend it!",
-				ephemeral: true
+					"You cannot reduce the duration of an existing forced mute but feel free to extend it!"
 			});
 
 			return;
@@ -159,20 +160,22 @@ export default class GoStudyCommand extends BaseCommand {
 
 		const dmEmbed = new EmbedBuilder()
 			.setTitle(
-				`You have been force muted (gostudy) in ${interaction.guild.name}!`
+				`It's time to study!`
 			)
 			.setDescription(
-				`You have been force muted in **${interaction.guild.name}** for ${durationString} by ${interaction.user.tag} which will expire at <t:${Math.floor(expiration.getTime() / 1000)}:R>`
+				`Time to study! You've been given a temporary break from the off-topic channels${user.id !== interaction.user.id ? ` thanks to ${interaction.user.tag}` : ""}. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
 			)
+            .setFooter({
+                text: `From ${interaction.guild.name}`
+            })
 			.setColor("Random");
 
 		await sendDm(member, {
 			embeds: [dmEmbed]
 		});
 
-		await interaction.reply({
-			content: `User has been force muted for ${durationString}!`,
-			ephemeral: true
+		await interaction.editReply({
+			content: `Alright, you can study in peace now, make sure to actually study though. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`,
 		});
 	}
 

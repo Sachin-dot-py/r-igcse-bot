@@ -7,9 +7,6 @@ export type IGuildPreferences = {
 	repDisabledChannelIds: string[];
 } & Partial<{
 	modlogChannelId: string;
-	behaviorlogChannelId: string;
-	warnlogChannelId: string;
-	botNewsChannelId: string;
 	actionRequiredChannelId: string;
 
 	welcomeChannelId: string;
@@ -19,8 +16,8 @@ export type IGuildPreferences = {
 	hotmResultsChannelId: string;
 	studySessionChannelId: string;
 
-	modmailChannelId: string;
-	dmThreadsChannelId: string;
+	modmailCreateChannelId: string;
+	modmailThreadsChannelId: string;
 	closedDmChannelId: string;
 
 	banAppealFormLink: string;
@@ -33,9 +30,6 @@ const schema = new Schema<IGuildPreferences>({
 	repEnabled: { type: Boolean, default: false },
 	repDisabledChannelIds: { type: [String], default: [] },
 	modlogChannelId: { type: String, default: null },
-	behaviorlogChannelId: { type: String, default: null },
-	warnlogChannelId: { type: String, default: null },
-	botNewsChannelId: { type: String, default: null },
 	actionRequiredChannelId: { type: String, default: null },
 	welcomeChannelId: { type: String, default: null },
 	confessionsChannelId: { type: String, default: null },
@@ -43,8 +37,8 @@ const schema = new Schema<IGuildPreferences>({
 	countingChannelId: { type: String, default: null },
 	hotmResultsChannelId: { type: String, default: null },
 	studySessionChannelId: { type: String, default: null },
-	modmailChannelId: { type: String, default: null },
-	dmThreadsChannelId: { type: String, default: null },
+	modmailCreateChannelId: { type: String, default: null },
+	modmailThreadsChannelId: { type: String, default: null },
 	closedDmChannelId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
 	forcedMuteRoleId: { type: String, default: null }

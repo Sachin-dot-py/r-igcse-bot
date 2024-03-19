@@ -76,7 +76,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				client.stickyCounter[message.channelId] = 0;
 			}
 
-			if (message.channelId === guildPreferences.dmThreadsChannelId) {
+			if (message.channelId === guildPreferences.modmailCreateChannelId) {
 				const user = await message.guild.members.fetch(message.content);
 
 				if (!user) {
@@ -201,7 +201,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		const guildPreferences = await GuildPreferencesCache.get(guildId);
 
-		if (!guildPreferences || !guildPreferences.modmailChannelId) {
+		if (!guildPreferences || !guildPreferences.modmailThreadsChannelId) {
 			await message.author.send(
 				`Modmail is not set up in **${guild.name}**`
 			);
@@ -209,7 +209,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		}
 
 		const channel = guild.channels.cache.get(
-			guildPreferences.modmailChannelId
+			guildPreferences.modmailThreadsChannelId
 		);
 
 		if (!channel || !(channel instanceof TextChannel)) return;
