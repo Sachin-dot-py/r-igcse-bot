@@ -13,6 +13,7 @@ import {
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { Keyword } from "@/mongo/schemas/Keyword";
+import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -93,6 +94,15 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 		if (practiceCommand) {
 			Logger.info("Starting practice questions loop");
 			setInterval(() => practiceCommand.sendQuestions(client), 3500);
+		}
+
+		const goStudyCommand = client.commands.get("gostudy") as
+			| GoStudyCommand
+			| undefined;
+
+		if (goStudyCommand) {
+			Logger.info("Starting go study loop");
+			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
 		await syncInteractions(client)

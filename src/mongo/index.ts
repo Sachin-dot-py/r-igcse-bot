@@ -18,3 +18,4 @@ export {
 } from "./schemas/PracticeSession";
 export { HOTMUser, type IHOTMUser } from "./schemas/HOTMUser";
 export { ConfessionBan, type IConfessionBan } from "./schemas/ConfessionBan";
+export { ForcedMute, type IForcedMute } from "./schemas/ForcedMute";

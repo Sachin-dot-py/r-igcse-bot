@@ -18,7 +18,7 @@ import { ConfessionBan } from "@/mongo";
 interface IBannedData {
 	_id: string;
 	bannedUsers: string[];
-};
+}
 
 export default class FunFactCommand extends BaseCommand {
 	constructor() {
@@ -75,21 +75,22 @@ export default class FunFactCommand extends BaseCommand {
 			return;
 		}
 
-		const bannedQuery: IBannedData[] | null = await ConfessionBan.aggregate([
-			{
-				$match: {
-					guildId: interaction.guild.id
-				}
-			},
-			{
-				$group: {
-					_id: "$guildId",
-					bannedUsers: {
-						$push: "$userHash"
+		const bannedQuery: IBannedData[] | null =
+			(await ConfessionBan.aggregate([
+				{
+					$match: {
+						guildId: interaction.guild.id
+					}
+				},
+				{
+					$group: {
+						_id: "$guildId",
+						bannedUsers: {
+							$push: "$userHash"
+						}
 					}
 				}
-			}
-		]) ?? null;
+			])) ?? null;
 
 		const bannedUsers = bannedQuery[0]?.bannedUsers || [];
 
