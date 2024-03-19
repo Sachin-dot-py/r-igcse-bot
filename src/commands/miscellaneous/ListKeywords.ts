@@ -32,18 +32,6 @@ export default class ListKeywordsCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guild.id
-		);
-
-		if (!guildPreferences) {
-			await interaction.reply({
-				content: "Keywords haven't been configured for this server",
-				ephemeral: true
-			});
-			return;
-		}
-
 		const keywords = await Keyword.find({
 			guildId: interaction.guildId
 		}).exec();
