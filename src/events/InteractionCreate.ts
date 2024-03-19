@@ -7,13 +7,20 @@ import {
 	type Interaction,
 	type ButtonInteraction,
 	type ActionRowBuilder,
-	type ButtonBuilder
+	type ButtonBuilder,
+	TextChannel
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
-import { ButtonInteractionCache, PracticeQuestionCache } from "@/redis";
-import { PracticeSession } from "@/mongo";
+import {
+	ButtonInteractionCache,
+	PracticeQuestionCache,
+	GuildPreferencesCache
+} from "@/redis";
+import { ConfessionBan, PracticeSession } from "@/mongo";
 import DisabledMCQButtons from "@/components/practice/DisabledMCQButtons";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import ConfessionBanModal from "@/components/ConfessionBanModal";
+import { v4 as uuidv4 } from "uuid";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -28,6 +35,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleMenu(client, interaction);
 			else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
+				this.handleConfessionButton(client, interaction);
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -77,9 +85,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction
 	) {
-		const matchCustomIdRegex = /A|B|C|D_\d\d\d\d_[msw]\d\d_qp_q.*_.*/;
+		const matchCustomIdRegex =
+			/[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 		if (!matchCustomIdRegex.test(interaction.customId)) return;
+
 		const customId = interaction.customId.split("_").slice(1).join("_");
+		console.log(customId);
 		const button = await ButtonInteractionCache.get(customId);
 		if (!button) return;
 
@@ -172,5 +183,148 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await PracticeQuestionCache.save(question);
+	}
+
+	async handleConfessionButton(
+		client: DiscordClient<true>,
+		interaction: ButtonInteraction
+	) {
+		const matchCustomIdRegex = /(.*_confession)_(accept|reject|ban)/gi;
+		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
+		if (!regexMatches) return;
+
+		const confessionId = regexMatches[1];
+		const action = regexMatches[2];
+		if (!confessionId || !action) return;
+
+		const button = await ButtonInteractionCache.get(confessionId);
+		if (!button || !button.guildId || !button.userHash) return;
+
+		const guildPreferences = await GuildPreferencesCache.get(
+			button.guildId
+		);
+		if (
+			!guildPreferences ||
+			!guildPreferences.confessionApprovalChannelId ||
+			!guildPreferences.confessionsChannelId
+		)
+			return;
+
+		const approvalChannel = client.channels.cache.get(
+			guildPreferences.confessionApprovalChannelId
+		);
+		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
+			return;
+
+		const message = await approvalChannel.messages.fetch(button.messageId);
+		if (!message) return;
+
+		const confession = message.embeds[0].description;
+		if (!confession) return;
+
+		switch (action) {
+			case "accept":
+				const confessionsChannel = client.channels.cache.get(
+					guildPreferences.confessionsChannelId
+				);
+				if (
+					!confessionsChannel ||
+					!(confessionsChannel instanceof TextChannel)
+				)
+					return;
+
+				const confessionEmbed = new EmbedBuilder()
+					.setDescription(confession)
+					.setColor("Random");
+
+				const confessionMsg = await confessionsChannel.send({
+					embeds: [confessionEmbed],
+					content: "New Anonymous Confession"
+				});
+
+				const acceptEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Confession accepted by ${interaction.user.tag}`
+					})
+					.setDescription(confession)
+					.setColor("Green");
+
+				await message.edit({
+					embeds: [acceptEmbed],
+					components: []
+				});
+
+				await interaction.reply({
+					content: `Confession accepted, ${confessionMsg.url}`,
+					ephemeral: true
+				});
+				break;
+
+			case "reject":
+				const rejectEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Confession rejected by ${interaction.user.tag}`
+					})
+					.setDescription(confession)
+					.setColor("Red");
+
+				await message.edit({
+					embeds: [rejectEmbed],
+					components: []
+				});
+
+				await interaction.reply({
+					content: "Confession rejected",
+					ephemeral: true
+				});
+				break;
+
+			case "ban":
+				const modalCustomId = uuidv4();
+				const modal = new ConfessionBanModal(modalCustomId);
+				await interaction.showModal(modal);
+				const modalResponse = await modal.waitForResponse(
+					modalCustomId,
+					interaction
+				);
+				if (!modalResponse) return;
+
+				const confessionBan = new ConfessionBan({
+					userHash: button.userHash,
+					guildId: button.guildId,
+					reason: modalResponse.reason
+				});
+
+				await confessionBan.save();
+
+				const banEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Confession rejected by ${interaction.user.tag} and user BANNED 🔨`
+					})
+					.setDescription(confession)
+					.setColor("Red")
+					.addFields([
+						{
+							name: "Reason",
+							value: modalResponse.reason
+						}
+					]);
+
+				await message.edit({
+					embeds: [banEmbed],
+					components: []
+				});
+
+				await modalResponse.followUpInteraction.reply({
+					content: "Confession rejected and user banned",
+					ephemeral: true
+				});
+				break;
+
+			default:
+				break;
+		}
+
+		await ButtonInteractionCache.remove(confessionId);
 	}
 }
