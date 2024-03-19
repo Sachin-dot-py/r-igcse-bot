@@ -5,7 +5,8 @@ import {
 	ChannelSelectMenuBuilder,
 	ComponentType,
 	Message,
-	ModalSubmitInteraction
+	ModalSubmitInteraction,
+    ChannelType,
 } from "discord.js";
 
 class ChannelSelect extends ChannelSelectMenuBuilder {
@@ -27,7 +28,8 @@ class ChannelSelect extends ChannelSelectMenuBuilder {
 		this.isFirstComponent = parseInt(customId.split("_")[1]) % 5 === 0;
 		this.setPlaceholder(placeholder)
 			.setMaxValues(maxValues)
-			.setCustomId(customId);
+			.setCustomId(customId)
+            .addChannelTypes(ChannelType.GuildText, ChannelType.GuildForum, ChannelType.GuildStageVoice, ChannelType.GuildVoice);
 	}
 
 	async createCollector(
