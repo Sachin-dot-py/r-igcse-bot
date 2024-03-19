@@ -6,18 +6,27 @@ import type BaseEvent from "./Structure/BaseEvent";
 import { DiscordClient } from "./DiscordClient";
 import Logger from "@/utils/Logger";
 
-export async function registerCommands(client: DiscordClient) {
-	const commandsPath = joinPaths(`${import.meta.dir}`, "..", "commands");
-
-	const commandFiles = (
-		await readdir(commandsPath, {
-			recursive: true
-		})
-	).filter(
-		(file) =>
-			((x: string) => x !== x.toLowerCase())(file[0]) &&
-			(extname(file) == ".js" || extname(file) == ".ts")
+export async function registerCommands(client: DiscordClient, path = "") {
+	const commandsPath = joinPaths(
+		`${import.meta.dir}`,
+		"..",
+		"commands",
+		path
 	);
+
+	const commandItems = await readdir(commandsPath, { withFileTypes: true });
+
+	commandItems
+		.filter((dirent) => dirent.isDirectory())
+		.forEach((dirent) => registerCommands(client, dirent.name));
+
+	const commandFiles = commandItems
+		.filter(
+			(dirent) =>
+				dirent.isFile() &&
+				((x: string) => x !== x.toLowerCase())(dirent.name[0])
+		)
+		.map((dirent) => dirent.name);
 
 	for (const file of commandFiles) {
 		const filePath = joinPaths(commandsPath, file);
