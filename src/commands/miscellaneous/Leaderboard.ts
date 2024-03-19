@@ -1,4 +1,4 @@
-import { Keyword } from "@/mongo/schemas/Keyword";
+import { Reputation } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -13,15 +13,19 @@ import {
 	SlashCommandBuilder
 } from "discord.js";
 
-export default class ListKeywordsCommand extends BaseCommand {
+export default class LeaderboardCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("list_keywords")
-				.setDescription(
-					"Display all the keywords in the current server"
-				)
+				.setName("leaderboard")
+				.setDescription("View the current rep leaderboard")
 				.setDMPermission(false)
+				.addIntegerOption((option) =>
+					option
+						.setName("page")
+						.setDescription("Page number to to display")
+						.setRequired(false)
+				)
 		);
 	}
 
@@ -31,38 +35,48 @@ export default class ListKeywordsCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-		const keywords = await Keyword.find({
+		let page = interaction.options.getInteger("page", false) ?? 0;
+
+		const reps = await Reputation.find({
 			guildId: interaction.guildId
 		}).exec();
 
-		if (keywords.length === 0) {
+		if (reps.length === 0) {
 			await interaction.reply({
-				content: "There are no keywords in this server",
+				content: "No one in this server has rep 💀",
 				ephemeral: true
 			});
+
 			return;
 		}
 
 		const chunks = Array.from(
-			{ length: Math.ceil(keywords.length / 9) },
-			(_, i) => keywords.slice(i * 9, i * 9 + 9)
+			{ length: Math.ceil(reps.length / 9) },
+			(_, i) => reps.slice(i * 9, i * 9 + 9)
 		);
 
 		const embeds: EmbedBuilder[] = [];
 
 		for (const [i, chunk] of chunks.entries()) {
 			const embed = new EmbedBuilder()
-				.setTitle("Keywords")
+				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple)
 				.setDescription(`Page ${i + 1} of ${chunks.length}`);
 
-			for (const { keyword } of chunk)
-				embed.addFields({ name: keyword, value: "\n", inline: true });
+			for (const { userId, rep } of chunk) {
+				const member = interaction.guild.members.cache.get(userId);
+
+				if (!member) continue;
+
+				embed.addFields({
+					name: member.displayName,
+					value: `${rep}`,
+					inline: true
+				});
+			}
 
 			embeds.push(embed);
 		}
-
-		let page = 0;
 
 		const firstButton = new ButtonBuilder()
 			.setCustomId("first")
