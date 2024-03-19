@@ -1,3 +1,4 @@
+import { Keyword } from "@/mongo/schemas/Keyword";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -43,7 +44,9 @@ export default class ListKeywordsCommand extends BaseCommand {
 			return;
 		}
 
-		const keywords = guildPreferences.keywords;
+		const keywords = await Keyword.find({
+			guildId: interaction.guildId
+		}).exec();
 
 		if (keywords.length === 0) {
 			await interaction.reply({

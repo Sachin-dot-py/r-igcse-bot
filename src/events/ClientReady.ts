@@ -1,6 +1,6 @@
 import type PracticeCommand from "@/commands/study/Practice";
 import { StickyMessage } from "@/mongo";
-import { StickyMessageCache } from "@/redis";
+import { KeywordCache, StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import Logger from "@/utils/Logger";
 import {
@@ -12,6 +12,7 @@ import {
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { Keyword } from "@/mongo/schemas/Keyword";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -98,11 +99,25 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			.then(() => Logger.info("Synced application commands globally"))
 			.catch(Logger.error);
 
+		await this.loadKeywordsCache()
+			.then(() => Logger.info("Populated Keywords Cache"))
+			.catch(Logger.error);
+
 		setInterval(
 			async () =>
 				await this.refreshStickyMessagesCache().catch(Logger.error),
 			60000
 		);
+	}
+
+	private async loadKeywordsCache() {
+		const keywords = await Keyword.find().exec();
+
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		for (const { _id, ...rest } of keywords.map((keyword) =>
+			keyword.toObject()
+		))
+			KeywordCache.append(rest);
 	}
 
 	private async refreshStickyMessagesCache() {

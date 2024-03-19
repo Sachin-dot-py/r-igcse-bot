@@ -10,6 +10,7 @@ import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
 	DmGuildPreferenceCache,
 	GuildPreferencesCache,
+	KeywordCache,
 	StickyMessageCache
 } from "@/redis";
 import {
@@ -44,19 +45,15 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (!guildPreferences) return;
 
-			const keywords = (guildPreferences.keywords || []).filter(
-				({ keyword }) => keyword === message.content.toLowerCase()
+			const keywordReponse = await KeywordCache.get(
+				message.guildId,
+				message.content.trim().toLowerCase()
 			);
 
-			if (keywords.length > 0) {
-				message.reply(keywords[0].response);
-			}
+			if (keywordReponse) message.reply(keywordReponse);
 
-			if (message.reference && (guildPreferences.repEnabled ?? true))
-				this.handleRep(
-					message,
-					guildPreferences.repDisabledChannelIds || []
-				);
+			if (message.reference && guildPreferences.repEnabled)
+				this.handleRep(message, guildPreferences.repDisabledChannelIds);
 
 			if (
 				client.stickyChannelIds.some((id) => id === message.channelId)

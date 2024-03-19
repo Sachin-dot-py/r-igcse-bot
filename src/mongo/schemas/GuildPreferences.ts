@@ -5,11 +5,6 @@ export type IGuildPreferences = {
 
 	repEnabled: boolean;
 	repDisabledChannelIds: string[];
-
-	keywords: {
-		keyword: string;
-		response: string;
-	}[];
 } & Partial<{
 	modlogChannelId: string;
 	behaviorlogChannelId: string;
@@ -49,8 +44,7 @@ const schema = new Schema<IGuildPreferences>({
 	modmailChannelId: { type: String, default: null },
 	dmThreadsChannelId: { type: String, default: null },
 	closedDmChannelId: { type: String, default: null },
-	banAppealFormLink: { type: String, default: null },
-	keywords: { type: [{ keyword: String, response: String }], default: [] }
+	banAppealFormLink: { type: String, default: null }
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(
