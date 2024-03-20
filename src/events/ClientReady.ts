@@ -9,11 +9,17 @@ import {
 	ChannelType,
 	Colors,
 	EmbedBuilder,
-	Events
+	Events,
+	ForumChannel,
+	PermissionFlagsBits,
+	TextChannel,
+	ThreadChannel
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
+import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
+import { client } from "..";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -115,8 +121,14 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 
 		setInterval(
 			async () =>
-				await this.refreshStickyMessagesCache().catch(Logger.error),
+				await this.refreshStickyMessageCache().catch(Logger.error),
 			60000
+		);
+
+		setInterval(
+			async () =>
+				await this.refreshChannelLockdowns().catch(Logger.error),
+			120000
 		);
 	}
 
@@ -130,7 +142,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			KeywordCache.append(rest);
 	}
 
-	private async refreshStickyMessagesCache() {
+	private async refreshStickyMessageCache() {
 		const time = Date.now();
 
 		const stickyMessages = await StickyMessage.find();
@@ -152,6 +164,44 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 
 				await StickyMessageCache.remove(stickyMessage.id);
 			}
+		}
+	}
+
+	private async refreshChannelLockdowns() {
+		const time = Date.now();
+
+		const lockdownData = await ChannelLockdown.find();
+
+		for (const lockdown of lockdownData) {
+			const startTime = parseInt(lockdown.startTimestamp);
+			const endTime = parseInt(lockdown.endTimestamp);
+
+			if (startTime <= time && endTime >= time) {
+				const channel = client.channels.cache.get(lockdown.channelId);
+
+				if (channel instanceof ThreadChannel && !channel.locked)
+					await channel.setLocked(true);
+				else if (
+					channel instanceof TextChannel ||
+					channel instanceof ForumChannel
+				) {
+					const permissions = channel.permissionsFor(
+						channel.guild.roles.everyone
+					);
+
+					if (permissions.has(PermissionFlagsBits.SendMessages))
+						await channel.permissionOverwrites.edit(
+							channel.guild.roles.everyone,
+							{
+								SendMessages: false,
+								SendMessagesInThreads: false
+							}
+						);
+				}
+			} else if (endTime <= time)
+				await ChannelLockdown.deleteOne({
+					channelId: lockdown.channelId
+				});
 		}
 	}
 }

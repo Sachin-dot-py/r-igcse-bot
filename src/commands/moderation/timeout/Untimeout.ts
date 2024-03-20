@@ -73,9 +73,8 @@ export default class UntimeoutCommand extends BaseCommand {
 			]);
 		}
 
-		const latestPunishment = await Punishment.findOne()
-			.sort({ when: -1 });
-		
+		const latestPunishment = await Punishment.findOne().sort({ when: -1 });
+
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		const undoPunishment = await Punishment.findOne({
@@ -107,8 +106,7 @@ export default class UntimeoutCommand extends BaseCommand {
 					value: `${interaction.user.tag} (${interaction.user.id})`,
 					inline: true
 				}
-			])
-			.setTimestamp();
+			]);
 
 		if (guildPreferences.modlogChannelId) {
 			await Logger.channel(
