@@ -1,3 +1,5 @@
+import { type IGuildPreferences } from "@/mongo";
+
 export const practiceSubjects: Record<string, string> = {
 	"0455": "Economics",
 	//'0606': "Additional Mathematics",
@@ -280,3 +282,89 @@ export const resourceRepositories: Record<
 		}
 	}
 };
+
+interface Preference {
+	name: string;
+	type: "boolean" | "channel" | "role";
+	key: keyof IGuildPreferences;
+	maxValues?: number;
+}
+
+export const preferences: Preference[] = [
+	{
+		name: "Enable reputation? (reps)",
+		type: "boolean",
+		key: "repEnabled"
+	},
+	{
+		name: "Rep will not be counted in these channels",
+		type: "channel",
+		key: "repDisabledChannelIds",
+		maxValues: 25
+	},
+	{
+		name: "Modlog Channel",
+		type: "channel",
+		key: "modlogChannelId"
+	},
+	{
+		name: "Action Required Channel (Logs users with 10+ interaction points)",
+		type: "channel",
+		key: "actionRequiredChannelId"
+	},
+	{
+		name: "Welcome Channel",
+		type: "channel",
+		key: "welcomeChannelId"
+	},
+	{
+		name: "Confessions Channel",
+		type: "channel",
+		key: "confessionsChannelId"
+	},
+	{
+		name: "Confession Approval Channel",
+		type: "channel",
+		key: "confessionApprovalChannelId"
+	},
+	{
+		name: "Counting Channel",
+		type: "channel",
+		key: "countingChannelId"
+	},
+	{
+		name: "HOTM Results Channel",
+		type: "channel",
+		key: "hotmResultsChannelId"
+	},
+	{
+		name: "Study Session Channel",
+		type: "channel",
+		key: "studySessionChannelId"
+	},
+	{
+		name: "Modmail Create New DM Channel",
+		type: "channel",
+		key: "modmailCreateChannelId"
+	},
+	{
+		name: "Modmail Threads Channel",
+		type: "channel",
+		key: "modmailThreadsChannelId"
+	},
+	{
+		name: "Closed DM Channel",
+		type: "channel",
+		key: "closedDmChannelId"
+	},
+	/* {
+		name: "Ban Appeal Form Link",
+		type: "string",
+		key: "banAppealFormLink",
+	}, */
+	{
+		name: "Forced Mute Role",
+		type: "role",
+		key: "forcedMuteRoleId"
+	}
+];
