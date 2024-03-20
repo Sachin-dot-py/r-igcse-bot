@@ -125,7 +125,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.displayName}`,
+			content: `Successfully timed out @${user.tag}`,
 			ephemeral: true
 		});
 	}

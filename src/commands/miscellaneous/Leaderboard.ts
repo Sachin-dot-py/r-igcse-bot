@@ -69,7 +69,7 @@ export default class LeaderboardCommand extends BaseCommand {
 				if (!member) continue;
 
 				embed.addFields({
-					name: member.displayName,
+					name: member.user.tag,
 					value: `${rep}`,
 					inline: true
 				});

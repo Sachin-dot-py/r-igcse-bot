@@ -142,7 +142,7 @@ export default class KickCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully kicked @${user.displayName}`,
+			content: `Successfully kicked @${user.tag}`,
 			ephemeral: true
 		});
 	}

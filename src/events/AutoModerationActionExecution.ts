@@ -60,7 +60,7 @@ export default class ErrorEvent extends BaseEvent {
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
-				name: autoModerationActionExecution.user.displayName,
+				name: autoModerationActionExecution.user.tag,
 				iconURL: autoModerationActionExecution.user.displayAvatarURL()
 			})
 			.addFields([
