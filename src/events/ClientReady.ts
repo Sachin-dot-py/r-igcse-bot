@@ -1,5 +1,6 @@
 import type PracticeCommand from "@/commands/study/Practice";
 import { StickyMessage } from "@/mongo";
+import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache, StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import Logger from "@/utils/Logger";
@@ -12,7 +13,6 @@ import {
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { Keyword } from "@/mongo/schemas/Keyword";
 import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
 
 export default class ClientReadyEvent extends BaseEvent {
@@ -54,7 +54,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					{
 						name: "Guild Information",
 						value: `\`\`\`Name: ${mainGuild.name}
-Owner: ${(await mainGuild.fetchOwner()).displayName}}
+Owner: ${(await mainGuild.fetchOwner()).displayName}
 Created on: ${timeFormatter(mainGuild.createdAt)}
 Members: ${mainGuild.memberCount}
 Boosts: ${mainGuild.premiumSubscriptionCount}

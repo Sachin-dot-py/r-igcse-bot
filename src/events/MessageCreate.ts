@@ -39,18 +39,18 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.inGuild()) {
-			const guildPreferences = await GuildPreferencesCache.get(
-				message.guild.id
-			);
-
-			if (!guildPreferences) return;
-
 			const keywordReponse = await KeywordCache.get(
 				message.guildId,
 				message.content.trim().toLowerCase()
 			);
 
 			if (keywordReponse) message.reply(keywordReponse);
+
+			const guildPreferences = await GuildPreferencesCache.get(
+				message.guild.id
+			);
+
+			if (!guildPreferences) return;
 
 			if (message.reference && guildPreferences.repEnabled)
 				this.handleRep(message, guildPreferences.repDisabledChannelIds);
