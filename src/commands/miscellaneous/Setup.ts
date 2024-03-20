@@ -5,6 +5,7 @@ import BaseCommand, {
 import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
+	ButtonBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	type APISelectMenuOption
@@ -15,6 +16,7 @@ import ChannelSelect from "@/components/setup/ChannelSelect";
 import RoleSelect from "@/components/setup/RoleSelect";
 import { GuildPreferencesCache } from "@/redis";
 import { v4 as uuidv4 } from "uuid";
+import SetupButtons from "@/components/setup/SetupButtons";
 
 const typeToComponent: {
 	[key: string]:
@@ -52,10 +54,17 @@ export default class SetupCommand extends BaseCommand {
 		let customId = uuidv4();
 		let pageCounter = 0;
 
-		await interaction.reply({
-			content: "Please use the dropdowns below to setup the bot.",
-			ephemeral: true
+		const setupButtons = new SetupButtons(customId);
+
+		const buttonMessage = await interaction.reply({
+			content:
+				"Please use the dropdowns and the buttons below to setup the bot.",
+			ephemeral: true,
+			components: [setupButtons as ActionRowBuilder<ButtonBuilder>],
+			fetchReply: true
 		});
+
+		setupButtons.createCollector(customId, buttonMessage);
 
 		preferences.forEach(async (preference, index) => {
 			const Component = typeToComponent[preference.type];
@@ -73,12 +82,14 @@ export default class SetupCommand extends BaseCommand {
 							{
 								label: "Yes",
 								value: "true",
-								default: guildPreferences?.[preference.key] === true
+								default:
+									guildPreferences?.[preference.key] === true
 							},
 							{
 								label: "No",
 								value: "false",
-								default: guildPreferences?.[preference.key] === false
+								default:
+									guildPreferences?.[preference.key] === false
 							}
 						);
 					}

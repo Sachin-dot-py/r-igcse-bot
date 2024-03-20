@@ -23,6 +23,8 @@ export type IGuildPreferences = {
 	banAppealFormLink: string;
 
 	forcedMuteRoleId: string;
+	welcomeChannelMessage: string;
+	welcomeDMMessage: string;
 }>;
 
 const schema = new Schema<IGuildPreferences>({
@@ -41,7 +43,9 @@ const schema = new Schema<IGuildPreferences>({
 	modmailThreadsChannelId: { type: String, default: null },
 	closedDmChannelId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
-	forcedMuteRoleId: { type: String, default: null }
+	forcedMuteRoleId: { type: String, default: null },
+	welcomeChannelMessage: { type: String, default: null },
+	welcomeDMMessage: { type: String, default: null }
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

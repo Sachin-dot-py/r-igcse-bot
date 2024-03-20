@@ -34,7 +34,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
-					"Please setup the bot using the command `/set_preferences` first.",
+					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
 			});
 			return;

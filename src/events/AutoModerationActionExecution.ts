@@ -39,7 +39,7 @@ export default class ErrorEvent extends BaseEvent {
 		const durationString = humanizeDuration(duration * 1000);
 
 		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.exec();
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;

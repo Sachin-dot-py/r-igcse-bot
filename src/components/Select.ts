@@ -4,7 +4,8 @@ import {
 	StringSelectMenuOptionBuilder,
 	ComponentType,
 	Message,
-	ModalSubmitInteraction
+	ModalSubmitInteraction,
+	type APISelectMenuOption
 } from "discord.js";
 
 class Select extends StringSelectMenuBuilder {
@@ -13,7 +14,7 @@ class Select extends StringSelectMenuBuilder {
 	constructor(
 		name: string,
 		placeholder: string,
-		options: StringSelectMenuOptionBuilder[],
+		options: StringSelectMenuOptionBuilder[] | APISelectMenuOption[],
 		max_values: number,
 		customId: string
 	) {

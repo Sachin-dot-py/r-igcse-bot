@@ -59,14 +59,14 @@ export default class TimeoutCommand extends BaseCommand {
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
-					"Please setup the bot using the command `/set_preferences` first.",
+					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
 			});
 			return;
 		}
 
 		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.exec();
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
@@ -114,24 +114,24 @@ export default class TimeoutCommand extends BaseCommand {
 
 		const modEmbed = new EmbedBuilder()
 			.setTitle(`Timeout | Case #${caseNumber}`)
-			.setDescription(reason)
 			.setColor(Colors.Red)
-			.setAuthor({
-				name: user.displayName,
-				iconURL: user.displayAvatarURL()
-			})
 			.addFields([
 				{
-					name: "User ID",
-					value: user.id,
+					name: "User",
+					value: `${user.tag} (${user.id})`,
 					inline: true
 				},
 				{
 					name: "Moderator",
-					value: interaction.user.displayName,
+					value: `${interaction.user.tag} (${interaction.user.id})`,
 					inline: true
+				},
+				{
+					name: "Reason",
+					value: reason
 				}
-			]);
+			])
+			.setTimestamp();
 
 		if (guildPreferences.modlogChannelId) {
 			await Logger.channel(

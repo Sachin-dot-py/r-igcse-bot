@@ -1,4 +1,5 @@
 import { GuildPreferences } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
@@ -6,7 +7,7 @@ import {
 	ComponentType,
 	Message,
 	ModalSubmitInteraction,
-    ChannelType,
+	ChannelType
 } from "discord.js";
 
 class ChannelSelect extends ChannelSelectMenuBuilder {
@@ -29,7 +30,12 @@ class ChannelSelect extends ChannelSelectMenuBuilder {
 		this.setPlaceholder(placeholder)
 			.setMaxValues(maxValues)
 			.setCustomId(customId)
-            .addChannelTypes(ChannelType.GuildText, ChannelType.GuildForum, ChannelType.GuildStageVoice, ChannelType.GuildVoice);
+			.addChannelTypes(
+				ChannelType.GuildText,
+				ChannelType.GuildForum,
+				ChannelType.GuildStageVoice,
+				ChannelType.GuildVoice
+			);
 	}
 
 	async createCollector(
@@ -81,6 +87,8 @@ class ChannelSelect extends ChannelSelectMenuBuilder {
 				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `<#${x}>`).join(", ")}.`,
 				ephemeral: true
 			});
+
+			await GuildPreferencesCache.remove(interaction.guildId);
 		});
 
 		selectCollector.on("end", async (collected, reason) => {

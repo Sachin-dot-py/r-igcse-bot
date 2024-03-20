@@ -5,18 +5,23 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
-	ComponentType,
+	type ButtonBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	StringSelectMenuBuilder
+	EmbedBuilder
 } from "discord.js";
+import Select from "@/components/Select";
+import { v4 as uuidv4 } from "uuid";
+import Buttons from "@/components/practice/views/Buttons";
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 
 export default class extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("remove_infractions")
-				.setDescription("Remove infractions (for mods)")
+				.setName("remove_infraction")
+				.setDescription("Remove infraction (for mods)")
 				.setDMPermission(false)
 				.addUserOption((option) =>
 					option
@@ -49,53 +54,86 @@ export default class extends BaseCommand {
 			return;
 		}
 
-		const punishmentSelect = new StringSelectMenuBuilder()
-			.setCustomId("infraction")
-			.setMinValues(1)
-			.setPlaceholder("Punishments")
-			.addOptions(
-				...punishments.map(({ caseId, action, reason, id }) => ({
-					label: `Case#${caseId} | ${action} - ${reason}`,
-					value: id
-				}))
-			);
+		const customId = uuidv4();
 
-		const row =
-			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-				punishmentSelect
-			);
+		const punishmentSelect = new Select(
+			"punishment",
+			"Select a punishment to remove",
+			punishments.map(({ caseId, action, reason, id }) => ({
+				label: `Case #${caseId ?? "Unknown"} | ${action} - ${reason}`,
+				value: id
+			})),
+			1,
+			customId
+		);
 
-		const interactionResponse = await interaction.reply({
-			components: [row],
+		const selectInteraction = await interaction.reply({
+			content: "Select a punishment to remove",
+			components: [
+				new ActionRowBuilder<Select>().addComponents(punishmentSelect),
+				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
+			],
+			fetchReply: true,
 			ephemeral: true
 		});
 
-		await interactionResponse
-			.createMessageComponentCollector({
-				time: 60000,
-				componentType: ComponentType.StringSelect,
-				filter: (i) =>
-					i.user.id === interaction.user.id &&
-					i.customId === "infraction"
-			})
-			.on("collect", async (selectInteraction) => {
-				await interaction.deleteReply();
+		const response = await punishmentSelect.waitForResponse(
+			customId,
+			selectInteraction,
+			interaction,
+			true
+		);
 
-				for (const id of selectInteraction.values) {
-					const res = await Punishment.findByIdAndDelete(id);
+		if (!response || response === "Timed out") return;
 
-					if (!res) {
-						interaction.followUp({
-							content: `Unable to delete: ${id}`
-						});
+		const punishment = await Punishment.findById(response[0]);
 
-						return;
-					}
-
-					interaction.followUp({
-						content: `Deleted #${res.caseId}`
-					});
-				}
+		if (!punishment) {
+			await interaction.reply({
+				content: "Punishment not found",
+				ephemeral: true
 			});
+			return;
+		}
+
+		await punishment.deleteOne();
+
+		await interaction.editReply({
+			content: `Punishment removed for ${user.username}`,
+			components: []
+		});
+
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId
+		);
+
+		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
+
+		await Logger.channel(
+			interaction.guild,
+			guildPreferences.modlogChannelId,
+			{
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Punishment Removed")
+						.setDescription(
+							`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`
+						)
+						.addFields(
+							{
+								name: "Punishment Reason",
+								value: punishment.reason
+							},
+							{
+								name: "Action",
+								value: punishment.action
+							}
+						)
+						.setFooter({
+							text: `Case #${punishment.caseId ?? "Unknown"}`
+						})
+				]
+			}
+		);
 	}
 }
