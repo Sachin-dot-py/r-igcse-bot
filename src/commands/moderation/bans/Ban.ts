@@ -138,7 +138,7 @@ export default class BanCommand extends BaseCommand {
 				})
 				.setColor(Colors.Red)
 				.setAuthor({
-					name: user.tag,
+					name: user.displayName,
 					iconURL: user.displayAvatarURL()
 				})
 				.addFields([
@@ -149,7 +149,7 @@ export default class BanCommand extends BaseCommand {
 					},
 					{
 						name: "Moderator",
-						value: interaction.user.tag,
+						value: interaction.user.displayName,
 						inline: true
 					}
 				]);

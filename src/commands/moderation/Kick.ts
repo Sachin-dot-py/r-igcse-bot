@@ -115,7 +115,7 @@ export default class KickCommand extends BaseCommand {
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
-				name: user.tag,
+				name: user.displayName,
 				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
@@ -126,7 +126,7 @@ export default class KickCommand extends BaseCommand {
 				},
 				{
 					name: "Moderator",
-					value: interaction.user.tag,
+					value: interaction.user.displayName,
 					inline: true
 				}
 			]);
@@ -142,7 +142,7 @@ export default class KickCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully kicked @${user.tag}`,
+			content: `Successfully kicked @${user.displayName}`,
 			ephemeral: true
 		});
 	}

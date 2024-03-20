@@ -60,7 +60,7 @@ export default class extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Changed ${user.tag} rep to ${newRep}`,
+			content: `Changed ${user.displayName} rep to ${newRep}`,
 			ephemeral: true
 		});
 	}

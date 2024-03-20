@@ -78,7 +78,7 @@ export default class WarnCommand extends BaseCommand {
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
-				name: user.tag,
+				name: user.displayName,
 				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
@@ -89,7 +89,7 @@ export default class WarnCommand extends BaseCommand {
 				},
 				{
 					name: "Moderator",
-					value: interaction.user.tag,
+					value: interaction.user.displayName,
 					inline: true
 				}
 			]);
@@ -105,7 +105,7 @@ export default class WarnCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully warned @${user.tag}`,
+			content: `Successfully warned @${user.displayName}`,
 			ephemeral: true
 		});
 	}

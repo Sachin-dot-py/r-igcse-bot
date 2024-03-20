@@ -101,7 +101,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			.setTitle(`Timeout Removed | Case #${caseNumber}`)
 			.setColor(Colors.Green)
 			.setAuthor({
-				name: user.tag,
+				name: user.displayName,
 				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
@@ -112,7 +112,7 @@ export default class UntimeoutCommand extends BaseCommand {
 				},
 				{
 					name: "Moderator",
-					value: interaction.user.tag,
+					value: interaction.user.displayName,
 					inline: true
 				}
 			]);
@@ -128,7 +128,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.tag}`,
+			content: `Successfully timed out @${user.displayName}`,
 			ephemeral: true
 		});
 	}

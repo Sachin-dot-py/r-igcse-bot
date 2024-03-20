@@ -113,7 +113,7 @@ export default class ApplyCommand extends BaseCommand {
 							.addFields(
 								{
 									name: "Name",
-									value: interaction.user.tag
+									value: interaction.user.displayName
 								},
 								{
 									name: "Timezone",
