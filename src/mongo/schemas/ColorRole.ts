@@ -2,18 +2,23 @@ import { Schema, model as createModel } from "mongoose";
 
 export interface IColorRole {
 	guildId: string;
-	requirementRoleId: string;
-	emoji: string;
 	label: string;
 	roleId: string;
+	requirementRoleId: string | null;
+	emoji: string | null;
 }
 
 const schema = new Schema<IColorRole>({
 	guildId: { type: String, required: true, unique: false },
-	requirementRoleId: { type: String, required: false, unique: false },
-	emoji: { type: String, required: false, unique: true },
-	label: { type: String, required: true, unique: true },
-	roleId: { type: String, required: true, unique: true }
+	requirementRoleId: {
+		type: String,
+		required: false,
+		default: null,
+		unique: false
+	},
+	emoji: { type: String, required: false, default: null, unique: false },
+	label: { type: String, required: true, unique: false },
+	roleId: { type: String, required: true, unique: false }
 });
 
 export const ColorRole = createModel<IColorRole>("ColorRole", schema);

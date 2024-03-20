@@ -9,7 +9,8 @@ import {
 	ComponentType,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
-	StringSelectMenuInteraction
+	StringSelectMenuInteraction,
+	StringSelectMenuOptionBuilder
 } from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
@@ -40,7 +41,9 @@ export default class ColorRolesCommand extends BaseCommand {
 		}
 
 		const colorRoles = guildColorRoles.filter(({ requirementRoleId }) =>
-			interaction.member.roles.cache.has(requirementRoleId)
+			requirementRoleId
+				? interaction.member.roles.cache.has(requirementRoleId)
+				: true
 		);
 
 		// TODO: Allow server boosters to have this as a perk
@@ -59,11 +62,13 @@ export default class ColorRolesCommand extends BaseCommand {
 			.setMinValues(0)
 			.setMaxValues(1)
 			.addOptions(
-				colorRoles.map((colorRole) => ({
-					emoji: colorRole.emoji,
-					label: colorRole.label,
-					value: colorRole.roleId
-				}))
+				colorRoles.map(({ label, roleId, emoji }) =>
+					((x) => (emoji ? x.setEmoji(emoji) : x))(
+						new StringSelectMenuOptionBuilder()
+							.setLabel(label)
+							.setValue(roleId)
+					)
+				)
 			);
 
 		const row =
