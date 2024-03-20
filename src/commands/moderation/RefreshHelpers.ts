@@ -42,7 +42,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 
 		const studyChannels = await StudyChannel.find({
 			guildId: interaction.guildId
-		}).exec();
+		});
 
 		const changed: string[] = [];
 

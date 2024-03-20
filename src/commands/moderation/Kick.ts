@@ -65,10 +65,9 @@ export default class KickCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: 1 })
-			.exec();
-
+		const latestPunishment = await Punishment.findOne().sort({
+			createdAt: 1
+		});
 		const caseNumber = latestPunishment?.caseId ?? 0;
 
 		const dmEmbed = new EmbedBuilder()

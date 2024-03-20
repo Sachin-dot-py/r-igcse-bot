@@ -121,7 +121,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	}
 
 	private async loadKeywordsCache() {
-		const keywords = await Keyword.find().exec();
+		const keywords = await Keyword.find();
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const { _id, ...rest } of keywords.map((keyword) =>
@@ -133,7 +133,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	private async refreshStickyMessagesCache() {
 		const time = Date.now();
 
-		const stickyMessages = await StickyMessage.find().exec();
+		const stickyMessages = await StickyMessage.find();
 
 		for (const stickyMessage of stickyMessages) {
 			const stickTime = parseInt(stickyMessage.stickTime);
@@ -148,7 +148,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			else if (unstickTime <= time) {
 				await StickyMessage.deleteOne({
 					messageId: stickyMessage.messageId
-				}).exec();
+				});
 
 				await StickyMessageCache.remove(stickyMessage.id);
 			}

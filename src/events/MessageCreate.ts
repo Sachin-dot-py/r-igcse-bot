@@ -217,7 +217,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (!channel || !(channel instanceof TextChannel)) return;
 		const res = await PrivateDmThread.findOne({
 			userId: message.author.id
-		}).exec();
+		});
 
 		let thread: ThreadChannel;
 
@@ -317,7 +317,7 @@ export default class MessageCreateEvent extends BaseEvent {
 						{
 							upsert: true
 						}
-					).exec();
+					);
 
 					if (!res) return;
 

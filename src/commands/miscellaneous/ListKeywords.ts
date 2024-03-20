@@ -33,7 +33,7 @@ export default class ListKeywordsCommand extends BaseCommand {
 
 		const keywords = await Keyword.find({
 			guildId: interaction.guildId
-		}).exec();
+		});
 
 		if (keywords.length === 0) {
 			await interaction.reply({

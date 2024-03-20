@@ -38,7 +38,7 @@ export default class HistoryCommand extends BaseCommand {
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
 			actionAgainst: user.id
-		}).exec();
+		});
 
 		if (punishments.length < 1) {
 			await interaction.reply({

@@ -43,7 +43,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const userVotes = await HOTMUser.findOne({
 			guildId: interaction.guild.id,
 			userId: interaction.user.id
-		}).exec();
+		});
 
 		if (userVotes?.votesLeft === 0) {
 			await interaction.reply({

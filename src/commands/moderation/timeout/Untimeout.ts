@@ -73,20 +73,16 @@ export default class UntimeoutCommand extends BaseCommand {
 			]);
 		}
 
-		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: 1 })
-			.exec();
-
+		const latestPunishment = await Punishment.findOne().sort({
+			createdAt: 1
+		});
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		const undoPunishment = await Punishment.findOne({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			action: "Timeout"
-		})
-			.sort({ createdAt: 1 })
-			.exec();
-
+		}).sort({ createdAt: 1 });
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
