@@ -24,13 +24,9 @@ const schema = new Schema("GuildPreferences", {
 	modmailThreadsChannelId: { type: "string" },
 	closedDmChannelId: { type: "string" },
 	banAppealFormLink: { type: "string" },
-	keywords: { type: "string[]" },
-	emoji: { type: "string", path: "$.colorRoles[*]" },
-	label: { type: "string", path: "$.colorRoles[*]" },
-	id: { type: "string", path: "$.colorRoles[*]" },
-	requirementRoleId: { type: "string", path: "$.colorRoles[*]" },
-	roleId: { type: "string", path: "$.helperRoles[*]" },
-	channelId: { type: "string", path: "$.helperRoles[*]" }
+	forcedMuteRoleId: { type: "string" },
+	welcomeChannelMessage: { type: "string" },
+	welcomeDMMessage: { type: "string" }
 });
 
 export class GuildPreferencesRepository extends Repository {

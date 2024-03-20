@@ -1,4 +1,5 @@
 import { GuildPreferences } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
@@ -26,7 +27,6 @@ class RoleSelect extends RoleSelectMenuBuilder {
 		// every 5th component is the first component aka 0, 5, 10 and so on
 		this.isFirstComponent = parseInt(customId.split("_")[1]) % 5 === 0;
 		this.setPlaceholder(placeholder)
-            .setMinValues(1)
 			.setMaxValues(maxValues)
 			.setCustomId(customId);
 	}
@@ -80,6 +80,8 @@ class RoleSelect extends RoleSelectMenuBuilder {
 				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `<@&${x}>`).join(", ")}.`,
 				ephemeral: true
 			});
+
+			await GuildPreferencesCache.remove(interaction.guildId);
 		});
 
 		selectCollector.on("end", async (collected, reason) => {

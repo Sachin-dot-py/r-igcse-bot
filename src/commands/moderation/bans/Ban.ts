@@ -77,14 +77,14 @@ export default class BanCommand extends BaseCommand {
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
-					"Please configure the bot using `/set_preferences` command first.",
+					"Please configure the bot using `/setup` command first.",
 				ephemeral: true
 			});
 			return;
 		}
 
 		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.exec();
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
@@ -132,27 +132,24 @@ export default class BanCommand extends BaseCommand {
 		if (guildPreferences.modlogChannelId) {
 			const modEmbed = new EmbedBuilder()
 				.setTitle(`Ban | Case #${caseNumber}`)
-				.setDescription(reason)
-				.setFooter({
-					text: `${deleteMessagesDays} days of messages deleted`
-				})
 				.setColor(Colors.Red)
-				.setAuthor({
-					name: user.displayName,
-					iconURL: user.displayAvatarURL()
-				})
 				.addFields([
 					{
-						name: "User ID",
-						value: user.id,
+						name: "User",
+						value: `${user.tag} (${user.id})`,
 						inline: true
 					},
 					{
 						name: "Moderator",
-						value: interaction.user.displayName,
+						value: `${interaction.user.tag} (${interaction.user.id})`,
 						inline: true
+					},
+					{
+						name: "Reason",
+						value: reason
 					}
-				]);
+				])
+				.setTimestamp();
 
 			await Logger.channel(
 				interaction.guild,

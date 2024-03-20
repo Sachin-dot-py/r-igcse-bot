@@ -55,7 +55,7 @@ export default class UnbanCommand extends BaseCommand {
 		}
 
 		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.exec();
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
@@ -90,22 +90,19 @@ export default class UnbanCommand extends BaseCommand {
 			const modEmbed = new EmbedBuilder()
 				.setTitle(`Unban | Case #${caseNumber}`)
 				.setColor(Colors.Red)
-				.setAuthor({
-					name: user.displayName,
-					iconURL: user.displayAvatarURL()
-				})
 				.addFields([
 					{
-						name: "User ID",
-						value: user.id,
+						name: "User",
+						value: `${user.tag} (${user.id})`,
 						inline: true
 					},
 					{
 						name: "Moderator",
-						value: interaction.user.displayName,
+						value: `${interaction.user.tag} (${interaction.user.id})`,
 						inline: true
 					}
-				]);
+				])
+				.setTimestamp();
 
 			await Logger.channel(
 				interaction.guild,

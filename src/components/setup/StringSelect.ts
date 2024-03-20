@@ -1,4 +1,5 @@
 import { GuildPreferences } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
@@ -79,6 +80,8 @@ class StringSelect extends StringSelectMenuBuilder {
 				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `\`${x}\``).join(", ")}.`,
 				ephemeral: true
 			});
+
+			await GuildPreferencesCache.remove(interaction.guildId);
 		});
 
 		selectCollector.on("end", async (collected, reason) => {

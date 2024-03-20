@@ -1,3 +1,4 @@
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -5,6 +6,7 @@ import BaseCommand, {
 import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
+	EmbedBuilder,
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -34,10 +36,10 @@ export default class KickCommand extends BaseCommand {
 					command
 						.setName("edit")
 						.setDescription("Edit a message")
-						.addIntegerOption((option) =>
+						.addStringOption((option) =>
 							option
 								.setName("message_id")
-								.setDescription("Id of message to send")
+								.setDescription("Id of message to edit")
 						)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
@@ -93,7 +95,7 @@ export default class KickCommand extends BaseCommand {
 						i.customId === "send_message" &&
 						i.user.id === interaction.user.id,
 
-					time: 24000000
+					time: 300_000 // 5 minutes
 				})
 				.then(async (i) => {
 					await channel.send({
@@ -103,6 +105,42 @@ export default class KickCommand extends BaseCommand {
 								i.fields.getTextInputValue("reply_message_id")
 						}
 					});
+
+					await i.reply({
+						content: "Message sent!",
+						ephemeral: true
+					});
+
+					const guildPreferences = await GuildPreferencesCache.get(
+						interaction.guildId
+					);
+
+					if (!guildPreferences || !guildPreferences.modlogChannelId)
+						return;
+
+					await Logger.channel(
+						interaction.guild,
+						guildPreferences.modlogChannelId,
+						{
+							embeds: [
+								new EmbedBuilder()
+									.setTitle("Message Sent")
+									.setDescription(
+										`Message sent by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`
+									)
+									.setColor("Green")
+									.addFields({
+										name: "Message Content",
+										value:
+											i.fields.getTextInputValue(
+												"message_content"
+											) ?? "None",
+										inline: true
+									})
+									.setTimestamp()
+							]
+						}
+					);
 				})
 				.catch(Logger.error);
 		} else if (interaction.options.getSubcommand() === "edit") {
@@ -120,6 +158,7 @@ export default class KickCommand extends BaseCommand {
 			);
 
 			const message = await interaction.channel.messages.fetch(messageId);
+			const oldMessageContent = message.content;
 
 			if (!message) {
 				await interaction.reply({
@@ -142,7 +181,7 @@ export default class KickCommand extends BaseCommand {
 					filter: (i) =>
 						i.customId === "edit_message" &&
 						i.user.id === interaction.user.id,
-					time: 24000000
+					time: 300_000 // 5 minutes
 				})
 				.then(async (i) => {
 					if (!interaction.channel) return;
@@ -150,6 +189,49 @@ export default class KickCommand extends BaseCommand {
 					await message.edit({
 						content: i.fields.getTextInputValue("message_content")
 					});
+
+					await i.reply({
+						content: "Message edited!",
+						ephemeral: true
+					});
+
+					const guildPreferences = await GuildPreferencesCache.get(
+						interaction.guildId
+					);
+
+					if (!guildPreferences || !guildPreferences.modlogChannelId)
+						return;
+
+					await Logger.channel(
+						interaction.guild,
+						guildPreferences.modlogChannelId,
+						{
+							embeds: [
+								new EmbedBuilder()
+									.setTitle("Message Edited")
+									.setDescription(
+										`Message edited by ${interaction.user.tag} (${interaction.user.id}) in <#${interaction.channel.id}>`
+									)
+									.setColor("Green")
+									.addFields(
+										{
+											name: "New Message Content",
+											value:
+												i.fields.getTextInputValue(
+													"message_content"
+												) ?? "None",
+											inline: true
+										},
+										{
+											name: "Old Message Content",
+											value: oldMessageContent,
+											inline: true
+										}
+									)
+									.setTimestamp()
+							]
+						}
+					);
 				})
 				.catch(Logger.error);
 		}

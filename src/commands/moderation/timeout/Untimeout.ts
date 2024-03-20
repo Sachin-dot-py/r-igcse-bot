@@ -54,7 +54,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		if (!guildPreferences) {
 			await interaction.reply({
 				content:
-					"Please setup the bot using the command `/set_preferences` first.",
+					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
 			});
 			return;
@@ -74,7 +74,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.exec();
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
@@ -84,7 +84,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			actionAgainst: user.id,
 			action: "Timeout"
 		})
-			.sort({ createdAt: -1 })
+			.sort({ createdAt: 1 })
 			.exec();
 
 		await Punishment.create({
@@ -98,24 +98,21 @@ export default class UntimeoutCommand extends BaseCommand {
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`Timeout Removed | Case #${caseNumber}`)
-			.setColor(Colors.Green)
-			.setAuthor({
-				name: user.displayName,
-				iconURL: user.displayAvatarURL()
-			})
+			.setTitle(`Untimeout | Case #${caseNumber}`)
+			.setColor(Colors.Red)
 			.addFields([
 				{
-					name: "User ID",
-					value: user.id,
+					name: "User",
+					value: `${user.tag} (${user.id})`,
 					inline: true
 				},
 				{
 					name: "Moderator",
-					value: interaction.user.displayName,
+					value: `${interaction.user.tag} (${interaction.user.id})`,
 					inline: true
 				}
-			]);
+			])
+			.setTimestamp();
 
 		if (guildPreferences.modlogChannelId) {
 			await Logger.channel(
