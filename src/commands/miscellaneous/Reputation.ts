@@ -31,7 +31,7 @@ export default class ReputationCommand extends BaseCommand {
 		const res = await Reputation.findOne({
 			guildId: interaction.guild.id,
 			userId: user.id
-		}).exec();
+		});
 
 		const rep = res?.rep || 0;
 

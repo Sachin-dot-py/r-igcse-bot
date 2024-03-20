@@ -43,7 +43,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const userVotes = await HOTMUser.findOne({
 			guildId: interaction.guild.id,
 			userId: interaction.user.id
-		}).exec();
+		});
 
 		if (userVotes?.votesLeft === 0) {
 			await interaction.reply({
@@ -71,7 +71,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (!helperRoles.some((role) => role.members.has(helper.id))) {
 			await interaction.reply({
-				content: `${helper.displayName} is not a helper`,
+				content: `${helper.tag} is not a helper`,
 				ephemeral: true
 			});
 
@@ -91,7 +91,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		);
 
 		await interaction.reply({
-			content: `You voted for ${helper.displayName} and have ${(userVotes?.votesLeft ?? 3) - 1} votes left.`,
+			content: `You voted for ${helper.tag} and have ${(userVotes?.votesLeft ?? 3) - 1} votes left.`,
 			ephemeral: true
 		});
 	}

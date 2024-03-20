@@ -39,7 +39,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 		const reps = await Reputation.find({
 			guildId: interaction.guildId
-		}).exec();
+		});
 
 		if (reps.length === 0) {
 			await interaction.reply({
@@ -69,7 +69,7 @@ export default class LeaderboardCommand extends BaseCommand {
 				if (!member) continue;
 
 				embed.addFields({
-					name: member.displayName,
+					name: member.user.tag,
 					value: `${rep}`,
 					inline: true
 				});

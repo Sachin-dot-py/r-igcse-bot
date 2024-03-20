@@ -82,10 +82,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			action: "Timeout"
-		})
-			.sort({ createdAt: 1 })
-			.exec();
-
+		}).sort({ createdAt: 1 });
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
@@ -124,7 +121,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.displayName}`,
+			content: `Successfully timed out @${user.tag}`,
 			ephemeral: true
 		});
 	}

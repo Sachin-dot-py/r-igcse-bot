@@ -42,7 +42,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 
 		const studyChannels = await StudyChannel.find({
 			guildId: interaction.guildId
-		}).exec();
+		});
 
 		const changed: string[] = [];
 
@@ -79,7 +79,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setAuthor({
-				name: `Helpers Refreshed - ${interaction.user.displayName}`,
+				name: `Helpers Refreshed - ${interaction.user.tag}`,
 				iconURL: interaction.user.displayAvatarURL()
 			})
 			.addFields(

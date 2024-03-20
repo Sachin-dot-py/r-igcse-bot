@@ -116,7 +116,7 @@ export default class FeedbackCommand extends BaseCommand {
 			.setDescription(feedback)
 			.setColor(Colors.Blue)
 			.setAuthor({
-				name: interaction.user.displayName,
+				name: interaction.user.tag,
 				iconURL: interaction.user.displayAvatarURL()
 			});
 

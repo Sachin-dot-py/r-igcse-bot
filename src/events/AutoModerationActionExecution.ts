@@ -38,10 +38,9 @@ export default class ErrorEvent extends BaseEvent {
 
 		const durationString = humanizeDuration(duration * 1000);
 
-		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: 1 })
-			.exec();
-
+		const latestPunishment = await Punishment.findOne().sort({
+			createdAt: 1
+		});
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		await Punishment.create({
@@ -60,7 +59,7 @@ export default class ErrorEvent extends BaseEvent {
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
-				name: autoModerationActionExecution.user.displayName,
+				name: autoModerationActionExecution.user.tag,
 				iconURL: autoModerationActionExecution.user.displayAvatarURL()
 			})
 			.addFields([

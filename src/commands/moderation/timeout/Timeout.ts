@@ -67,7 +67,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		const latestPunishment = await Punishment.findOne()
 			.sort({ when: -1 });
-		
+
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		const duration = ["unspecified", "permanent", "undecided"].some((s) =>
@@ -143,7 +143,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.displayName}`,
+			content: `Successfully timed out @${user.tag}`,
 			ephemeral: true
 		});
 	}

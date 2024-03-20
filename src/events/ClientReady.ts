@@ -39,22 +39,22 @@ export default class ClientReadyEvent extends BaseEvent {
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
 			const readyEmbed = new EmbedBuilder()
-				.setTitle(`${client.user.displayName} restarted successfully!`)
+				.setTitle(`${client.user.tag} restarted successfully!`)
 				.setColor(Colors.Green)
 				.setAuthor({
-					name: client.user.displayName,
+					name: client.user.tag,
 					iconURL: client.user.displayAvatarURL()
 				})
 				.addFields([
 					{
 						name: "Bot Information",
-						value: `\`\`\`Name: ${client.user.displayName}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
+						value: `\`\`\`Name: ${client.user.tag}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
 						inline: false
 					},
 					{
 						name: "Guild Information",
 						value: `\`\`\`Name: ${mainGuild.name}
-Owner: ${(await mainGuild.fetchOwner()).displayName}
+Owner: ${(await mainGuild.fetchOwner()).user.tag}
 Created on: ${timeFormatter(mainGuild.createdAt)}
 Members: ${mainGuild.memberCount}
 Boosts: ${mainGuild.premiumSubscriptionCount}
@@ -121,7 +121,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	}
 
 	private async loadKeywordsCache() {
-		const keywords = await Keyword.find().exec();
+		const keywords = await Keyword.find();
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const { _id, ...rest } of keywords.map((keyword) =>
@@ -133,7 +133,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	private async refreshStickyMessagesCache() {
 		const time = Date.now();
 
-		const stickyMessages = await StickyMessage.find().exec();
+		const stickyMessages = await StickyMessage.find();
 
 		for (const stickyMessage of stickyMessages) {
 			const stickTime = parseInt(stickyMessage.stickTime);
@@ -148,7 +148,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			else if (unstickTime <= time) {
 				await StickyMessage.deleteOne({
 					messageId: stickyMessage.messageId
-				}).exec();
+				});
 
 				await StickyMessageCache.remove(stickyMessage.id);
 			}

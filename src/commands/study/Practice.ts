@@ -427,8 +427,8 @@ Session ID: ${sessionId}`
 		const sessionOpts: StringSelectMenuOptionBuilder[] = sessions.map(
 			(session) => {
 				const sessionOwner =
-					interaction.guild?.members.cache.get(session.owner)
-						?.displayName || session.owner;
+					interaction.guild?.members.cache.get(session.owner)?.user
+						.tag || session.owner;
 				return new StringSelectMenuOptionBuilder()
 					.setLabel(session.sessionId)
 					.setDescription(
@@ -814,7 +814,7 @@ Session ID: ${sessionId}`
 					}
 				}
 				fields.push({
-					name: discordUser?.displayName || user,
+					name: discordUser?.user.tag || user,
 					value: `${correct}/${total} (${((correct / total) * 100).toFixed(2)}%)`,
 					inline: true
 				});
