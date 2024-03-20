@@ -117,7 +117,7 @@ export default class TimeoutCommand extends BaseCommand {
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
-				name: user.displayName,
+				name: user.tag,
 				iconURL: user.displayAvatarURL()
 			})
 			.addFields([
@@ -128,7 +128,7 @@ export default class TimeoutCommand extends BaseCommand {
 				},
 				{
 					name: "Moderator",
-					value: interaction.user.displayName,
+					value: interaction.user.tag,
 					inline: true
 				}
 			]);
@@ -144,7 +144,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.displayName}`,
+			content: `Successfully timed out @${user.tag}`,
 			ephemeral: true
 		});
 	}

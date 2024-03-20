@@ -91,7 +91,7 @@ export default class UnbanCommand extends BaseCommand {
 				.setTitle(`Unban | Case #${caseNumber}`)
 				.setColor(Colors.Red)
 				.setAuthor({
-					name: user.displayName,
+					name: user.tag,
 					iconURL: user.displayAvatarURL()
 				})
 				.addFields([
@@ -102,7 +102,7 @@ export default class UnbanCommand extends BaseCommand {
 					},
 					{
 						name: "Moderator",
-						value: interaction.user.displayName,
+						value: interaction.user.tag,
 						inline: true
 					}
 				]);

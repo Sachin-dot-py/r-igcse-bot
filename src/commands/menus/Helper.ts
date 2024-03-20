@@ -64,7 +64,7 @@ export default class HelperMenu extends BaseCommand {
 				`The helper role(s) for this channel (@${role.name}) will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
 			)
 			.setAuthor({
-				name: interaction.user.displayName,
+				name: interaction.user.tag,
 				iconURL: interaction.user.displayAvatarURL()
 			});
 
@@ -93,7 +93,7 @@ export default class HelperMenu extends BaseCommand {
 		collector.on("collect", async (i) => {
 			if (!(i.customId === "cancel_ping")) return;
 			interaction.editReply({
-				content: `Ping cancelled by ${i.user.displayName}`
+				content: `Ping cancelled by ${i.user.tag}`
 			});
 		});
 
@@ -105,7 +105,7 @@ export default class HelperMenu extends BaseCommand {
 					`[Jump to the message.](${interaction.targetMessage.url})`
 				)
 				.setAuthor({
-					name: interaction.user.displayName,
+					name: interaction.user.tag,
 					iconURL: interaction.user.displayAvatarURL()
 				});
 

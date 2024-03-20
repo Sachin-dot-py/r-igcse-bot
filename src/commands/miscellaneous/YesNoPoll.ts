@@ -33,7 +33,7 @@ export default class YesNoPollCommand extends BaseCommand {
 			.setTitle(poll)
 			.setDescription("Total Votes: 0\n\nNo one has voted")
 			.setAuthor({
-				name: interaction.user.displayName,
+				name: interaction.user.tag,
 				iconURL: interaction.user.displayAvatarURL()
 			});
 

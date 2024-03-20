@@ -77,15 +77,17 @@ export default class MessageCreateEvent extends BaseEvent {
 			}
 
 			if (message.channelId === guildPreferences.modmailCreateChannelId) {
-				const user = await message.guild.members.fetch(message.content);
+				const member = await message.guild.members.fetch(
+					message.content
+				);
 
-				if (!user) {
+				if (!member) {
 					await message.reply("Invalid User ID");
 					return;
 				}
 
 				const res = await PrivateDmThread.findOne({
-					userId: user.id
+					userId: member.id
 				});
 
 				if (res) {
@@ -111,8 +113,8 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				try {
 					await message.channel.threads.create({
-						name: user.id,
-						startMessage: `Username: \`${user.displayName}\`\nUser ID: \`${user.id}\``
+						name: member.id,
+						startMessage: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``
 					});
 				} catch (error) {
 					await message.reply("Unable to create thread");

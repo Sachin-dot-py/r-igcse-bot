@@ -42,7 +42,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		if (punishments.length < 1) {
 			await interaction.reply({
-				content: `${user.displayName} does not have any previous offenses.`,
+				content: `${user.tag} does not have any previous offenses.`,
 				ephemeral: true
 			});
 
@@ -51,7 +51,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setAuthor({
-				name: `Moderation History for ${user.displayName}`,
+				name: `Moderation History for ${user.tag}`,
 				iconURL: user.displayAvatarURL()
 			})
 			.setColor(Colors.DarkOrange)
