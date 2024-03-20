@@ -58,9 +58,8 @@ export default class WarnCommand extends BaseCommand {
 		}
 
 		const latestPunishment = await Punishment.findOne()
-			.sort({ createdAt: 1 })
-			.exec();
-
+			.sort({ when: -1 });
+		
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		await Punishment.create({

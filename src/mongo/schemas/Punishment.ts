@@ -1,8 +1,8 @@
 import { Schema, model as createModel } from "mongoose";
 
 export type IPunishment = {
-	actionAgainst: number;
-	actionBy: number;
+	actionAgainst: string;
+	actionBy: string;
 	when: Date;
 	points: number;
 	guildId: string;
@@ -26,12 +26,12 @@ const schema = new Schema<IPunishment>({
 		unique: false
 	},
 	actionAgainst: {
-		type: Number,
+		type: String,
 		required: true,
 		unique: false
 	},
 	actionBy: {
-		type: Number,
+		type: String,
 		required: true,
 		unique: false
 	},
