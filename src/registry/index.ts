@@ -86,9 +86,7 @@ export async function syncInteractions(
 	let data = [...client.interactionData];
 
 	if (!guildId || guildId !== "576460042774118420")
-		data = data.filter(({ name }) =>
-			["apply", "feedback"].some((x) => name !== x)
-		);
+		data = data.filter(({ name }) => !["apply", "feedback"].includes(name));
 
 	try {
 		await client.rest.put(

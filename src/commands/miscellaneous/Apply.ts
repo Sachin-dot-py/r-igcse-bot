@@ -44,13 +44,15 @@ export default class ApplyCommand extends BaseCommand {
 			);
 
 		const message = await interaction.reply({
-			components: [row]
+			components: [row],
+			ephemeral: true
 		});
 
 		message
 			.awaitMessageComponent({
 				filter: (i: StringSelectMenuInteraction) =>
-					i.customId === "chat_mod" &&
+					i.customId === "position_select" &&
+					i.values[0] === "chat_mod" &&
 					i.user.id === interaction.user.id,
 				componentType: ComponentType.StringSelect
 			})
