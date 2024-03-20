@@ -1,3 +1,5 @@
+import { Keyword } from "@/mongo/schemas/Keyword";
+import { KeywordCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -11,10 +13,32 @@ export default class KeywordCommand extends BaseCommand {
 				.setName("keyword")
 				.setDescription("Create / Delete keywords for a server")
 				.addSubcommand((command) =>
-					command.setName("add").setDescription("Add a keyword")
+					command
+						.setName("add")
+						.setDescription("Add a keyword")
+						.addStringOption((option) =>
+							option
+								.setName("keyword")
+								.setDescription("Name of the keyword")
+								.setRequired(true)
+						)
+						.addStringOption((option) =>
+							option
+								.setName("response")
+								.setDescription("Response to the keyword")
+								.setRequired(true)
+						)
 				)
 				.addSubcommand((command) =>
-					command.setName("remove").setDescription("Remove a keyword")
+					command
+						.setName("remove")
+						.setDescription("Remove a keyword")
+						.addStringOption((option) =>
+							option
+								.setName("keyword")
+								.setDescription("Keyword to remove")
+								.setRequired(true)
+						)
 				)
 				.setDMPermission(false)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -26,9 +50,66 @@ export default class KeywordCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		if (interaction.options.getSubcommand() === "add") {
-			// TODO: Add keyword
+			const keyword = interaction.options.getString("keyword", true);
+			const response = interaction.options.getString("response", true);
+
+			const res = await Keyword.updateOne(
+				{
+					guildId: interaction.guildId,
+					keyword
+				},
+				{
+					response
+				},
+				{
+					upsert: true
+				}
+			);
+
+			if (res.modifiedCount + res.upsertedCount < 1) {
+				await interaction.reply({
+					content:
+						"Error occured while creating keyword. Please try again later.",
+					ephemeral: true
+				});
+
+				return;
+			}
+
+			await interaction.reply({
+				content: `Successfully created keyword ${keyword}`,
+				ephemeral: true
+			});
+
+			await KeywordCache.append({
+				guildId: interaction.guildId,
+				keyword,
+				response
+			});
 		} else if (interaction.options.getSubcommand() === "remove") {
-			// TODO: Remove keyword
+			const keyword = interaction.options.getString("keyword", true);
+
+			const res = await Keyword.deleteOne({
+				guildId: interaction.guildId,
+				keyword
+			});
+
+			if (res.deletedCount < 1) {
+				await interaction.reply({
+					content:
+						"Error occured while deleting keyword. Please try again later.",
+					ephemeral: true
+				});
+
+				return;
+			}
+
+			await interaction.reply({
+				content: `Successfully deleted \`${keyword}\`.`,
+				ephemeral: true
+			});
+
+			await KeywordCache.delete(interaction.guildId, keyword);
 		}
 	}
 }

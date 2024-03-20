@@ -25,11 +25,13 @@ export class KeywordRepository extends Repository {
 		).response;
 	}
 
+	async delete(guildId: string, keyword: string) {
+		await this.remove(`${keyword}-${guildId}`);
+	}
+
 	async append(keyword: ICachedKeyword) {
 		await this.save(`${keyword.keyword}-${keyword.guildId}`, {
 			response: keyword.response
 		});
-
-		return;
 	}
 }
