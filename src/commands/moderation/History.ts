@@ -38,7 +38,7 @@ export default class HistoryCommand extends BaseCommand {
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
 			actionAgainst: user.id
-		}).sort({ when: 1 })
+		}).sort({ when: 1 });
 
 		if (punishments.length < 1) {
 			await interaction.reply({
@@ -48,29 +48,44 @@ export default class HistoryCommand extends BaseCommand {
 			return;
 		}
 
-		const filteredPunishments = punishments.filter((p) => ["Warn", "Timeout", "Kick", "Ban"].includes(p.action));
 		const counts = {
 			Warn: 0,
 			Timeout: 0,
 			Kick: 0,
 			Ban: 0
 		};
-		const totalPoints = punishments.reduce((acc, p) => acc + p.points, 0);
-		const mappedPunishments = []
+
+		let totalPoints = 0;
+		let offenceCount = 0;
+
+		const punishmentsList = [];
 
 		for (const { when, actionBy, points, action, reason } of punishments) {
-			const moderator = interaction.guild.members.cache.get(actionBy)?.user.tag ?? actionBy;
-			mappedPunishments.push(`[${when.toLocaleDateString("en-GB")}] ${action} [${points}] ${reason && `for ${reason} `}by ${moderator}`)
+			totalPoints += points;
+
 			if (action in counts) {
-				counts[action as "Warn" | "Timeout" | "Kick" | "Ban"]++;
+				counts[action as keyof typeof counts]++;
+				offenceCount++;
 			}
+
+			const moderator =
+				interaction.guild.members.cache.get(actionBy)?.user.tag ??
+				actionBy;
+
+			punishmentsList.push(
+				`[${when.toLocaleDateString("en-GB")}] ${action} [${points}] ${reason && `for ${reason}`} by ${moderator}`
+			);
 		}
 
-		let description = `Number of offenses: ${filteredPunishments.length}\n`;
-		description += Object.entries(counts).map(([action, count]) => `- ${action}s: ${count}`).join("\n");
+		let description = `Number of offenses: ${offenceCount}\n`;
+
+		description += Object.entries(counts)
+			.map(([action, count]) => `- ${action}s: ${count}`)
+			.join("\n");
+
 		description += `\n\nTotal points: ${totalPoints}\n\n`;
 		description += "```";
-		description += mappedPunishments.join("\n");
+		description += punishmentsList.join("\n");
 		description += "```";
 
 		const embed = new EmbedBuilder()
@@ -79,7 +94,7 @@ export default class HistoryCommand extends BaseCommand {
 				iconURL: user.displayAvatarURL()
 			})
 			.setColor(Colors.DarkOrange)
-			.setDescription(`${description}`);
+			.setDescription(description);
 
 		await interaction.reply({
 			embeds: [embed]
