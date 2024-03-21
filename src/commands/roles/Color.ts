@@ -81,43 +81,36 @@ export default class ColorRolesCommand extends BaseCommand {
 			ephemeral: true
 		});
 
-		const collector = component.createMessageComponentCollector({
-			filter: (i) => i.user.id === interaction.user.id &&
-				i.customId === "color_roles",
-			componentType: ComponentType.StringSelect,
-			time: 300_000
-		});
+		component
+			.awaitMessageComponent({
+				filter: (i) =>
+					i.user.id === interaction.user.id &&
+					i.customId === "color_roles",
+				time: 120000,
+				componentType: ComponentType.StringSelect
+			})
+			.then(async (i: StringSelectMenuInteraction<"cached">) => {
+				await i.deferUpdate();
 
-		collector.on("collect", async (i) => {
-			await i.deferUpdate();
+				const role = interaction.guild.roles.cache.get(i.values[0]);
 
-			const role = interaction.guild.roles.cache.get(i.values[0]);
-
-			if (!role) {
-				interaction.followUp({
-					content: "All color roles have been removed from you.",
-					ephemeral: true
-				});
-			} else {
-				if (i.member.roles.cache.has(role.id)) {
-					await i.member.roles.remove(role);
+				if (!role) {
 					interaction.followUp({
-						content: `Removed role ${role.name}`,
+						content: "Role not configured",
 						ephemeral: true
 					});
-					return
 				} else {
 					await i.member.roles.remove(
 						colorRoles.map((colorRole) => colorRole.roleId)
-					).catch(() => {})
+					);
 					await i.member.roles.add(role);
-				}
 
-				interaction.followUp({
-					content: `Added role ${role.name}`,
-					ephemeral: true
-				});
-			}
-		})
+					interaction.followUp({
+						content: `Added role ${role.name}`,
+						ephemeral: true
+					});
+				}
+			})
+			.catch(Logger.error);
 	}
 }
