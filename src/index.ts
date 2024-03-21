@@ -51,3 +51,22 @@ await mongo.connect(process.env.MONGO_URL, {
 await client.login(process.env.BOT_TOKEN);
 
 await registerEvents(client as DiscordClient<true>);
+
+while (true) {
+	await inquirer.prompt([
+		{
+			type: "input",
+			name: "command",
+			message: "$"
+		}
+	]).then((answers: { command: string; }) => {
+		const command = answers["command"];
+		switch (command) {
+			case "cron run actionRequired":
+				actionRequired(client as DiscordClient<true>);
+				break;
+			default:
+				break;
+		}
+	});
+}

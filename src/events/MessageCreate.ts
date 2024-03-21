@@ -3,8 +3,6 @@ import Buttons from "@/components/practice/views/Buttons";
 import {
 	PrivateDmThread,
 	Reputation,
-	StickyMessage,
-	type IStickyMessage
 } from "@/mongo";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
@@ -27,7 +25,6 @@ import {
 	User,
 	type APIEmbed
 } from "discord.js";
-import { EntityId, type Entity } from "redis-om";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";

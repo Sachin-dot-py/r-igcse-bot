@@ -2,8 +2,6 @@ import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	Colors,
-	ComponentType,
 	EmbedBuilder,
 	SlashCommandBuilder
 } from "discord.js";
