@@ -29,6 +29,15 @@ export default class ApplyCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (interaction.guildId !== process.env.MAIN_GUILD_ID) {
+			await interaction.reply({
+				content: "Feature not yet implemented for your server.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		const positionSelect = new StringSelectMenuBuilder()
 			.setCustomId("position_select")
 			.setPlaceholder("Position to Apply for...")
@@ -89,10 +98,9 @@ export default class ApplyCommand extends BaseCommand {
 						const timezone =
 							i.fields.getTextInputValue("timezone_input");
 
-						const chatModAppsChannelId = "1070571771423621191";
 						const chatModAppsChannel =
 							interaction.guild.channels.cache.get(
-								chatModAppsChannelId
+								process.env.CHAT_MOD_APPS_CHANNEL_ID
 							);
 
 						if (

@@ -50,7 +50,7 @@ export default class FeedbackCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		if (interaction.guildId !== "576460042774118420") {
+		if (interaction.guildId !== process.env.MAIN_GUILD_ID) {
 			await interaction.reply({
 				content: "Feature not yet implemented for your server.",
 				ephemeral: true
@@ -92,7 +92,9 @@ export default class FeedbackCommand extends BaseCommand {
 			modalInteraction.fields.getTextInputValue("feedback-input");
 
 		const channel = interaction.guild.channels.cache.get(
-			team === "dev" ? "1189409960875016253" : "1057505291014524939"
+			team === "dev"
+				? process.env.DEV_FEEDBACK_CHANNEL_ID
+				: process.env.MOD_FEEDBACK_CHANNEL_ID
 		);
 
 		if (!channel) {

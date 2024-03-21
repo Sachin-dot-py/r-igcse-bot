@@ -78,14 +78,14 @@ export async function syncInteractions(
 	client: DiscordClient,
 	guildId?: string
 ) {
-	if (!client.application?.id) {
+	if (!client.application) {
 		Logger.error("No application id");
 		return;
 	}
 
 	let data = [...client.interactionData];
 
-	if (!guildId || guildId !== "576460042774118420")
+	if (!guildId || guildId !== process.env.MAIN_GUILD_ID)
 		data = data.filter(({ name }) => !["apply", "feedback"].includes(name));
 
 	try {
