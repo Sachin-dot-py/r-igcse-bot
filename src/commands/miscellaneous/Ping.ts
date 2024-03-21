@@ -16,11 +16,10 @@ export default class PingCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction
 	) {
 		await interaction.deferReply();
-
-		const time = Date.now();
+		const deferredReply = await interaction.fetchReply();
 
 		const embed = new EmbedBuilder().setAuthor({
-			name: `Pong! | ${time - interaction.createdTimestamp}ms`,
+			name: `Pong! | Client: ${deferredReply.createdTimestamp - interaction.createdTimestamp}ms | WebSocket: ${client.ws.ping}`,
 			iconURL: client.user.displayAvatarURL()
 		});
 
