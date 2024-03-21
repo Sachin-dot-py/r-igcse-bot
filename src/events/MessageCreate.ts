@@ -261,14 +261,14 @@ export default class MessageCreateEvent extends BaseEvent {
 		repDisabledChannels: string[]
 	) {
 		const channelId =
-			message.channel.isThread() && !message.channel.isThreadOnly()
+			(message.channel.isThread() && !message.channel.isThreadOnly()
 				? message.channel.parentId
-				: message.channelId;
+				: message.channelId) ?? "";
 
-		if (!repDisabledChannels.some((id) => id === channelId)) {
+		if (!repDisabledChannels.includes(channelId)) {
 			const rep: User[] = [];
 
-			if (tyAliases.some((alias) => message.content.includes(alias))) {
+			if (tyAliases.some((alias) => new RegExp(`\\b${alias}\\b`, 'gi').test(message.content))) {
 				rep.push(...message.mentions.users.values());
 				if (message.reference)
 					rep.push((await message.fetchReference()).author);
@@ -276,7 +276,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (
 				message.reference &&
-				ywAliases.some((alias) => message.content.includes(alias))
+				ywAliases.some((alias) => new RegExp(`\\b${alias}\\b`, 'gi').test(message.content))
 			)
 				rep.push(message.author);
 
