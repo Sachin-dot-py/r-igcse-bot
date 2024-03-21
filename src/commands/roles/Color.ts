@@ -95,12 +95,17 @@ export default class ColorRolesCommand extends BaseCommand {
 
 			if (!role) {
 				interaction.followUp({
-					content: "Role not configured",
+					content: "All color roles have been removed from you.",
 					ephemeral: true
 				});
 			} else {
 				if (i.member.roles.cache.has(role.id)) {
 					await i.member.roles.remove(role);
+					interaction.followUp({
+						content: `Removed role ${role.name}`,
+						ephemeral: true
+					});
+					return
 				} else {
 					await i.member.roles.remove(
 						colorRoles.map((colorRole) => colorRole.roleId)
