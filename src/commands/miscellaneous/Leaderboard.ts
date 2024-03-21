@@ -40,7 +40,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		const reps = await Reputation.find({
 			guildId: interaction.guildId
 		}).sort({
-			rep: "ascending"
+			rep: "descending"
 		});
 
 		if (reps.length === 0) {
@@ -113,8 +113,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 		await interaction.reply({
 			embeds: [embeds[page]],
-			components: [buttonsRow],
-			ephemeral: true
+			components: [buttonsRow]
 		});
 
 		const collector = interaction.channel.createMessageComponentCollector({
@@ -129,8 +128,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			else if (i.customId === "last") page = chunks.length;
 
 			await interaction.editReply({
-				embeds: [embeds[page]],
-				components: [buttonsRow]
+				embeds: [embeds[page]]
 			});
 		});
 	}
