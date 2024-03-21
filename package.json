@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "bun src/index.ts",
+		"cron:actionRequired": "bun src/cron/actionRequired.ts",
 		"start:watch": "bun --watch src/index.ts",
 		"lint": "eslint .",
 		"format": "prettier . --write"
