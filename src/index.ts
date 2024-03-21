@@ -6,8 +6,6 @@ import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
 import { registerCommands, registerEvents } from "./registry/index";
 import Logger from "./utils/Logger";
-import inquirer from 'inquirer';
-import actionRequired from "@/cron/actionRequired"
 
 redis.on("error", Logger.error);
 
