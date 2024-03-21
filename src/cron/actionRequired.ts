@@ -28,13 +28,7 @@ const guildsPreferences = (await GuildPreferences.find({
 for (const guildPreferences of guildsPreferences) {
 	const guild = await client.guilds.fetch(guildPreferences.guildId);
 
-	if (!guild) {
-		await GuildPreferences.deleteOne({
-			guildId: guildPreferences.guildId
-		});
-
-		continue;
-	}
+	if (!guild) continue;
 
 	const actionRequiredChannel = await guild.channels.fetch(
 		guildPreferences.actionRequiredChannelId
