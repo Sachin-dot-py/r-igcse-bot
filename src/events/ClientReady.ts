@@ -1,25 +1,26 @@
+import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
 import type PracticeCommand from "@/commands/study/Practice";
 import { StickyMessage } from "@/mongo";
+import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache, StickyMessageCache } from "@/redis";
 import { syncInteractions } from "@/registry";
 import Logger from "@/utils/Logger";
 import {
 	ActivityType,
-	ChannelType,
+	CategoryChannel,
 	Colors,
 	EmbedBuilder,
 	Events,
 	ForumChannel,
 	PermissionFlagsBits,
 	TextChannel,
-	ThreadChannel
+	ThreadChannel,
+	VoiceChannel
 } from "discord.js";
+import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
-import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
-import { client } from "..";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -44,6 +45,20 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
+			const channelCount = {
+				category: 0,
+				text: 0,
+				voice: 0,
+				forum: 0
+			};
+
+			for (const channel of mainGuild.channels.cache)
+				if (channel instanceof TextChannel) channelCount.text++;
+				else if (channel instanceof CategoryChannel)
+					channelCount.category++;
+				else if (channel instanceof VoiceChannel) channelCount.voice++;
+				else if (channel instanceof ForumChannel) channelCount.forum++;
+
 			const readyEmbed = new EmbedBuilder()
 				.setTitle(`${client.user.tag} restarted successfully!`)
 				.setColor(Colors.Green)
@@ -54,7 +69,12 @@ export default class ClientReadyEvent extends BaseEvent {
 				.addFields([
 					{
 						name: "Bot Information",
-						value: `\`\`\`Name: ${client.user.tag}\nCreated on: ${timeFormatter(client.user.createdAt)}\nJoined on: ${timeFormatter(mainGuild.joinedAt)}\nVerified: ${client.user.flags?.has("VerifiedBot")}\nNo. of guilds: ${client.guilds.cache.size}\nID: ${client.user.id}\`\`\``,
+						value: `\`\`\`Name: ${client.user.tag}
+Created on: ${timeFormatter(client.user.createdAt)}
+Joined on: ${timeFormatter(mainGuild.joinedAt)}
+Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
+No. of guilds: ${client.guilds.cache.size}
+ID: ${client.user.id}\`\`\``,
 						inline: false
 					},
 					{
@@ -67,22 +87,16 @@ Boosts: ${mainGuild.premiumSubscriptionCount}
 ID: ${mainGuild.id}\`\`\``,
 						inline: false
 					},
-					{
-						name: "Role Statistics",
-						value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
-No. of members: ${mainGuild.memberCount}
-Helpers: // TODO
-Moderators: // TODO\`\`\``,
-						inline: false
-					},
+
 					{
 						name: "Channels & Commands",
-						value: `\`\`\`No. of users: ${mainGuild.members.cache.filter((member) => !member.user.bot).size}
+						value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
+No. of members: ${mainGuild.memberCount}
 No. of bots: ${mainGuild.members.cache.filter((member) => member.user.bot).size}
-No. of catagories: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildCategory).size}
-No. of text-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size}
-No. of voice-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size}
-No. of forum-channels: ${mainGuild.channels.cache.filter((channel) => channel.type === ChannelType.GuildForum).size}
+No. of catagories: ${channelCount.category}
+No. of text-channels: ${channelCount.text}
+No. of voice-channels: ${channelCount.voice}
+No. of forum-channels: ${channelCount.forum}
 No. of slash-commands: ${client.commands.size}\`\`\``,
 						inline: false
 					}
