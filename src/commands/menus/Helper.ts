@@ -18,7 +18,7 @@ export default class HelperMenu extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("helper")
+				.setName("Helper Ping")
 				.setType(ApplicationCommandType.Message)
 				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
 				.setDMPermission(false)

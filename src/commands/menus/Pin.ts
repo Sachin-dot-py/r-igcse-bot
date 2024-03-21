@@ -12,7 +12,7 @@ export default class PinMenu extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("pin")
+				.setName("Pin Message")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message)

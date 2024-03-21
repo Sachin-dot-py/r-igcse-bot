@@ -12,7 +12,7 @@ export default class UnpinMenu extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("unpin")
+				.setName("Unpin Message")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message)

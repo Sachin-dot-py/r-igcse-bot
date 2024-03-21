@@ -16,12 +16,13 @@ import { StickyMessageCache } from "@/redis";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
 } from "@/registry/Structure/BaseCommand";
+import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("stick")
+				.setName("Stick Message")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message)
@@ -65,7 +66,7 @@ export default class StickMessageCommand extends BaseCommand {
 		);
 
 		const modal = new ModalBuilder()
-			.setTitle("Stick Message")
+			.setTitle("Stick Message (Times are optional)")
 			.setCustomId("stick-message")
 			.addComponents(row1, row2);
 		await interaction.showModal(modal);
@@ -80,28 +81,29 @@ export default class StickMessageCommand extends BaseCommand {
 		await modalInteraction.deferUpdate();
 
 		const stickTime =
-			parseInt(modalInteraction.fields.getTextInputValue("stick-time")) ||
-			time;
+			parseInt(modalInteraction.fields.getTextInputValue("stick-time")) || null
 		const unstickTime =
 			parseInt(
 				modalInteraction.fields.getTextInputValue("unstick-time")
-			) || time + 2592000;
+			) || null
 
-		if (stickTime > unstickTime) {
-			await interaction.followUp({
-				content: "Stick time must be before unstick time.",
-				ephemeral: true
-			});
-
-			return;
-		}
-		if (unstickTime < time) {
-			await interaction.followUp({
-				content: "Unstick time must be after now.",
-				ephemeral: true
-			});
-
-			return;
+		if (stickTime && unstickTime) {
+			if (stickTime > unstickTime) {
+				await interaction.followUp({
+					content: "Stick time must be before unstick time.",
+					ephemeral: true
+				});
+	
+				return;
+			}
+			if (unstickTime < time) {
+				await interaction.followUp({
+					content: "Unstick time must be after now.",
+					ephemeral: true
+				});
+	
+				return;
+			}
 		}
 
 		const channelSelect = new ChannelSelectMenuBuilder()
@@ -110,7 +112,7 @@ export default class StickMessageCommand extends BaseCommand {
 			.setMaxValues(1)
 			.setMinValues(1)
 			.setDefaultChannels(interaction.channel.id)
-			.setChannelTypes(ChannelType.GuildText);
+			.setChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread);
 
 		const channelRow =
 			new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
@@ -143,16 +145,14 @@ export default class StickMessageCommand extends BaseCommand {
 			return;
 		}
 
-		const enabled = stickTime <= time && unstickTime > time;
-
 		const res = await StickyMessage.create({
 			channelId: channel.id,
 			messageId: null,
 			embeds: interaction.targetMessage.embeds.map((embed) =>
 				embed.toJSON()
 			),
-			stickTime: stickTime.toString(),
-			unstickTime: unstickTime.toString()
+			stickTime: stickTime?.toString(),
+			unstickTime: unstickTime?.toString(),
 		});
 
 		if (!res) {
@@ -164,13 +164,13 @@ export default class StickMessageCommand extends BaseCommand {
 			return;
 		}
 
-		if (enabled) {
+		if (!unstickTime && !stickTime) {
 			await StickyMessageCache.set(res.id, {
 				channelId: channel.id,
 				messageId: null,
 				embeds: interaction.targetMessage.embeds.map((embed) =>
-					embed.toJSON()
-				)
+					embed.toJSON() 
+				) as APIEmbedRedis[]
 			});
 
 			client.stickyChannelIds.push(channel.id);

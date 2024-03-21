@@ -24,13 +24,15 @@ import {
 	StringSelectMenuOptionBuilder,
 	TextChannel,
 	ThreadChannel,
-	User
+	User,
+	type APIEmbed
 } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { botYwResponses, tyAliases, ywAliases } from "@/data";
+import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -62,7 +64,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				);
 
 			if (
-				client.stickyChannelIds.some((id) => id === message.channelId)
+				client.stickyChannelIds.includes(message.channelId)
 			) {
 				if (client.stickyCounter[message.channelId] <= 4) {
 					client.stickyCounter[message.channelId] = ((x: number) =>
@@ -338,23 +340,20 @@ export default class MessageCreateEvent extends BaseEvent {
 		const stickyMessages = (await StickyMessageCache.search()
 			.where("channelId")
 			.equals(message.channelId)
-			.returnAll()) as (Omit<IStickyMessage, "embeds"> & {
-			embeds: string[];
-		} & Entity)[];
+			.returnAll()) as ICachedStickyMessage[];
 
 		for (const stickyMessage of stickyMessages) {
-			if (!stickyMessage.enabled) return;
-
 			if (stickyMessage.messageId) {
 				const oldSticky = await message.channel.messages.cache.get(
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete();
+				if (oldSticky) await oldSticky.delete().catch(() => {})
+
 			}
 
-			const embeds = (stickyMessage.embeds as string[]).map(
-				(embed) => new EmbedBuilder(JSON.parse(embed))
+			const embeds = (stickyMessage.embeds).map(
+				(embed) => new EmbedBuilder(embed as APIEmbed)
 			);
 
 			const newSticky = await message.channel.send({
@@ -372,11 +371,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 			);
 
-			await StickyMessageCache.set(stickyMessage[EntityId]!, {
-				...stickyMessage,
-				embeds: stickyMessage.embeds.map((embed) => JSON.parse(embed)),
-				messageId: newSticky.id
-			});
+			stickyMessage.messageId = newSticky.id;
+			await StickyMessageCache.save(stickyMessage)
 		}
 	}
 }
