@@ -61,7 +61,7 @@ export default class HelperMenu extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setDescription(
-				`The helper role(s) for this channel (@${role.name}) will automatically be pinged (<t:${Date.now() + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
+				`The helper role(s) for this channel (${role}) will automatically be pinged (<t:${Math.floor(Date.now()/1000) + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
 			)
 			.setAuthor({
 				name: interaction.user.tag,
@@ -82,9 +82,14 @@ export default class HelperMenu extends BaseCommand {
 			components: [row]
 		});
 
+		await interaction.reply({
+			content: `The helper role will be pinged in <t:${Math.floor(Date.now()/1000) + 900}:R>. Please click on the cancel ping button if your query has been resolved by then.`,
+			ephemeral: true
+		})
+
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
-			time: 890,
+			time: 890 * 1000,
 			filter: (i) =>
 				i.user.id === interaction.user.id ||
 				i.memberPermissions.has(PermissionFlagsBits.ModerateMembers)
@@ -110,11 +115,9 @@ export default class HelperMenu extends BaseCommand {
 				});
 
 			await interaction.channel.send({
-				content: `@<${role.id}>`,
+				content: role.toString(),
 				embeds: [embed]
 			});
-
-			await interaction.deleteReply();
 		});
 	}
 }
