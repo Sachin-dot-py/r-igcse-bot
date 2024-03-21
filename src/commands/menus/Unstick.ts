@@ -1,5 +1,6 @@
 import { StickyMessage } from "@/mongo";
 import { StickyMessageCache } from "@/redis";
+import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
@@ -9,12 +10,13 @@ import {
 	ContextMenuCommandBuilder,
 	PermissionFlagsBits
 } from "discord.js";
+import { EntityId } from "redis-om";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("unstick")
+				.setName("Unstick Message")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message)
@@ -27,20 +29,26 @@ export default class StickMessageCommand extends BaseCommand {
 	) {
 		if (!interaction.channel) return;
 
-		const res = await StickyMessage.findOne({
-			messageId: interaction.targetMessage.id
-		});
+		const res = (await StickyMessageCache.search()
+			.where("messageId")
+			.equals(interaction.targetId)
+			.returnAll()) as ICachedStickyMessage[];
 
-		if (!res) {
+		if (!res || res.length < 1 || !res[0][EntityId]) {
 			await interaction.reply({
-				content: "Couldn't find sticky message.",
+				content: "This message is not a sticky message.",
 				ephemeral: true
 			});
 
 			return;
 		}
+		
+		await StickyMessageCache.remove(res[0][EntityId]);
+		await StickyMessage.deleteOne({ _id: res[0][EntityId] });
 
-		await res.deleteOne();
-		await StickyMessageCache.remove(res.id);
+		await interaction.reply({
+			content: "Successfully unstuck message.",
+			ephemeral: true
+		});
 	}
 }

@@ -21,6 +21,7 @@ import {
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -133,6 +134,10 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			.then(() => Logger.info("Populated Keywords Cache"))
 			.catch(Logger.error);
 
+		await this.refreshStickyMessageCache()
+			.then(() => Logger.info("Populated Sticky Message Cache"))
+			.catch(Logger.error);
+
 		setInterval(
 			async () =>
 				await this.refreshStickyMessageCache().catch(Logger.error),
@@ -162,20 +167,30 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 		const stickyMessages = await StickyMessage.find();
 
 		for (const stickyMessage of stickyMessages) {
-			const stickTime = parseInt(stickyMessage.stickTime);
-			const unstickTime = parseInt(stickyMessage.unstickTime);
+			const stickTime = parseInt(stickyMessage.stickTime || "");
+			const unstickTime = parseInt(stickyMessage.unstickTime || "");
+
+			if (Number.isNaN(stickTime) || Number.isNaN(unstickTime)) {
+				await StickyMessageCache.set(stickyMessage.id, {
+					channelId: stickyMessage.channelId,
+					messageId: stickyMessage.messageId,
+					embeds: stickyMessage.embeds as APIEmbedRedis[]
+				});
+				if (!client.stickyChannelIds.includes(stickyMessage.channelId))
+					client.stickyChannelIds.push(stickyMessage.channelId);
+				continue;
+			}
 
 			if (stickTime <= time && unstickTime >= time)
 				await StickyMessageCache.set(stickyMessage.id, {
 					channelId: stickyMessage.channelId,
 					messageId: stickyMessage.messageId,
-					embeds: stickyMessage.embeds
+					embeds: stickyMessage.embeds as APIEmbedRedis[]
 				});
+			if (!client.stickyChannelIds.includes(stickyMessage.channelId))
+				client.stickyChannelIds.push(stickyMessage.channelId);
 			else if (unstickTime <= time) {
-				await StickyMessage.deleteOne({
-					messageId: stickyMessage.messageId
-				});
-
+				await stickyMessage.deleteOne();
 				await StickyMessageCache.remove(stickyMessage.id);
 			}
 		}

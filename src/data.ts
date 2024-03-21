@@ -25,7 +25,8 @@ export const tyAliases = [
 
 export const botYwResponses = [
 	"don worry abou i **(in new york accent)**",
-	"i didn even do nothin"
+	"i didn even do nothin",
+	"ey no problemo"
 ];
 
 export const practiceSubjects: Record<string, string> = {

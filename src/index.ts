@@ -32,7 +32,11 @@ export const client = new DiscordClient({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.MessageContent
 	],
-	partials: [Partials.Message, Partials.Channel]
+	partials: [Partials.Message, Partials.Channel],
+	allowedMentions: {
+		parse: ["users", "roles"],
+		repliedUser: true
+	}
 });
 
 await registerCommands(client);

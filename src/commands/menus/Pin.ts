@@ -12,7 +12,7 @@ export default class PinMenu extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("pin")
+				.setName("Pin Message")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message)
@@ -34,6 +34,9 @@ export default class PinMenu extends BaseCommand {
 
 		try {
 			await interaction.targetMessage.pin();
+			await interaction.targetMessage.reply({
+				content: `Messaged pinned by ${interaction.user}`,
+			});
 		} catch (error) {
 			await interaction.reply({
 				content: "Couldn't pin message.",

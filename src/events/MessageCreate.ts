@@ -24,13 +24,18 @@ import {
 	StringSelectMenuOptionBuilder,
 	TextChannel,
 	ThreadChannel,
-	User
+	User,
+	type APIEmbed
 } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { botYwResponses, tyAliases, ywAliases } from "@/data";
+import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
+import Logger from "@/utils/Logger";
+
+const stickyCounter: Record<string, number> = {};
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -41,12 +46,14 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.inGuild()) {
-			const keywordReponse = await KeywordCache.get(
+			KeywordCache.get(
 				message.guildId,
 				message.content.trim().toLowerCase()
-			);
-
-			if (keywordReponse) message.reply(keywordReponse);
+			)
+				.then((keywordReponse) => {
+					if (keywordReponse) message.reply(keywordReponse);
+				})
+				.catch(Logger.error);
 
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id
@@ -61,25 +68,19 @@ export default class MessageCreateEvent extends BaseEvent {
 					guildPreferences.repDisabledChannelIds
 				);
 
-			if (
-				client.stickyChannelIds.some((id) => id === message.channelId)
-			) {
-				if (client.stickyCounter[message.channelId] <= 4) {
-					client.stickyCounter[message.channelId] = ((x: number) =>
+			if (client.stickyChannelIds.includes(message.channelId)) {
+				if (
+					stickyCounter[message.channelId] === 4 &&
+					stickyCounter[message.channelId] >= 4
+				) {
+					this.handleStickyMessages(message).catch(Logger.error);
+					stickyCounter[message.channelId] = 0;
+				} else {
+					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-						client.stickyCounter[message.channelId]
+						stickyCounter[message.channelId]
 					);
-
-					return;
 				}
-
-				try {
-					await this.handleStickyMessages(message);
-				} catch (error) {
-					console.error(error);
-				}
-
-				client.stickyCounter[message.channelId] = 0;
 			}
 
 			if (message.channelId === guildPreferences.modmailCreateChannelId) {
@@ -260,14 +261,14 @@ export default class MessageCreateEvent extends BaseEvent {
 		repDisabledChannels: string[]
 	) {
 		const channelId =
-			message.channel.isThread() && !message.channel.isThreadOnly()
+			(message.channel.isThread() && !message.channel.isThreadOnly()
 				? message.channel.parentId
-				: message.channelId;
+				: message.channelId) ?? "";
 
-		if (!repDisabledChannels.some((id) => id === channelId)) {
+		if (!repDisabledChannels.includes(channelId)) {
 			const rep: User[] = [];
 
-			if (tyAliases.some((alias) => message.content.includes(alias))) {
+			if (tyAliases.some((alias) => new RegExp(`\\b${alias}\\b`, 'gi').test(message.content))) {
 				rep.push(...message.mentions.users.values());
 				if (message.reference)
 					rep.push((await message.fetchReference()).author);
@@ -275,7 +276,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (
 				message.reference &&
-				ywAliases.some((alias) => message.content.includes(alias))
+				ywAliases.some((alias) => new RegExp(`\\b${alias}\\b`, 'gi').test(message.content))
 			)
 				rep.push(message.author);
 
@@ -338,45 +339,27 @@ export default class MessageCreateEvent extends BaseEvent {
 		const stickyMessages = (await StickyMessageCache.search()
 			.where("channelId")
 			.equals(message.channelId)
-			.returnAll()) as (Omit<IStickyMessage, "embeds"> & {
-			embeds: string[];
-		} & Entity)[];
+			.returnAll()) as ICachedStickyMessage[];
 
 		for (const stickyMessage of stickyMessages) {
-			if (!stickyMessage.enabled) return;
-
 			if (stickyMessage.messageId) {
 				const oldSticky = await message.channel.messages.cache.get(
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete();
+				if (oldSticky) await oldSticky.delete().catch(() => {});
 			}
 
-			const embeds = (stickyMessage.embeds as string[]).map(
-				(embed) => new EmbedBuilder(JSON.parse(embed))
+			const embeds = stickyMessage.embeds.map(
+				(embed) => new EmbedBuilder(embed as APIEmbed)
 			);
 
 			const newSticky = await message.channel.send({
 				embeds
 			});
 
-			await StickyMessage.findOneAndUpdate(
-				{
-					id: stickyMessage[EntityId]!
-				},
-				{
-					$set: {
-						messageId: newSticky.id
-					}
-				}
-			);
-
-			await StickyMessageCache.set(stickyMessage[EntityId]!, {
-				...stickyMessage,
-				embeds: stickyMessage.embeds.map((embed) => JSON.parse(embed)),
-				messageId: newSticky.id
-			});
+			stickyMessage.messageId = newSticky.id;
+			await StickyMessageCache.save(stickyMessage);
 		}
 	}
 }
