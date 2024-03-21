@@ -4,8 +4,10 @@ import { StickyMessage } from "@/mongo";
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache, StickyMessageCache } from "@/redis";
+import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 import { syncInteractions } from "@/registry";
 import Logger from "@/utils/Logger";
+import createTask from "@/utils/createTask";
 import {
 	ActivityType,
 	CategoryChannel,
@@ -13,17 +15,14 @@ import {
 	EmbedBuilder,
 	Events,
 	ForumChannel,
-	PermissionFlagsBits,
 	TextChannel,
 	ThreadChannel,
 	VoiceChannel
 } from "discord.js";
+import { EntityId } from "redis-om";
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
-import createTask from "@/utils/createTask";
-import { EntityId } from "redis-om";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -205,32 +204,31 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			const startTime = parseInt(lockdown.startTimestamp);
 			const endTime = parseInt(lockdown.endTimestamp);
 
-			if (startTime <= time && endTime >= time) {
-				const channel = client.channels.cache.get(lockdown.channelId);
-
-				if (channel instanceof ThreadChannel && !channel.locked)
-					await channel.setLocked(true);
-				else if (
-					channel instanceof TextChannel ||
-					channel instanceof ForumChannel
-				) {
-					const permissions = channel.permissionsFor(
-						channel.guild.roles.everyone
-					);
-
-					if (permissions.has(PermissionFlagsBits.SendMessages))
-						await channel.permissionOverwrites.edit(
-							channel.guild.roles.everyone,
-							{
-								SendMessages: false,
-								SendMessagesInThreads: false
-							}
-						);
-				}
-			} else if (endTime <= time)
+			if (endTime <= time) {
 				await ChannelLockdown.deleteOne({
 					channelId: lockdown.channelId
 				});
+
+				continue;
+			}
+
+			const locked = startTime >= time ? false : true;
+
+			const channel = client.channels.cache.get(lockdown.channelId);
+
+			if (channel instanceof ThreadChannel && !channel.locked)
+				await channel.setLocked(locked);
+			else if (
+				channel instanceof TextChannel ||
+				channel instanceof ForumChannel
+			)
+				await channel.permissionOverwrites.edit(
+					channel.guild.roles.everyone,
+					{
+						SendMessages: !locked,
+						SendMessagesInThreads: !locked
+					}
+				);
 		}
 	}
 }
