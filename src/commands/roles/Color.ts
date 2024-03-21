@@ -83,30 +83,33 @@ export default class ColorRolesCommand extends BaseCommand {
 
 		component
 			.awaitMessageComponent({
-				filter: (i) => i.user.id === interaction.user.id,
+				filter: (i) =>
+					i.user.id === interaction.user.id &&
+					i.customId === "color_roles",
 				time: 120000,
 				componentType: ComponentType.StringSelect
 			})
-			.then((i: StringSelectMenuInteraction<"cached">) => {
-				i.deferUpdate();
+			.then(async (i: StringSelectMenuInteraction<"cached">) => {
+				await i.deferUpdate();
 
 				const role = interaction.guild.roles.cache.get(i.values[0]);
 
 				if (!role) {
-					i.reply({
+					interaction.followUp({
 						content: "Role not configured",
 						ephemeral: true
 					});
+				} else {
+					await i.member.roles.remove(
+						colorRoles.map((colorRole) => colorRole.roleId)
+					);
+					await i.member.roles.add(role);
 
-					return;
+					interaction.followUp({
+						content: `Added role ${role.name}`,
+						ephemeral: true
+					});
 				}
-
-				i.member.roles.add(role);
-
-				i.reply({
-					content: `Added role ${role.name}`,
-					ephemeral: true
-				});
 			})
 			.catch(Logger.error);
 	}
