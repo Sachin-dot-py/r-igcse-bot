@@ -14,7 +14,6 @@ export class DiscordClient<
 	private _commands = new Collection<string, BaseCommand>();
 
 	private _stickyChannelIds: string[] = [];
-	private _stickyCounter: Record<string, number> = {};
 
 	constructor(options: ClientOptions) {
 		super(options);
@@ -26,14 +25,6 @@ export class DiscordClient<
 
 	set stickyChannelIds(channelIds: string[]) {
 		this._stickyChannelIds = channelIds;
-	}
-
-	get stickyCounter() {
-		return this._stickyCounter;
-	}
-
-	set stickyCounter(counts: Record<string, number>) {
-		this._stickyCounter = counts;
 	}
 
 	get commands() {

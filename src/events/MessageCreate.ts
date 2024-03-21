@@ -33,6 +33,9 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { botYwResponses, tyAliases, ywAliases } from "@/data";
 import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
+import Logger from "@/utils/Logger";
+
+const stickyCounter: Record<string, number> = {};
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -43,12 +46,13 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.inGuild()) {
-			const keywordReponse = await KeywordCache.get(
+
+			KeywordCache.get(
 				message.guildId,
 				message.content.trim().toLowerCase()
-			);
-
-			if (keywordReponse) message.reply(keywordReponse);
+			).then((keywordReponse) => {
+				if (keywordReponse) message.reply(keywordReponse);
+			}).catch(Logger.error);
 
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id
@@ -66,22 +70,15 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (
 				client.stickyChannelIds.includes(message.channelId)
 			) {
-				if (client.stickyCounter[message.channelId] <= 4) {
-					client.stickyCounter[message.channelId] = ((x: number) =>
-						(isNaN(x) ? 0 : x) + 1)(
-						client.stickyCounter[message.channelId]
-					);
-
-					return;
+				if (stickyCounter[message.channelId] === 4 && stickyCounter[message.channelId] >= 4) {
+					this.handleStickyMessages(message).catch(Logger.error);
+					stickyCounter[message.channelId] = 0;
+				} else {
+					stickyCounter[message.channelId] = ((x: number) =>
+                        (isNaN(x) ? 0 : x) + 1)(
+                        stickyCounter[message.channelId]
+                    );
 				}
-
-				try {
-					await this.handleStickyMessages(message);
-				} catch (error) {
-					console.error(error);
-				}
-
-				client.stickyCounter[message.channelId] = 0;
 			}
 
 			if (message.channelId === guildPreferences.modmailCreateChannelId) {
