@@ -75,12 +75,22 @@ export default class ColorRolesCommand extends BaseCommand {
 					false
 				);
 
-				await ColorRole.create({
-					guildId: interaction.guildId,
-					emoji,
-					label,
-					roleId: role.id,
-					requirementRoleId: requiredRole?.id
+				await ColorRole.updateOne(
+					{
+						guildId: interaction.guildId,
+						label,
+						roleId: role.id
+					},
+					{
+						requirementRoleId: requiredRole?.id,
+						emoji
+					},
+					{ upsert: true }
+				);
+
+				await interaction.reply({
+					content: "Successfully created color role!",
+					ephemeral: true
 				});
 
 				break;
@@ -88,9 +98,32 @@ export default class ColorRolesCommand extends BaseCommand {
 			case "remove": {
 				const label = interaction.options.getString("label", true);
 
-				await GuildPreferences.deleteOne({
-					guildId: interaction.guildId,
-					label
+				try {
+					await GuildPreferences.deleteOne({
+						guildId: interaction.guildId,
+						label
+					});
+				} catch (error) {
+					await interaction.reply({
+						content:
+							"Encountered error while trying to delete color role. Please try again later.",
+						ephemeral: true
+					});
+
+					client.log(
+						error,
+						`${this.data.name} Command - Remove Color Role`,
+						[
+							{ name: "User ID", value: interaction.user.id },
+							{ name: "Guild ID", value: interaction.guild.id },
+							{ name: "Label", value: label }
+						]
+					);
+				}
+
+				await interaction.reply({
+					content: "Successfully deleted color role.",
+					ephemeral: true
 				});
 
 				break;
