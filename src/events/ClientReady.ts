@@ -22,6 +22,8 @@ import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
+import createTask from "@/utils/createTask";
+import { EntityId } from "redis-om";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -126,25 +128,19 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
-		await syncInteractions(client, "1214367926820544512")
+		await syncInteractions(client)
 			.then(() => Logger.info("Synced application commands globally"))
 			.catch(Logger.error);
 
-		await this.loadKeywordsCache()
-			.then(() => Logger.info("Populated Keywords Cache"))
-			.catch(Logger.error);
+		await this.loadKeywordsCache().catch(Logger.error);
 
-		await this.refreshStickyMessageCache()
-			.then(() => Logger.info("Populated Sticky Message Cache"))
-			.catch(Logger.error);
-
-		setInterval(
+		createTask(
 			async () =>
 				await this.refreshStickyMessageCache().catch(Logger.error),
 			60000
 		);
 
-		setInterval(
+		createTask(
 			async () =>
 				await this.refreshChannelLockdowns().catch(Logger.error),
 			120000
@@ -152,6 +148,10 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	}
 
 	private async loadKeywordsCache() {
+		(await KeywordCache.search().returnAll()).forEach((entity) =>
+			KeywordCache.remove(entity[EntityId]!)
+		);
+
 		const keywords = await Keyword.find();
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
