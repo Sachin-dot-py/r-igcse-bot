@@ -52,7 +52,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				forum: 0
 			};
 
-			for (const channel of mainGuild.channels.cache)
+			for (const channel of mainGuild.channels.cache.values())
 				if (channel instanceof TextChannel) channelCount.text++;
 				else if (channel instanceof CategoryChannel)
 					channelCount.category++;
