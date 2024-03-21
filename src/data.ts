@@ -23,6 +23,11 @@ export const tyAliases = [
 	"tq"
 ];
 
+export const botYwResponses = [
+	"don worry abou i **(in new york accent)**",
+	"i didn even do nothin"
+];
+
 export const practiceSubjects: Record<string, string> = {
 	"0455": "Economics",
 	//'0606': "Additional Mathematics",

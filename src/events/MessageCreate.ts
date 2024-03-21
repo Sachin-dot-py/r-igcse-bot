@@ -30,7 +30,7 @@ import { EntityId, type Entity } from "redis-om";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { tyAliases, ywAliases } from "@/data";
+import { botYwResponses, tyAliases, ywAliases } from "@/data";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -55,7 +55,11 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (!guildPreferences) return;
 
 			if (guildPreferences.repEnabled)
-				this.handleRep(message, guildPreferences.repDisabledChannelIds);
+				this.handleRep(
+					client,
+					message,
+					guildPreferences.repDisabledChannelIds
+				);
 
 			if (
 				client.stickyChannelIds.some((id) => id === message.channelId)
@@ -251,6 +255,7 @@ export default class MessageCreateEvent extends BaseEvent {
 	}
 
 	private async handleRep(
+		client: DiscordClient<true>,
 		message: Message<true>,
 		repDisabledChannels: string[]
 	) {
@@ -275,6 +280,16 @@ export default class MessageCreateEvent extends BaseEvent {
 				rep.push(message.author);
 
 			for (const user of rep) {
+				if (user.id === client.user.id) {
+					await message.reply(
+						botYwResponses[
+							Math.floor(Math.random() * botYwResponses.length)
+						]
+					);
+
+					continue;
+				}
+
 				const member = await message.guild.members.fetch(user.id);
 
 				if (!member) return;
