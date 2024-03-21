@@ -7,7 +7,6 @@ import BaseCommand, {
 import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
-	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder

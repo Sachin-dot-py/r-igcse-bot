@@ -61,7 +61,7 @@ while (true) {
 			name: "command",
 			message: "$"
 		}
-	]).then((answers) => {
+	]).then((answers: { command: string; }) => {
 		const command = answers["command"];
 		switch (command) {
 			case "cron run actionRequired":

@@ -2,35 +2,15 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	type APISelectMenuOption
 } from "discord.js";
-import { preferences } from "@/data";
-import StringSelect from "@/components/setup/StringSelect";
-import ChannelSelect from "@/components/setup/ChannelSelect";
-import RoleSelect from "@/components/setup/RoleSelect";
-import { GuildPreferencesCache } from "@/redis";
-import { v4 as uuidv4 } from "uuid";
-import SetupButtons from "@/components/setup/SetupButtons";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 
-const typeToComponent: {
-	[key: string]:
-		| typeof StringSelect
-		| typeof ChannelSelect
-		| typeof RoleSelect;
-} = {
-	boolean: StringSelect,
-	channel: ChannelSelect,
-	role: RoleSelect
-};
 
-export default class SetupCommand extends BaseCommand {
+
+export default class StudyChannelCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
@@ -194,7 +174,7 @@ export default class SetupCommand extends BaseCommand {
 				});
 				break;
 			}
-			case "delete":
+			case "delete": {
 				const channel = interaction.options.getChannel("channel", true);
 
 				const studyChannel = await StudyChannel.findOne({
@@ -217,6 +197,7 @@ export default class SetupCommand extends BaseCommand {
 					ephemeral: true
 				});
 				break;
+            }
 		}
 	}
 }

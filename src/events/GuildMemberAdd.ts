@@ -1,4 +1,4 @@
-import { Colors, EmbedBuilder, Events, GuildMember } from "discord.js";
+import { Events, GuildMember } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { GuildPreferencesCache } from "@/redis";

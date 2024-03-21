@@ -1,14 +1,3 @@
-import type { IStickyMessage } from "@/mongo";
-import type {
-	APIEmbedAuthor,
-	APIEmbedField,
-	APIEmbedFooter,
-	APIEmbedImage,
-	APIEmbedProvider,
-	APIEmbedThumbnail,
-	APIEmbedVideo,
-	EmbedType
-} from "discord.js";
 import {
 	Repository,
 	Schema,
