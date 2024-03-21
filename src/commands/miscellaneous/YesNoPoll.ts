@@ -44,6 +44,11 @@ export default class YesNoPollCommand extends BaseCommand {
 
 			await message.react("✅");
 			await message.react("❌");
+
+			await interaction.reply({
+				content: "Poll created successfully",
+				ephemeral: true
+			});
 		} catch (e) {
 			await interaction.reply({
 				content: "Failed to create poll",

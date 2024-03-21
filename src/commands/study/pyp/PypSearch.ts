@@ -3,8 +3,37 @@ import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../../registry/Structure/BaseCommand";
-import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
+
+const typeMap = {
+	"ms": "Mark Scheme",
+	"qp": "Question Paper",
+	"in": "Insert",
+	"sf": "Supporting Files",
+	"er": "Examiner Report",
+	"gt": "Grade Thresholds"
+};
+
+interface PaperSCResponseItem {
+	doc: {
+		subject: string;
+		time: string;
+		type: keyof typeof typeMap;
+		paper: number;
+		variant: number;
+		_id: string;
+	};
+	index: {
+		page: number;
+	};
+	related:
+		| {
+				fileType: string;
+				numPages: number;
+				_id: string;
+				type: keyof typeof typeMap;
+		  }[]
+		| undefined;
+}
 
 export default class ResourcesCommand extends BaseCommand {
 	constructor() {
@@ -15,7 +44,10 @@ export default class ResourcesCommand extends BaseCommand {
 					"Search for IGCSE past papers with subject code/question text"
 				)
 				.addStringOption((option) =>
-					option.setName("query").setDescription("Search Query")
+					option
+						.setName("query")
+						.setDescription("Search Query")
+						.setRequired(true)
 				)
 		);
 	}
@@ -24,7 +56,7 @@ export default class ResourcesCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction
 	) {
-		const query = interaction.options.getString("query");
+		const query = interaction.options.getString("query", true);
 
 		await interaction.deferReply();
 
@@ -50,18 +82,33 @@ export default class ResourcesCommand extends BaseCommand {
 				return;
 			}
 
+			const fields = [];
+
+			for (const item of (list as PaperSCResponseItem[]).slice(0, 6)) {
+				const { subject, time, type, paper, variant, _id } =
+					item["doc"];
+				let value = `[${typeMap[type]}](https://paper.sc/doc/${_id})`;
+				if (item.related) {
+					for (const related of item.related) {
+						value += `\n[${typeMap[related.type]}](https://paper.sc/doc/${related._id})`;
+					}
+				}
+				fields.push({
+					name: `${subject}_${time}_${type}_${paper}${variant} on page ${item.index.page}`,
+					value
+				});
+			}
+
 			const embed = new EmbedBuilder()
 				.setTitle("Potential Match")
 				.setDescription("Your question matched a past paper question!")
-				.setColor(Colors.Green);
+				.setColor(Colors.Green)
+				.addFields(...fields);
 
-			// TODO: redo style
-
-			await interaction.followUp({ embeds: [embed] });
+			await interaction.editReply({ embeds: [embed] });
 		} catch (error) {
-			await interaction.reply({
-				content: "Error occured while searching past papers",
-				ephemeral: true
+			await interaction.editReply({
+				content: "Error occured while searching past papers"
 			});
 
 			if (!interaction.inCachedGuild()) return;

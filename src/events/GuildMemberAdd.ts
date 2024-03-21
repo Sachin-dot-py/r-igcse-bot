@@ -33,10 +33,11 @@ export default class GuildMemberAddEvent extends BaseEvent {
 			);
 
 		if (guildPreferences.welcomeDMMessage) {
-			const welcomeDMMessage = guildPreferences.welcomeDMMessage.replace(
-				/{\w+}/g,
-				(match) => placeholdersMap.get(match) || match
-			) + `\n\n  \\- From **${member.guild.name}**`;
+			const welcomeDMMessage =
+				guildPreferences.welcomeDMMessage.replace(
+					/{\w+}/g,
+					(match) => placeholdersMap.get(match) || match
+				) + `\n\n  \\- From **${member.guild.name}**`;
 
 			await member.send({ content: welcomeDMMessage });
 		}
