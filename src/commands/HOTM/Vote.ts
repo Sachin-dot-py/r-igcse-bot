@@ -78,17 +78,31 @@ export default class HOTMVotingCommand extends BaseCommand {
 			return;
 		}
 
-		await HOTM.updateOne(
-			{ guildId: interaction.guild.id, helperId: helper.id },
-			{ $inc: { votes: 1 } },
-			{ upsert: true }
-		);
+		if (
+			!(await HOTM.updateOne(
+				{ guildId: interaction.guild.id, helperId: helper.id },
+				{ $inc: { votes: 1 } },
+				{ upsert: true }
+			))
+		)
+			await HOTM.create({
+				guildId: interaction.guild.id,
+				helperId: helper.id,
+				votes: 1
+			});
 
-		await HOTMUser.updateOne(
-			{ guildId: interaction.guild.id, userId: interaction.user.id },
-			{ $inc: { votesLeft: -1 } },
-			{ upsert: true }
-		);
+		if (
+			!(await HOTMUser.updateOne(
+				{ guildId: interaction.guild.id, userId: interaction.user.id },
+				{ $inc: { votesLeft: -1 } },
+				{ upsert: true }
+			))
+		)
+			await HOTMUser.create({
+				guildId: interaction.guild.id,
+				userId: interaction.user.id,
+				votesLeft: 2
+			});
 
 		await interaction.reply({
 			content: `You voted for ${helper.tag} and have ${(userVotes?.votesLeft ?? 3) - 1} votes left.`,
