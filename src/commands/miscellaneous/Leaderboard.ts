@@ -39,6 +39,8 @@ export default class LeaderboardCommand extends BaseCommand {
 
 		const reps = await Reputation.find({
 			guildId: interaction.guildId
+		}).sort({
+			rep: "ascending"
 		});
 
 		if (reps.length === 0) {
