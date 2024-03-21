@@ -23,12 +23,14 @@ import {
 	Message,
 	StringSelectMenuOptionBuilder,
 	TextChannel,
-	ThreadChannel
+	ThreadChannel,
+	User
 } from "discord.js";
 import { EntityId, type Entity } from "redis-om";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { tyAliases, ywAliases } from "@/data";
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -52,7 +54,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (!guildPreferences) return;
 
-			if (message.reference && guildPreferences.repEnabled)
+			if (guildPreferences.repEnabled)
 				this.handleRep(message, guildPreferences.repDisabledChannelIds);
 
 			if (
@@ -252,59 +254,33 @@ export default class MessageCreateEvent extends BaseEvent {
 		message: Message<true>,
 		repDisabledChannels: string[]
 	) {
-		const referenceMessage = await message.fetchReference();
+		const channelId =
+			message.channel.isThread() && !message.channel.isThreadOnly()
+				? message.channel.parentId
+				: message.channelId;
 
-		if (
-			!referenceMessage.author.bot &&
-			!(referenceMessage.author.id === message.author.id)
-		) {
-			const channelId =
-				message.channel.isThread() && !message.channel.isThreadOnly()
-					? message.channel.parentId
-					: message.channelId;
+		if (!repDisabledChannels.some((id) => id === channelId)) {
+			const rep: User[] = [];
 
-			if (!repDisabledChannels.some((id) => id === channelId)) {
-				const rep = [];
+			if (tyAliases.some((alias) => message.content.includes(alias))) {
+				rep.push(...message.mentions.users.values());
+				if (message.reference)
+					rep.push((await message.fetchReference()).author);
+			}
 
-				if (
-					[
-						"you're welcome",
-						"ur welcome",
-						"yw",
-						"no problem",
-						"np",
-						"no worries",
-						"nw"
-					].some((phrase) =>
-						message.content.toLowerCase().includes(phrase)
-					)
-				)
-					rep.push(message.author);
+			if (
+				message.reference &&
+				ywAliases.some((alias) => message.content.includes(alias))
+			)
+				rep.push(message.author);
 
-				if (
-					[
-						"ty",
-						"thanks",
-						"thank you",
-						"thx",
-						"tysm",
-						"thank u",
-						"thnks",
-						"thanku",
-						"tyvm",
-						"tq"
-					].some((phrase) =>
-						message.content.toLowerCase().includes(phrase)
-					)
-				)
-					rep.push(referenceMessage.author);
+			for (const user of rep) {
+				const member = await message.guild.members.fetch(user.id);
 
-				for (const user of rep) {
-					const member = await message.guild.members.fetch(user.id);
+				if (!member) return;
 
-					if (!member) return;
-
-					const res = await Reputation.findOneAndUpdate(
+				const res =
+					(await Reputation.findOneAndUpdate(
 						{
 							guildId: message.guildId,
 							userId: member.id
@@ -313,31 +289,32 @@ export default class MessageCreateEvent extends BaseEvent {
 							$inc: {
 								rep: 1
 							}
-						},
-						{
-							upsert: true
 						}
+					)) ??
+					(await Reputation.create({
+						guildId: message.guildId,
+						userId: member.id,
+						rep: 1
+					}));
+
+				if (!res) return;
+
+				const rep = res.rep;
+
+				let content = `Gave +1 Rep to ${user.tag} (${rep})`;
+
+				if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
+					const role = message.guild.roles.cache.get(
+						`${rep}+ Rep Club`
 					);
 
-					if (!res) return;
+					if (!role) return;
 
-					const rep = res.rep;
-
-					let content = `Gave +1 Rep to <@${member.id}> (${rep})`;
-
-					if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
-						const role = message.guild.roles.cache.get(
-							`${rep}+ Rep Club`
-						);
-
-						if (!role) return;
-
-						content += `\nWelcome to the ${role.name}`;
-						member.roles.add(role);
-					}
-
-					message.channel.send(content);
+					content += `\nWelcome to the ${role.name}`;
+					member.roles.add(role);
 				}
+
+				message.channel.send(content);
 			}
 		}
 	}

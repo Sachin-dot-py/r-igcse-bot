@@ -18,12 +18,6 @@ export default class ColorRolesCommand extends BaseCommand {
 						.setDescription("Add a color role")
 						.addStringOption((option) =>
 							option
-								.setName("emoji")
-								.setDescription("The emoji to use")
-								.setRequired(false)
-						)
-						.addStringOption((option) =>
-							option
 								.setName("label")
 								.setDescription("The label to use")
 								.setRequired(true)
@@ -33,6 +27,12 @@ export default class ColorRolesCommand extends BaseCommand {
 								.setName("role")
 								.setDescription("The role to add")
 								.setRequired(true)
+						)
+						.addStringOption((option) =>
+							option
+								.setName("emoji")
+								.setDescription("The emoji to use")
+								.setRequired(false)
 						)
 						.addRoleOption((option) =>
 							option

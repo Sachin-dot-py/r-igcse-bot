@@ -1,5 +1,28 @@
 import { type IGuildPreferences } from "@/mongo";
 
+export const ywAliases = [
+	"you're welcome",
+	"ur welcome",
+	"yw",
+	"no problem",
+	"np",
+	"no worries",
+	"nw"
+];
+
+export const tyAliases = [
+	"ty",
+	"thanks",
+	"thank you",
+	"thx",
+	"tysm",
+	"thank u",
+	"thnks",
+	"thanku",
+	"tyvm",
+	"tq"
+];
+
 export const practiceSubjects: Record<string, string> = {
 	"0455": "Economics",
 	//'0606': "Additional Mathematics",
