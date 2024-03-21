@@ -1,9 +1,11 @@
 import { HOTM, HOTMUser } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
 
 export default class HOTMVotingCommand extends BaseCommand {
@@ -34,7 +36,8 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (studyChannels.length < 1) {
 			await interaction.reply({
-				content: "This feature hasn't been configured."
+				content: "This feature hasn't been configured.",
+				ephemeral: true
 			});
 
 			return;
@@ -74,38 +77,65 @@ export default class HOTMVotingCommand extends BaseCommand {
 				content: `${helper.tag} is not a helper`,
 				ephemeral: true
 			});
-
 			return;
 		}
 
-		if (
-			!(await HOTM.updateOne(
-				{ guildId: interaction.guild.id, helperId: helper.id },
-				{ $inc: { votes: 1 } },
-				{ upsert: true }
-			))
-		)
-			await HOTM.create({
-				guildId: interaction.guild.id,
-				helperId: helper.id,
-				votes: 1
-			});
+		const helperExists = await HOTM.findOne({
+			guildId: interaction.guild.id,
+			helperId: helper.id
+		});
 
-		if (
-			!(await HOTMUser.updateOne(
-				{ guildId: interaction.guild.id, userId: interaction.user.id },
-				{ $inc: { votesLeft: -1 } },
-				{ upsert: true }
-			))
-		)
-			await HOTMUser.create({
-				guildId: interaction.guild.id,
-				userId: interaction.user.id,
-				votesLeft: 2
-			});
+		await HOTM.updateOne(
+			{ guildId: interaction.guild.id, helperId: helper.id },
+			{
+				$set: {
+					votes: (helperExists?.votes ?? 0) + 1
+				},
+				$setOnInsert: {
+					guildId: interaction.guild.id,
+					helperId: helper.id
+				}
+			},
+			{
+				upsert: true
+			}
+		);
+
+		const userExists = await HOTMUser.findOne({
+			guildId: interaction.guild.id,
+			userId: interaction.user.id
+		});
+
+		await HOTMUser.updateOne(
+			{ guildId: interaction.guild.id, userId: interaction.user.id },
+			{
+				$set: {
+					votesLeft: (userExists?.votesLeft ?? 3) - 1
+				},
+				$setOnInsert: {
+					guildId: interaction.guild.id,
+					userId: interaction.user.id
+				}
+			},
+			{ upsert: true }
+		);
+
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId
+		);
+
+		if (guildPreferences?.hotmResultsChannelId) {
+			await Logger.channel(
+				interaction.guild,
+				guildPreferences.hotmResultsChannelId,
+				{
+					content: `${interaction.user} (${interaction.user.tag}) has voted for ${helper} (${helper.tag}) who now has ${(helperExists?.votes ?? 0) + 1} votes.`
+				}
+			);
+		}
 
 		await interaction.reply({
-			content: `You voted for ${helper.tag} and have ${(userVotes?.votesLeft ?? 3) - 1} votes left.`,
+			content: `You voted for ${helper.tag} and have ${(userExists?.votesLeft ?? 3) - 1} votes left.`,
 			ephemeral: true
 		});
 	}

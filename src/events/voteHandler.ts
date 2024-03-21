@@ -29,7 +29,7 @@ export const handleVote = (reaction: MessageReaction, user: User) => {
 		const yesBars = Math.floor(Math.round((yeses / total) * 100) / 10);
 		const noBars = 10 - yesBars;
 
-		description = `Total Votes: 0\n\n${yesBars * 10}% ${"🟩".repeat(yesBars)}${"🟥".repeat(noBars)} ${noBars * 10}%\n`;
+		description = `Total Votes: ${total}\n\n${yesBars * 10}% ${"🟩".repeat(yesBars)}${"🟥".repeat(noBars)} ${noBars * 10}%\n`;
 	}
 
 	const newEmbed = new EmbedBuilder({
