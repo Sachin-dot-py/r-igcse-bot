@@ -20,7 +20,7 @@ export default class ColorRolesCommand extends BaseCommand {
 							option
 								.setName("emoji")
 								.setDescription("The emoji to use")
-								.setRequired(true)
+								.setRequired(false)
 						)
 						.addStringOption((option) =>
 							option
@@ -40,7 +40,7 @@ export default class ColorRolesCommand extends BaseCommand {
 								.setDescription(
 									"The role required to access this color role"
 								)
-								.setRequired(true)
+								.setRequired(false)
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -67,12 +67,12 @@ export default class ColorRolesCommand extends BaseCommand {
 	) {
 		switch (interaction.options.getSubcommand()) {
 			case "add": {
-				const emoji = interaction.options.getString("emoji", true);
+				const emoji = interaction.options.getString("emoji", false);
 				const label = interaction.options.getString("label", true);
 				const role = interaction.options.getRole("role", true);
 				const requiredRole = interaction.options.getRole(
 					"required_role",
-					true
+					false
 				);
 
 				await ColorRole.create({
@@ -80,7 +80,7 @@ export default class ColorRolesCommand extends BaseCommand {
 					emoji,
 					label,
 					roleId: role.id,
-					requirementRoleId: requiredRole.id
+					requirementRoleId: requiredRole?.id
 				});
 
 				break;
