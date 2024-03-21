@@ -137,7 +137,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 		await this.refreshStickyMessageCache()
 			.then(() => Logger.info("Populated Sticky Message Cache"))
 			.catch(Logger.error);
-			
+
 		setInterval(
 			async () =>
 				await this.refreshStickyMessageCache().catch(Logger.error),
@@ -187,13 +187,10 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 					messageId: stickyMessage.messageId,
 					embeds: stickyMessage.embeds as APIEmbedRedis[]
 				});
-				if (!client.stickyChannelIds.includes(stickyMessage.channelId))
-					client.stickyChannelIds.push(stickyMessage.channelId);
+			if (!client.stickyChannelIds.includes(stickyMessage.channelId))
+				client.stickyChannelIds.push(stickyMessage.channelId);
 			else if (unstickTime <= time) {
-				await StickyMessage.deleteOne({
-					messageId: stickyMessage.messageId
-				});
-
+				await stickyMessage.deleteOne();
 				await StickyMessageCache.remove(stickyMessage.id);
 			}
 		}

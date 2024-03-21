@@ -46,13 +46,14 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.inGuild()) {
-
 			KeywordCache.get(
 				message.guildId,
 				message.content.trim().toLowerCase()
-			).then((keywordReponse) => {
-				if (keywordReponse) message.reply(keywordReponse);
-			}).catch(Logger.error);
+			)
+				.then((keywordReponse) => {
+					if (keywordReponse) message.reply(keywordReponse);
+				})
+				.catch(Logger.error);
 
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id
@@ -67,17 +68,18 @@ export default class MessageCreateEvent extends BaseEvent {
 					guildPreferences.repDisabledChannelIds
 				);
 
-			if (
-				client.stickyChannelIds.includes(message.channelId)
-			) {
-				if (stickyCounter[message.channelId] === 4 && stickyCounter[message.channelId] >= 4) {
+			if (client.stickyChannelIds.includes(message.channelId)) {
+				if (
+					stickyCounter[message.channelId] === 4 &&
+					stickyCounter[message.channelId] >= 4
+				) {
 					this.handleStickyMessages(message).catch(Logger.error);
 					stickyCounter[message.channelId] = 0;
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
-                        (isNaN(x) ? 0 : x) + 1)(
-                        stickyCounter[message.channelId]
-                    );
+						(isNaN(x) ? 0 : x) + 1)(
+						stickyCounter[message.channelId]
+					);
 				}
 			}
 
@@ -345,11 +347,10 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete().catch(() => {})
-
+				if (oldSticky) await oldSticky.delete().catch(() => {});
 			}
 
-			const embeds = (stickyMessage.embeds).map(
+			const embeds = stickyMessage.embeds.map(
 				(embed) => new EmbedBuilder(embed as APIEmbed)
 			);
 
@@ -357,19 +358,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				embeds
 			});
 
-			await StickyMessage.findOneAndUpdate(
-				{
-					id: stickyMessage[EntityId]!
-				},
-				{
-					$set: {
-						messageId: newSticky.id
-					}
-				}
-			);
-
 			stickyMessage.messageId = newSticky.id;
-			await StickyMessageCache.save(stickyMessage)
+			await StickyMessageCache.save(stickyMessage);
 		}
 	}
 }

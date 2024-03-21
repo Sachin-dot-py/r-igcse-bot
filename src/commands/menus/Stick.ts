@@ -81,11 +81,12 @@ export default class StickMessageCommand extends BaseCommand {
 		await modalInteraction.deferUpdate();
 
 		const stickTime =
-			parseInt(modalInteraction.fields.getTextInputValue("stick-time")) || null
+			parseInt(modalInteraction.fields.getTextInputValue("stick-time")) ||
+			null;
 		const unstickTime =
 			parseInt(
 				modalInteraction.fields.getTextInputValue("unstick-time")
-			) || null
+			) || null;
 
 		if (stickTime && unstickTime) {
 			if (stickTime > unstickTime) {
@@ -93,7 +94,7 @@ export default class StickMessageCommand extends BaseCommand {
 					content: "Stick time must be before unstick time.",
 					ephemeral: true
 				});
-	
+
 				return;
 			}
 			if (unstickTime < time) {
@@ -101,7 +102,7 @@ export default class StickMessageCommand extends BaseCommand {
 					content: "Unstick time must be after now.",
 					ephemeral: true
 				});
-	
+
 				return;
 			}
 		}
@@ -112,7 +113,11 @@ export default class StickMessageCommand extends BaseCommand {
 			.setMaxValues(1)
 			.setMinValues(1)
 			.setDefaultChannels(interaction.channel.id)
-			.setChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread);
+			.setChannelTypes(
+				ChannelType.GuildText,
+				ChannelType.PublicThread,
+				ChannelType.PrivateThread
+			);
 
 		const channelRow =
 			new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
@@ -152,7 +157,7 @@ export default class StickMessageCommand extends BaseCommand {
 				embed.toJSON()
 			),
 			stickTime: stickTime?.toString(),
-			unstickTime: unstickTime?.toString(),
+			unstickTime: unstickTime?.toString()
 		});
 
 		if (!res) {
@@ -169,7 +174,7 @@ export default class StickMessageCommand extends BaseCommand {
 				channelId: channel.id,
 				messageId: null,
 				embeds: interaction.targetMessage.embeds.map((embed) =>
-					embed.toJSON() 
+					embed.toJSON()
 				) as APIEmbedRedis[]
 			});
 

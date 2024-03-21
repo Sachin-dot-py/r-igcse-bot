@@ -1,7 +1,6 @@
 import type { APIEmbed } from "discord.js";
 import { Schema, model as createModel } from "mongoose";
 
-
 export interface IStickyMessage {
 	channelId: string;
 	messageId: string | null;
