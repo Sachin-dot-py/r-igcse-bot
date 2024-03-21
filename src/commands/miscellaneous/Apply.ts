@@ -65,7 +65,7 @@ export default class ApplyCommand extends BaseCommand {
 					i.user.id === interaction.user.id,
 				componentType: ComponentType.StringSelect
 			})
-			.then(async () => {
+			.then(async (selectInteraction) => {
 				const timezoneInput = new TextInputBuilder()
 					.setCustomId("timezone_input")
 					.setLabel("Timezone")
@@ -85,18 +85,22 @@ export default class ApplyCommand extends BaseCommand {
 					.setCustomId("chat_mod_app")
 					.addComponents(row);
 
-				await interaction.showModal(modal);
+				await selectInteraction.showModal(modal);
 
-				interaction
+				selectInteraction
 					.awaitModalSubmit({
 						filter: (i: ModalSubmitInteraction) =>
 							i.customId === "chat_mod_app" &&
 							i.user.id === interaction.user.id,
 						time: 90000
 					})
-					.then(async (i) => {
+					.then(async (modalInteraction) => {
+						modalInteraction.deferUpdate();
+
 						const timezone =
-							i.fields.getTextInputValue("timezone_input");
+							modalInteraction.fields.getTextInputValue(
+								"timezone_input"
+							);
 
 						const chatModAppsChannel =
 							interaction.guild.channels.cache.get(
@@ -109,7 +113,8 @@ export default class ApplyCommand extends BaseCommand {
 						) {
 							await interaction.editReply({
 								content:
-									"Error occured whilst processing application. Please try again later."
+									"Error occured whilst processing application. Please try again later.",
+								components: []
 							});
 
 							return;
@@ -137,7 +142,8 @@ export default class ApplyCommand extends BaseCommand {
 
 						await interaction.editReply({
 							content:
-								"Thank you for applying. If you are selected as a Chat Moderator, we will send you a modmail with more information. Good luck!"
+								"Thank you for applying. If you are selected as a Chat Moderator, we will send you a modmail with more information. Good luck!",
+							components: []
 						});
 					});
 			});
