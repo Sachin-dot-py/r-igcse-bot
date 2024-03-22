@@ -282,15 +282,27 @@ export default class MessageCreateEvent extends BaseEvent {
 			});
 		} else thread = channel.threads.cache.get(res.threadId)!;
 
+	
 		const embed = new EmbedBuilder()
 			.setTitle("New DM Recieved")
 			.setAuthor({
 				name: message.author.username,
 				iconURL: message.author.displayAvatarURL()
 			})
-			.setDescription(message.content)
+			.setDescription(message.content || "No content")
 			.setTimestamp(message.createdTimestamp)
 			.setColor(Colors.Red);
+
+		if (message.attachments.size > 0) {
+			embed.addFields(
+				{
+					name: "Attachments",
+					value: message.attachments.map((attachment) =>
+						`[Attachment](${attachment.url})`
+					).join("\n")
+				}
+			);
+		}
 
 		if (guildPreferences.modmailLogsChannelId) {
 			Logger.channel(guild, guildPreferences.modmailLogsChannelId, {
@@ -369,8 +381,11 @@ export default class MessageCreateEvent extends BaseEvent {
 				)
 			) {
 				rep.push(...message.mentions.users.values());
-				if (message.reference)
-					rep.push((await message.fetchReference()).author);
+				if (message.reference) {
+					const reference = await message.fetchReference()
+					if (!rep.includes(reference.author)) rep.push(reference.author)
+				}
+					
 			}
 
 			if (
