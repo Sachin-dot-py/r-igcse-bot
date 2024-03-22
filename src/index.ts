@@ -47,7 +47,8 @@ await mongo.connect(process.env.MONGO_URL, {
 	retryWrites: true,
 	writeConcern: {
 		w: "majority"
-	}
+	},
+	dbName: "rigcse-bot"
 });
 
 await client.login(process.env.BOT_TOKEN);
