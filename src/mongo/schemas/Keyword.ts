@@ -8,7 +8,7 @@ export interface IKeyword {
 
 const schema = new Schema<IKeyword>({
 	guildId: { type: String, required: true, unique: false },
-	keyword: { type: String, required: true, unique: true },
+	keyword: { type: String, required: true, unique: false },
 	response: { type: String, required: true, unique: false }
 });
 
