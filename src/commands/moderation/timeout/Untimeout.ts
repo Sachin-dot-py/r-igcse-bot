@@ -38,7 +38,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 		const member = await interaction.guild.members.fetch(user.id);
 
-		if (!member.communicationDisabledUntil) {
+		if (!member.isCommunicationDisabled()) {
 			await interaction.reply({
 				content: "User is not timed out!",
 				ephemeral: true
@@ -121,7 +121,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.tag}`,
+			content: `Successfully untimed out @${user.tag}`,
 			ephemeral: true
 		});
 	}
