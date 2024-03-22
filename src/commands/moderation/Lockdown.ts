@@ -63,7 +63,7 @@ export default class LockdownCommand extends BaseCommand {
 			ChannelType.PrivateThread
 		]);
 
-		const time = Date.now();
+		const time = Date.now() / 1000;
 
 		const startTimestamp =
 			interaction.options.getInteger("start_time", false) ?? time;

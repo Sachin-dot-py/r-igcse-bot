@@ -64,13 +64,15 @@ export default class UntimeoutCommand extends BaseCommand {
 			await member.timeout(null);
 		} catch (error) {
 			await interaction.reply({
-				content: "Failed to untimeout user",
+				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
 				{ name: "User ID", value: interaction.user.id }
 			]);
+
+			return;
 		}
 
 		const latestPunishment = await Punishment.findOne().sort({ when: -1 });
@@ -81,7 +83,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			action: "Timeout"
-		}).sort({ createdAt: 1 });
+		}).sort({ when: -1 });
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,

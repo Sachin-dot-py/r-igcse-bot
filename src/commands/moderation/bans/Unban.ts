@@ -62,22 +62,24 @@ export default class UnbanCommand extends BaseCommand {
 			await interaction.guild.bans.remove(member);
 		} catch (error) {
 			await interaction.reply({
-				content: "Failed to unban user",
+				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
 				{ name: "User ID", value: interaction.user.id }
 			]);
+			return;
 		}
 
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
-			action: "Ban",
+			action: "Unban",
 			caseId: caseNumber,
-			reason: ""
+			reason: "",
+			points: 0
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
