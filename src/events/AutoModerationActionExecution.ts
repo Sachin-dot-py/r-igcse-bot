@@ -51,7 +51,8 @@ export default class ErrorEvent extends BaseEvent {
 			caseId: caseNumber,
 			duration,
 			reason,
-			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2
+			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+			when: new Date()
 		});
 
 		const modEmbed = new EmbedBuilder()

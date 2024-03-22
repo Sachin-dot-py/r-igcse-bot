@@ -128,7 +128,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		try {
-			await guildMember.timeout(duration, reason);
+			await guildMember.timeout(duration  * 1000, reason);
 			await sendDm(guildMember, {
 				embeds: [
 					new EmbedBuilder()
@@ -160,7 +160,8 @@ export default class TimeoutCommand extends BaseCommand {
 			caseId: caseNumber,
 			duration,
 			reason,
-			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2
+			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+			when: new Date()
 		});
 
 		const modEmbed = new EmbedBuilder()

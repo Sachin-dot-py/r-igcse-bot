@@ -102,7 +102,8 @@ export default class UntimeoutCommand extends BaseCommand {
 			action: "Remove Timeout",
 			reason: "",
 			points: -(undoPunishment?.points ?? 2),
-			caseId: caseNumber
+			caseId: caseNumber,
+			when: new Date()
 		});
 
 		const modEmbed = new EmbedBuilder()

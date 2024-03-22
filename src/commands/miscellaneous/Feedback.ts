@@ -24,7 +24,7 @@ export default class FeedbackCommand extends BaseCommand {
 				.addStringOption((option) =>
 					option
 						.setName("team")
-						.setDescription("To whomst u have feedback for")
+						.setDescription("The team you want to send feedback to")
 						.setChoices(
 							{
 								name: "Moderators",
@@ -42,7 +42,7 @@ export default class FeedbackCommand extends BaseCommand {
 						.setRequired(true)
 				)
 				.setDMPermission(false)
-				.setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
+				
 		);
 	}
 
@@ -80,25 +80,22 @@ export default class FeedbackCommand extends BaseCommand {
 		await interaction.showModal(modal);
 
 		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 180000,
+			time: 300_000,
 			filter: (i) =>
-				i.user.id === interaction.user.id &&
 				i.customId === "feedback-modal"
 		});
-
-		await modalInteraction.deferUpdate();
 
 		const feedback =
 			modalInteraction.fields.getTextInputValue("feedback-input");
 
 		const channel = interaction.guild.channels.cache.get(
-			team === "dev"
+			team === "devs"
 				? process.env.DEV_FEEDBACK_CHANNEL_ID
 				: process.env.MOD_FEEDBACK_CHANNEL_ID
 		);
 
 		if (!channel) {
-			await interaction.reply(
+			await modalInteraction.reply(
 				`Unable to fetch ${team}-feedback channel. Try again later.`
 			);
 
@@ -106,7 +103,7 @@ export default class FeedbackCommand extends BaseCommand {
 		}
 
 		if (!channel.isTextBased()) {
-			await interaction.reply(
+			await modalInteraction.reply(
 				"Feedback channel not configured correctly. Must be a text channel."
 			);
 
@@ -126,7 +123,7 @@ export default class FeedbackCommand extends BaseCommand {
 			embeds: [embed]
 		});
 
-		await interaction.reply({
+		await modalInteraction.reply({
 			content: "Feedback sent!",
 			ephemeral: true
 		});

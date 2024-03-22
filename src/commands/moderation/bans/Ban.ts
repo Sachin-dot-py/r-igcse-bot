@@ -146,7 +146,8 @@ export default class BanCommand extends BaseCommand {
 			action: "Ban",
 			caseId: caseNumber,
 			reason,
-			points: 0
+			points: 0,
+			when: new Date()
 		});
 
 		if (guildPreferences.modlogChannelId) {
