@@ -7,9 +7,22 @@
 
 r/IGCSE Bot is a Python Discord Bot primarly developed for the [r/IGCSE Discord Community](https://discord.gg/igcse) but also used by 100+ other servers. This bot provides a rep system & leaderboard, server suggestions voting, keyword auto-replies, moderation actions automatically updating your logging channel, reaction roles, and more!
 
-The `v1.0` version of this bot rolled into use on July 5, 2021 and has come a long way since. The bot is currently hosted on Oracle Cloud Infrastructure.
-
 [Add r/IGCSE Bot to your Discord Server](https://discord.com/api/oauth2/authorize?client_id=861445044790886467&permissions=8&scope=bot).
+
+
+The `v1.0` version of this bot, written in Python, rolled into use on July 5, 2021 and has come a long way since. 
+
+The `v2.0` version of this bot, entirely re-written in TypeScript, was released on March 22, 2024.
+
+The bot is currently hosted on Oracle Cloud Infrastructure.
+
+# Contributors
+
+The contributors to the `v2.0` release are attributed below. <a href="https://github.com/11xdeveloper">Dawood</a> and <a href="https://github.com/chirag350">Chirag</a> were the primary authors of the TypeScript rewrite.
+
+<a href="https://github.com/Sachin-dot-py/r-igcse-bot/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Sachin-dot-py/r-igcse-bot" />
+</a>
 
 # Preview of Features
 
