@@ -53,7 +53,7 @@ const schema = new Schema<IPunishment>({
 	when: {
 		type: Date,
 		required: true,
-		unique: false,
+		unique: false
 	},
 	points: {
 		type: Number,

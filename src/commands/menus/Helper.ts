@@ -61,7 +61,7 @@ export default class HelperMenu extends BaseCommand {
 
 		const boosterRole = await interaction.guild.roles.cache.find(
 			(role) => role.name === "Server Booster"
-		)
+		);
 		if (boosterRole && interaction.member.roles.cache.has(boosterRole.id)) {
 			const embed = new EmbedBuilder()
 				.setDescription(
