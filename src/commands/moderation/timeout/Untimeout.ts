@@ -86,7 +86,9 @@ export default class UntimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne().sort({ when: -1 });
+		const latestPunishment = await Punishment.findOne({
+			guildId: interaction.guildId
+		}).sort({ when: -1 });
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
@@ -95,6 +97,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			actionAgainst: user.id,
 			action: "Timeout"
 		}).sort({ when: -1 });
+
 		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,

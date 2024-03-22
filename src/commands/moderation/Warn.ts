@@ -57,7 +57,9 @@ export default class WarnCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne().sort({ when: -1 });
+		const latestPunishment = await Punishment.findOne({
+			guildId: interaction.guildId
+		}).sort({ when: -1 });
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
