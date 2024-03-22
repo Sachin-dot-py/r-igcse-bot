@@ -18,6 +18,7 @@ export type IGuildPreferences = {
 
 	modmailCreateChannelId: string;
 	modmailThreadsChannelId: string;
+	modmailLogsChannelId: string;
 	closedDmChannelId: string;
 
 	banAppealFormLink: string;
@@ -41,6 +42,7 @@ const schema = new Schema<IGuildPreferences>({
 	studySessionChannelId: { type: String, default: null },
 	modmailCreateChannelId: { type: String, default: null },
 	modmailThreadsChannelId: { type: String, default: null },
+	modmailLogsChannelId: { type: String, default: null },
 	closedDmChannelId: { type: String, default: null },
 	banAppealFormLink: { type: String, default: null },
 	forcedMuteRoleId: { type: String, default: null },

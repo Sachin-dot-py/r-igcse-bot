@@ -382,15 +382,15 @@ export const preferences: Preference[] = [
 		key: "modmailThreadsChannelId"
 	},
 	{
+		name: "Modmail Logs Channel (New message logs)",
+		type: "channel",
+		key: "modmailLogsChannelId"
+	},
+	{
 		name: "Closed DM Channel",
 		type: "channel",
 		key: "closedDmChannelId"
 	},
-	/* {
-		name: "Ban Appeal Form Link",
-		type: "string",
-		key: "banAppealFormLink",
-	}, */
 	{
 		name: "Forced Mute Role",
 		type: "role",

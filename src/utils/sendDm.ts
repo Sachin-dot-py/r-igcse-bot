@@ -35,6 +35,12 @@ const sendDm = async (
 				guildId: member.guild.id
 			})) ?? null;
 		if (!dmThread) {
+			await channel.permissionOverwrites.create(member.id, {
+				ViewChannel: true,
+				SendMessages: false,
+				CreatePublicThreads: false,
+				CreatePrivateThreads: false
+			});
 			const newThread = await channel.threads.create({
 				name: `${member.user.username} (${member.id})`,
 				type: ChannelType.PrivateThread
@@ -42,7 +48,7 @@ const sendDm = async (
 
 			await newThread.members
 				.add(member, "User has DMs closed")
-				.catch(() => {}); // user has blocked the bot
+				.catch(() => {}); // user has blocked the bot most likely
 
 			thread = newThread;
 

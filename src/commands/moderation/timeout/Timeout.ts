@@ -5,12 +5,14 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
+import sendDm from "@/utils/sendDm";
 import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from "discord.js";
+import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
 
 export default class TimeoutCommand extends BaseCommand {
@@ -127,6 +129,16 @@ export default class TimeoutCommand extends BaseCommand {
 
 		try {
 			await guildMember.timeout(duration, reason);
+			await sendDm(guildMember, {
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Timeout")
+						.setColor(Colors.Red)
+						.setDescription(
+							`You have been timed out in ${interaction.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${reason}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
+						)
+				]
+			});
 		} catch (error) {
 			await interaction.reply({
 				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
@@ -171,7 +183,7 @@ export default class TimeoutCommand extends BaseCommand {
 				},
 				{
 					name: "Duration",
-					value: durationString
+					value: humanizeDuration(duration * 1000)
 				}
 			]);
 
