@@ -3,7 +3,7 @@ import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 
 class VisibiltySelect {
 	rows: ActionRowBuilder<Select>[];
-	constructor(customId: string, ...data: string[]) {
+	constructor(customId: string) {
 		const visbilitySelect = new Select(
 			"visibility",
 			"Public or Private session?",

@@ -1,4 +1,4 @@
-import { Schema, model as createModel, Model } from "mongoose";
+import { Model, Schema } from "mongoose";
 
 export interface IQuestion {
 	subject: string;
@@ -62,7 +62,7 @@ schema.statics.getQuestions = async function getQuestions(
 		}
 	];
 	if (type === "mcq") {
-		// @ts-expect-error
+		// @ts-expect-error chirag big dummy
 		query[0]["$match"]["$expr"] = {
 			$eq: [{ $type: "$answers" }, "string"]
 		};

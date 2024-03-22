@@ -4,7 +4,7 @@ import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 
 class SubjectSelect {
 	rows: ActionRowBuilder<Select>[];
-	constructor(customId: string, ...data: string[]) {
+	constructor(customId: string) {
 		const subjectSelect = new Select(
 			"subject",
 			"Select a subject",

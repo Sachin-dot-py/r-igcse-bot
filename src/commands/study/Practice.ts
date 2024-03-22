@@ -1,38 +1,38 @@
-import {
-	SlashCommandBuilder,
-	ActionRowBuilder,
-	ButtonBuilder,
-	TextChannel,
-	ChannelType,
-	EmbedBuilder,
-	StringSelectMenuOptionBuilder,
-	type AnyThreadChannel,
-	Message
-} from "discord.js";
-import BaseCommand, {
-	type DiscordChatInputCommandInteraction
-} from "@/registry/Structure/BaseCommand";
+import Select from "@/components/Select";
+import MCQButtons from "@/components/practice/MCQButtons";
 import SessionInfoModal from "@/components/practice/SessionInfoModal";
+import UserSelect from "@/components/practice/UserSelect";
 import Buttons from "@/components/practice/views/Buttons";
 import SubjectSelect from "@/components/practice/views/SubjectSelect";
 import TopicSelect from "@/components/practice/views/TopicSelect";
-import VisibiltySelect from "@/components/practice/views/VisibiltySelect";
 import UserSelectView from "@/components/practice/views/UserSelectView";
-import { PracticeSession, Question, type IPracticeSession } from "@/mongo";
+import VisibiltySelect from "@/components/practice/views/VisibiltySelect";
 import { practiceSubjects, subjectTopics } from "@/data";
-import { v4 as uuidv4 } from "uuid";
+import { PracticeSession, Question, type IPracticeSession } from "@/mongo";
+import {
+	ButtonInteractionCache,
+	PracticeQuestionCache,
+	UserCache
+} from "@/redis";
+import type { IPracticeQuestion } from "@/redis/schemas/Question";
 import type { DiscordClient } from "@/registry/DiscordClient";
+import BaseCommand, {
+	type DiscordChatInputCommandInteraction
+} from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
-	UserCache,
-	PracticeQuestionCache,
-	ButtonInteractionCache
-} from "@/redis";
+	ActionRowBuilder,
+	ButtonBuilder,
+	ChannelType,
+	EmbedBuilder,
+	Message,
+	SlashCommandBuilder,
+	StringSelectMenuOptionBuilder,
+	TextChannel,
+	type AnyThreadChannel
+} from "discord.js";
 import type { Document } from "mongoose";
-import type { IPracticeQuestion } from "@/redis/schemas/Question";
-import Select from "@/components/Select";
-import UserSelect from "@/components/practice/UserSelect";
-import MCQButtons from "@/components/practice/MCQButtons";
+import { v4 as uuidv4 } from "uuid";
 
 type CommandOptions = {
 	[key: string]: (
@@ -730,7 +730,8 @@ Session ID: ${sessionId}`
 
 	private async endAndSendResults(
 		client: DiscordClient | undefined,
-		session: Document<any, {}, IPracticeSession> & IPracticeSession,
+		session: Document<unknown, unknown, IPracticeSession> &
+			IPracticeSession,
 		message: string
 	): Promise<void> {
 		if (!client) return;
@@ -836,7 +837,7 @@ Session ID: ${sessionId}`
 
 	async getThread(
 		interaction: DiscordChatInputCommandInteraction,
-		session: Document<any, {}, IPracticeSession> & IPracticeSession
+		session: Document<unknown, unknown, IPracticeSession> & IPracticeSession
 	): Promise<AnyThreadChannel | undefined> {
 		let thread = interaction.guild?.channels.cache.get(session.threadId);
 		if (!thread?.isThread()) {

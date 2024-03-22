@@ -1,5 +1,6 @@
 import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
+import { botYwResponses, tyAliases, ywAliases } from "@/data";
 import { PrivateDmThread, Reputation } from "@/mongo";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
@@ -7,17 +8,18 @@ import {
 	KeywordCache,
 	StickyMessageCache
 } from "@/redis";
+import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
+import Logger from "@/utils/Logger";
+import sendDm from "@/utils/sendDm";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	ChannelType,
 	Colors,
 	EmbedBuilder,
 	Events,
 	ForumChannel,
 	Message,
 	StringSelectMenuOptionBuilder,
-	TextChannel,
 	ThreadChannel,
 	User,
 	type APIEmbed
@@ -25,10 +27,6 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { botYwResponses, tyAliases, ywAliases } from "@/data";
-import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
-import Logger from "@/utils/Logger";
-import sendDm from "@/utils/sendDm";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -73,23 +71,28 @@ export default class MessageCreateEvent extends BaseEvent {
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-							stickyCounter[message.channelId]
-						);
+						stickyCounter[message.channelId]
+					);
 				}
 			}
 
 			if (message.channelId === guildPreferences.modmailCreateChannelId) {
-				if (!guildPreferences.modmailThreadsChannelId || !guildPreferences.modmailCreateChannelId) {
-					await message.reply("Modmail is not set up in this server.");
+				if (
+					!guildPreferences.modmailThreadsChannelId ||
+					!guildPreferences.modmailCreateChannelId
+				) {
+					await message.reply(
+						"Modmail is not set up in this server."
+					);
 					return;
 				}
 
-				const member = await message.guild.members.fetch(
-					message.content
-				).catch(async () => {
-					await message.reply("Invalid User ID");
-					return
-				});
+				const member = await message.guild.members
+					.fetch(message.content)
+					.catch(async () => {
+						await message.reply("Invalid User ID");
+						return;
+					});
 
 				if (!member) return;
 
@@ -99,13 +102,15 @@ export default class MessageCreateEvent extends BaseEvent {
 				});
 
 				if (res) {
-					const thread = await message.guild.channels.fetch(
-						res.threadId
-					).catch(async () => {
-						res.deleteOne()
-						await message.reply("Thread not found (could've been manually deleted), please try again to create a new thread.");
-						return;
-					});
+					const thread = await message.guild.channels
+						.fetch(res.threadId)
+						.catch(async () => {
+							res.deleteOne();
+							await message.reply(
+								"Thread not found (could've been manually deleted), please try again to create a new thread."
+							);
+							return;
+						});
 
 					if (thread) {
 						await message.reply(
@@ -120,7 +125,10 @@ export default class MessageCreateEvent extends BaseEvent {
 					guildPreferences.modmailThreadsChannelId
 				);
 
-				if (!threadsChannel || !(threadsChannel instanceof ForumChannel)) {
+				if (
+					!threadsChannel ||
+					!(threadsChannel instanceof ForumChannel)
+				) {
 					await message.reply(
 						`Threads channel (${threadsChannel}) should be a forum channel.`
 					);
@@ -148,7 +156,11 @@ export default class MessageCreateEvent extends BaseEvent {
 					]);
 				}
 			}
-			if (message.channel instanceof ThreadChannel && message.channel.parentId === guildPreferences.modmailThreadsChannelId) {
+			if (
+				message.channel instanceof ThreadChannel &&
+				message.channel.parentId ===
+					guildPreferences.modmailThreadsChannelId
+			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
 		} else this.handleModMail(client, message as Message<false>);
@@ -242,7 +254,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		const channel = guild.channels.cache.get(
 			guildPreferences.modmailThreadsChannelId
 		);
-		
+
 		if (!channel || !(channel instanceof ForumChannel)) {
 			await message.author.send(
 				`Unable to find the modmail channel in **${guild.name}**. Please contact the server staff.`
@@ -251,7 +263,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		}
 		const res = await PrivateDmThread.findOne({
 			userId: message.author.id,
-			guildId,
+			guildId
 		});
 
 		let thread: ThreadChannel;
@@ -266,7 +278,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			await PrivateDmThread.create({
 				userId: message.author.id,
 				threadId: thread.id,
-				guildId,
+				guildId
 			});
 		} else thread = channel.threads.cache.get(res.threadId)!;
 
@@ -304,23 +316,21 @@ export default class MessageCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		message: Message<true>
 	) {
-		const guildPreferences = await GuildPreferencesCache.get(
-			message.guildId
-		);
-		
 		const dmThread = await PrivateDmThread.findOne({
 			threadId: message.channel.id
 		});
-		
+
 		if (!dmThread) {
 			await message.reply("Unable to find the user for this thread.");
 			return;
 		}
 
-		const member = await message.guild.members.fetch(dmThread.userId).catch(async () => {
-			await message.reply("User is no longer in the server");
-			return;
-		});
+		const member = await message.guild.members
+			.fetch(dmThread.userId)
+			.catch(async () => {
+				await message.reply("User is no longer in the server");
+				return;
+			});
 		if (!member) return;
 
 		const embed = new EmbedBuilder()
@@ -375,7 +385,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				if (user.id === client.user.id) {
 					await message.reply(
 						botYwResponses[
-						Math.floor(Math.random() * botYwResponses.length)
+							Math.floor(Math.random() * botYwResponses.length)
 						]
 					);
 
@@ -438,7 +448,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete().catch(() => { });
+				if (oldSticky) await oldSticky.delete().catch(() => {});
 			}
 
 			const embeds = stickyMessage.embeds.map(

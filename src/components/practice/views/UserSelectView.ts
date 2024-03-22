@@ -3,7 +3,7 @@ import { ActionRowBuilder } from "discord.js";
 
 class UserSelectView {
 	rows: ActionRowBuilder<UserSelect>[];
-	constructor(customId: string, ...data: string[]) {
+	constructor(customId: string) {
 		const userSelect = new UserSelect(
 			"users",
 			"Select a user",
