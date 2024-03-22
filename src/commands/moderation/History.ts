@@ -61,7 +61,7 @@ export default class HistoryCommand extends BaseCommand {
 		const punishmentsList = [];
 
 		for (const { when, actionBy, points, action, reason } of punishments) {
-			totalPoints += points;
+			if (points) totalPoints += points;
 
 			if (action in counts) {
 				counts[action as keyof typeof counts]++;
@@ -73,7 +73,7 @@ export default class HistoryCommand extends BaseCommand {
 				actionBy;
 
 			punishmentsList.push(
-				`[${when.toLocaleDateString("en-GB")}] ${action} [${points}] ${reason && `for ${reason}`} by ${moderator}`
+				`[${when.toLocaleDateString("en-GB")}] ${action}${points ? ` [${points}] ` : " "}${reason && `for ${reason}`} by ${moderator}`
 			);
 		}
 

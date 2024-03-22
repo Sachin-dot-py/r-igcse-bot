@@ -4,18 +4,24 @@ export type IPunishment = {
 	actionAgainst: string;
 	actionBy: string;
 	when: Date;
-	points: number;
 	guildId: string;
 	caseId: number;
 	reason: string;
 } & (
 	| {
-			action: "Warn" | "Kick" | "Ban" | "Unban" | "Remove Timeout";
+			action: "Warn" | "Kick" | "Remove Timeout";
 			duration: null;
+			points: number;
+	  }
+	| {
+			action: "Ban" | "Unban";
+			duration: null;
+			points: null;
 	  }
 	| {
 			action: "Timeout";
 			duration: number;
+			points: number;
 	  }
 );
 
