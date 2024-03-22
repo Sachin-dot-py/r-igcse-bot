@@ -79,13 +79,13 @@ export default class SetupCommand extends BaseCommand {
 					if (component instanceof StringSelect) {
 						component.addOptions(
 							{
-								label: "Yes",
+								label: "Enable Reps",
 								value: "true",
 								default:
 									guildPreferences?.[preference.key] === true
 							},
 							{
-								label: "No",
+								label: "Disable Reps",
 								value: "false",
 								default:
 									guildPreferences?.[preference.key] === false
