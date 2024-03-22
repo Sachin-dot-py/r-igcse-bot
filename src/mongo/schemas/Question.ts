@@ -1,4 +1,4 @@
-import { Model, Schema } from "mongoose";
+import { Model, Schema, model as createModel } from "mongoose";
 
 export interface IQuestion {
 	subject: string;
