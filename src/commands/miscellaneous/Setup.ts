@@ -2,13 +2,12 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	type APISelectMenuOption
+    StringSelectMenuBuilder,
 } from "discord.js";
 import { preferences } from "@/data";
 import StringSelect from "@/components/setup/StringSelect";
@@ -51,7 +50,7 @@ export default class SetupCommand extends BaseCommand {
 			interaction.guildId
 		);
 
-		let customId = uuidv4();
+		const customId = uuidv4();
 		let pageCounter = 0;
 
 		const setupButtons = new SetupButtons(customId);
@@ -142,7 +141,7 @@ export default class SetupCommand extends BaseCommand {
 			);
 			const selectInteraction = await interaction.followUp({
 				content: `Page ${pageCounter}`,
-				components: rows as ActionRowBuilder<any>[],
+				components: rows as ActionRowBuilder<StringSelectMenuBuilder>[],
 				ephemeral: true,
 				fetchReply: true
 			});

@@ -6,9 +6,7 @@ import {
 	ChannelType,
 	EmbedBuilder,
 	StringSelectMenuOptionBuilder,
-	type GuildBasedChannel,
 	type AnyThreadChannel,
-	Guild,
 	Message
 } from "discord.js";
 import BaseCommand, {
@@ -120,7 +118,7 @@ export default class PracticeCommand extends BaseCommand {
 		const modalCustomId = uuidv4();
 		const modal = new SessionInfoModal(modalCustomId);
 
-		let collectedData: CollectedData = {
+		const collectedData: CollectedData = {
 			minimumYear: 0,
 			numberOfQuestions: 0,
 			subject: [],
@@ -221,8 +219,8 @@ export default class PracticeCommand extends BaseCommand {
 					data = subjectTopics[collectedData["subject"][0]];
 			}
 			data = data.filter((x) => typeof x === "string");
-			// @ts-ignore
-			collectedData[key] = data;
+			
+			collectedData[key as "subject" | "topics" | "visibility" | "users"] = data as string[];
 		}
 
 		if (!collectedData.users.includes(interaction.user.id)) {
@@ -350,7 +348,7 @@ Session ID: ${sessionId}`
 			return;
 		}
 		await UserCache.remove(interaction.user.id);
-		let thread = await this.getThread(interaction, session);
+		const thread = await this.getThread(interaction, session);
 		if (!thread) return;
 
 		await thread.send(`<@${interaction.user.id}> has left the session.`);

@@ -84,7 +84,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 			await GuildPreferencesCache.remove(interaction.guildId);
 		});
 
-		selectCollector.on("end", async (collected, reason) => {
+		selectCollector.on("end", async () => {
 			if (this.isFirstComponent) {
 				await editMessage({
 					components: [],

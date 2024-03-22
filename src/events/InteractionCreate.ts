@@ -215,7 +215,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!confession) return;
 
 		switch (action) {
-			case "accept":
+			case "accept": {
 				const confessionsChannel = client.channels.cache.get(
 					guildPreferences.confessionsChannelId
 				);
@@ -251,8 +251,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 					ephemeral: true
 				});
 				break;
-
-			case "reject":
+			}
+			case "reject": {
 				const rejectEmbed = new EmbedBuilder()
 					.setAuthor({
 						name: `Confession rejected by ${interaction.user.tag}`
@@ -270,8 +270,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 					ephemeral: true
 				});
 				break;
-
-			case "ban":
+			}
+			case "ban": {
 				const modalCustomId = uuidv4();
 				const modal = new ConfessionBanModal(modalCustomId);
 				await interaction.showModal(modal);
@@ -312,7 +312,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					ephemeral: true
 				});
 				break;
-
+			}
 			default:
 				break;
 		}

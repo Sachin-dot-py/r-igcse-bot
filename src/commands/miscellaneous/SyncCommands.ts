@@ -3,9 +3,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
+import { SlashCommandBuilder } from "discord.js";
 
 export default class SyncCommandsCommand extends BaseCommand {
 	constructor() {

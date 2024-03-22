@@ -43,7 +43,7 @@ class SetupButtons extends ActionRowBuilder {
 		);
 		buttonCollector.on("collect", async (i) => {
 			switch (i.customId) {
-				case `setWelcome_${customId}`:
+				case `setWelcome_${customId}`: {
 					const setWelcomeModal = new SetWelcomeModal(
 						`welcomeModal_${customId}`,
 						guildPreferences
@@ -54,7 +54,8 @@ class SetupButtons extends ActionRowBuilder {
 						i
 					);
 					break;
-				case `setBanAppealLink_${customId}`:
+                }
+				case `setBanAppealLink_${customId}`: {
 					const setBanAppealModal = new SetBanAppealModal(
 						`banAppealModal_${customId}`,
 						guildPreferences
@@ -65,6 +66,7 @@ class SetupButtons extends ActionRowBuilder {
 						i
 					);
 					break;
+                }
 			}
 		});
 	}
