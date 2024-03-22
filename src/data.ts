@@ -314,7 +314,7 @@ export const resourceRepositories: Record<
 
 interface Preference {
 	name: string;
-	type: "boolean" | "channel" | "role";
+	type: "rep" | "channel" | "role";
 	key: keyof IGuildPreferences;
 	maxValues?: number;
 }
@@ -322,7 +322,7 @@ interface Preference {
 export const preferences: Preference[] = [
 	{
 		name: "Enable reputation? (reps)",
-		type: "boolean",
+		type: "rep",
 		key: "repEnabled"
 	},
 	{

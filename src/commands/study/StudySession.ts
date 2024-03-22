@@ -111,8 +111,8 @@ export default class StudySessionCommand extends BaseCommand {
 			return;
 		}
 
-		const messages = await studySessionChannel.awaitMessages({
-			max: 3
+		const messages = await studySessionChannel.messages.fetch({
+			limit: 10
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars

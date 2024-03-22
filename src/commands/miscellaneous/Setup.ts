@@ -23,7 +23,7 @@ const typeToComponent: {
 		| typeof ChannelSelect
 		| typeof RoleSelect;
 } = {
-	boolean: StringSelect,
+	rep: StringSelect,
 	channel: ChannelSelect,
 	role: RoleSelect
 };
@@ -75,7 +75,7 @@ export default class SetupCommand extends BaseCommand {
 			);
 
 			switch (preference.type) {
-				case "boolean":
+				case "rep":
 					if (component instanceof StringSelect) {
 						component.addOptions(
 							{
