@@ -42,7 +42,6 @@ export default class FeedbackCommand extends BaseCommand {
 						.setRequired(true)
 				)
 				.setDMPermission(false)
-				
 		);
 	}
 
@@ -81,8 +80,7 @@ export default class FeedbackCommand extends BaseCommand {
 
 		const modalInteraction = await interaction.awaitModalSubmit({
 			time: 300_000,
-			filter: (i) =>
-				i.customId === "feedback-modal"
+			filter: (i) => i.customId === "feedback-modal"
 		});
 
 		const feedback =

@@ -87,8 +87,15 @@ export async function syncInteractions(
 
 	if (!guildId) {
 		await client.rest.put(
-			Routes.applicationGuildCommands(client.application.id, process.env.MAIN_GUILD_ID),
-			{ body: data.filter(({ name }) => ["apply", "feedback"].includes(name)) }
+			Routes.applicationGuildCommands(
+				client.application.id,
+				process.env.MAIN_GUILD_ID
+			),
+			{
+				body: data.filter(({ name }) =>
+					["apply", "feedback"].includes(name)
+				)
+			}
 		);
 	}
 

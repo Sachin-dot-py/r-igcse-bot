@@ -84,14 +84,14 @@ class StringSelect extends StringSelectMenuBuilder {
 			await GuildPreferencesCache.remove(interaction.guildId);
 		});
 
-		selectCollector.on("end", async () => {
+		/*selectCollector.on("end", async () => {
 			if (this.isFirstComponent) {
 				await editMessage({
 					components: [],
 					content: "Timed out"
 				});
 			}
-		});
+		});*/
 	}
 }
 

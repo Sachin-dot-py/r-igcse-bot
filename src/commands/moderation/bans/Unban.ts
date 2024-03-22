@@ -49,7 +49,10 @@ export default class UnbanCommand extends BaseCommand {
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		try {
-			await interaction.guild.bans.remove(user, `Unbanned by ${interaction.user.tag}`)
+			await interaction.guild.bans.remove(
+				user,
+				`Unbanned by ${interaction.user.tag}`
+			);
 		} catch (error) {
 			await interaction.reply({
 				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`,

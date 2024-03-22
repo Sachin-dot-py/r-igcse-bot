@@ -59,6 +59,26 @@ export default class HelperMenu extends BaseCommand {
 			return;
 		}
 
+		const boosterRole = await interaction.guild.roles.cache.find(
+			(role) => role.name === "Server Booster"
+		);
+		if (boosterRole && interaction.member.roles.cache.has(boosterRole.id)) {
+			const embed = new EmbedBuilder()
+				.setDescription(
+					`[Jump to the message.](${interaction.targetMessage.url})`
+				)
+				.setAuthor({
+					name: interaction.user.tag,
+					iconURL: interaction.user.displayAvatarURL()
+				});
+
+			await interaction.channel.send({
+				content: role.toString(),
+				embeds: [embed]
+			});
+			return;
+		}
+
 		const embed = new EmbedBuilder()
 			.setDescription(
 				`The helper role(s) for this channel (${role}) will automatically be pinged (<t:${Math.floor(Date.now() / 1000) + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`

@@ -128,7 +128,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		try {
-			await guildMember.timeout(duration  * 1000, reason);
+			await guildMember.timeout(duration * 1000, reason);
 			await sendDm(guildMember, {
 				embeds: [
 					new EmbedBuilder()
