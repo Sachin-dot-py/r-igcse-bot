@@ -9,12 +9,15 @@ import {
 	StringSelectMenuBuilder,
 	StringSelectMenuInteraction,
 	StringSelectMenuOptionBuilder,
+	TextChannel,
 	TextInputBuilder,
 	TextInputStyle
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
+import Select from "@/components/Select";
+import { v4 as uuidv4 } from "uuid";
 
 export default class ApplyCommand extends BaseCommand {
 	constructor() {
@@ -38,14 +41,33 @@ export default class ApplyCommand extends BaseCommand {
 			return;
 		}
 
-		const positionSelect = new StringSelectMenuBuilder()
-			.setCustomId("position_select")
-			.setPlaceholder("Position to Apply for...")
-			.addOptions(
+		const options = [
+			new StringSelectMenuOptionBuilder()
+				.setLabel("Chat Moderator")
+				.setValue("chat_mod")
+				.setEmoji("🗨️")
+		];
+
+		if (
+			interaction.guildId === process.env.MAIN_GUILD_ID &&
+			(interaction.member.roles.cache.has("884026286975115314") ||
+				interaction.member.roles.cache.has("696415516893380700") ||
+				interaction.member.roles.cache.has("789772710027984926") ||
+				interaction.member.roles.cache.has("869584464324468786"))
+		) {
+			options.push(
 				new StringSelectMenuOptionBuilder()
-					.setLabel("Chat Moderator")
-					.setValue("chat_mod")
+					.setLabel("Debate Competition")
+					.setValue("debate_comp")
+					.setEmoji("🎤")
 			);
+		}
+
+		const customId = uuidv4();
+		const positionSelect = new StringSelectMenuBuilder()
+			.setCustomId(`${customId}_0`)
+			.setPlaceholder("Select a position")
+			.addOptions(options);
 
 		const row =
 			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -54,98 +76,100 @@ export default class ApplyCommand extends BaseCommand {
 
 		const message = await interaction.reply({
 			components: [row],
-			ephemeral: true
+			ephemeral: true,
+			fetchReply: true
 		});
 
-		message
-			.awaitMessageComponent({
-				filter: (i: StringSelectMenuInteraction) =>
-					i.customId === "position_select" &&
-					i.values[0] === "chat_mod" &&
-					i.user.id === interaction.user.id,
-				componentType: ComponentType.StringSelect
-			})
-			.then(async (selectInteraction) => {
-				const timezoneInput = new TextInputBuilder()
-					.setCustomId("timezone_input")
-					.setLabel("Timezone")
-					.setStyle(TextInputStyle.Short)
-					.setPlaceholder(
-						"Please specify your timezone in UTC/GMT time"
-					)
-					.setRequired(true);
+		const collector = await message.createMessageComponentCollector({
+			filter: (i) =>
+				i.customId.startsWith(customId) &&
+				i.user.id === interaction.user.id,
+			time: 600_000,
+			componentType: ComponentType.StringSelect
+		});
 
-				const row =
-					new ActionRowBuilder<TextInputBuilder>().addComponents(
-						timezoneInput
-					);
+		collector.on("collect", async (i) => {
+			const customId = i.customId.split("_")[1];
+			const position = i.values[0];
 
-				const modal = new ModalBuilder()
-					.setTitle("Chat Moderator Application")
-					.setCustomId("chat_mod_app")
-					.addComponents(row);
+			await i.deferUpdate();
 
-				await selectInteraction.showModal(modal);
+			switch (position) {
+				case "chat_mod": {
+					const timezoneInput = new TextInputBuilder()
+						.setPlaceholder("GMT+5:30")
+						.setStyle(TextInputStyle.Short)
+						.setLabel("Enter your timezone")
+						.setRequired(true)
+						.setCustomId("timezone");
 
-				selectInteraction
-					.awaitModalSubmit({
-						filter: (i: ModalSubmitInteraction) =>
-							i.customId === "chat_mod_app" &&
-							i.user.id === interaction.user.id,
-						time: 90000
-					})
-					.then(async (modalInteraction) => {
-						modalInteraction.deferUpdate();
+					const row =
+						new ActionRowBuilder<TextInputBuilder>().addComponents(
+							timezoneInput
+						);
 
-						const timezone =
-							modalInteraction.fields.getTextInputValue(
-								"timezone_input"
-							);
+					const modal = new ModalBuilder()
+						.setTitle("Chat Moderator Application")
+						.setCustomId(customId)
+						.addComponents(row);
 
-						const chatModAppsChannel =
-							interaction.guild.channels.cache.get(
-								process.env.CHAT_MOD_APPS_CHANNEL_ID
-							);
+					await i.showModal(modal);
 
-						if (
-							!chatModAppsChannel ||
-							!chatModAppsChannel.isTextBased()
-						) {
-							await interaction.editReply({
-								content:
-									"Error occured whilst processing application. Please try again later.",
-								components: []
-							});
-
-							return;
-						}
-
-						const embed = new EmbedBuilder()
-							.setAuthor({
-								name: "Chat Mod Application",
-								iconURL: interaction.user.displayAvatarURL()
-							})
-							.addFields(
-								{
-									name: "Name",
-									value: interaction.user.tag
-								},
-								{
-									name: "Timezone",
-									value: timezone
-								}
-							);
-
-						await chatModAppsChannel.send({
-							embeds: [embed]
-						});
-
-						await interaction.editReply({
-							content:
-								"Thank you for applying. If you are selected as a Chat Moderator, we will send you a modmail with more information. Good luck!",
-							components: []
-						});
+					const modalInteraction = await i.awaitModalSubmit({
+						time: 600_000
 					});
-			});
+
+					if (!modalInteraction) return;
+
+					const timezone =
+						modalInteraction.fields.getTextInputValue("timezone");
+
+					const embed = new EmbedBuilder()
+						.setTitle("Chat Moderator Application")
+						.setDescription(
+							`Submitted by ${interaction.user.tag} (${interaction.user.id})`
+						)
+						.addFields({
+							name: "Timezone",
+							value: timezone
+						})
+						.setTimestamp();
+
+					const chatModChannel =
+						await interaction.guild?.channels.cache.get(
+							process.env.CHAT_MOD_APPS_CHANNEL_ID
+						);
+
+					if (!(chatModChannel instanceof TextChannel)) return;
+
+					await chatModChannel.send({
+						embeds: [embed]
+					});
+
+					break;
+				}
+				case "debate_comp": {
+					const embed = new EmbedBuilder()
+						.setTitle("Debate Competition")
+						.setDescription(
+							`Submitted by ${interaction.user.tag} (${interaction.user.id})`
+						)
+						.setTimestamp();
+
+					const debateCompChannel =
+						await interaction.guild?.channels.cache.get(
+							process.env.DEBATE_APPS_CHANNEL_ID
+						);
+
+					if (!(debateCompChannel instanceof TextChannel)) return;
+
+					await debateCompChannel.send({
+						embeds: [embed]
+					});
+
+					break;
+				}
+			}
+		});
 	}
 }

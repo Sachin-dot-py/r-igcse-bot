@@ -1,7 +1,6 @@
 import { createClient } from "redis";
 
 import { GuildPreferencesRepository } from "./schemas/GuildPreferences";
-import { DmGuildPreferenceRepository } from "./schemas/DmGuildPreference";
 import { StickyMessageRepository } from "./schemas/StickyMessage";
 import { PracticeQuestionRepository } from "./schemas/Question";
 import { UserRepository } from "./schemas/User";
@@ -15,7 +14,6 @@ export const redis = createClient({
 await redis.connect();
 
 const GuildPreferencesCache = new GuildPreferencesRepository(redis);
-const DmGuildPreferenceCache = new DmGuildPreferenceRepository(redis);
 const StickyMessageCache = new StickyMessageRepository(redis);
 const PracticeQuestionCache = new PracticeQuestionRepository(redis);
 const UserCache = new UserRepository(redis);
@@ -23,7 +21,6 @@ const ButtonInteractionCache = new ButtonInteractionRepository(redis);
 const KeywordCache = new KeywordRepository(redis);
 
 await GuildPreferencesCache.createIndex();
-await DmGuildPreferenceCache.createIndex();
 await StickyMessageCache.createIndex();
 await PracticeQuestionCache.createIndex();
 await UserCache.createIndex();
