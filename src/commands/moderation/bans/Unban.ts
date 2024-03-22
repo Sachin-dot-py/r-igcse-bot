@@ -34,18 +34,8 @@ export default class UnbanCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
-		const member = await interaction.guild.members.cache.get(user.id);
 
-		if (!member) {
-			await interaction.reply({
-				content: "The specified user isn't a member of this server.",
-				ephemeral: true
-			});
-
-			return;
-		}
-
-		if (!interaction.guild.bans.cache.has(member.id)) {
+		if (!interaction.guild.bans.cache.has(user.id)) {
 			await interaction.reply({
 				content: "I cannot unban a user that isn't banned.",
 				ephemeral: true
@@ -59,7 +49,7 @@ export default class UnbanCommand extends BaseCommand {
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		try {
-			await interaction.guild.bans.remove(member);
+			await interaction.guild.bans.remove(user, `Unbanned by ${interaction.user.tag}`)
 		} catch (error) {
 			await interaction.reply({
 				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`,
@@ -118,7 +108,7 @@ export default class UnbanCommand extends BaseCommand {
 			});
 		} else
 			await interaction.reply({
-				content: `Successfully unbanned ${user.tag}. Please configure your guild preferences for Moderation Action Logging.`,
+				content: `Successfully unbanned ${user.tag}. Please configure your guild preferences for Moderation Action Logging using /setup.`,
 				ephemeral: true
 			});
 	}

@@ -124,7 +124,7 @@ export default class BanCommand extends BaseCommand {
 
 		try {
 			await interaction.guild.bans.create(user, {
-				reason: reason,
+				reason: `${reason} | By: ${interaction.user.tag}`,
 				deleteMessageSeconds: deleteMessagesDays * 86400
 			});
 		} catch (error) {
