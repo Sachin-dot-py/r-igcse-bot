@@ -1,9 +1,6 @@
 import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
-import {
-	PrivateDmThread,
-	Reputation,
-} from "@/mongo";
+import { PrivateDmThread, Reputation } from "@/mongo";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
 	DmGuildPreferenceCache,
@@ -265,7 +262,11 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (!repDisabledChannels.includes(channelId)) {
 			const rep: User[] = [];
 
-			if (tyAliases.some((alias) => new RegExp(`\\b${alias}\\b`, 'gi').test(message.content))) {
+			if (
+				tyAliases.some((alias) =>
+					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+				)
+			) {
 				rep.push(...message.mentions.users.values());
 				if (message.reference)
 					rep.push((await message.fetchReference()).author);
@@ -273,7 +274,9 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (
 				message.reference &&
-				ywAliases.some((alias) => new RegExp(`\\b${alias}\\b`, 'gi').test(message.content))
+				ywAliases.some((alias) =>
+					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+				)
 			)
 				rep.push(message.author);
 

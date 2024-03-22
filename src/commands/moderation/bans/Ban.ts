@@ -97,6 +97,26 @@ export default class BanCommand extends BaseCommand {
 		const guildMember = await interaction.guild.members.cache.get(user.id);
 
 		if (guildMember) {
+			if (!guildMember.bannable) {
+				await interaction.reply({
+					content: "I cannot ban this user. (Missing permissions)",
+					ephemeral: true
+				});
+				return;
+			}
+
+			const memberHighestRole = guildMember.roles.highest;
+			const modHighestRole = interaction.member.roles.highest;
+
+			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+				await interaction.reply({
+					content:
+						"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
+					ephemeral: true
+				});
+				return;
+			}
+
 			await sendDm(guildMember, {
 				embeds: [dmEmbed]
 			});
@@ -109,13 +129,14 @@ export default class BanCommand extends BaseCommand {
 			});
 		} catch (error) {
 			await interaction.reply({
-				content: "Failed to ban user",
+				content: `Failed to ban user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
 				{ name: "User ID", value: interaction.user.id }
 			]);
+			return;
 		}
 
 		await Punishment.create({
@@ -124,7 +145,8 @@ export default class BanCommand extends BaseCommand {
 			actionBy: interaction.user.id,
 			action: "Ban",
 			caseId: caseNumber,
-			reason
+			reason,
+			points: 0
 		});
 
 		if (guildPreferences.modlogChannelId) {

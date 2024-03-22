@@ -7,21 +7,15 @@ export type IPunishment = {
 	guildId: string;
 	caseId: number;
 	reason: string;
+	points: number;
 } & (
 	| {
-			action: "Warn" | "Kick" | "Remove Timeout";
+			action: "Warn" | "Kick" | "Remove Timeout" | "Ban" | "Unban";
 			duration: null;
-			points: number;
-	  }
-	| {
-			action: "Ban" | "Unban";
-			duration: null;
-			points: null;
 	  }
 	| {
 			action: "Timeout";
 			duration: number;
-			points: number;
 	  }
 );
 
@@ -64,7 +58,7 @@ const schema = new Schema<IPunishment>({
 	},
 	points: {
 		type: Number,
-		required: false,
+		required: true,
 		unique: false
 	},
 	guildId: {

@@ -219,8 +219,10 @@ export default class PracticeCommand extends BaseCommand {
 					data = subjectTopics[collectedData["subject"][0]];
 			}
 			data = data.filter((x) => typeof x === "string");
-			
-			collectedData[key as "subject" | "topics" | "visibility" | "users"] = data as string[];
+
+			collectedData[
+				key as "subject" | "topics" | "visibility" | "users"
+			] = data as string[];
 		}
 
 		if (!collectedData.users.includes(interaction.user.id)) {

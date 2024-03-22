@@ -84,19 +84,60 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		try {
-			const member = await interaction.guild.members.fetch(user.id);
+		const guildMember = await interaction.guild.members.fetch(user.id);
 
-			await member.timeout(duration, reason);
+		if (!guildMember) {
+			await interaction.reply({
+				content: "User not found!",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		if (guildMember.id === interaction.user.id) {
+			await interaction.reply({
+				content: "You cannot timeout yourself.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		if (guildMember.communicationDisabledUntil) {
+			await interaction.reply({
+				content: "User is already timed out!",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		const memberHighestRole = guildMember.roles.highest;
+		const modHighestRole = interaction.member.roles.highest;
+
+		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+			await interaction.reply({
+				content:
+					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
+				ephemeral: true
+			});
+			return;
+		}
+
+		try {
+			await guildMember.timeout(duration, reason);
 		} catch (error) {
 			await interaction.reply({
-				content: "Failed to timeout user",
+				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
 				{ name: "User ID", value: interaction.user.id }
 			]);
+
+			return;
 		}
 
 		await Punishment.create({
@@ -127,6 +168,10 @@ export default class TimeoutCommand extends BaseCommand {
 				{
 					name: "Reason",
 					value: reason
+				},
+				{
+					name: "Duration",
+					value: durationString
 				}
 			]);
 

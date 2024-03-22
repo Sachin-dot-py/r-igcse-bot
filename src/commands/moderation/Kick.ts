@@ -81,6 +81,25 @@ export default class KickCommand extends BaseCommand {
 
 		const guildMember = interaction.guild.members.cache.get(user.id);
 		if (guildMember) {
+			if (!guildMember.kickable) {
+				await interaction.reply({
+					content: "I cannot kick this user! (Missing permissions)",
+					ephemeral: true
+				});
+			}
+
+			const memberHighestRole = guildMember.roles.highest;
+			const modHighestRole = interaction.member.roles.highest;
+
+			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+				await interaction.reply({
+					content:
+						"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
+					ephemeral: true
+				});
+				return;
+			}
+
 			await sendDm(guildMember, {
 				embeds: [dmEmbed]
 			});
@@ -90,13 +109,14 @@ export default class KickCommand extends BaseCommand {
 			await interaction.guild.members.kick(user, reason);
 		} catch (error) {
 			await interaction.reply({
-				content: "Failed to kick user",
+				content: `Failed to kick user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
 
 			client.log(error, `${this.data.name} Command`, [
 				{ name: "User ID", value: interaction.user.id }
 			]);
+			return;
 		}
 
 		await Punishment.create({
@@ -105,7 +125,8 @@ export default class KickCommand extends BaseCommand {
 			actionBy: interaction.user.id,
 			action: "Kick",
 			caseId: caseNumber,
-			reason
+			reason,
+			points: 0
 		});
 
 		const modEmbed = new EmbedBuilder()

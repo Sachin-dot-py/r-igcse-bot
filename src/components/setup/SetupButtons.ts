@@ -54,7 +54,7 @@ class SetupButtons extends ActionRowBuilder {
 						i
 					);
 					break;
-                }
+				}
 				case `setBanAppealLink_${customId}`: {
 					const setBanAppealModal = new SetBanAppealModal(
 						`banAppealModal_${customId}`,
@@ -66,7 +66,7 @@ class SetupButtons extends ActionRowBuilder {
 						i
 					);
 					break;
-                }
+				}
 			}
 		});
 	}

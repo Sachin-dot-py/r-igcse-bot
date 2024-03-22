@@ -61,7 +61,7 @@ export default class HelperMenu extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setDescription(
-				`The helper role(s) for this channel (${role}) will automatically be pinged (<t:${Math.floor(Date.now()/1000) + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
+				`The helper role(s) for this channel (${role}) will automatically be pinged (<t:${Math.floor(Date.now() / 1000) + 890}:R>).\nIf your query has been resolved by then, please click on the \`Cancel Ping\` button.`
 			)
 			.setAuthor({
 				name: interaction.user.tag,
@@ -83,9 +83,9 @@ export default class HelperMenu extends BaseCommand {
 		});
 
 		await interaction.reply({
-			content: `The helper role will be pinged in <t:${Math.floor(Date.now()/1000) + 900}:R>. Please click on the cancel ping button if your query has been resolved by then.`,
+			content: `The helper role will be pinged in <t:${Math.floor(Date.now() / 1000) + 900}:R>. Please click on the cancel ping button if your query has been resolved by then.`,
 			ephemeral: true
-		})
+		});
 
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,

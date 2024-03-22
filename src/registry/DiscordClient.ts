@@ -50,7 +50,7 @@ export class DiscordClient<
 		const embed = new EmbedBuilder()
 			.setTitle(`An Exception Occured - ${source}`)
 			.setDescription(
-				`Error: \`\`\`${message instanceof Error ? message.stack : message}\`\`\``
+				`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``
 			)
 			.addFields(fields);
 
