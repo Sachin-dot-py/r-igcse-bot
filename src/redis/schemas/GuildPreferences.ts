@@ -22,6 +22,7 @@ const schema = new Schema("GuildPreferences", {
 	studySessionChannelId: { type: "string" },
 	modmailCreateChannelId: { type: "string" },
 	modmailThreadsChannelId: { type: "string" },
+	modmailLogsChannelId: { type: "string" },
 	closedDmChannelId: { type: "string" },
 	banAppealFormLink: { type: "string" },
 	forcedMuteRoleId: { type: "string" },
