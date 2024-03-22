@@ -5,6 +5,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
+import sendDm from "@/utils/sendDm";
 import {
 	Colors,
 	EmbedBuilder,
@@ -62,6 +63,16 @@ export default class UntimeoutCommand extends BaseCommand {
 
 		try {
 			await member.timeout(null);
+			await sendDm(member, {
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Removed Timeout")
+						.setColor(Colors.Red)
+						.setDescription(
+							`Your timeout in ${interaction.guild.name} has been removed by a moderator. You can now chat again, make sure to follow the rules.`
+						)
+				]
+			});
 		} catch (error) {
 			await interaction.reply({
 				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`,
