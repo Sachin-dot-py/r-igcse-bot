@@ -35,7 +35,7 @@ export default class PinMenu extends BaseCommand {
 		try {
 			await interaction.targetMessage.pin();
 			await interaction.targetMessage.reply({
-				content: `Messaged pinned by ${interaction.user}`,
+				content: `Messaged pinned by ${interaction.user}`
 			});
 		} catch (error) {
 			await interaction.reply({

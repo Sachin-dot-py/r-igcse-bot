@@ -42,7 +42,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 			return;
 		}
-		
+
 		await StickyMessageCache.remove(res[0][EntityId]);
 		await StickyMessage.deleteOne({ _id: res[0][EntityId] });
 

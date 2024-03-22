@@ -3,7 +3,9 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import Logger from "@/utils/Logger";
 import { Colors, EmbedBuilder, type APIEmbedField } from "discord.js";
 
-export default async function actionRequired(client: DiscordClient<true>): Promise<void> {
+export default async function actionRequired(
+	client: DiscordClient<true>
+): Promise<void> {
 	const guildsPreferences = (await GuildPreferences.find({
 		actionRequiredChannelId: { $ne: null }
 	})) as (IGuildPreferences & { actionRequiredChannelId: string })[];
@@ -26,7 +28,10 @@ export default async function actionRequired(client: DiscordClient<true>): Promi
 		}>([
 			{ $match: { guildId: guild.id } },
 			{
-				$group: { _id: "$actionAgainst", totalPoints: { $sum: "$points" } }
+				$group: {
+					_id: "$actionAgainst",
+					totalPoints: { $sum: "$points" }
+				}
 			},
 			{ $match: { $expr: { $gte: ["$totalPoints", 10] } } },
 			{ $sort: { totalPoints: -1 } }
@@ -35,7 +40,10 @@ export default async function actionRequired(client: DiscordClient<true>): Promi
 		const fields = [] as APIEmbedField[];
 
 		for (const userPunishments of punishmentsAggregate) {
-			const member = await guild.members.fetch(userPunishments._id).catch(() => {}) || null
+			const member =
+				(await guild.members
+					.fetch(userPunishments._id)
+					.catch(() => {})) || null;
 
 			if (!member) continue;
 
@@ -62,9 +70,10 @@ export default async function actionRequired(client: DiscordClient<true>): Promi
 				.addFields(chunk)
 		);
 
-		
-		await actionRequiredChannel.send({
-			embeds
-		}).catch(Logger.error)
+		await actionRequiredChannel
+			.send({
+				embeds
+			})
+			.catch(Logger.error);
 	}
 }

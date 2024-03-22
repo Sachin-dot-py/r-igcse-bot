@@ -80,7 +80,8 @@ export default class ColorRolesCommand extends BaseCommand {
 		});
 
 		const collector = component.createMessageComponentCollector({
-			filter: (i) => i.user.id === interaction.user.id &&
+			filter: (i) =>
+				i.user.id === interaction.user.id &&
 				i.customId === "color_roles",
 			componentType: ComponentType.StringSelect,
 			time: 300_000
@@ -103,11 +104,11 @@ export default class ColorRolesCommand extends BaseCommand {
 						content: `Removed role ${role.name}`,
 						ephemeral: true
 					});
-					return
+					return;
 				} else {
-					await i.member.roles.remove(
-						colorRoles.map((colorRole) => colorRole.roleId)
-					).catch(() => {})
+					await i.member.roles
+						.remove(colorRoles.map((colorRole) => colorRole.roleId))
+						.catch(() => {});
 					await i.member.roles.add(role);
 				}
 
@@ -116,6 +117,6 @@ export default class ColorRolesCommand extends BaseCommand {
 					ephemeral: true
 				});
 			}
-		})
+		});
 	}
 }

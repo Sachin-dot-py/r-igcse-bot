@@ -97,8 +97,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (guildMember.id === interaction.user.id) {
 			await interaction.reply({
-				content:
-					"You cannot timeout yourself.",
+				content: "You cannot timeout yourself.",
 				ephemeral: true
 			});
 
@@ -119,7 +118,8 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
 			await interaction.reply({
-				content: "You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
+				content:
+					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
 				ephemeral: true
 			});
 			return;

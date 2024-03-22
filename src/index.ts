@@ -6,8 +6,8 @@ import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
 import { registerCommands, registerEvents } from "./registry/index";
 import Logger from "./utils/Logger";
-import inquirer from 'inquirer';
-import actionRequired from "@/cron/actionRequired"
+import inquirer from "inquirer";
+import actionRequired from "@/cron/actionRequired";
 
 redis.on("error", Logger.error);
 
@@ -55,20 +55,22 @@ await client.login(process.env.BOT_TOKEN);
 await registerEvents(client as DiscordClient<true>);
 
 while (true) {
-	await inquirer.prompt([
-		{
-			type: "input",
-			name: "command",
-			message: "$"
-		}
-	]).then((answers: { command: string; }) => {
-		const command = answers["command"];
-		switch (command) {
-			case "cron run actionRequired":
-				actionRequired(client as DiscordClient<true>);
-				break;
-			default:
-				break;
-		}
-	});
+	await inquirer
+		.prompt([
+			{
+				type: "input",
+				name: "command",
+				message: "$"
+			}
+		])
+		.then((answers: { command: string }) => {
+			const command = answers["command"];
+			switch (command) {
+				case "cron run actionRequired":
+					actionRequired(client as DiscordClient<true>);
+					break;
+				default:
+					break;
+			}
+		});
 }

@@ -2,13 +2,8 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import {
-	PermissionFlagsBits,
-	SlashCommandBuilder,
-} from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
-
-
 
 export default class StudyChannelCommand extends BaseCommand {
 	constructor() {
@@ -197,7 +192,7 @@ export default class StudyChannelCommand extends BaseCommand {
 					ephemeral: true
 				});
 				break;
-            }
+			}
 		}
 	}
 }

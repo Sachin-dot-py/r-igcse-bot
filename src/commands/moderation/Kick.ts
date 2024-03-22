@@ -93,7 +93,8 @@ export default class KickCommand extends BaseCommand {
 
 			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
 				await interaction.reply({
-					content: "You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
+					content:
+						"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
 					ephemeral: true
 				});
 				return;

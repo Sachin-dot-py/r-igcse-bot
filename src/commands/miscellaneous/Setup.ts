@@ -7,7 +7,7 @@ import {
 	ButtonBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-    StringSelectMenuBuilder,
+	StringSelectMenuBuilder
 } from "discord.js";
 import { preferences } from "@/data";
 import StringSelect from "@/components/setup/StringSelect";
