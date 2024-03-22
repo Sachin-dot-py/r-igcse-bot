@@ -125,7 +125,7 @@ export default class StudySessionCommand extends BaseCommand {
 
 			await interaction.reply({
 				content:
-					"Please wait for atleast 1 hour after the previous study session in this channel.",
+					"Please wait for at least 1 hour after the previous study session in this channel.",
 				ephemeral: true
 			});
 
@@ -133,15 +133,15 @@ export default class StudySessionCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfullt started a <#${interaction.channelId}> Study Session in <${member.voice.channel.id}>`
+			content: `Successfully started a <#${interaction.channelId}> Study Session in <#${member.voice.channel.id}>`
 		});
 
 		await studySessionChannel.send(
-			`<@${pingRole.id}> - Requested by <@${interaction.user.id}> - Please join <#${member.voice.channel.id}>`
+			`<@&${pingRole.id}> - Requested by <@${interaction.user.id}> - Please join <#${member.voice.channel.id}>`
 		);
 
 		await member.voice.channel.edit({
-			name: `*${interaction.channel.name}* Study Session`
+			name: `${interaction.channel.name} Study Session`
 		});
 	}
 }
