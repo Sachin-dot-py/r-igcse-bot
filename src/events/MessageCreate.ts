@@ -381,8 +381,11 @@ export default class MessageCreateEvent extends BaseEvent {
 				)
 			) {
 				rep.push(...message.mentions.users.values());
-				if (message.reference)
-					rep.push((await message.fetchReference()).author);
+				if (message.reference) {
+					const reference = await message.fetchReference()
+					if (!rep.includes(reference.author)) rep.push(reference.author)
+				}
+					
 			}
 
 			if (
