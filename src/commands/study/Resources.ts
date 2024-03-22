@@ -48,74 +48,76 @@ export default class ResourcesCommand extends BaseCommand {
 				levelSelect
 			);
 
-		await interaction.reply({
-			components: [levelRow]
+		const selectInteraction = await interaction.reply({
+			components: [levelRow],
+			content: "Choose a level to view resources for"
 		});
 
 		let level: "ig" | "al" = "ig";
 
-		interaction.channel
-			.createMessageComponentCollector({
-				filter: (i) => i.user.id === interaction.user.id,
-				componentType: ComponentType.StringSelect,
-				time: 45000
-			})
-			.on("collect", async (i: StringSelectMenuInteraction) => {
-				await i.deferUpdate();
+		const collector = selectInteraction.createMessageComponentCollector({
+			filter: (i) => i.user.id === interaction.user.id,
+			componentType: ComponentType.StringSelect,
+			time: 300_000
+		});
 
-				switch (i.customId) {
-					case "level": {
-						level = i.values[0] as "ig" | "al";
+		collector.on("collect", async (i: StringSelectMenuInteraction) => {
+			await i.deferUpdate();
 
-						const subjectSelect = new StringSelectMenuBuilder()
-							.setCustomId("subject_group")
-							.setPlaceholder("Choose a subject group...")
-							.addOptions(
-								Object.keys(resourceRepositories[level]).map(
-									(subject) =>
-										new StringSelectMenuOptionBuilder()
-											.setLabel(subject)
-											.setValue(subject)
-								)
+			switch (i.customId) {
+				case "level": {
+					level = i.values[0] as "ig" | "al";
+
+					const subjectSelect = new StringSelectMenuBuilder()
+						.setCustomId("subject_group")
+						.setPlaceholder("Choose a subject group...")
+						.addOptions(
+							Object.keys(resourceRepositories[level]).map(
+								(subject) =>
+									new StringSelectMenuOptionBuilder()
+										.setLabel(subject)
+										.setValue(subject)
 							)
-							.setMinValues(1)
-							.setMaxValues(1);
+						)
+						.setMinValues(1)
+						.setMaxValues(1);
 
-						const selectRow =
-							new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-								subjectSelect
-							);
+					const selectRow =
+						new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+							subjectSelect
+						);
 
-						interaction.editReply({
-							components: [selectRow]
-						});
+					interaction.editReply({
+						components: [selectRow],
+						content: "Choose a subject group"
+					});
 
-						break;
-					}
-
-					case "subject_group": {
-						const resourceRow =
-							new ActionRowBuilder<ButtonBuilder>().addComponents(
-								Object.entries(
-									resourceRepositories[level][i.values[0]]
-								).map(([label, link]) =>
-									new ButtonBuilder()
-										.setLabel(label)
-										.setURL(link)
-										.setStyle(ButtonStyle.Link)
-								)
-							);
-
-						interaction.editReply({
-							components: [resourceRow]
-						});
-
-						break;
-					}
-
-					default:
-						break;
+					break;
 				}
-			});
+
+				case "subject_group": {
+					const resourceRow =
+						new ActionRowBuilder<ButtonBuilder>().addComponents(
+							Object.entries(
+								resourceRepositories[level][i.values[0]]
+							).map(([label, link]) =>
+								new ButtonBuilder()
+									.setLabel(label)
+									.setURL(link)
+									.setStyle(ButtonStyle.Link)
+							)
+						);
+
+					interaction.editReply({
+						components: [resourceRow]
+					});
+
+					break;
+				}
+
+				default:
+					break;
+			}
+		});
 	}
 }

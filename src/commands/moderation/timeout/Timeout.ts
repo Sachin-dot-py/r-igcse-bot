@@ -106,15 +106,6 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		if (guildMember.communicationDisabledUntil) {
-			await interaction.reply({
-				content: "User is already timed out!",
-				ephemeral: true
-			});
-
-			return;
-		}
-
 		const memberHighestRole = guildMember.roles.highest;
 		const modHighestRole = interaction.member.roles.highest;
 
