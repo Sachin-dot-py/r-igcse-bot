@@ -22,7 +22,7 @@ export type IPunishment = {
 const schema = new Schema<IPunishment>({
 	caseId: {
 		type: Number,
-		required: false,
+		required: true,
 		unique: false
 	},
 	actionAgainst: {
@@ -52,9 +52,8 @@ const schema = new Schema<IPunishment>({
 	},
 	when: {
 		type: Date,
-		required: false,
+		required: true,
 		unique: false,
-		default: new Date()
 	},
 	points: {
 		type: Number,

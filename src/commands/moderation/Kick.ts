@@ -126,7 +126,8 @@ export default class KickCommand extends BaseCommand {
 			action: "Kick",
 			caseId: caseNumber,
 			reason,
-			points: 0
+			points: 0,
+			when: new Date()
 		});
 
 		const modEmbed = new EmbedBuilder()

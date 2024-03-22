@@ -68,7 +68,8 @@ export default class WarnCommand extends BaseCommand {
 			action: "Warn",
 			caseId: caseNumber,
 			reason,
-			points: 1
+			points: 1,
+			when: new Date()
 		});
 
 		const modEmbed = new EmbedBuilder()

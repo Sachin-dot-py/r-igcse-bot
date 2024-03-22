@@ -69,7 +69,8 @@ export default class UnbanCommand extends BaseCommand {
 			action: "Unban",
 			caseId: caseNumber,
 			reason: "",
-			points: 0
+			points: 0,
+			when: new Date()
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
