@@ -406,18 +406,25 @@ export default class MessageCreateEvent extends BaseEvent {
 				: message.channelId) ?? "";
 
 		if (!repDisabledChannels.includes(channelId)) {
-			const rep: User[] = [];
+			const rep = new Set<User>();
 
 			if (
 				tyAliases.some((alias) =>
 					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
 				)
 			) {
-				rep.push(...message.mentions.users.values());
+				for (const user of message.mentions.users.values())
+					if (user.id === message.author.id) {
+						message.reply("You can't rep yourself dummy!");
+						continue;
+					} else rep.add(user);
 
 				if (message.reference) {
 					const reference = await message.fetchReference();
-					rep.push(reference.author);
+
+					if (reference.author.id === message.author.id)
+						message.reply("You can't rep yourself dummy!");
+					else rep.add(reference.author);
 				}
 			}
 
@@ -427,14 +434,9 @@ export default class MessageCreateEvent extends BaseEvent {
 					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
 				)
 			)
-				rep.push(message.author);
+				rep.add(message.author);
 
 			for (const user of rep) {
-				if (user.id === message.author.id) {
-					message.reply("You can't rep yourself dummy!");
-					continue;
-				}
-
 				if (user.id === client.user.id) {
 					await message.reply(
 						botYwResponses[
