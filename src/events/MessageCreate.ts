@@ -81,10 +81,11 @@ export default class MessageCreateEvent extends BaseEvent {
 				][0];
 
 				if (
-					(!lastMessage && message.content === "1") ||
-					(lastMessage &&
-						`${parseInt(lastMessage.content) + 1}` ===
-							message.content)
+					((!lastMessage && message.content === "1") ||
+						(lastMessage &&
+							`${parseInt(lastMessage.content) + 1}` ===
+								message.content)) &&
+					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
 				else message.delete();

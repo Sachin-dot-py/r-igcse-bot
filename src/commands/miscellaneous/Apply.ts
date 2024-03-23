@@ -147,7 +147,7 @@ export default class ApplyCommand extends BaseCommand {
 					await modalInteraction.reply({
 						content: "Submitted Chat Moderator Application",
 						ephemeral: true
-					})
+					});
 
 					break;
 				}
@@ -173,7 +173,7 @@ export default class ApplyCommand extends BaseCommand {
 					await i.reply({
 						content: "Submitted Debate Competition Application.",
 						ephemeral: true
-					})
+					});
 
 					break;
 				}
