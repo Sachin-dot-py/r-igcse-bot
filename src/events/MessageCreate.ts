@@ -61,6 +61,35 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (!guildPreferences) return;
 
+			if (
+				guildPreferences.countingChannelId &&
+				message.channel.id === guildPreferences.countingChannelId
+			) {
+				const countingChannel = await message.guild.channels.cache.get(
+					guildPreferences.countingChannelId
+				);
+
+				if (!countingChannel || !countingChannel.isTextBased()) return;
+
+				const lastMessage = [
+					...(
+						await countingChannel.messages.fetch({
+							before: message.id,
+							limit: 1
+						})
+					).values()
+				][0];
+
+				if (
+					(!lastMessage && message.content === "1") ||
+					(lastMessage &&
+						`${parseInt(lastMessage.content) + 1}` ===
+							message.content)
+				)
+					message.react("✅");
+				else message.delete();
+			}
+
 			if (guildPreferences.repEnabled)
 				this.handleRep(
 					client,

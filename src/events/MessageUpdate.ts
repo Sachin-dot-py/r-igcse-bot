@@ -14,7 +14,7 @@ export default class MessageUpdateEvent extends BaseEvent {
 		newMessage: Message
 	) {
 		if (
-			oldMessage?.author?.bot ||
+			oldMessage.author.bot ||
 			!oldMessage.inGuild() ||
 			oldMessage.content === newMessage.content
 		)
