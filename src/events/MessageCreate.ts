@@ -47,10 +47,11 @@ export default class MessageCreateEvent extends BaseEvent {
 					if (keywordReponse) {
 						const embed = new EmbedBuilder()
 							.setDescription(keywordReponse)
-							.setAuthor({
-								name: message.content.trim().toLowerCase()
-							});
-						message.channel.send({ embeds: [embed] });
+							.setFooter({
+								text: `Requested by ${message.author.tag}`,
+							})
+							.setColor(Colors.Blue);
+						message.reply({ embeds: [embed] });
 					}
 				})
 				.catch(Logger.error);
