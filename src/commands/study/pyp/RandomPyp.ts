@@ -69,13 +69,20 @@ export default class RandomPypCommand extends BaseCommand {
 			| "IGCSE"
 			| "O-Level"
 			| "A-Level";
-		const subjectCode = interaction.options.getString("subject_code", true);
-		const paperNumber = interaction.options.getString("paper_number", true);
+		const subjectCode = interaction.options.getString("subject_code", true).trim();
+		const paperNumber = interaction.options.getString("paper_number", true).trim();
 
 		const subject = allSubjects.find((x) => x.code === subjectCode);
 		if (!subject) {
 			await interaction.reply({
 				content: "Invalid/Unsupported subject code",
+				ephemeral: true
+			});
+			return;
+		}
+		if (paperNumber.length > 1 || Number(paperNumber) > 6 || Number(paperNumber) < 1) {
+			await interaction.reply({
+				content: "Invalid paper number\n" + (paperNumber.length > 1 ? "Hint: Don't enter the variant number" : "Hint: Paper numbers are between 1 and 6, inclusive."),
 				ephemeral: true
 			});
 			return;
