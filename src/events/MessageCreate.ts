@@ -384,10 +384,15 @@ export default class MessageCreateEvent extends BaseEvent {
 					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
 				)
 			) {
-				rep.push(...message.mentions.users.values());
+				for (const user of message.mentions.users.values())
+					if (user.id !== message.author.id) rep.push(user);
+
 				if (message.reference) {
 					const reference = await message.fetchReference();
-					if (!rep.includes(reference.author))
+					if (
+						!rep.includes(reference.author) &&
+						!(reference.author.id === message.author.id)
+					)
 						rep.push(reference.author);
 				}
 			}
@@ -397,12 +402,14 @@ export default class MessageCreateEvent extends BaseEvent {
 				ywAliases.some((alias) =>
 					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
 				)
-			)
-				rep.push(message.author);
+			) {
+				const reference = await message.fetchReference();
+
+				if (!(message.author.id === reference.author.id))
+					rep.push(message.author);
+			}
 
 			for (const user of rep) {
-				if (user.id === message.author.id) continue;
-
 				if (user.id === client.user.id) {
 					await message.reply(
 						botYwResponses[
