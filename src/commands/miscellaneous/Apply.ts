@@ -24,7 +24,8 @@ export default class ApplyCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("apply")
-				.setDescription("Apply for positions in the server")
+				.setDescription("Apply for positions in the server"),
+			true
 		);
 	}
 

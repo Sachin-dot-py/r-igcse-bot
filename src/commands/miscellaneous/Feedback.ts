@@ -41,7 +41,8 @@ export default class FeedbackCommand extends BaseCommand {
 						)
 						.setRequired(true)
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
+			true
 		);
 	}
 
