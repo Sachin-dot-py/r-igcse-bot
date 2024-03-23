@@ -97,6 +97,10 @@ export default class HelperMenu extends BaseCommand {
 			cancelButton
 		);
 
+		interaction.reply({
+			content: "Created helper ping"
+		});
+
 		const pingMessage = await interaction.channel.send({
 			embeds: [embed],
 			components: [row]
