@@ -12,6 +12,7 @@ import {
 	ThreadChannel
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
+import parse from "parse-duration";
 
 export default class LockdownCommand extends BaseCommand {
 	constructor() {
@@ -31,19 +32,19 @@ export default class LockdownCommand extends BaseCommand {
 						)
 						.setRequired(true)
 				)
-				.addIntegerOption((option) =>
+				.addStringOption((option) =>
 					option
-						.setName("start_time")
+						.setName("begin")
 						.setDescription(
-							"When to start the lockdown. (Epoch) (Defaults to immediately)"
+							"When to start the lockdown. (Defaults to immediately)"
 						)
 						.setRequired(false)
 				)
-				.addIntegerOption((option) =>
+				.addStringOption((option) =>
 					option
-						.setName("end_time")
+						.setName("duration")
 						.setDescription(
-							"When to end the lockdown. (Epoch) (Defaults to 1 day)"
+							"When to end the lockdown. (Defaults to 1 day)"
 						)
 						.setRequired(false)
 				)
@@ -65,10 +66,12 @@ export default class LockdownCommand extends BaseCommand {
 
 		const time = Math.floor(Date.now() / 1000);
 
-		const startTimestamp =
-			interaction.options.getInteger("start_time", false) ?? time;
+		const begining = interaction.options.getString("begin", false) ?? "";
+		const duration = interaction.options.getString("duration", false) ?? "";
+
+		const startTimestamp = Date.now() + (parse(begining, "second") ?? 0);
 		const endTimestamp =
-			interaction.options.getInteger("end_time", false) ?? time + 86400;
+			startTimestamp + (parse(duration, "second") ?? 86400);
 
 		if (endTimestamp <= startTimestamp) {
 			await interaction.reply({
