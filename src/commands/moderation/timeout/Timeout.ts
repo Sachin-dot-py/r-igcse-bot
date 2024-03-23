@@ -186,7 +186,7 @@ export default class TimeoutCommand extends BaseCommand {
 				},
 				{
 					name: "Duration",
-					value: humanizeDuration(duration * 1000)
+					value: `${humanizeDuration(duration * 1000)}\n<t:${Math.floor(Date.now() / 1000) + duration}:R>`
 				}
 			]);
 
