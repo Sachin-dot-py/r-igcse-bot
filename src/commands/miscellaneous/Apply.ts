@@ -92,8 +92,6 @@ export default class ApplyCommand extends BaseCommand {
 			const customId = i.customId.split("_")[1];
 			const position = i.values[0];
 
-			await i.deferUpdate();
-
 			switch (position) {
 				case "chat_mod": {
 					const timezoneInput = new TextInputBuilder()
@@ -146,9 +144,15 @@ export default class ApplyCommand extends BaseCommand {
 						embeds: [embed]
 					});
 
+					await modalInteraction.reply({
+						content: "Submitted Chat Moderator Application",
+						ephemeral: true
+					})
+
 					break;
 				}
 				case "debate_comp": {
+					await i.deferUpdate();
 					const embed = new EmbedBuilder()
 						.setTitle("Debate Competition")
 						.setDescription(
@@ -166,6 +170,11 @@ export default class ApplyCommand extends BaseCommand {
 					await debateCompChannel.send({
 						embeds: [embed]
 					});
+
+					await i.reply({
+						content: "Submitted Debate Competition Application.",
+						ephemeral: true
+					})
 
 					break;
 				}
