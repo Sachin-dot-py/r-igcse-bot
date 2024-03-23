@@ -430,7 +430,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				)
 			) {
 				const reference = await message.fetchReference();
-				rep.add(reference.author);
+				rep.add(message.author);
 			}
 
 			for (const user of rep) {
