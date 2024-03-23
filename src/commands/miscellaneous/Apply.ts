@@ -152,7 +152,6 @@ export default class ApplyCommand extends BaseCommand {
 					break;
 				}
 				case "debate_comp": {
-					await i.deferUpdate();
 					const embed = new EmbedBuilder()
 						.setTitle("Debate Competition")
 						.setDescription(
