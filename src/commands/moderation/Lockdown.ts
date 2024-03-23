@@ -64,22 +64,6 @@ export default class LockdownCommand extends BaseCommand {
 						)
 						.setRequired(false)
 				)
-				.addStringOption((option) =>
-					option
-						.setName("begin")
-						.setDescription(
-							"When to start the lockdown. (Defaults to immediately)"
-						)
-						.setRequired(false)
-				)
-				.addStringOption((option) =>
-					option
-						.setName("duration")
-						.setDescription(
-							"When to end the lockdown. (Defaults to 1 day)"
-						)
-						.setRequired(false)
-				)
 				.setDMPermission(false)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		);
