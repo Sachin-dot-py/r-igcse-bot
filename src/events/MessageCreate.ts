@@ -47,8 +47,10 @@ export default class MessageCreateEvent extends BaseEvent {
 					if (keywordReponse) {
 						const embed = new EmbedBuilder()
 							.setDescription(keywordReponse)
-							.setAuthor({ name: message.content.trim().toLowerCase() })
-						message.channel.send({ embeds: [embed] })
+							.setAuthor({
+								name: message.content.trim().toLowerCase()
+							});
+						message.channel.send({ embeds: [embed] });
 					}
 				})
 				.catch(Logger.error);
@@ -76,8 +78,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-							stickyCounter[message.channelId]
-						);
+						stickyCounter[message.channelId]
+					);
 				}
 			}
 
@@ -164,7 +166,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-				guildPreferences.modmailThreadsChannelId
+					guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -287,7 +289,6 @@ export default class MessageCreateEvent extends BaseEvent {
 			});
 		} else thread = channel.threads.cache.get(res.threadId)!;
 
-
 		const embed = new EmbedBuilder()
 			.setTitle("New DM Recieved")
 			.setAuthor({
@@ -299,14 +300,12 @@ export default class MessageCreateEvent extends BaseEvent {
 			.setColor(Colors.Red);
 
 		if (message.attachments.size > 0) {
-			embed.addFields(
-				{
-					name: "Attachments",
-					value: message.attachments.map((attachment) =>
-						`[Attachment](${attachment.url})`
-					).join("\n")
-				}
-			);
+			embed.addFields({
+				name: "Attachments",
+				value: message.attachments
+					.map((attachment) => `[Attachment](${attachment.url})`)
+					.join("\n")
+			});
 		}
 
 		if (guildPreferences.modmailLogsChannelId) {
@@ -387,10 +386,10 @@ export default class MessageCreateEvent extends BaseEvent {
 			) {
 				rep.push(...message.mentions.users.values());
 				if (message.reference) {
-					const reference = await message.fetchReference()
-					if (!rep.includes(reference.author)) rep.push(reference.author)
+					const reference = await message.fetchReference();
+					if (!rep.includes(reference.author))
+						rep.push(reference.author);
 				}
-
 			}
 
 			if (
@@ -402,10 +401,12 @@ export default class MessageCreateEvent extends BaseEvent {
 				rep.push(message.author);
 
 			for (const user of rep) {
+				if (user.id === message.author.id) continue;
+
 				if (user.id === client.user.id) {
 					await message.reply(
 						botYwResponses[
-						Math.floor(Math.random() * botYwResponses.length)
+							Math.floor(Math.random() * botYwResponses.length)
 						]
 					);
 
@@ -468,7 +469,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete().catch(() => { });
+				if (oldSticky) await oldSticky.delete().catch(() => {});
 			}
 
 			const embeds = stickyMessage.embeds.map(
