@@ -69,7 +69,10 @@ export default class RemoveLockdownCommand extends BaseCommand {
 				interaction.guild.roles.everyone
 			);
 
-			if (permissions.has(PermissionFlagsBits.SendMessages)) {
+			if (
+				permissions.has(PermissionFlagsBits.SendMessages) &&
+				permissions.has(PermissionFlagsBits.SendMessagesInThreads)
+			) {
 				await interaction.reply({
 					content: `<#${channel.id}> isn't locked.`,
 					ephemeral: true
