@@ -2,7 +2,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default class EmbedCommand extends BaseCommand {
 	constructor() {
@@ -73,7 +73,10 @@ export default class EmbedCommand extends BaseCommand {
 				}
 
 				await channel.send({
-					embeds: message.embeds
+					embeds: message.embeds.map((embed) => {
+						return new EmbedBuilder(embed.toJSON())
+							.setURL(null)
+					})
 				});
 
 				await interaction.reply({
