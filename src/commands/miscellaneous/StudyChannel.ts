@@ -2,7 +2,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 
 export default class StudyChannelCommand extends BaseCommand {
@@ -81,6 +81,11 @@ export default class StudyChannelCommand extends BaseCommand {
 								.setDescription("Channel to delete")
 								.setRequired(true)
 						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("list")
+						.setDescription("Lists all study channels")
 				)
 		);
 	}
@@ -192,6 +197,34 @@ export default class StudyChannelCommand extends BaseCommand {
 					ephemeral: true
 				});
 				break;
+			}
+			case "list": {
+				await interaction.deferReply({ ephemeral: true });
+				const studyChannels = await StudyChannel.find({
+					guildId: interaction.guildId,
+				});
+
+				console.log(studyChannels)
+				if (studyChannels.length === 0) {
+					const embed = new EmbedBuilder()
+						.setDescription('No study channels exist. Add a few with `/study_channel create`')
+					await interaction.followUp({
+						embeds: [embed],
+						ephemeral: true
+					})
+					return;
+				}
+				var output = ''
+				for (const x of studyChannels) output +=
+					`${interaction.guild.channels.cache.find(c => c.id == x.channelId)}: ${interaction.guild.roles.cache.find(r => r.id == x.helperRoleId)}, ${interaction.guild.roles.cache.find(r => r.id == x.studyPingRoleId)}\n`
+				const embed = new EmbedBuilder()
+					.setTitle('Study channels in this server')
+					.setDescription(output)
+				await interaction.followUp({
+					embeds: [embed],
+					ephemeral: true
+				})
+				return;
 			}
 		}
 	}
