@@ -4,20 +4,17 @@ import {
 	ComponentType,
 	EmbedBuilder,
 	ModalBuilder,
-	ModalSubmitInteraction,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
-	StringSelectMenuInteraction,
 	StringSelectMenuOptionBuilder,
 	TextChannel,
 	TextInputBuilder,
 	TextInputStyle
 } from "discord.js";
+import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
-import Select from "@/components/Select";
-import { v4 as uuidv4 } from "uuid";
 
 export default class ApplyCommand extends BaseCommand {
 	constructor() {

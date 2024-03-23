@@ -18,7 +18,6 @@ import {
 	ThreadChannel,
 	VoiceChannel
 } from "discord.js";
-import { EntityId } from "redis-om";
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";

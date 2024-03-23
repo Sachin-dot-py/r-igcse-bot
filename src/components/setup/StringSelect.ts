@@ -1,13 +1,7 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
-import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
-import {
-	StringSelectMenuBuilder,
-	ComponentType,
-	Message,
-	ModalSubmitInteraction
-} from "discord.js";
+import { ComponentType, Message, StringSelectMenuBuilder } from "discord.js";
 
 class StringSelect extends StringSelectMenuBuilder {
 	name: string;
@@ -34,17 +28,8 @@ class StringSelect extends StringSelectMenuBuilder {
 	async createCollector(
 		customId: string,
 		interaction: Message<true>,
-		maxValues: number,
-		editableMessage:
-			| Message<true>
-			| ModalSubmitInteraction
-			| DiscordChatInputCommandInteraction<"cached">
+		maxValues: number
 	): Promise<void> {
-		const editMessage =
-			editableMessage instanceof Message
-				? editableMessage.edit
-				: editableMessage.editReply;
-
 		const selectCollector = interaction.createMessageComponentCollector({
 			filter: (i) => i.customId === customId,
 			time: 600_000, // 10 minutes

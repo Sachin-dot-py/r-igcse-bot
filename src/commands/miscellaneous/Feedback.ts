@@ -1,9 +1,9 @@
+import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	ActionRowBuilder,
 	Colors,
 	EmbedBuilder,
 	ModalBuilder,
-	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle
@@ -11,7 +11,6 @@ import {
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
-import type { DiscordClient } from "@/registry/DiscordClient";
 
 export default class FeedbackCommand extends BaseCommand {
 	constructor() {
