@@ -97,7 +97,7 @@ export default class HelperMenu extends BaseCommand {
 			cancelButton
 		);
 
-		await interaction.channel.send({
+		const pingMessage = await interaction.channel.send({
 			embeds: [embed],
 			components: [row]
 		});
@@ -125,7 +125,7 @@ export default class HelperMenu extends BaseCommand {
 			) {
 				canceled = false;
 
-				interaction.editReply({
+				pingMessage.edit({
 					content: `Ping cancelled by ${i.user.tag}`,
 					components: [],
 					embeds: []
@@ -134,7 +134,7 @@ export default class HelperMenu extends BaseCommand {
 				return;
 			}
 
-			i.reply({
+			i.followUp({
 				content: `You don't have the neccessary permissions to do this action.`,
 				ephemeral: true
 			});
@@ -142,6 +142,8 @@ export default class HelperMenu extends BaseCommand {
 
 		collector.on("end", async () => {
 			if (canceled || !interaction.channel) return;
+
+			pingMessage.delete();
 
 			const embed = new EmbedBuilder()
 				.setDescription(
