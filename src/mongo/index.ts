@@ -19,3 +19,4 @@ export {
 export { HOTMUser, type IHOTMUser } from "./schemas/HOTMUser";
 export { ConfessionBan, type IConfessionBan } from "./schemas/ConfessionBan";
 export { ForcedMute, type IForcedMute } from "./schemas/ForcedMute";
+export { ClosedDmThread, type IClosedDmThread } from "./schemas/ClosedDmThread";

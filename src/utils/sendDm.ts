@@ -1,4 +1,4 @@
-import { PrivateDmThread } from "@/mongo";
+import { ClosedDmThread } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import {
 	ChannelType,
@@ -30,7 +30,7 @@ const sendDm = async (
 		let thread: ThreadChannel | undefined;
 
 		const dmThread =
-			(await PrivateDmThread.findOne({
+			(await ClosedDmThread.findOne({
 				userId: member.id,
 				guildId: member.guild.id
 			})) ?? null;
@@ -52,7 +52,7 @@ const sendDm = async (
 
 			thread = newThread;
 
-			await PrivateDmThread.create({
+			await ClosedDmThread.create({
 				userId: member.id,
 				threadId: newThread.id,
 				guildId: member.guild.id
