@@ -97,10 +97,11 @@ The contributors to the `v2.0` release are attributed below. <a href="https://gi
 
 # Local Installation Guide
 
-1. [Make sure you have Python 3.7+ installed (preferably 3.12.1)](https://www.python.org/downloads/source/)
-2. Install the requirements (`pip install -r requirements.txt`)
-3. [Generate a Discord Bot API Token](https://www.writebots.com/discord-bot-token/)
-4. [Create a MongoDB database named `IGCSEBot`](https://www.mongodb.com/basics/create-database).
-5. [Setup redis and get your REDIS_OM_URL](https://github.com/redis/redis-om-python/blob/main/docs/getting_started.md)
-6. Rename `.env.example` to `.env` and fill it in with the above
-7. Run the bot using the command `python src/app.py` (`python3 src/app.py` for Linux) or run the npm `start` script
+1. Make sure to install the latest version of [Bun](https://bun.sh/)
+2. Install packages using `bun i`
+3. [Generate your discord bot token and save it for later](https://www.writebots.com/discord-bot-token/)
+4. [Create a MongoDB database named `r-igcse-bot`](https://www.mongodb.com/basics/create-database).
+5. [Setup a redis-stack server using docker or redis cloud](https://docs.redis.com/latest/rc/databases/create-database/)
+6. Copy `.env.example` to `.env` and fill it in with the above
+7. Create indexes on redisearch using `bun src/redis/createIndexes.ts` (do this after updating redis schemas as well)
+8. Start the bot using `bun start`

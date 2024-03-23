@@ -199,28 +199,27 @@ export default class StudyChannelCommand extends BaseCommand {
 				break;
 			}
 			case "list": {
-				await interaction.deferReply({ ephemeral: true });
 				const studyChannels = await StudyChannel.find({
 					guildId: interaction.guildId,
 				});
 
-				console.log(studyChannels)
 				if (studyChannels.length === 0) {
 					const embed = new EmbedBuilder()
 						.setDescription('No study channels exist. Add a few with `/study_channel create`')
-					await interaction.followUp({
+					await interaction.reply({
 						embeds: [embed],
 						ephemeral: true
 					})
 					return;
 				}
-				var output = ''
-				for (const x of studyChannels) output +=
-					`${interaction.guild.channels.cache.find(c => c.id == x.channelId)}: ${interaction.guild.roles.cache.find(r => r.id == x.helperRoleId)}, ${interaction.guild.roles.cache.find(r => r.id == x.studyPingRoleId)}\n`
+				const description: string[] = []
+				for (const { channelId, helperRoleId, studyPingRoleId } of studyChannels) {
+					description.push(`<#${channelId}: <@&${helperRoleId}>, <@&${studyPingRoleId}>`)
+				}
 				const embed = new EmbedBuilder()
 					.setTitle('Study channels in this server')
-					.setDescription(output)
-				await interaction.followUp({
+					.setDescription(description.join("\n"))
+				await interaction.reply({
 					embeds: [embed],
 					ephemeral: true
 				})
