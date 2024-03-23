@@ -80,10 +80,11 @@ export async function syncCommands(client: DiscordClient) {
 	const globalCommands = [];
 	const mainGuildCommands = [];
 
-	for (const [data, mainGuilOnly] of client.interactionData) {
-		if (mainGuilOnly) mainGuildCommands.push(data);
+	for (const [data, mainGuildOnly] of client.interactionData)
+		if (mainGuildOnly) mainGuildCommands.push(data);
 		else globalCommands.push(data);
 
+	if (globalCommands.length > 0)
 		await client.rest.put(
 			Routes.applicationCommands(client.application.id),
 			{
@@ -91,6 +92,7 @@ export async function syncCommands(client: DiscordClient) {
 			}
 		);
 
+	if (mainGuildCommands.length > 0)
 		await client.rest.put(
 			Routes.applicationGuildCommands(
 				client.application.id,
@@ -100,5 +102,4 @@ export async function syncCommands(client: DiscordClient) {
 				body: mainGuildCommands
 			}
 		);
-	}
 }

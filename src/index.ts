@@ -81,6 +81,7 @@ for (;;)
 							Logger.info("Synced application commands globally")
 						)
 						.catch(Logger.error);
+					console.log("test");
 					break;
 				default:
 					break;
