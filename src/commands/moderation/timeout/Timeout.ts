@@ -173,12 +173,12 @@ export default class TimeoutCommand extends BaseCommand {
 				{
 					name: "User",
 					value: `${user.tag} (${user.id})`,
-					inline: true
+					inline: false
 				},
 				{
 					name: "Moderator",
 					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: true
+					inline: false
 				},
 				{
 					name: "Reason",
@@ -201,8 +201,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully timed out @${user.tag}`,
-			ephemeral: true
+			content: `${user.username} has been timed out for ${reason} (Case #${caseNumber})`
 		});
 	}
 }

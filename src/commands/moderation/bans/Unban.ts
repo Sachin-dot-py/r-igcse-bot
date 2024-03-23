@@ -90,12 +90,12 @@ export default class UnbanCommand extends BaseCommand {
 					{
 						name: "User",
 						value: `${user.tag} (${user.id})`,
-						inline: true
+						inline: false
 					},
 					{
 						name: "Moderator",
 						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: true
+						inline: false
 					}
 				])
 				.setTimestamp();
@@ -109,13 +109,11 @@ export default class UnbanCommand extends BaseCommand {
 			);
 
 			await interaction.reply({
-				content: `Successfully unbanned ${user.tag}`,
-				ephemeral: true
+				content: `${user.username} has been unbanned.`
 			});
 		} else
 			await interaction.reply({
-				content: `Successfully unbanned ${user.tag}. Please configure your guild preferences for Moderation Action Logging using /setup.`,
-				ephemeral: true
+				content: `${user.username} has been unbanned. Please configure your guild preferences for Moderation Action Logging using /setup.`
 			});
 	}
 }

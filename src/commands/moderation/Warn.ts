@@ -81,12 +81,12 @@ export default class WarnCommand extends BaseCommand {
 				{
 					name: "User",
 					value: `${user.tag} (${user.id})`,
-					inline: true
+					inline: false
 				},
 				{
 					name: "Moderator",
 					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: true
+					inline: false
 				},
 				{
 					name: "Reason",
@@ -106,8 +106,7 @@ export default class WarnCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully warned ${user.username} for ${reason} (Case #${caseNumber})`,
-			ephemeral: true
+			content: `${user.username} has been warned for ${reason} (Case #${caseNumber})`
 		});
 	}
 }
