@@ -4,7 +4,11 @@ import { GatewayIntentBits, Partials } from "discord.js";
 import mongo from "mongoose";
 import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
-import { registerCommands, registerEvents } from "./registry/index";
+import {
+	registerCommands,
+	registerEvents,
+	syncCommands
+} from "./registry/index";
 import Logger from "./utils/Logger";
 import actionRequired from "./cron/actionRequired";
 import inquirer from "inquirer";
@@ -70,6 +74,13 @@ for (;;)
 			switch (command) {
 				case "cron run actionRequired":
 					actionRequired(client as DiscordClient<true>);
+					break;
+				case "refreshCommandData":
+					syncCommands(client)
+						.then(() =>
+							Logger.info("Synced application commands globally")
+						)
+						.catch(Logger.error);
 					break;
 				default:
 					break;
