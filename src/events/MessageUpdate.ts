@@ -14,19 +14,19 @@ export default class MessageUpdateEvent extends BaseEvent {
 		newMessage: Message
 	) {
 		if (
-			oldMessage.author.bot ||
-			!oldMessage.inGuild() ||
+			newMessage.author.bot ||
+			!newMessage.inGuild() ||
 			oldMessage.content === newMessage.content
 		)
 			return;
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			oldMessage.guildId
+			newMessage.guildId
 		);
 
 		if (!guildPreferences) return;
 
-		if (oldMessage.channelId === guildPreferences.countingChannelId)
+		if (newMessage.channelId === guildPreferences.countingChannelId)
 			await newMessage.delete();
 	}
 }
