@@ -64,40 +64,42 @@ export default class ListKeywordsCommand extends BaseCommand {
 
 		let page = 0;
 
-		const firstButton = new ButtonBuilder()
-			.setCustomId("first")
-			.setEmoji("⏪")
-			.setStyle(ButtonStyle.Primary)
-			.setDisabled(page === 0);
+		const getButtons = () => {
+			const firstButton = new ButtonBuilder()
+				.setCustomId("first")
+				.setEmoji("⏪")
+				.setStyle(ButtonStyle.Primary)
+				.setDisabled(page === 0);
 
-		const previousButton = new ButtonBuilder()
-			.setCustomId("previous")
-			.setEmoji("⬅️")
-			.setStyle(ButtonStyle.Primary)
-			.setDisabled(page === 0);
+			const previousButton = new ButtonBuilder()
+				.setCustomId("previous")
+				.setEmoji("⬅️")
+				.setStyle(ButtonStyle.Primary)
+				.setDisabled(page === 0);
 
-		const lastButton = new ButtonBuilder()
-			.setCustomId("last")
-			.setEmoji("⏩")
-			.setStyle(ButtonStyle.Primary)
-			.setDisabled(page === chunks.length);
+			const lastButton = new ButtonBuilder()
+				.setCustomId("last")
+				.setEmoji("⏩")
+				.setStyle(ButtonStyle.Primary)
+				.setDisabled(page === chunks.length);
 
-		const nextButton = new ButtonBuilder()
-			.setCustomId("next")
-			.setEmoji("➡️")
-			.setStyle(ButtonStyle.Primary)
-			.setDisabled(page === chunks.length);
+			const nextButton = new ButtonBuilder()
+				.setCustomId("next")
+				.setEmoji("➡️")
+				.setStyle(ButtonStyle.Primary)
+				.setDisabled(page === chunks.length);
 
-		const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-			firstButton,
-			previousButton,
-			lastButton,
-			nextButton
-		);
+			return new ActionRowBuilder<ButtonBuilder>().addComponents(
+				firstButton,
+				previousButton,
+				nextButton,
+				lastButton
+			);
+		};
 
 		await interaction.reply({
 			embeds: [embeds[page]],
-			components: [buttonsRow],
+			components: [getButtons()],
 			ephemeral: true
 		});
 
@@ -107,14 +109,16 @@ export default class ListKeywordsCommand extends BaseCommand {
 		});
 
 		collector.on("collect", async (i) => {
+			i.deferUpdate();
+
 			if (i.customId === "first") page = 0;
 			else if (i.customId === "previous") page--;
 			else if (i.customId === "next") page++;
-			else if (i.customId === "last") page = chunks.length;
+			else if (i.customId === "last") page = chunks.length - 1;
 
 			await interaction.editReply({
 				embeds: [embeds[page]],
-				components: [buttonsRow]
+				components: [getButtons()]
 			});
 		});
 	}
