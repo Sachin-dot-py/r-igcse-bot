@@ -74,43 +74,34 @@ export async function registerEvents(client: DiscordClient<true>) {
 	}
 }
 
-export async function syncInteractions(
-	client: DiscordClient,
-	guildId?: string
-) {
+export async function syncCommands(client: DiscordClient) {
 	if (!client.application) {
 		Logger.error("No application id");
 		return;
 	}
 
-	let data = [...client.interactionData];
+	const guildOnlyNames = ["apply", "feedback"];
 
-	if (!guildId) {
+	try {
+		await client.rest.put(
+			Routes.applicationCommands(client.application.id),
+			{
+				body: client.interactionData.filter(({ name }) =>
+					guildOnlyNames.some((x) => x !== name)
+				)
+			}
+		);
+
 		await client.rest.put(
 			Routes.applicationGuildCommands(
 				client.application.id,
 				process.env.MAIN_GUILD_ID
 			),
 			{
-				body: data.filter(({ name }) =>
-					["apply", "feedback"].includes(name)
+				body: client.interactionData.filter(({ name }) =>
+					guildOnlyNames.some((x) => x === name)
 				)
 			}
-		);
-	}
-
-	if (!guildId || guildId !== process.env.MAIN_GUILD_ID)
-		data = data.filter(({ name }) => !["apply", "feedback"].includes(name));
-
-	try {
-		await client.rest.put(
-			guildId
-				? Routes.applicationGuildCommands(
-						client.application.id,
-						guildId
-					)
-				: Routes.applicationCommands(client.application.id),
-			{ body: data }
 		);
 	} catch (error) {
 		Logger.error(error);

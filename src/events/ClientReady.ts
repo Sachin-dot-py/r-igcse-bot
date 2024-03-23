@@ -5,7 +5,7 @@ import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache, StickyMessageCache } from "@/redis";
 import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
-import { syncInteractions } from "@/registry";
+import { syncCommands } from "@/registry";
 import Logger from "@/utils/Logger";
 import createTask from "@/utils/createTask";
 import {
@@ -127,7 +127,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
-		await syncInteractions(client)
+		await syncCommands(client)
 			.then(() => Logger.info("Synced application commands globally"))
 			.catch(Logger.error);
 
