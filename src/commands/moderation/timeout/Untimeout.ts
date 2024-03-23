@@ -116,12 +116,12 @@ export default class UntimeoutCommand extends BaseCommand {
 				{
 					name: "User",
 					value: `${user.tag} (${user.id})`,
-					inline: true
+					inline: false
 				},
 				{
 					name: "Moderator",
 					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: true
+					inline: false
 				}
 			]);
 
@@ -136,8 +136,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully untimed out @${user.tag}`,
-			ephemeral: true
+			content: `Timeout has been removed from ${user.username}`
 		});
 	}
 }

@@ -160,12 +160,12 @@ export default class BanCommand extends BaseCommand {
 					{
 						name: "User",
 						value: `${user.tag} (${user.id})`,
-						inline: true
+						inline: false
 					},
 					{
 						name: "Moderator",
 						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: true
+						inline: false
 					},
 					{
 						name: "Reason",
@@ -184,8 +184,7 @@ export default class BanCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully banned ${user.tag}`,
-			ephemeral: true
+			content: `${user.username} has been banned.`
 		});
 	}
 }
