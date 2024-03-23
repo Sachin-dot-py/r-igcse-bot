@@ -2,7 +2,8 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	EmbedBuilder,
 	SlashCommandBuilder,
-	type APIEmbedField
+	type APIEmbedField,
+	ChannelType
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -87,38 +88,39 @@ export default class RandomPypCommand extends BaseCommand {
 			Math.floor(Math.random() * session.length)
 		] as "m" | "s" | "w";
 
-		const paperName = `${subjectCode}_${randomSession}${randomYear.slice(2)}_qp_${paperNumber}${randomVariant}.pdf`;
+		const paperName = `${subjectCode}_${randomSession}${randomYear.slice(2)}_qp_${paperNumber}${randomVariant}`;
 
 		const fields: APIEmbedField[] = [
 			{
-				name: "Question Paper",
-				value: `[Open](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName})`,
-				inline: true
+				name: "QP Link:",
+				value: `[${paperName}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName}.pdf)`,
+				// inline: true
 			},
 			{
-				name: "Mark Scheme",
-				value: `[Open](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")})`,
-				inline: true
+				name: "MS Link:",
+				value: `[${paperName.replace('qp', 'ms')}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`,
+				// inline: true
 			}
 		];
 
 		if (subject.insert) {
 			fields.push({
-				name: "Insert/Supporting Files",
-				value: `[Open](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)})`,
-				inline: true
+				name: "Insert/Supporting Files:",
+				value: `[${paperName.replace("qp", subject.insert)}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`,
+				// inline: true
 			});
 		}
 
 		await interaction.reply({
 			embeds: [
 				new EmbedBuilder()
-					.setTitle("Random Past Paper")
+					.setTitle(`Random Paper for ${subject.name}`)
 					.setDescription(
-						`Here is a random past paper for ${subject.name}`
-					)
-					.addFields(...fields)
-			]
+						`${paperName} has been chosen at random. Below are links to the question paper and marking scheme.\n\n` +
+						fields.map(x => `**${x.name}**: ${x.value}`).join('\n')
+					).setColor(0xF4B6C2)
+			],
+			ephemeral: interaction.channel?.type != ChannelType.GuildVoice
 		});
 	}
 }
