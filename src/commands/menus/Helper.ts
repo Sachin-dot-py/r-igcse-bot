@@ -102,11 +102,6 @@ export default class HelperMenu extends BaseCommand {
 			components: [row]
 		});
 
-		await interaction.reply({
-			content: `The helper role will be pinged in <t:${Math.floor(Date.now() / 1000) + 900}:R>. Please click on the cancel ping button if your query has been resolved by then.`,
-			ephemeral: true
-		});
-
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 			time: 890 * 1000,
