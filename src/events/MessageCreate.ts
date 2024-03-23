@@ -44,7 +44,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				message.content.trim().toLowerCase()
 			)
 				.then((keywordReponse) => {
-					if (keywordReponse) {
+					if (keywordReponse && !keywordReponse.startsWith("https://") && !keywordReponse.startsWith("http://")) {
 						const embed = new EmbedBuilder()
 							.setDescription(keywordReponse)
 							.setFooter({
@@ -52,6 +52,8 @@ export default class MessageCreateEvent extends BaseEvent {
 							})
 							.setColor(Colors.Blue);
 						message.reply({ embeds: [embed] });
+					} else if (keywordReponse) {
+						message.reply(keywordReponse);
 					}
 				})
 				.catch(Logger.error);
