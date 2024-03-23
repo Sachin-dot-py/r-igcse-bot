@@ -142,8 +142,8 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	}
 
 	private async loadKeywordsCache() {
-		(await KeywordCache.search().returnAll()).forEach((entity) =>
-			KeywordCache.remove(entity[EntityId]!)
+		(await KeywordCache.search().returnAllIds()).forEach((id) =>
+			KeywordCache.remove(id)
 		);
 
 		const keywords = await Keyword.find();
