@@ -414,17 +414,12 @@ export default class MessageCreateEvent extends BaseEvent {
 				)
 			) {
 				for (const user of message.mentions.users.values())
-					if (user.id === message.author.id) {
-						message.reply("You can't rep yourself dummy!");
-						continue;
-					} else rep.add(user);
+					rep.add(user);
 
 				if (message.reference) {
 					const reference = await message.fetchReference();
 
-					if (reference.author.id === message.author.id)
-						message.reply("You can't rep yourself dummy!");
-					else rep.add(reference.author);
+					rep.add(reference.author);
 				}
 			}
 
@@ -433,10 +428,17 @@ export default class MessageCreateEvent extends BaseEvent {
 				ywAliases.some((alias) =>
 					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
 				)
-			)
-				rep.add(message.author);
+			) {
+				const reference = await message.fetchReference();
+				rep.add(reference.author);
+			}
 
 			for (const user of rep) {
+				if (user.id === message.author.id) {
+					message.reply("You can't rep yourself dummy!");
+					continue;
+				}
+
 				if (user.id === client.user.id) {
 					await message.reply(
 						botYwResponses[
