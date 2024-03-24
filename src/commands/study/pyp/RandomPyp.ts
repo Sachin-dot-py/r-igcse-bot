@@ -52,7 +52,7 @@ export default class RandomPypCommand extends BaseCommand {
 						.setDescription("The code for the subject")
 						.setRequired(true)
 				)
-				.addStringOption((option) =>
+				.addIntegerOption((option) =>
 					option
 						.setName("paper_number")
 						.setDescription("The paper number")
@@ -69,8 +69,8 @@ export default class RandomPypCommand extends BaseCommand {
 			| "IGCSE"
 			| "O-Level"
 			| "A-Level";
-		const subjectCode = interaction.options.getString("subject_code", true).trim();
-		const paperNumber = interaction.options.getString("paper_number", true).trim();
+		const subjectCode = interaction.options.getString("subject_code", true);
+		const paperNumber = interaction.options.getInteger("paper_number", true);
 
 		const subject = allSubjects.find((x) => x.code === subjectCode);
 		if (!subject) {
@@ -80,9 +80,9 @@ export default class RandomPypCommand extends BaseCommand {
 			});
 			return;
 		}
-		if (paperNumber.length > 1 || Number(paperNumber) > 6 || Number(paperNumber) < 1) {
+		if (paperNumber > 6 || paperNumber < 1) {
 			await interaction.reply({
-				content: "Invalid paper number\n" + (paperNumber.length > 1 ? "Hint: Don't enter the variant number" : "Hint: Paper numbers are between 1 and 6, inclusive."),
+				content: "Invalid paper number\n" + (paperNumber > 9 ? "Hint: Don't enter the variant number" : "Hint: Paper numbers are between 1 and 6, inclusive."),
 				ephemeral: true
 			});
 			return;
