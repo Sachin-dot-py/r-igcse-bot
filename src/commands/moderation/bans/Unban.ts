@@ -109,11 +109,13 @@ export default class UnbanCommand extends BaseCommand {
 			);
 
 			await interaction.reply({
-				content: `${user.username} has been unbanned.`
+				content: `${user.username} has been unbanned.`,
+				ephemeral: true
 			});
 		} else
 			await interaction.reply({
-				content: `${user.username} has been unbanned. Please configure your guild preferences for Moderation Action Logging using /setup.`
+				content: `${user.username} has been unbanned. Please configure your guild preferences for Moderation Action Logging using /setup.`,
+				ephemeral: true
 			});
 	}
 }

@@ -164,7 +164,8 @@ export default class KickCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `${user.username} has been kicked.`
+			content: `${user.username} has been kicked.`,
+			ephemeral: true
 		});
 	}
 }
