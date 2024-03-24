@@ -35,7 +35,8 @@ export default class YesNoPollCommand extends BaseCommand {
 			.setAuthor({
 				name: interaction.user.tag,
 				iconURL: interaction.user.displayAvatarURL()
-			});
+			})
+			.setFooter({ text: `(from: ${interaction.user.username})` });
 
 		try {
 			const message = await interaction.channel.send({
