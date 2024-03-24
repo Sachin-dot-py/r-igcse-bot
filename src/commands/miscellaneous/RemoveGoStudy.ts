@@ -23,6 +23,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 						.setDescription("User to remove forced mute from")
 						.setRequired(true)
 				)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
 				.setDMPermission(false)
 		);
 	}
@@ -31,7 +32,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		let user = interaction.options.getUser("user", false) || interaction.user;
+		let user = interaction.options.getUser("user", true)
 
 		if (
 			!interaction.member.permissions.has(
@@ -55,15 +56,6 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 				content: "Please setup the bot using the command `/setup` first.",
 				ephemeral: true
 			});
-			return;
-		}
-
-		if (!user) {
-			await interaction.reply({
-				content: "Invalid user!",
-				ephemeral: true
-			});
-
 			return;
 		}
 
@@ -95,7 +87,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			]);
 			Logger.error(error);
 			await interaction.followUp({
-				content: "Error!",
+				content: "There was an error while removing the forced mute role.",
 				ephemeral: true
 			});
 		}
