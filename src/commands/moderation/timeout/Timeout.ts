@@ -201,7 +201,8 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `${user.username} has been timed out for ${reason} (Case #${caseNumber})`
+			content: `${user.username} has been timed out for ${reason} (Case #${caseNumber})`,
+			ephemeral: true
 		});
 	}
 }

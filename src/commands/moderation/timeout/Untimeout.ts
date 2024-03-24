@@ -136,7 +136,8 @@ export default class UntimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Timeout has been removed from ${user.username}`
+			content: `Timeout has been removed from ${user.username}`,
+			ephemeral: true
 		});
 	}
 }

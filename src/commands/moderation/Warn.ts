@@ -106,7 +106,8 @@ export default class WarnCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `${user.username} has been warned for ${reason} (Case #${caseNumber})`
+			content: `${user.username} has been warned for ${reason} (Case #${caseNumber})`,
+			ephemeral: true
 		});
 	}
 }
