@@ -195,9 +195,10 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					client.log(error, `Create DM Thread`, [
-						{ name: "User ID", value: message.author.id }
-					]);
+					client.log(error, `Create DM Thread`, 
+							`**Channel:** <#${interaction.channel?.id}>
+							**User:** <@${interaction.user.id}>
+							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
 				}
 			}
 			if (

@@ -40,7 +40,7 @@ export class DiscordClient<
 	public async log(
 		message: unknown,
 		source: string,
-		fields: APIEmbedField[]
+		fields: string
 	) {
 		const mainGuild = this.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (!mainGuild) {
@@ -52,9 +52,9 @@ export class DiscordClient<
 		const embed = new EmbedBuilder()
 			.setTitle(`An Exception Occured - ${source}`)
 			.setDescription(
+				`${fields}\n` +
 				`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``
 			)
-			.addFields(fields);
 
 		const channel = await mainGuild.channels.cache.get(
 			process.env.ERROR_LOGS_CHANNEL_ID

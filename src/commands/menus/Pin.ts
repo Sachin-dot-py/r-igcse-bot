@@ -43,10 +43,10 @@ export default class PinMenu extends BaseCommand {
 				ephemeral: true
 			});
 
-			client.log(error, `${this.data.name} Menu`, [
-				{ name: "User ID", value: interaction.user.id },
-				{ name: "Message ID", value: interaction.targetId }
-			]);
+			client.log(error, `${this.data.name} Menu`, 
+					`**Channel:** <#${interaction.channel?.id}>
+					**User:** <@${interaction.user.id}>
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
 		}
 
 		await interaction.reply({
