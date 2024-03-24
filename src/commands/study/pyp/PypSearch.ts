@@ -113,9 +113,10 @@ export default class ResourcesCommand extends BaseCommand {
 
 			if (!interaction.inCachedGuild()) return;
 
-			client.log(error, `${this.data.name} Command`, [
-				{ name: "User ID", value: interaction.user.id }
-			]);
+			client.log(error, `${this.data.name} Command`, 
+					`**Channel:** <#${interaction.channel?.id}>
+					**User:** <@${interaction.user.id}>
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
 		}
 	}
 }

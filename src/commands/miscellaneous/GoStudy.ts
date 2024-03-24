@@ -143,11 +143,10 @@ export default class GoStudyCommand extends BaseCommand {
 		try {
 			await member.roles.add(role);
 		} catch (error) {
-			client.log(error, `${this.data.name} Command (adding role)`, [
-				{ name: "User ID", value: interaction.user.id },
-				{ name: "Member ID", value: member.id },
-				{ name: "Guild ID", value: interaction.guild.id }
-			]);
+			client.log(error, `${this.data.name} Command (adding role)`, 
+					`**Channel:** <#${interaction.channel?.id}>
+					**User:** <@${interaction.user.id}>
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
 			Logger.error(error);
 		}
 
@@ -215,10 +214,9 @@ export default class GoStudyCommand extends BaseCommand {
 			try {
 				await member.roles.remove(role);
 			} catch (error) {
-				client.log(error, `${this.data.name} Command (removing role)`, [
-					{ name: "User ID", value: member.id },
-					{ name: "Guild ID", value: guild.id }
-				]);
+				client.log(error, `${this.data.name} Command (removing role)`, 
+						`**User:** <@${member.id}>
+						**Guild:** ${guild.name} (${guild.id})\n`); 
 				Logger.error(error);
 			}
 
