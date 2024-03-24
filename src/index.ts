@@ -59,7 +59,7 @@ await client.login(process.env.BOT_TOKEN);
 
 await registerEvents(client as DiscordClient<true>);
 
-for (;;)
+for (; ;)
 	await inquirer
 		.prompt([
 			{

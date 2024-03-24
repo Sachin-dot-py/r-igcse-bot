@@ -91,7 +91,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
 							`${parseInt(lastMessage.content) + 1}` ===
-								message.content)) &&
+							message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
@@ -115,8 +115,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-						stickyCounter[message.channelId]
-					);
+							stickyCounter[message.channelId]
+						);
 				}
 			}
 
@@ -195,16 +195,16 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					client.log(error, `Create DM Thread`, 
-							`**Channel:** <#${interaction.channel?.id}>
+					client.log(error, `Create DM Thread`,
+						`**Channel:** <#${interaction.channel?.id}>
 							**User:** <@${interaction.user.id}>
-							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
+							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`);
 				}
 			}
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-					guildPreferences.modmailThreadsChannelId
+				guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -448,7 +448,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				if (user.id === client.user.id) {
 					await message.reply(
 						botYwResponses[
-							Math.floor(Math.random() * botYwResponses.length)
+						Math.floor(Math.random() * botYwResponses.length)
 						]
 					);
 
@@ -458,6 +458,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				const member = await message.guild.members.fetch(user.id);
 
 				if (!member) return;
+
+				let rep = 1;
 
 				const res =
 					(await Reputation.findOneAndUpdate(
@@ -470,16 +472,19 @@ export default class MessageCreateEvent extends BaseEvent {
 								rep: 1
 							}
 						}
-					)) ??
-					(await Reputation.create({
+					))
+
+				if (res) rep = res.rep + 1;
+				else
+					await Reputation.create({
 						guildId: message.guildId,
 						userId: member.id,
 						rep: 1
-					}));
+					});
 
-				let content = `Gave +1 Rep to ${user.tag} (${res.rep})`;
+				let content = `Gave +1 Rep to ${user.tag} (${rep})`;
 
-				if ([100, 500, 1000, 5000].some((amnt) => res.rep === amnt)) {
+				if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
 					const role = message.guild.roles.cache.find(
 						(x) => x.name === `${rep}+ Rep Club`
 					);
@@ -507,7 +512,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete().catch(() => {});
+				if (oldSticky) await oldSticky.delete().catch(() => { });
 			}
 
 			const embeds = stickyMessage.embeds.map(
