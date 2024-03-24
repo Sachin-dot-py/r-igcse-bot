@@ -34,7 +34,8 @@ export const handleVote = (reaction: MessageReaction, user: User) => {
 
 	const newEmbed = new EmbedBuilder({
 		title: embed.title || "Poll",
-		description
+		description,
+		footer: { text: embed.footer?.text || '' }
 	});
 
 	message.edit({ embeds: [newEmbed] });
