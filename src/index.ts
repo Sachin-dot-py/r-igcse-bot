@@ -31,7 +31,6 @@ export const client = new DiscordClient({
 		GatewayIntentBits.GuildMessageTyping,
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.GuildModeration,
-		GatewayIntentBits.GuildPresences,
 		GatewayIntentBits.GuildScheduledEvents,
 		GatewayIntentBits.GuildVoiceStates,
 		GatewayIntentBits.GuildWebhooks,
