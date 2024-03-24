@@ -147,12 +147,7 @@ export default class SetupCommand extends BaseCommand {
 			});
 
 			toSendComponents.forEach((c) => {
-				c.createCollector(
-					c.customId,
-					selectInteraction,
-					c.maxValues,
-					selectInteraction
-				);
+				c.createCollector(c.customId, selectInteraction, c.maxValues);
 			});
 		}
 	}

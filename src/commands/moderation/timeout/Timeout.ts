@@ -186,7 +186,7 @@ export default class TimeoutCommand extends BaseCommand {
 				},
 				{
 					name: "Duration",
-					value: `${humanizeDuration(duration * 1000)}\n<t:${Math.floor(Date.now() / 1000) + duration}:R>`
+					value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
 				}
 			]);
 
@@ -201,7 +201,8 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `${user.username} has been timed out for ${reason} (Case #${caseNumber})`
+			content: `${user.username} has been timed out for ${reason} (Case #${caseNumber})`,
+			ephemeral: true
 		});
 	}
 }

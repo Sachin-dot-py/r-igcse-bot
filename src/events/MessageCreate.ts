@@ -44,11 +44,15 @@ export default class MessageCreateEvent extends BaseEvent {
 				message.content.trim().toLowerCase()
 			)
 				.then((keywordReponse) => {
-					if (keywordReponse && !keywordReponse.startsWith("https://") && !keywordReponse.startsWith("http://")) {
+					if (
+						keywordReponse &&
+						!keywordReponse.startsWith("https://") &&
+						!keywordReponse.startsWith("http://")
+					) {
 						const embed = new EmbedBuilder()
 							.setDescription(keywordReponse)
 							.setFooter({
-								text: `Requested by ${message.author.tag}`,
+								text: `Requested by ${message.author.tag}`
 							})
 							.setColor(Colors.Blue);
 						message.reply({ embeds: [embed] });
@@ -472,21 +476,17 @@ export default class MessageCreateEvent extends BaseEvent {
 						rep: 1
 					}));
 
-				if (!res) return;
+				let content = `Gave +1 Rep to ${user.tag} (${res.rep})`;
 
-				const rep = res.rep;
-
-				let content = `Gave +1 Rep to ${user.tag} (${rep})`;
-
-				if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
-					const role = message.guild.roles.cache.get(
-						`${rep}+ Rep Club`
+				if ([100, 500, 1000, 5000].some((amnt) => res.rep === amnt)) {
+					const role = message.guild.roles.cache.find(
+						(x) => x.name === `${rep}+ Rep Club`
 					);
 
-					if (!role) return;
-
-					content += `\nWelcome to the ${role.name}`;
-					member.roles.add(role);
+					if (role) {
+						content += `\nWelcome to the ${role.name}`;
+						member.roles.add(role);
+					}
 				}
 
 				message.channel.send(content);

@@ -97,28 +97,53 @@ export default class HelperMenu extends BaseCommand {
 			cancelButton
 		);
 
-		await interaction.channel.send({
+		const pingMessage = await interaction.reply({
 			embeds: [embed],
 			components: [row]
 		});
 
+		let canceled = false;
+
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
-			time: 890 * 1000,
-			filter: (i) =>
-				i.user.id === interaction.user.id ||
-				i.memberPermissions.has(PermissionFlagsBits.ModerateMembers)
+			time: 890000,
+			filter: (i) => i.customId == "cancel_ping"
 		});
 
 		collector.on("collect", async (i) => {
-			if (!(i.customId === "cancel_ping")) return;
-			interaction.editReply({
-				content: `Ping cancelled by ${i.user.tag}`
+			i.deferUpdate();
+
+			const member = interaction.guild.members.cache.get(i.user.id);
+
+			if (
+				member &&
+				(i.user.id === interaction.user.id ||
+					member.permissions.has(
+						PermissionFlagsBits.ModerateMembers
+					) ||
+					member.roles.cache.has(role.id))
+			) {
+				canceled = false;
+
+				pingMessage.edit({
+					content: `Ping cancelled by ${i.user.tag}`,
+					components: [],
+					embeds: []
+				});
+
+				return;
+			}
+
+			i.followUp({
+				content: `You don't have the neccessary permissions to do this action.`,
+				ephemeral: true
 			});
 		});
 
 		collector.on("end", async () => {
-			if (!interaction.channel) return;
+			if (canceled || !interaction.channel) return;
+
+			pingMessage.delete();
 
 			const embed = new EmbedBuilder()
 				.setDescription(

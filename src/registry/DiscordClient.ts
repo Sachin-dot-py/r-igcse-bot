@@ -32,7 +32,9 @@ export class DiscordClient<
 	}
 
 	get interactionData() {
-		return this._commands.map((command) => command.data.toJSON());
+		return this._commands.map(
+			(command) => [command.data.toJSON(), command.mainGuildOnly] as const
+		);
 	}
 
 	public async log(

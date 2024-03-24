@@ -30,11 +30,16 @@ export default abstract class BaseCommand {
 		private _data:
 			| Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
 			| SlashCommandSubcommandsOnlyBuilder
-			| ContextMenuCommandBuilder
+			| ContextMenuCommandBuilder,
+		private _mainGuildOnly = false
 	) {}
 
 	get data() {
 		return this._data;
+	}
+
+	get mainGuildOnly() {
+		return this._mainGuildOnly;
 	}
 
 	abstract execute(

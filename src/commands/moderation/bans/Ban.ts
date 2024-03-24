@@ -184,7 +184,8 @@ export default class BanCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `${user.username} has been banned.`
+			content: `${user.username} has been banned.`,
+			ephemeral: true
 		});
 	}
 }

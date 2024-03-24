@@ -13,20 +13,25 @@ export default class MessageUpdateEvent extends BaseEvent {
 		oldMessage: Message,
 		newMessage: Message
 	) {
+		const before = oldMessage.partial
+			? await oldMessage.fetch()
+			: oldMessage;
+		const after = newMessage.partial
+			? await newMessage.fetch()
+			: newMessage;
+
 		if (
-			newMessage.author.bot ||
-			!newMessage.inGuild() ||
-			oldMessage.content === newMessage.content
+			after.author.bot ||
+			!after.inGuild() ||
+			before.content === after.content
 		)
 			return;
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			newMessage.guildId
-		);
+		const guildPreferences = await GuildPreferencesCache.get(after.guildId);
 
 		if (!guildPreferences) return;
 
-		if (newMessage.channelId === guildPreferences.countingChannelId)
-			await newMessage.delete();
+		if (after.channelId === guildPreferences.countingChannelId)
+			await after.delete();
 	}
 }

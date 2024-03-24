@@ -115,12 +115,12 @@ export default class KickCommand extends BaseCommand {
 						interaction.guildId
 					);
 
-					if (!guildPreferences || !guildPreferences.modlogChannelId)
+					if (!guildPreferences || !guildPreferences.generalLogsChannelId)
 						return;
 
 					await Logger.channel(
 						interaction.guild,
-						guildPreferences.modlogChannelId,
+						guildPreferences.generalLogsChannelId,
 						{
 							embeds: [
 								new EmbedBuilder()
@@ -199,12 +199,12 @@ export default class KickCommand extends BaseCommand {
 						interaction.guildId
 					);
 
-					if (!guildPreferences || !guildPreferences.modlogChannelId)
+					if (!guildPreferences || !guildPreferences.generalLogsChannelId)
 						return;
 
 					await Logger.channel(
 						interaction.guild,
-						guildPreferences.modlogChannelId,
+						guildPreferences.generalLogsChannelId,
 						{
 							embeds: [
 								new EmbedBuilder()

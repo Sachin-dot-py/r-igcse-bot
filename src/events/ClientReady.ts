@@ -5,7 +5,6 @@ import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache, StickyMessageCache } from "@/redis";
 import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
-import { syncCommands } from "@/registry";
 import Logger from "@/utils/Logger";
 import createTask from "@/utils/createTask";
 import {
@@ -19,7 +18,6 @@ import {
 	ThreadChannel,
 	VoiceChannel
 } from "discord.js";
-import { EntityId } from "redis-om";
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
@@ -127,10 +125,6 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
-		await syncCommands(client)
-			.then(() => Logger.info("Synced application commands globally"))
-			.catch(Logger.error);
-
 		await this.loadKeywordsCache().catch(Logger.error);
 
 		createTask(
@@ -147,8 +141,8 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	}
 
 	private async loadKeywordsCache() {
-		(await KeywordCache.search().returnAll()).forEach((entity) =>
-			KeywordCache.remove(entity[EntityId]!)
+		(await KeywordCache.search().returnAllIds()).forEach((id) =>
+			KeywordCache.remove(id)
 		);
 
 		const keywords = await Keyword.find();
