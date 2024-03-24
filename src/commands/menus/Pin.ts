@@ -38,6 +38,14 @@ export default class PinMenu extends BaseCommand {
 				content: `Messaged pinned by ${interaction.user}`
 			});
 		} catch (error) {
+			const pinNo = Array.from(await interaction.channel?.messages.fetchPinned() || []).length
+			if (pinNo >= 50) {
+				await interaction.reply({
+					content: "Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space.",
+				});
+				return;
+			}
+
 			await interaction.reply({
 				content: "Couldn't pin message.",
 				ephemeral: true
