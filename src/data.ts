@@ -337,6 +337,11 @@ export const preferences: Preference[] = [
 		key: "modlogChannelId"
 	},
 	{
+		name: "General Log Channel",
+		type: "channel",
+		key: "generalLogsChannelId"
+	},
+	{
 		name: "Action Required Channel (Logs users with 10+ interaction points)",
 		type: "channel",
 		key: "actionRequiredChannelId"
