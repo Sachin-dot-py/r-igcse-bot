@@ -15,7 +15,7 @@ export default class ReputationCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("The user to view the rep of")
-						.setRequired(false)
+						.setRequired(true)
 				)
 				.setDMPermission(false)
 		);
