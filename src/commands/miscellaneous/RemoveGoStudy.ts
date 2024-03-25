@@ -82,9 +82,9 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			});
 		} catch (error) {
 			
-			client.log(error, `${this.data.name} Menu`, 
+			client.log(error, `${this.data.name} Command (remove role)`, 
 					`**Channel:** <#${interaction.channel?.id}>
-					**User:** <@${interaction.user.id}>
+					**User:** <@${user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`);
 
 			
