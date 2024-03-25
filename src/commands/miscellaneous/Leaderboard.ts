@@ -35,7 +35,7 @@ export default class LeaderboardCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-		let page = interaction.options.getInteger("page", false) ?? 0;
+		let page = (interaction.options.getInteger("page", false) ?? 1) - 1;
 
 		const reps = await Reputation.find({
 			guildId: interaction.guildId
@@ -56,8 +56,6 @@ export default class LeaderboardCommand extends BaseCommand {
 			{ length: Math.ceil(reps.length / 9) },
 			(_, i) => reps.slice(i * 9, i * 9 + 9)
 		);
-
-		console.log(chunks);
 
 		const embeds: EmbedBuilder[] = [];
 
@@ -81,7 +79,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 			embeds.push(embed);
 		}
-
+		console.log(embeds[0], embeds[1])
 		const getButtons = () => {
 			const firstButton = new ButtonBuilder()
 				.setCustomId("first")
@@ -125,15 +123,15 @@ export default class LeaderboardCommand extends BaseCommand {
 			filter: (i) => i.user.id === interaction.user.id
 		});
 
-		collector.on("collect", async (i) => {
+		collector.on("collect", (i) => {
 			i.deferUpdate()
 
 			if (i.customId === "first") page = 0;
 			else if (i.customId === "previous") page--;
 			else if (i.customId === "next") page++;
-			else if (i.customId === "last") page = chunks.length;
+			else if (i.customId === "last") page = chunks.length - 1;
 
-			await interaction.editReply({
+			interaction.editReply({
 				embeds: [embeds[page]],
 				components: [getButtons()]
 			});
