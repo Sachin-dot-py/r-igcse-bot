@@ -10,6 +10,7 @@ import {
 	Colors,
 	ComponentType,
 	EmbedBuilder,
+	GuildMember,
 	SlashCommandBuilder
 } from "discord.js";
 
@@ -70,16 +71,14 @@ export default class LeaderboardCommand extends BaseCommand {
 
 			for (const { userId, rep } of chunk) {
 				try {
-					const member = interaction.guild.members.cache.get(userId) ?? await interaction.guild.members.fetch(userId);
+					const member = await interaction.guild.members.fetch({ user: userId, withPresences: false });
 
 					embed.addFields({
 						name: member.user.tag,
 						value: `${rep}`,
 						inline: true
 					});
-				} catch (_) {
-					continue;
-				}
+				} catch (_) { continue }
 			}
 
 			embeds.push(embed);
