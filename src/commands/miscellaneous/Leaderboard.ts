@@ -69,7 +69,9 @@ export default class LeaderboardCommand extends BaseCommand {
 			for (const { userId, rep } of chunk) {
 				const member = interaction.guild.members.cache.get(userId);
 
+				console.log(member ? "member exists" : "nope")
 				if (!member) continue;
+				console.log("reached here")
 
 				embed.addFields({
 					name: member.user.tag,
