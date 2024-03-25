@@ -91,7 +91,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
 							`${parseInt(lastMessage.content) + 1}` ===
-								message.content)) &&
+							message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
@@ -115,8 +115,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-						stickyCounter[message.channelId]
-					);
+							stickyCounter[message.channelId]
+						);
 				}
 			}
 
@@ -207,7 +207,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-					guildPreferences.modmailThreadsChannelId
+				guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -423,7 +423,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (user.id === client.user.id) {
 				await message.reply(
 					botYwResponses[
-						Math.floor(Math.random() * botYwResponses.length)
+					Math.floor(Math.random() * botYwResponses.length)
 					]
 				);
 
@@ -483,9 +483,14 @@ export default class MessageCreateEvent extends BaseEvent {
 			)
 		) {
 			const reference = await message.fetchReference();
-			const referenceRepped = await this.getReppedUsers(reference);
 
-			if (!referenceRepped.has(message.author)) users.add(message.author);
+			if (reference.author.id === message.author.id)
+				message.reply("You can't rep yourself dummy!");
+			else {
+				const referenceRepped = await this.getReppedUsers(reference);
+
+				if (!referenceRepped.has(message.author)) users.add(message.author);
+			}
 		} else if (
 			tyAliases.some((alias) =>
 				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
@@ -520,7 +525,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete().catch(() => {});
+				if (oldSticky) await oldSticky.delete().catch(() => { });
 			}
 
 			const embeds = stickyMessage.embeds.map(
