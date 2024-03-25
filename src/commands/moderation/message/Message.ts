@@ -115,7 +115,10 @@ export default class KickCommand extends BaseCommand {
 						interaction.guildId
 					);
 
-					if (!guildPreferences || !guildPreferences.generalLogsChannelId)
+					if (
+						!guildPreferences ||
+						!guildPreferences.generalLogsChannelId
+					)
 						return;
 
 					await Logger.channel(
@@ -199,7 +202,10 @@ export default class KickCommand extends BaseCommand {
 						interaction.guildId
 					);
 
-					if (!guildPreferences || !guildPreferences.generalLogsChannelId)
+					if (
+						!guildPreferences ||
+						!guildPreferences.generalLogsChannelId
+					)
 						return;
 
 					await Logger.channel(

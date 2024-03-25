@@ -91,7 +91,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
 							`${parseInt(lastMessage.content) + 1}` ===
-							message.content)) &&
+								message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
@@ -115,8 +115,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-							stickyCounter[message.channelId]
-						);
+						stickyCounter[message.channelId]
+					);
 				}
 			}
 
@@ -195,16 +195,19 @@ export default class MessageCreateEvent extends BaseEvent {
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
-					client.log(error, `Create DM Thread`,
+					client.log(
+						error,
+						`Create DM Thread`,
 						`**Channel:** <#${message.channel?.id}>
 							**User:** <@${message.author.id}>
-							**Guild:** ${message.guild.name} (${message.guildId})\n`);
+							**Guild:** ${message.guild.name} (${message.guildId})\n`
+					);
 				}
 			}
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-				guildPreferences.modmailThreadsChannelId
+					guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -420,7 +423,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (user.id === client.user.id) {
 				await message.reply(
 					botYwResponses[
-					Math.floor(Math.random() * botYwResponses.length)
+						Math.floor(Math.random() * botYwResponses.length)
 					]
 				);
 
@@ -433,18 +436,17 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			let rep = 1;
 
-			const res =
-				(await Reputation.findOneAndUpdate(
-					{
-						guildId: message.guildId,
-						userId: member.id
-					},
-					{
-						$inc: {
-							rep: 1
-						}
+			const res = await Reputation.findOneAndUpdate(
+				{
+					guildId: message.guildId,
+					userId: member.id
+				},
+				{
+					$inc: {
+						rep: 1
 					}
-				))
+				}
+			);
 
 			if (res) rep = res.rep + 1;
 			else
@@ -474,7 +476,6 @@ export default class MessageCreateEvent extends BaseEvent {
 	private async getReppedUsers(message: Message) {
 		const users = new Set<User>();
 
-
 		if (
 			message.reference &&
 			ywAliases.some((alias) =>
@@ -482,7 +483,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			)
 		) {
 			const reference = await message.fetchReference();
-			const referenceRepped = await this.getReppedUsers(reference)
+			const referenceRepped = await this.getReppedUsers(reference);
 
 			if (!referenceRepped.has(message.author)) users.add(message.author);
 		} else if (
@@ -507,8 +508,6 @@ export default class MessageCreateEvent extends BaseEvent {
 		return users;
 	}
 
-
-
 	private async handleStickyMessages(message: Message<true>) {
 		const stickyMessages = (await StickyMessageCache.search()
 			.where("channelId")
@@ -521,7 +520,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyMessage.messageId
 				);
 
-				if (oldSticky) await oldSticky.delete().catch(() => { });
+				if (oldSticky) await oldSticky.delete().catch(() => {});
 			}
 
 			const embeds = stickyMessage.embeds.map(

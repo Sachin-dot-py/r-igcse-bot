@@ -38,10 +38,13 @@ export default class PinMenu extends BaseCommand {
 				content: `Messaged pinned by ${interaction.user}`
 			});
 		} catch (error) {
-			const pinNo = Array.from(await interaction.channel?.messages.fetchPinned() || []).length
+			const pinNo = Array.from(
+				(await interaction.channel?.messages.fetchPinned()) || []
+			).length;
 			if (pinNo >= 50) {
 				await interaction.reply({
-					content: "Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space.",
+					content:
+						"Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space."
 				});
 				return;
 			}
@@ -51,10 +54,13 @@ export default class PinMenu extends BaseCommand {
 				ephemeral: true
 			});
 
-			client.log(error, `${this.data.name} Menu`, 
-					`**Channel:** <#${interaction.channel?.id}>
+			client.log(
+				error,
+				`${this.data.name} Menu`,
+				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+			);
 		}
 
 		await interaction.reply({

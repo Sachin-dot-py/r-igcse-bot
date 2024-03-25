@@ -38,7 +38,9 @@ export default class ErrorEvent extends BaseEvent {
 
 		const durationString = humanizeDuration(duration * 1000);
 
-		const latestPunishment = await Punishment.findOne({ guildId: autoModerationActionExecution.guild.id }).sort({
+		const latestPunishment = await Punishment.findOne({
+			guildId: autoModerationActionExecution.guild.id
+		}).sort({
 			createdAt: 1
 		});
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;

@@ -70,7 +70,10 @@ export default class RandomPypCommand extends BaseCommand {
 			| "O-Level"
 			| "A-Level";
 		const subjectCode = interaction.options.getString("subject_code", true);
-		const paperNumber = interaction.options.getInteger("paper_number", true);
+		const paperNumber = interaction.options.getInteger(
+			"paper_number",
+			true
+		);
 
 		const subject = allSubjects.find((x) => x.code === subjectCode);
 		if (!subject) {
@@ -82,7 +85,11 @@ export default class RandomPypCommand extends BaseCommand {
 		}
 		if (paperNumber > 6 || paperNumber < 1) {
 			await interaction.reply({
-				content: "Invalid paper number\n" + (paperNumber > 9 ? "Hint: Don't enter the variant number" : "Hint: Paper numbers are between 1 and 6, inclusive."),
+				content:
+					"Invalid paper number\n" +
+					(paperNumber > 9
+						? "Hint: Don't enter the variant number"
+						: "Hint: Paper numbers are between 1 and 6, inclusive."),
 				ephemeral: true
 			});
 			return;
@@ -100,12 +107,12 @@ export default class RandomPypCommand extends BaseCommand {
 		const fields: APIEmbedField[] = [
 			{
 				name: "QP Link:",
-				value: `[${paperName}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName}.pdf)`,
+				value: `[${paperName}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName}.pdf)`
 				// inline: true
 			},
 			{
 				name: "MS Link:",
-				value: `[${paperName.replace('qp', 'ms')}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`,
+				value: `[${paperName.replace("qp", "ms")}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`
 				// inline: true
 			}
 		];
@@ -113,7 +120,7 @@ export default class RandomPypCommand extends BaseCommand {
 		if (subject.insert) {
 			fields.push({
 				name: "Insert/Supporting Files:",
-				value: `[${paperName.replace("qp", subject.insert)}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`,
+				value: `[${paperName.replace("qp", subject.insert)}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`
 				// inline: true
 			});
 		}
@@ -124,8 +131,11 @@ export default class RandomPypCommand extends BaseCommand {
 					.setTitle(`Random Paper for ${subject.name}`)
 					.setDescription(
 						`${paperName} has been chosen at random. Below are links to the question paper and marking scheme.\n\n` +
-						fields.map(x => `**${x.name}**: ${x.value}`).join('\n')
-					).setColor(0xF4B6C2)
+							fields
+								.map((x) => `**${x.name}**: ${x.value}`)
+								.join("\n")
+					)
+					.setColor(0xf4b6c2)
 			],
 			ephemeral: interaction.channel?.type != ChannelType.GuildVoice
 		});

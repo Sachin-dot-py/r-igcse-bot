@@ -73,14 +73,16 @@ export default class HistoryCommand extends BaseCommand {
 				actionBy;
 
 			punishmentsList.push(
-				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: '2-digit', minute: '2-digit' })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
+				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
 			);
 		}
 
 		let description = `**Number of offenses:** ${offenceCount}\n`;
 
 		description += Object.entries(counts)
-			.map(([action, count]) => count > 0 ? `- **${action}s:** ${count}` : "")
+			.map(([action, count]) =>
+				count > 0 ? `- **${action}s:** ${count}` : ""
+			)
 			.filter((x) => x !== "")
 			.join("\n");
 
@@ -90,7 +92,9 @@ export default class HistoryCommand extends BaseCommand {
 		description += "```";
 
 		const embed = new EmbedBuilder()
-			.setTitle(`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`)
+			.setTitle(
+				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
+			)
 			.setAuthor({
 				name: user.username,
 				iconURL: user.displayAvatarURL()

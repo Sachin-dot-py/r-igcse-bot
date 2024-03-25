@@ -37,7 +37,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 		let page = interaction.options.getInteger("page", false) ?? 1;
 
-		await interaction.deferReply()
+		await interaction.deferReply();
 
 		const reps = await Reputation.find({
 			guildId: interaction.guildId
@@ -60,27 +60,35 @@ export default class LeaderboardCommand extends BaseCommand {
 		);
 
 		const getPage = async (n: number) => {
-			if (n > chunks.length || n < 1) return new EmbedBuilder()
-				.setTitle("Reputation Leaderboard")
-				.setColor(Colors.Blurple).setDescription("Invalid page number")
+			if (n > chunks.length || n < 1)
+				return new EmbedBuilder()
+					.setTitle("Reputation Leaderboard")
+					.setColor(Colors.Blurple)
+					.setDescription("Invalid page number");
 
-			const embed = (x => chunks.length === 1 ? x : x.setDescription(`Page ${page} of ${chunks.length}`)
-
-			)(new EmbedBuilder())
+			const embed = ((x) =>
+				chunks.length === 1
+					? x
+					: x.setDescription(`Page ${page} of ${chunks.length}`))(
+				new EmbedBuilder()
+			)
 				.setTitle("Reputation Leaderboard")
-				.setColor(Colors.Blurple)
+				.setColor(Colors.Blurple);
 
 			for (const { userId, rep } of chunks[n - 1])
-				await interaction.guild.members.fetch(userId).then((member) =>
-					embed.addFields({
-						name: member.user.tag,
-						value: `${rep}`,
-						inline: true
-					})
-				).catch(() => { });
+				await interaction.guild.members
+					.fetch(userId)
+					.then((member) =>
+						embed.addFields({
+							name: member.user.tag,
+							value: `${rep}`,
+							inline: true
+						})
+					)
+					.catch(() => {});
 
-			return embed
-		}
+			return embed;
+		};
 
 		const getMessageComponents = () => {
 			if (chunks.length === 0) return [];
@@ -109,17 +117,20 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setStyle(ButtonStyle.Primary)
 				.setDisabled(page === chunks.length - 1);
 
-			return [new ActionRowBuilder<ButtonBuilder>().addComponents(
-				firstButton,
-				previousButton,
-				nextButton,
-				lastButton)]
-		}
+			return [
+				new ActionRowBuilder<ButtonBuilder>().addComponents(
+					firstButton,
+					previousButton,
+					nextButton,
+					lastButton
+				)
+			];
+		};
 
 		interaction.followUp({
 			embeds: [await getPage(page)],
 			components: getMessageComponents()
-		})
+		});
 
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
@@ -127,7 +138,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		});
 
 		collector.on("collect", async (i) => {
-			i.deferUpdate()
+			i.deferUpdate();
 
 			if (i.customId === "first") page = 1;
 			else if (i.customId === "previous") page--;

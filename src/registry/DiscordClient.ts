@@ -36,11 +36,7 @@ export class DiscordClient<
 		);
 	}
 
-	public async log(
-		message: unknown,
-		source: string,
-		fields: string
-	) {
+	public async log(message: unknown, source: string, fields: string) {
 		const mainGuild = this.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (!mainGuild) {
 			Logger.error("Main Guild not found. Unable to log.");
@@ -52,8 +48,8 @@ export class DiscordClient<
 			.setTitle(`An Exception Occured - ${source}`)
 			.setDescription(
 				`${fields}\n` +
-				`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``
-			)
+					`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``
+			);
 
 		const channel = mainGuild.channels.cache.get(
 			process.env.ERROR_LOGS_CHANNEL_ID

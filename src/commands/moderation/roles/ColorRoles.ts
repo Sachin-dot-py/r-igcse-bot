@@ -110,10 +110,13 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true
 					});
 
-					client.log(error, `${this.data.name} Command - Remove Color Role`, 
-							`**Channel:** <#${interaction.channel?.id}>
+					client.log(
+						error,
+						`${this.data.name} Command - Remove Color Role`,
+						`**Channel:** <#${interaction.channel?.id}>
 							**User:** <@${interaction.user.id}>
-							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
+							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					);
 				}
 
 				await interaction.reply({

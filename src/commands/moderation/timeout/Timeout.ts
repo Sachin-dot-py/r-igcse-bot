@@ -147,10 +147,13 @@ export default class TimeoutCommand extends BaseCommand {
 				ephemeral: true
 			});
 
-			client.log(error, `${this.data.name} Command`, 
-					`**Channel:** <#${interaction.channel?.id}>
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`); 
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+			);
 
 			return;
 		}
@@ -201,9 +204,8 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
-		await interaction.reply({
-			content: `${user.username} has been timed out for ${reason} (Case #${caseNumber})`,
-			ephemeral: true
-		});
+		await interaction.channel.send(
+			`${user.username} has been timed out for ${reason} (Case #${caseNumber})`
+		);
 	}
 }

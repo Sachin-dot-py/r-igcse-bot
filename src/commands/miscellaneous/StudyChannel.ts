@@ -2,7 +2,11 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder
+} from "discord.js";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 
 export default class StudyChannelCommand extends BaseCommand {
@@ -200,29 +204,36 @@ export default class StudyChannelCommand extends BaseCommand {
 			}
 			case "list": {
 				const studyChannels = await StudyChannel.find({
-					guildId: interaction.guildId,
+					guildId: interaction.guildId
 				});
 
 				if (studyChannels.length === 0) {
-					const embed = new EmbedBuilder()
-						.setDescription('No study channels exist. Add a few with `/study_channel create`')
+					const embed = new EmbedBuilder().setDescription(
+						"No study channels exist. Add a few with `/study_channel create`"
+					);
 					await interaction.reply({
 						embeds: [embed],
 						ephemeral: true
-					})
+					});
 					return;
 				}
-				const description: string[] = []
-				for (const { channelId, helperRoleId, studyPingRoleId } of studyChannels) {
-					description.push(`<#${channelId}: <@&${helperRoleId}>, <@&${studyPingRoleId}>`)
+				const description: string[] = [];
+				for (const {
+					channelId,
+					helperRoleId,
+					studyPingRoleId
+				} of studyChannels) {
+					description.push(
+						`<#${channelId}: <@&${helperRoleId}>, <@&${studyPingRoleId}>`
+					);
 				}
 				const embed = new EmbedBuilder()
-					.setTitle('Study channels in this server')
-					.setDescription(description.join("\n"))
+					.setTitle("Study channels in this server")
+					.setDescription(description.join("\n"));
 				await interaction.reply({
 					embeds: [embed],
 					ephemeral: true
-				})
+				});
 				return;
 			}
 		}
