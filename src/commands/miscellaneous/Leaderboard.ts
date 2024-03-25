@@ -131,10 +131,10 @@ export default class LeaderboardCommand extends BaseCommand {
 		collector.on("collect", async (i) => {
 			i.deferUpdate()
 
-			if (i.customId === "first") page = 0;
+			if (i.customId === "first") page = 1;
 			else if (i.customId === "previous") page--;
 			else if (i.customId === "next") page++;
-			else if (i.customId === "last") page = chunks.length - 1;
+			else if (i.customId === "last") page = chunks.length;
 
 			interaction.editReply({
 				embeds: [await getPage(page)],
