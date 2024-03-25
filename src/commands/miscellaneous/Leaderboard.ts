@@ -61,17 +61,19 @@ export default class LeaderboardCommand extends BaseCommand {
 			(_, i) => reps.slice(i * 9, i * 9 + 9)
 		);
 
-		const embeds: EmbedBuilder[] = [];
+		const getPage = async (n: number) => {
+			if (n > chunks.length || n < 1) return new EmbedBuilder()
+				.setTitle("Reputation Leaderboard")
+				.setColor(Colors.Blurple).setDescription("Invalid page number")
 
-		for (const [i, chunk] of chunks.entries()) {
-			const embed = (x => chunks.length === 1 ? x : x.setDescription(`Page ${i + 1} of ${chunks.length}`)
+			const embed = (x => chunks.length === 1 ? x : x.setDescription(`Page ${page} of ${chunks.length}`)
 
 			)(new EmbedBuilder())
 				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple)
 
-			for (const { userId, rep } of chunk)
-				interaction.guild.members.fetch(userId).then((member) =>
+			for (const { userId, rep } of chunks[n - 1])
+				await interaction.guild.members.fetch(userId).then((member) =>
 					embed.addFields({
 						name: member.user.tag,
 						value: `${rep}`,
@@ -79,7 +81,7 @@ export default class LeaderboardCommand extends BaseCommand {
 					})
 				).catch(() => { });
 
-			embeds.push(embed);
+			return embed
 		}
 
 		const getMessageComponents = () => {
@@ -113,21 +115,20 @@ export default class LeaderboardCommand extends BaseCommand {
 				firstButton,
 				previousButton,
 				nextButton,
-				lastButton
-			)]
+				lastButton)]
 		}
 
 		await interaction.followUp({
-			embeds: [embeds[page]],
+			embeds: [await getPage(page)],
 			components: getMessageComponents()
-		});
+		})
 
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 			filter: (i) => i.user.id === interaction.user.id
 		});
 
-		collector.on("collect", (i) => {
+		collector.on("collect", async (i) => {
 			i.deferUpdate()
 
 			if (i.customId === "first") page = 0;
@@ -136,7 +137,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			else if (i.customId === "last") page = chunks.length - 1;
 
 			interaction.editReply({
-				embeds: [embeds[page]],
+				embeds: [await getPage(page)],
 				components: getMessageComponents()
 			});
 		});
