@@ -65,6 +65,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			)(new EmbedBuilder())
 				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple)
+
 			for (const { userId, rep } of chunk) {
 				const member = interaction.guild.members.cache.get(userId);
 

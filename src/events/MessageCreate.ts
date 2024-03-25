@@ -72,7 +72,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				guildPreferences.countingChannelId &&
 				message.channel.id === guildPreferences.countingChannelId
 			) {
-				const countingChannel = await message.guild.channels.cache.get(
+				const countingChannel = message.guild.channels.cache.get(
 					guildPreferences.countingChannelId
 				);
 
@@ -414,7 +414,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				? message.channel.parentId
 				: message.channelId) ?? "";
 
-		if (!repDisabledChannels.includes(channelId)) return;
+		if (repDisabledChannels.includes(channelId)) return;
 
 		for (const user of await this.getReppedUsers(message)) {
 			if (user.id === client.user.id) {
