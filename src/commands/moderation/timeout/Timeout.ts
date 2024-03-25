@@ -50,6 +50,8 @@ export default class TimeoutCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 		const durationString = interaction.options.getString("duration", true);
@@ -204,7 +206,8 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
-		await interaction.channel.send(
+		interaction.reply({ content: "there ya go good sir", ephemeral: true })
+		interaction.channel.send(
 			`${user.username} has been timed out for ${reason} (Case #${caseNumber})`
 		);
 	}
