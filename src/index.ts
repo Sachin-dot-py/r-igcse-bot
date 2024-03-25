@@ -54,9 +54,8 @@ await mongo.connect(process.env.MONGO_URL, {
 	dbName: "r-igcse-bot"
 });
 
+await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
-
-await registerEvents(client as DiscordClient<true>);
 
 for (;;)
 	await inquirer
@@ -75,7 +74,7 @@ for (;;)
 					actionRequired(client as DiscordClient<true>);
 					break;
 				case "refreshCommandData":
-					syncCommands(client)
+					syncCommands(client as DiscordClient<true>)
 						.then(() =>
 							Logger.info("Synced application commands globally")
 						)

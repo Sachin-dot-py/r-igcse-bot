@@ -51,7 +51,7 @@ export async function registerCommands(client: DiscordClient, path = "") {
 	}
 }
 
-export async function registerEvents(client: DiscordClient<true>) {
+export async function registerEvents(client: DiscordClient) {
 	const eventsPath = joinPaths(`${import.meta.dir}`, "..", "events");
 	const eventFiles = (
 		await readdir(eventsPath, {
@@ -70,13 +70,13 @@ export async function registerEvents(client: DiscordClient<true>) {
 
 		const event = new BotEvent();
 
-		client.on(event.name, (...args) => event.execute(client, ...args));
+		client.on(event.name, (...args) =>
+			event.execute(client as DiscordClient<true>, ...args)
+		);
 	}
 }
 
-export async function syncCommands(client: DiscordClient) {
-	if (!client.application) throw new Error("No application id");
-
+export async function syncCommands(client: DiscordClient<true>) {
 	const globalCommands = [];
 	const mainGuildCommands = [];
 
