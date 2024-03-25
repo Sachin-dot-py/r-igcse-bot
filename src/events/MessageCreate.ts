@@ -414,91 +414,100 @@ export default class MessageCreateEvent extends BaseEvent {
 				? message.channel.parentId
 				: message.channelId) ?? "";
 
-		if (!repDisabledChannels.includes(channelId)) {
-			const rep = new Set<User>();
+		if (!repDisabledChannels.includes(channelId)) return;
 
-			if (
-				tyAliases.some((alias) =>
-					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
-				)
-			) {
-				for (const user of message.mentions.users.values())
-					if (message.author.id === user.id)
-						message.reply("You can't rep yourself dummy!");
-					else rep.add(user);
+		for (const user of await this.getReppedUsers(message)) {
+			if (user.id === client.user.id) {
+				await message.reply(
+					botYwResponses[
+					Math.floor(Math.random() * botYwResponses.length)
+					]
+				);
 
-				if (message.reference) {
-					const reference = await message.fetchReference();
-
-					if (message.author.id === reference.author.id)
-						message.reply("You can't rep yourself dummy!");
-					else rep.add(reference.author);
-				}
+				continue;
 			}
 
-			if (
-				message.reference &&
-				ywAliases.some((alias) =>
-					new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
-				)
-			)
-				rep.add(message.author);
+			const member = await message.guild.members.fetch(user.id);
 
-			for (const user of rep) {
-				if (user.id === client.user.id) {
-					await message.reply(
-						botYwResponses[
-						Math.floor(Math.random() * botYwResponses.length)
-						]
-					);
+			if (!member) return;
 
-					continue;
-				}
+			let rep = 1;
 
-				const member = await message.guild.members.fetch(user.id);
-
-				if (!member) return;
-
-				let rep = 1;
-
-				const res =
-					(await Reputation.findOneAndUpdate(
-						{
-							guildId: message.guildId,
-							userId: member.id
-						},
-						{
-							$inc: {
-								rep: 1
-							}
-						}
-					))
-
-				if (res) rep = res.rep + 1;
-				else
-					await Reputation.create({
+			const res =
+				(await Reputation.findOneAndUpdate(
+					{
 						guildId: message.guildId,
-						userId: member.id,
-						rep: 1
-					});
-
-				let content = `Gave +1 Rep to ${user.tag} (${rep})`;
-
-				if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
-					const role = message.guild.roles.cache.find(
-						(x) => x.name === `${rep}+ Rep Club`
-					);
-
-					if (role) {
-						content += `\nWelcome to the ${role.name}`;
-						member.roles.add(role);
+						userId: member.id
+					},
+					{
+						$inc: {
+							rep: 1
+						}
 					}
-				}
+				))
 
-				message.channel.send(content);
+			if (res) rep = res.rep + 1;
+			else
+				await Reputation.create({
+					guildId: message.guildId,
+					userId: member.id,
+					rep: 1
+				});
+
+			let content = `Gave +1 Rep to ${user.tag} (${rep})`;
+
+			if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
+				const role = message.guild.roles.cache.find(
+					(x) => x.name === `${rep}+ Rep Club`
+				);
+
+				if (role) {
+					content += `\nWelcome to the ${role.name}`;
+					member.roles.add(role);
+				}
 			}
+
+			message.channel.send(content);
 		}
 	}
+
+	private async getReppedUsers(message: Message) {
+		const users = new Set<User>();
+
+
+		if (
+			message.reference &&
+			ywAliases.some((alias) =>
+				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+			)
+		) {
+			const reference = await message.fetchReference();
+			const referenceRepped = await this.getReppedUsers(reference)
+
+			if (!referenceRepped.has(message.author)) users.add(message.author);
+		} else if (
+			tyAliases.some((alias) =>
+				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+			)
+		) {
+			for (const user of message.mentions.users.values())
+				if (message.author.id === user.id)
+					message.reply("You can't rep yourself dummy!");
+				else users.add(user);
+
+			if (message.reference) {
+				const reference = await message.fetchReference();
+
+				if (message.author.id === reference.author.id)
+					message.reply("You can't rep yourself dummy!");
+				else users.add(reference.author);
+			}
+		}
+
+		return users;
+	}
+
+
 
 	private async handleStickyMessages(message: Message<true>) {
 		const stickyMessages = (await StickyMessageCache.search()

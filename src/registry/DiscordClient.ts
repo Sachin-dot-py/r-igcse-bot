@@ -3,7 +3,6 @@ import {
 	Client,
 	Collection,
 	EmbedBuilder,
-	type APIEmbedField,
 	type ClientOptions
 } from "discord.js";
 import type BaseCommand from "./Structure/BaseCommand";
@@ -56,7 +55,7 @@ export class DiscordClient<
 				`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``
 			)
 
-		const channel = await mainGuild.channels.cache.get(
+		const channel = mainGuild.channels.cache.get(
 			process.env.ERROR_LOGS_CHANNEL_ID
 		);
 		if (!channel || !channel.isTextBased()) {

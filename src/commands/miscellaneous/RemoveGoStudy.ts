@@ -32,7 +32,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		let user = interaction.options.getUser("user", true)
+		const user = interaction.options.getUser("user", true)
 
 		if (
 			!interaction.member.permissions.has(
@@ -81,13 +81,10 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 				ephemeral: true
 			});
 		} catch (error) {
-			
 			client.log(error, `${this.data.name} Command (remove role)`, 
 					`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`);
-
-			
 			Logger.error(error);
 			await interaction.followUp({
 				content: "There was an error while removing the forced mute role.",
