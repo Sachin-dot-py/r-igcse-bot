@@ -70,22 +70,14 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple)
 
-			for (const { userId, rep } of chunk) {
-				try {
-					const member = await interaction.guild.members.fetch({ user: userId, withPresences: false });
-
+			for (const { userId, rep } of chunk)
+				interaction.guild.members.fetch(userId).then((member) =>
 					embed.addFields({
 						name: member.user.tag,
 						value: `${rep}`,
 						inline: true
-					});
-				} catch (_) {
-
-					Logger.error(_)
-					continue
-
-				}
-			}
+					})
+				).catch(() => { });
 
 			embeds.push(embed);
 		}
