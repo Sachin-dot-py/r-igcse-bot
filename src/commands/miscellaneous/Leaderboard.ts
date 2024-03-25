@@ -39,7 +39,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 		let page = interaction.options.getInteger("page", false) ?? 1;
 
-		interaction.deferReply()
+		await interaction.deferReply()
 
 		const reps = await Reputation.find({
 			guildId: interaction.guildId
