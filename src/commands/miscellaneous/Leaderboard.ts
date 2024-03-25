@@ -48,7 +48,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		});
 
 		if (reps.length === 0) {
-			await interaction.reply({
+			await interaction.followUp({
 				content: "No one in this server has rep 💀",
 				ephemeral: true
 			});
@@ -118,7 +118,7 @@ export default class LeaderboardCommand extends BaseCommand {
 				lastButton)]
 		}
 
-		await interaction.followUp({
+		interaction.followUp({
 			embeds: [await getPage(page)],
 			components: getMessageComponents()
 		})
