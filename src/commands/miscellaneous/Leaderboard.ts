@@ -67,6 +67,8 @@ export default class LeaderboardCommand extends BaseCommand {
 
 			for (const { userId, rep } of chunk) {
 				const member = interaction.guild.members.cache.get(userId);
+				console.log(member)
+				console.log(await interaction.guild.members.fetch(userId))
 
 				if (!member) continue;
 
@@ -79,7 +81,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 			embeds.push(embed);
 		}
-		console.log(embeds[0], embeds[1])
+		console.log(embeds[0].data.fields, embeds[1].data.fields)
 		const getButtons = () => {
 			const firstButton = new ButtonBuilder()
 				.setCustomId("first")
