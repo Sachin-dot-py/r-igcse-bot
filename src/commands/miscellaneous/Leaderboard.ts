@@ -67,11 +67,9 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setColor(Colors.Blurple)
 
 			for (const { userId, rep } of chunk) {
-				const member = interaction.guild.members.cache.get(userId);
+				const member = interaction.guild.members.cache.get(userId) ?? await interaction.guild.members.fetch(userId);
 
-				console.log(member ? "member exists" : "nope")
 				if (!member) continue;
-				console.log("reached here")
 
 				embed.addFields({
 					name: member.user.tag,
