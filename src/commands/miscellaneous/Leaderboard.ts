@@ -3,6 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -78,7 +79,12 @@ export default class LeaderboardCommand extends BaseCommand {
 						value: `${rep}`,
 						inline: true
 					});
-				} catch (_) { continue }
+				} catch (_) {
+
+					Logger.error(_)
+					continue
+
+				}
 			}
 
 			embeds.push(embed);
