@@ -77,10 +77,11 @@ export default class HistoryCommand extends BaseCommand {
 			);
 		}
 
-		let description = `**Number of offenses:** ${offenceCount}\n\n`;
+		let description = `**Number of offenses:** ${offenceCount}\n`;
 
 		description += Object.entries(counts)
-			.map(([action, count]) => `- **${action}s:** ${count}`)
+			.map(([action, count]) => count > 0 ? `- **${action}s:** ${count}` : "")
+			.filter((x) => x !== "")
 			.join("\n");
 
 		description += `\n\n**Total points:** ${totalPoints}\n\n`;
