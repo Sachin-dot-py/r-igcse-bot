@@ -82,7 +82,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!matchCustomIdRegex.test(interaction.customId)) return;
 
 		const customId = interaction.customId.split("_").slice(1).join("_");
-		console.log(customId);
 		const button = await ButtonInteractionCache.get(customId);
 		if (!button) return;
 
@@ -101,6 +100,14 @@ export default class InteractionCreateEvent extends BaseEvent {
 				content: "Invalid question! (Session no longer exists)",
 				ephemeral: true
 			});
+			return;
+		}
+
+		if (!session.users.includes(interaction.user.id)) {
+			await interaction.reply({
+				content: "You are not in this session",
+				ephemeral: true
+			})
 			return;
 		}
 
