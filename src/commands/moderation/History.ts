@@ -73,7 +73,7 @@ export default class HistoryCommand extends BaseCommand {
 				actionBy;
 
 			punishmentsList.push(
-				`[${when.toLocaleDateString("en-GB")}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
+				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: '2-digit', minute: '2-digit' })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
 			);
 		}
 
