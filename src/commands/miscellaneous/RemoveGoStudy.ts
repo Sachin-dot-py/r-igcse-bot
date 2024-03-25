@@ -81,10 +81,10 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 				ephemeral: true
 			});
 		} catch (error) {
-			// client.log(error, `${this.data.name} Command (removing role)`, [
-			// 	{ name: "User ID", value: user.id },
-			// 	{ name: "Guild ID", value: interaction.guild.id }
-			// ]);
+			client.log(error, `${this.data.name} Command (remove role)`, 
+					`**Channel:** <#${interaction.channel?.id}>
+					**User:** <@${user.id}>
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`);
 			Logger.error(error);
 			await interaction.followUp({
 				content: "There was an error while removing the forced mute role.",
