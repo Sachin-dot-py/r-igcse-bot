@@ -152,7 +152,7 @@ export default class LockdownCommand extends BaseCommand {
 		);
 
 		await interaction.reply({
-			content: `<#${channel.id}> will be locked at <t:${startTimestamp}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`,
+			content: `<#${channel.id}> will be locked at <t:${Math.floor(startTimestamp / 1000)}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`,
 			ephemeral: true
 		});
 	}
