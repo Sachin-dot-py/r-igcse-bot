@@ -78,26 +78,27 @@ export default class HistoryCommand extends BaseCommand {
 		}
 
 		let description = `**Number of offenses:** ${offenceCount}\n\n`;
-		
+
 		description += Object.entries(counts)
-		    .map(([action, count]) => `- **${action}s:** ${count}`)
-		    .join("\n");
-		
+			.map(([action, count]) => `- **${action}s:** ${count}`)
+			.join("\n");
+
 		description += `\n\n**Total points:** ${totalPoints}\n\n`;
 		description += "```";
 		description += punishmentsList.join("\n");
 		description += "```";
-		
-		const embed = new EmbedBuilder()
-		    .setTitle(`Moderation History for ${user.tag}`)
-		    .setAuthor({
-			name: user.username,
-			iconURL: user.displayAvatarURL()
-		    })
-		    .setColor(Colors.DarkOrange)
-		    .setDescription(description);
-		
-		await interaction.reply({
-		    embeds: [embed]
-		});
 
+		const embed = new EmbedBuilder()
+			.setTitle(`Moderation History for ${user.tag}`)
+			.setAuthor({
+				name: user.username,
+				iconURL: user.displayAvatarURL()
+			})
+			.setColor(Colors.DarkOrange)
+			.setDescription(description);
+
+		await interaction.reply({
+			embeds: [embed]
+		});
+	}
+}
