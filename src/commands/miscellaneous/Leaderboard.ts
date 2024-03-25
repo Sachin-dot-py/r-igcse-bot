@@ -60,15 +60,13 @@ export default class LeaderboardCommand extends BaseCommand {
 		const embeds: EmbedBuilder[] = [];
 
 		for (const [i, chunk] of chunks.entries()) {
-			const embed = new EmbedBuilder()
+			const embed = (x => chunks.length === 1 ? x : x.setDescription(`Page ${i + 1} of ${chunks.length}`)
+
+			)(new EmbedBuilder())
 				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple)
-				.setDescription(`Page ${i + 1} of ${chunks.length}`);
-
 			for (const { userId, rep } of chunk) {
 				const member = interaction.guild.members.cache.get(userId);
-				console.log(member)
-				console.log(await interaction.guild.members.fetch(userId))
 
 				if (!member) continue;
 
@@ -81,8 +79,10 @@ export default class LeaderboardCommand extends BaseCommand {
 
 			embeds.push(embed);
 		}
-		console.log(embeds[0].data.fields, embeds[1].data.fields)
-		const getButtons = () => {
+
+		const getMessageComponents = () => {
+			if (chunks.length === 0) return [];
+
 			const firstButton = new ButtonBuilder()
 				.setCustomId("first")
 				.setEmoji("⏪")
@@ -95,29 +95,29 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setStyle(ButtonStyle.Primary)
 				.setDisabled(page === 0);
 
-			const lastButton = new ButtonBuilder()
-				.setCustomId("last")
-				.setEmoji("⏩")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length);
-
 			const nextButton = new ButtonBuilder()
 				.setCustomId("next")
 				.setEmoji("➡️")
 				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length);
+				.setDisabled(page === chunks.length - 1);
 
-			return new ActionRowBuilder<ButtonBuilder>().addComponents(
+			const lastButton = new ButtonBuilder()
+				.setCustomId("last")
+				.setEmoji("⏩")
+				.setStyle(ButtonStyle.Primary)
+				.setDisabled(page === chunks.length - 1);
+
+			return [new ActionRowBuilder<ButtonBuilder>().addComponents(
 				firstButton,
 				previousButton,
-				lastButton,
-				nextButton
-			);
+				nextButton,
+				lastButton
+			)]
 		}
 
 		await interaction.reply({
 			embeds: [embeds[page]],
-			components: [getButtons()]
+			components: getMessageComponents()
 		});
 
 		const collector = interaction.channel.createMessageComponentCollector({
@@ -135,7 +135,7 @@ export default class LeaderboardCommand extends BaseCommand {
 
 			interaction.editReply({
 				embeds: [embeds[page]],
-				components: [getButtons()]
+				components: getMessageComponents()
 			});
 		});
 	}
