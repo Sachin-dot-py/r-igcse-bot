@@ -149,7 +149,10 @@ export default class MessageCreateEvent extends BaseEvent {
 					const thread = await message.guild.channels
 						.fetch(res.threadId)
 						.catch(async () => {
-							res.deleteOne();
+							await PrivateDmThread.deleteMany({
+					                    userId: member.id,
+					                    guildId: message.guild.id
+				                        });
 							await message.reply(
 								"Thread not found (could've been manually deleted), please try again to create a new thread."
 							);
@@ -180,7 +183,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 
 				try {
-					await threadsChannel.threads.create({
+					const newThread = await threadsChannel.threads.create({
 						name: member.id,
 						message: {
 							content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``
@@ -189,9 +192,11 @@ export default class MessageCreateEvent extends BaseEvent {
 
 					await PrivateDmThread.create({
 						userId: member.id,
-						threadId: member.id,
+						threadId: newThread.id,
 						guildId: message.guild.id
 					});
+
+					await message.reply(`Created dm thread for user at <#${newThread.id}>.`)
 				} catch (error) {
 					await message.reply("Unable to create thread");
 
