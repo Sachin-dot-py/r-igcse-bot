@@ -37,6 +37,7 @@ export default class ReactionRolesCommand extends BaseCommand {
 								.setRequired(true)
 						)
 				)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
 		);
 	}
 
