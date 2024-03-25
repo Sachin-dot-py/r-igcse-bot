@@ -117,7 +117,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			)]
 		}
 
-		await interaction.reply({
+		await interaction.followUp({
 			embeds: [embeds[page]],
 			components: getMessageComponents()
 		});
