@@ -67,7 +67,7 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setColor(Colors.Blurple)
 
 			for (const { userId, rep } of chunk) {
-				const member = interaction.guild.members.cache.get(userId) ?? await interaction.guild.members.fetch(userId);
+				const member = interaction.guild.members.cache.get(userId) ?? await interaction.guild.members.fetch(userId).catch(() => { });
 
 				if (!member) continue;
 
