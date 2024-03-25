@@ -90,7 +90,7 @@ export default class HistoryCommand extends BaseCommand {
 		description += "```";
 
 		const embed = new EmbedBuilder()
-			.setTitle(`Moderation History for ${user.tag}${totalPoints >= 10 ? " | Action Required" : ""}`)
+			.setTitle(`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`)
 			.setAuthor({
 				name: user.username,
 				iconURL: user.displayAvatarURL()
