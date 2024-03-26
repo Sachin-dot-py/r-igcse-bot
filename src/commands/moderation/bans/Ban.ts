@@ -110,6 +110,14 @@ export default class BanCommand extends BaseCommand {
 			return;
 		}
 
+		if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
+			interaction.reply({
+				content: "I cannot ban a user that's already banned.",
+				ephemeral: true
+			});
+			return;
+		}
+
 		const memberHighestRole = member.roles.highest;
 		const modHighestRole = interaction.member.roles.highest;
 
@@ -127,14 +135,6 @@ export default class BanCommand extends BaseCommand {
 		});
 
 		try {
-			if (await interaction.guild.bans.fetch({ user: user.id })) {
-				interaction.reply({
-					content: "I cannot ban a user that's already banned.",
-					ephemeral: true
-				});
-				return;
-			}
-
 			await member.ban({
 				reason: `${reason} | By: ${interaction.user.tag} `,
 				deleteMessageSeconds: deleteMessagesDays * 86400
