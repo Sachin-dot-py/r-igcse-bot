@@ -25,7 +25,7 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		await HOTM.deleteMany({ guildId: interaction.guild.id });
 		await HOTMUser.deleteMany({ guildId: interaction.guild.id });
 
-		await interaction.reply({
+		interaction.reply({
 			content: "Votes have been reset",
 			ephemeral: true
 		});

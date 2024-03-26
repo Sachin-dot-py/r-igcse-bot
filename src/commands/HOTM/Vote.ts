@@ -28,14 +28,12 @@ export default class HOTMVotingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const helper = interaction.options.getUser("helper", true);
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId
+		);
 
-		const studyChannels = await StudyChannel.find({
-			guildId: interaction.guild.id
-		});
-
-		if (studyChannels.length < 1) {
-			await interaction.reply({
+		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
+			interaction.reply({
 				content: "This feature hasn't been configured.",
 				ephemeral: true
 			});
@@ -43,14 +41,43 @@ export default class HOTMVotingCommand extends BaseCommand {
 			return;
 		}
 
-		const userVotes = await HOTMUser.findOne({
-			guildId: interaction.guild.id,
-			userId: interaction.user.id
+		const helper = interaction.options.getUser("helper", true);
+
+		const studyChannels = await StudyChannel.find({
+			guildId: interaction.guild.id
 		});
 
-		if (userVotes?.votesLeft === 0) {
-			await interaction.reply({
+		if (studyChannels.length < 1) {
+			interaction.reply({
+				content: "This feature hasn't been configured.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		const hotmUser =
+			(await HOTMUser.findOne({
+				guildId: interaction.guild.id,
+				userId: interaction.user.id
+			})) ??
+			(await HOTMUser.create({
+				guildId: interaction.guild.id,
+				userId: interaction.user.id
+			}));
+
+		if (hotmUser.voted.length >= 3) {
+			interaction.reply({
 				content: "You don't have any votes left",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		if (hotmUser.voted.includes(helper.id)) {
+			interaction.reply({
+				content: "You have already voted for this helper",
 				ephemeral: true
 			});
 
@@ -64,7 +91,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		);
 
 		if (helperRoles.size < 1) {
-			await interaction.reply({
+			interaction.reply({
 				content: "Helper roles not found",
 				ephemeral: true
 			});
@@ -73,27 +100,26 @@ export default class HOTMVotingCommand extends BaseCommand {
 		}
 
 		if (!helperRoles.some((role) => role.members.has(helper.id))) {
-			await interaction.reply({
+			interaction.reply({
 				content: `${helper.tag} is not a helper`,
 				ephemeral: true
 			});
+
 			return;
 		}
 
-		const helperExists = await HOTM.findOne({
-			guildId: interaction.guild.id,
+		const helperDoc = await HOTM.findOne({
+			guildId: interaction.guildId,
 			helperId: helper.id
 		});
+
+		const helperVotes = (helperDoc?.votes ?? 0) + 1;
 
 		await HOTM.updateOne(
 			{ guildId: interaction.guild.id, helperId: helper.id },
 			{
 				$set: {
-					votes: (helperExists?.votes ?? 0) + 1
-				},
-				$setOnInsert: {
-					guildId: interaction.guild.id,
-					helperId: helper.id
+					votes: helperVotes
 				}
 			},
 			{
@@ -101,41 +127,26 @@ export default class HOTMVotingCommand extends BaseCommand {
 			}
 		);
 
-		const userExists = await HOTMUser.findOne({
-			guildId: interaction.guild.id,
-			userId: interaction.user.id
-		});
-
 		await HOTMUser.updateOne(
 			{ guildId: interaction.guild.id, userId: interaction.user.id },
 			{
-				$set: {
-					votesLeft: (userExists?.votesLeft ?? 3) - 1
-				},
-				$setOnInsert: {
-					guildId: interaction.guild.id,
-					userId: interaction.user.id
+				$push: {
+					voted: helper.id
 				}
 			},
 			{ upsert: true }
 		);
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+		Logger.channel(
+			interaction.guild,
+			guildPreferences.hotmResultsChannelId,
+			{
+				content: `${interaction.user.tag} has voted for ${helper.tag} who now has ${helperVotes} votes.`
+			}
 		);
 
-		if (guildPreferences?.hotmResultsChannelId) {
-			await Logger.channel(
-				interaction.guild,
-				guildPreferences.hotmResultsChannelId,
-				{
-					content: `${interaction.user} (${interaction.user.tag}) has voted for ${helper} (${helper.tag}) who now has ${(helperExists?.votes ?? 0) + 1} votes.`
-				}
-			);
-		}
-
-		await interaction.reply({
-			content: `You voted for ${helper.tag} and have ${(userExists?.votesLeft ?? 3) - 1} votes left.`,
+		interaction.reply({
+			content: `You voted for ${helper.tag} and have ${3 - (hotmUser.voted.length + 1)} votes left.`,
 			ephemeral: true
 		});
 	}

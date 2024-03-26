@@ -3,12 +3,12 @@ import { Schema, model as createModel } from "mongoose";
 export interface IHOTMUser {
 	userId: string;
 	guildId: string;
-	votesLeft: number;
+	voted: string[];
 }
 
 const schema = new Schema<IHOTMUser>({
 	userId: { type: String, required: true },
-	votesLeft: { type: Number, default: 3 },
+	voted: { type: [String], default: [] },
 	guildId: { type: String, required: true }
 });
 
