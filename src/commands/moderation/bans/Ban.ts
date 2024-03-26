@@ -51,16 +51,6 @@ export default class BanCommand extends BaseCommand {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		const user = interaction.options.getUser("user", true);
-
-		const member = await interaction.guild.members.fetch(user.id);
-		if (!member) {
-			interaction.reply({
-				content: "User isn't apart of the server.",
-				ephemeral: true
-			});
-			return;
-		}
-
 		const reason = interaction.options.getString("reason", true);
 		const deleteMessagesDays =
 			interaction.options.getInteger("delete_messages", false) ?? 0;
@@ -69,6 +59,14 @@ export default class BanCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
+				ephemeral: true
+			});
+			return;
+		}
+
+		if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
+			interaction.reply({
+				content: "I cannot ban a user that's already banned.",
 				ephemeral: true
 			});
 			return;
@@ -102,40 +100,36 @@ export default class BanCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-		if (!member.bannable) {
-			await interaction.reply({
-				content: "I cannot ban this user. (Missing permissions)",
-				ephemeral: true
+		const guildMember = await interaction.guild.members.fetch(user.id);
+
+		if (guildMember) {
+			if (!guildMember.bannable) {
+				await interaction.reply({
+					content: "I cannot ban this user. (Missing permissions)",
+					ephemeral: true
+				});
+				return;
+			}
+
+			const memberHighestRole = guildMember.roles.highest;
+			const modHighestRole = interaction.member.roles.highest;
+
+			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+				interaction.reply({
+					content:
+						"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
+					ephemeral: true
+				});
+				return;
+			}
+
+			sendDm(guildMember, {
+				embeds: [dmEmbed]
 			});
-			return;
 		}
-
-		if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
-			interaction.reply({
-				content: "I cannot ban a user that's already banned.",
-				ephemeral: true
-			});
-			return;
-		}
-
-		const memberHighestRole = member.roles.highest;
-		const modHighestRole = interaction.member.roles.highest;
-
-		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-			interaction.reply({
-				content:
-					"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
-				ephemeral: true
-			});
-			return;
-		}
-
-		sendDm(member, {
-			embeds: [dmEmbed]
-		});
 
 		try {
-			await member.ban({
+			await interaction.guild.bans.create(user, {
 				reason: `${reason} | By: ${interaction.user.tag} `,
 				deleteMessageSeconds: deleteMessagesDays * 86400
 			});
@@ -156,6 +150,8 @@ export default class BanCommand extends BaseCommand {
 					**User:** <@${interaction.user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 			);
+
+			return;
 		}
 
 		Punishment.create({
