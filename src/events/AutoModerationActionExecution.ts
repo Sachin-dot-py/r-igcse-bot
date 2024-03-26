@@ -40,9 +40,8 @@ export default class ErrorEvent extends BaseEvent {
 
 		const latestPunishment = await Punishment.findOne({
 			guildId: autoModerationActionExecution.guild.id
-		}).sort({
-			createdAt: 1
-		});
+		}).sort({ when: -1 });
+
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		await Punishment.create({

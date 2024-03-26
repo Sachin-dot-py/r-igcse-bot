@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
 export default class ReactionRolesCommand extends BaseCommand {
 	constructor() {

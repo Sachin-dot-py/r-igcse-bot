@@ -33,6 +33,19 @@ export default class UnbanCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId
+		);
+
+		if (!guildPreferences) {
+			await interaction.reply({
+				content:
+					"Please configure the bot using `/setup` command first.",
+				ephemeral: true
+			});
+			return;
+		}
+
 		const user = interaction.options.getUser("user", true);
 
 		if (!interaction.guild.bans.fetch(user.id)) {
@@ -44,9 +57,11 @@ export default class UnbanCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne({
-			guildId: interaction.guildId
-		}).sort({ when: -1 });
+		const latestPunishment = (
+			await Punishment.find({
+				guildId: interaction.guildId
+			}).sort({ when: -1 })
+		)[0];
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
@@ -56,7 +71,7 @@ export default class UnbanCommand extends BaseCommand {
 				`Unbanned by ${interaction.user.tag}`
 			);
 		} catch (error) {
-			await interaction.reply({
+			interaction.reply({
 				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
@@ -68,10 +83,9 @@ export default class UnbanCommand extends BaseCommand {
 					**User:** <@${interaction.user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 			);
-			return;
 		}
 
-		await Punishment.create({
+		Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -82,11 +96,7 @@ export default class UnbanCommand extends BaseCommand {
 			when: new Date()
 		});
 
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
-		);
-
-		if (guildPreferences && guildPreferences.modlogChannelId) {
+		if (guildPreferences.modlogChannelId) {
 			const modEmbed = new EmbedBuilder()
 				.setTitle(`Unban | Case #${caseNumber}`)
 				.setColor(Colors.Red)
@@ -104,7 +114,7 @@ export default class UnbanCommand extends BaseCommand {
 				])
 				.setTimestamp();
 
-			await Logger.channel(
+			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
@@ -112,12 +122,12 @@ export default class UnbanCommand extends BaseCommand {
 				}
 			);
 
-			await interaction.reply({
+			interaction.reply({
 				content: `${user.username} has been unbanned.`,
 				ephemeral: true
 			});
 		} else
-			await interaction.reply({
+			interaction.reply({
 				content: `${user.username} has been unbanned. Please configure your guild preferences for Moderation Action Logging using /setup.`,
 				ephemeral: true
 			});

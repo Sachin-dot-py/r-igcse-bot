@@ -53,13 +53,13 @@ export default class extends BaseCommand {
 
 		if (res.modifiedCount + res.upsertedCount === 0) {
 			await interaction.reply({
-				content: "Failed to change rep",
+				content: "Failed to change rep"
 			});
 			return;
 		}
 
 		await interaction.reply({
-			content: `Changed ${user.tag} rep to ${newRep}`,
+			content: `Changed ${user.tag} rep to ${newRep}`
 		});
 	}
 }

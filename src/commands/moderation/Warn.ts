@@ -41,6 +41,8 @@ export default class WarnCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
@@ -49,7 +51,7 @@ export default class WarnCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
@@ -57,13 +59,15 @@ export default class WarnCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne({
-			guildId: interaction.guildId
-		}).sort({ when: -1 });
+		const latestPunishment = (
+			await Punishment.find({
+				guildId: interaction.guildId
+			}).sort({ when: -1 })
+		)[0];
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
-		await Punishment.create({
+		Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -74,29 +78,29 @@ export default class WarnCommand extends BaseCommand {
 			when: new Date()
 		});
 
-		const modEmbed = new EmbedBuilder()
-			.setTitle(`Warn | Case #${caseNumber}`)
-			.setColor(Colors.Red)
-			.addFields([
-				{
-					name: "User",
-					value: `${user.tag} (${user.id})`,
-					inline: false
-				},
-				{
-					name: "Moderator",
-					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: false
-				},
-				{
-					name: "Reason",
-					value: reason
-				}
-			])
-			.setTimestamp();
-
 		if (guildPreferences.modlogChannelId) {
-			await Logger.channel(
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`Warn | Case #${caseNumber}`)
+				.setColor(Colors.Red)
+				.addFields([
+					{
+						name: "User",
+						value: `${user.tag} (${user.id})`,
+						inline: false
+					},
+					{
+						name: "Moderator",
+						value: `${interaction.user.tag} (${interaction.user.id})`,
+						inline: false
+					},
+					{
+						name: "Reason",
+						value: reason
+					}
+				])
+				.setTimestamp();
+
+			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
@@ -105,9 +109,9 @@ export default class WarnCommand extends BaseCommand {
 			);
 		}
 
-		await interaction.reply({
-			content: `${user.username} has been warned for ${reason} (Case #${caseNumber})`,
-			ephemeral: true
-		});
+		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.channel.send(
+			`${user.username} has been warned for ${reason} (Case #${caseNumber})`
+		);
 	}
 }

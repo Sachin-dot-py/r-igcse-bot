@@ -48,13 +48,15 @@ export default class BanCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 		const deleteMessagesDays =
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
 		if (user.id === interaction.user.id) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
 				ephemeral: true
@@ -62,8 +64,8 @@ export default class BanCommand extends BaseCommand {
 			return;
 		}
 
-		if (interaction.guild.bans.cache.has(user.id)) {
-			await interaction.reply({
+		if (await interaction.guild.bans.fetch(user.id)) {
+			interaction.reply({
 				content: "I cannot ban a user that's already banned.",
 				ephemeral: true
 			});
@@ -83,9 +85,11 @@ export default class BanCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne({
-			guildId: interaction.guildId
-		}).sort({ when: -1 });
+		const latestPunishment = (
+			await Punishment.find({
+				guildId: interaction.guildId
+			}).sort({ when: -1 })
+		)[0];
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
@@ -96,7 +100,7 @@ export default class BanCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-		const guildMember = await interaction.guild.members.cache.get(user.id);
+		const guildMember = await interaction.guild.members.fetch(user.id);
 
 		if (guildMember) {
 			if (!guildMember.bannable) {
@@ -111,7 +115,7 @@ export default class BanCommand extends BaseCommand {
 			const modHighestRole = interaction.member.roles.highest;
 
 			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-				await interaction.reply({
+				interaction.reply({
 					content:
 						"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
 					ephemeral: true
@@ -119,18 +123,18 @@ export default class BanCommand extends BaseCommand {
 				return;
 			}
 
-			await sendDm(guildMember, {
+			sendDm(guildMember, {
 				embeds: [dmEmbed]
 			});
 		}
 
 		try {
 			await interaction.guild.bans.create(user, {
-				reason: `${reason} | By: ${interaction.user.tag}`,
+				reason: `${reason} | By: ${interaction.user.tag} `,
 				deleteMessageSeconds: deleteMessagesDays * 86400
 			});
 		} catch (error) {
-			await interaction.reply({
+			interaction.reply({
 				content: `Failed to ban user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
@@ -138,14 +142,17 @@ export default class BanCommand extends BaseCommand {
 			client.log(
 				error,
 				`${this.data.name} Command`,
-				`**Channel:** <#${interaction.channel?.id}>
+				`
+	* * Channel:** <#${interaction.channel?.id} >
+
+			  	
+
 					**User:** <@${interaction.user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 			);
-			return;
 		}
 
-		await Punishment.create({
+		Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -178,18 +185,14 @@ export default class BanCommand extends BaseCommand {
 				])
 				.setTimestamp();
 
-			await Logger.channel(
+			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
-				{
-					embeds: [modEmbed]
-				}
+				{ embeds: [modEmbed] }
 			);
 		}
 
-		await interaction.reply({
-			content: `${user.username} has been banned.`,
-			ephemeral: true
-		});
+		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.channel.send(`${user.username} has been banned.`);
 	}
 }

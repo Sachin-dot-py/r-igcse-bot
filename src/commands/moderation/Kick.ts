@@ -40,11 +40,13 @@ export default class KickCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
 		if (user.id === interaction.user.id) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"You cannot kick yourself, ||consider leaving the server instead||.",
 				ephemeral: true
@@ -57,7 +59,7 @@ export default class KickCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
@@ -65,9 +67,11 @@ export default class KickCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne({
-			guildId: interaction.guildId
-		}).sort({ when: -1 });
+		const latestPunishment = (
+			await Punishment.find({
+				guildId: interaction.guildId
+			}).sort({ when: -1 })
+		)[0];
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
@@ -82,35 +86,38 @@ export default class KickCommand extends BaseCommand {
 			.setColor(Colors.Red);
 
 		const guildMember = interaction.guild.members.cache.get(user.id);
-		if (guildMember) {
-			if (!guildMember.kickable) {
-				await interaction.reply({
-					content: "I cannot kick this user! (Missing permissions)",
-					ephemeral: true
-				});
-			}
+		if (!guildMember) return;
 
-			const memberHighestRole = guildMember.roles.highest;
-			const modHighestRole = interaction.member.roles.highest;
-
-			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-				await interaction.reply({
-					content:
-						"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
-					ephemeral: true
-				});
-				return;
-			}
-
-			await sendDm(guildMember, {
-				embeds: [dmEmbed]
+		if (!guildMember.kickable) {
+			interaction.reply({
+				content: "I cannot kick this user! (Missing permissions)",
+				ephemeral: true
 			});
+
+			return;
 		}
+
+		const memberHighestRole = guildMember.roles.highest;
+		const modHighestRole = interaction.member.roles.highest;
+
+		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+			interaction.reply({
+				content:
+					"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		sendDm(guildMember, {
+			embeds: [dmEmbed]
+		});
 
 		try {
 			await interaction.guild.members.kick(user, reason);
 		} catch (error) {
-			await interaction.reply({
+			interaction.reply({
 				content: `Failed to kick user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
@@ -122,10 +129,9 @@ export default class KickCommand extends BaseCommand {
 					**User:** <@${interaction.user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 			);
-			return;
 		}
 
-		await Punishment.create({
+		Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -136,29 +142,29 @@ export default class KickCommand extends BaseCommand {
 			when: new Date()
 		});
 
-		const modEmbed = new EmbedBuilder()
-			.setTitle(`Kick | Case #${caseNumber}`)
-			.setColor(Colors.Red)
-			.addFields([
-				{
-					name: "User",
-					value: `${user.tag} (${user.id})`,
-					inline: false
-				},
-				{
-					name: "Moderator",
-					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: false
-				},
-				{
-					name: "Reason",
-					value: reason
-				}
-			])
-			.setTimestamp();
-
 		if (guildPreferences.modlogChannelId) {
-			await Logger.channel(
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`Kick | Case #${caseNumber}`)
+				.setColor(Colors.Red)
+				.addFields([
+					{
+						name: "User",
+						value: `${user.tag} (${user.id})`,
+						inline: false
+					},
+					{
+						name: "Moderator",
+						value: `${interaction.user.tag} (${interaction.user.id})`,
+						inline: false
+					},
+					{
+						name: "Reason",
+						value: reason
+					}
+				])
+				.setTimestamp();
+
+			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
@@ -167,9 +173,7 @@ export default class KickCommand extends BaseCommand {
 			);
 		}
 
-		await interaction.reply({
-			content: `${user.username} has been kicked.`,
-			ephemeral: true
-		});
+		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.channel.send(`${user.username} has been kicked.`);
 	}
 }

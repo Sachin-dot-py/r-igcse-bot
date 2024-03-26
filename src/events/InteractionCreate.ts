@@ -107,7 +107,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			await interaction.reply({
 				content: "You are not in this session",
 				ephemeral: true
-			})
+			});
 			return;
 		}
 

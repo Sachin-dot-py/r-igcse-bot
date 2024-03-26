@@ -61,7 +61,7 @@ export default class TimeoutCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
@@ -69,9 +69,11 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		const latestPunishment = await Punishment.findOne({
-			guildId: interaction.guildId
-		}).sort({ when: -1 });
+		const latestPunishment = (
+			await Punishment.find({
+				guildId: interaction.guildId
+			}).sort({ when: -1 })
+		)[0];
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
@@ -82,7 +84,7 @@ export default class TimeoutCommand extends BaseCommand {
 			: parse(durationString, "second") ?? 86400;
 
 		if (duration <= 0) {
-			await interaction.reply({
+			interaction.reply({
 				content: "Invalid duration!",
 				ephemeral: true
 			});
@@ -93,7 +95,7 @@ export default class TimeoutCommand extends BaseCommand {
 		const guildMember = await interaction.guild.members.fetch(user.id);
 
 		if (!guildMember) {
-			await interaction.reply({
+			interaction.reply({
 				content: "User not found!",
 				ephemeral: true
 			});
@@ -102,7 +104,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		if (guildMember.id === interaction.user.id) {
-			await interaction.reply({
+			interaction.reply({
 				content: "You cannot timeout yourself.",
 				ephemeral: true
 			});
@@ -111,7 +113,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		if (guildMember.isCommunicationDisabled()) {
-			await interaction.reply({
+			interaction.reply({
 				content: "User is already timed out!",
 				ephemeral: true
 			});
@@ -123,7 +125,7 @@ export default class TimeoutCommand extends BaseCommand {
 		const modHighestRole = interaction.member.roles.highest;
 
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
 				ephemeral: true
@@ -133,7 +135,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		try {
 			await guildMember.timeout(duration * 1000, reason);
-			await sendDm(guildMember, {
+			sendDm(guildMember, {
 				embeds: [
 					new EmbedBuilder()
 						.setTitle("Timeout")
@@ -144,7 +146,7 @@ export default class TimeoutCommand extends BaseCommand {
 				]
 			});
 		} catch (error) {
-			await interaction.reply({
+			interaction.reply({
 				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
@@ -160,7 +162,7 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		await Punishment.create({
+		Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -197,7 +199,7 @@ export default class TimeoutCommand extends BaseCommand {
 			]);
 
 		if (guildPreferences.modlogChannelId) {
-			await Logger.channel(
+			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
@@ -206,7 +208,7 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true })
+		interaction.reply({ content: "there ya go good sir", ephemeral: true });
 		interaction.channel.send(
 			`${user.username} has been timed out for ${reason} (Case #${caseNumber})`
 		);
