@@ -70,8 +70,8 @@ export default class LeaderboardCommand extends BaseCommand {
 				chunks.length === 1
 					? x
 					: x.setDescription(`Page ${page} of ${chunks.length}`))(
-						new EmbedBuilder()
-					)
+				new EmbedBuilder()
+			)
 				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple);
 
@@ -85,7 +85,7 @@ export default class LeaderboardCommand extends BaseCommand {
 							inline: true
 						})
 					)
-					.catch(() => { });
+					.catch(() => {});
 
 			return embed;
 		};

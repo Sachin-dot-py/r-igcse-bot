@@ -36,11 +36,13 @@ export default class UntimeoutCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
 		const user = interaction.options.getUser("user", true);
 		const member = await interaction.guild.members.fetch(user.id);
 
 		if (!member.isCommunicationDisabled()) {
-			await interaction.reply({
+			interaction.reply({
 				content: "User is not timed out!",
 				ephemeral: true
 			});
@@ -53,7 +55,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
@@ -63,7 +65,7 @@ export default class UntimeoutCommand extends BaseCommand {
 
 		try {
 			await member.timeout(null);
-			await sendDm(member, {
+			sendDm(member, {
 				embeds: [
 					new EmbedBuilder()
 						.setTitle("Removed Timeout")
@@ -74,7 +76,7 @@ export default class UntimeoutCommand extends BaseCommand {
 				]
 			});
 		} catch (error) {
-			await interaction.reply({
+			interaction.reply({
 				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 				ephemeral: true
 			});
@@ -86,8 +88,6 @@ export default class UntimeoutCommand extends BaseCommand {
 					**User:** <@${interaction.user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 			);
-
-			return;
 		}
 
 		const latestPunishment = (
@@ -98,11 +98,13 @@ export default class UntimeoutCommand extends BaseCommand {
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
-		const undoPunishment = await Punishment.findOne({
-			guildId: interaction.guild.id,
-			actionAgainst: user.id,
-			action: "Timeout"
-		}).sort({ when: -1 });
+		const undoPunishment = (
+			await Punishment.find({
+				guildId: interaction.guild.id,
+				actionAgainst: user.id,
+				action: "Timeout"
+			}).sort({ when: -1 })
+		)[0];
 
 		await Punishment.create({
 			guildId: interaction.guild.id,
@@ -115,24 +117,24 @@ export default class UntimeoutCommand extends BaseCommand {
 			when: new Date()
 		});
 
-		const modEmbed = new EmbedBuilder()
-			.setTitle(`Untimeout | Case #${caseNumber}`)
-			.setColor(Colors.Red)
-			.addFields([
-				{
-					name: "User",
-					value: `${user.tag} (${user.id})`,
-					inline: false
-				},
-				{
-					name: "Moderator",
-					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: false
-				}
-			]);
-
 		if (guildPreferences.modlogChannelId) {
-			await Logger.channel(
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`Untimeout | Case #${caseNumber}`)
+				.setColor(Colors.Red)
+				.addFields([
+					{
+						name: "User",
+						value: `${user.tag} (${user.id})`,
+						inline: false
+					},
+					{
+						name: "Moderator",
+						value: `${interaction.user.tag} (${interaction.user.id})`,
+						inline: false
+					}
+				]);
+
+			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
@@ -141,9 +143,9 @@ export default class UntimeoutCommand extends BaseCommand {
 			);
 		}
 
-		await interaction.reply({
-			content: `Timeout has been removed from ${user.username}`,
-			ephemeral: true
-		});
+		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.channel.send(
+			`Timeout has been removed from ${user.username}`
+		);
 	}
 }

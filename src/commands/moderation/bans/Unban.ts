@@ -33,12 +33,14 @@ export default class UnbanCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
 
 		if (!guildPreferences) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Please configure the bot using `/setup` command first.",
 				ephemeral: true
@@ -121,15 +123,9 @@ export default class UnbanCommand extends BaseCommand {
 					embeds: [modEmbed]
 				}
 			);
+		}
 
-			interaction.reply({
-				content: `${user.username} has been unbanned.`,
-				ephemeral: true
-			});
-		} else
-			interaction.reply({
-				content: `${user.username} has been unbanned. Please configure your guild preferences for Moderation Action Logging using /setup.`,
-				ephemeral: true
-			});
+		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.channel.send(`${user.username} has been unbanned.`);
 	}
 }
