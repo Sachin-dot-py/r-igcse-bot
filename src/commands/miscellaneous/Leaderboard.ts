@@ -46,7 +46,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		});
 
 		if (reps.length === 0) {
-			await interaction.followUp({
+			interaction.followUp({
 				content: "No one in this server has rep 💀",
 				ephemeral: true
 			});
@@ -59,7 +59,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			(_, i) => reps.slice(i * 9, i * 9 + 9)
 		);
 
-		const getPage = async (n: number) => {
+		const getPage = (n: number) => {
 			if (n > chunks.length || n < 1)
 				return new EmbedBuilder()
 					.setTitle("Reputation Leaderboard")
@@ -70,13 +70,13 @@ export default class LeaderboardCommand extends BaseCommand {
 				chunks.length === 1
 					? x
 					: x.setDescription(`Page ${page} of ${chunks.length}`))(
-				new EmbedBuilder()
-			)
+						new EmbedBuilder()
+					)
 				.setTitle("Reputation Leaderboard")
 				.setColor(Colors.Blurple);
 
 			for (const { userId, rep } of chunks[n - 1])
-				await interaction.guild.members
+				interaction.guild.members
 					.fetch(userId)
 					.then((member) =>
 						embed.addFields({
@@ -85,7 +85,7 @@ export default class LeaderboardCommand extends BaseCommand {
 							inline: true
 						})
 					)
-					.catch(() => {});
+					.catch(() => { });
 
 			return embed;
 		};
@@ -97,25 +97,25 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setCustomId("first")
 				.setEmoji("⏪")
 				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === 0);
+				.setDisabled(page === 1);
 
 			const previousButton = new ButtonBuilder()
 				.setCustomId("previous")
 				.setEmoji("⬅️")
 				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === 0);
+				.setDisabled(page === 1);
 
 			const nextButton = new ButtonBuilder()
 				.setCustomId("next")
 				.setEmoji("➡️")
 				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length - 1);
+				.setDisabled(page === chunks.length);
 
 			const lastButton = new ButtonBuilder()
 				.setCustomId("last")
 				.setEmoji("⏩")
 				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length - 1);
+				.setDisabled(page === chunks.length);
 
 			return [
 				new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -128,7 +128,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		};
 
 		interaction.followUp({
-			embeds: [await getPage(page)],
+			embeds: [getPage(page)],
 			components: getMessageComponents()
 		});
 
@@ -146,7 +146,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			else if (i.customId === "last") page = chunks.length;
 
 			interaction.editReply({
-				embeds: [await getPage(page)],
+				embeds: [getPage(page)],
 				components: getMessageComponents()
 			});
 		});
