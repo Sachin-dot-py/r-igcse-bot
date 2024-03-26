@@ -59,7 +59,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			(_, i) => reps.slice(i * 9, i * 9 + 9)
 		);
 
-		const getPage = (n: number) => {
+		const getPage = async (n: number) => {
 			if (n > chunks.length || n < 1)
 				return new EmbedBuilder()
 					.setTitle("Reputation Leaderboard")
@@ -76,7 +76,7 @@ export default class LeaderboardCommand extends BaseCommand {
 				.setColor(Colors.Blurple);
 
 			for (const { userId, rep } of chunks[n - 1])
-				interaction.guild.members
+				await interaction.guild.members
 					.fetch(userId)
 					.then((member) =>
 						embed.addFields({
@@ -127,12 +127,12 @@ export default class LeaderboardCommand extends BaseCommand {
 			];
 		};
 
-		interaction.followUp({
-			embeds: [getPage(page)],
+		const pageMessage = await interaction.followUp({
+			embeds: [await getPage(page)],
 			components: getMessageComponents()
 		});
 
-		const collector = interaction.channel.createMessageComponentCollector({
+		const collector = pageMessage.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 			filter: (i) => i.user.id === interaction.user.id
 		});
@@ -146,7 +146,7 @@ export default class LeaderboardCommand extends BaseCommand {
 			else if (i.customId === "last") page = chunks.length;
 
 			interaction.editReply({
-				embeds: [getPage(page)],
+				embeds: [await getPage(page)],
 				components: getMessageComponents()
 			});
 		});
