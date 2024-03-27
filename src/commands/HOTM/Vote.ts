@@ -32,20 +32,12 @@ export default class HOTMVotingCommand extends BaseCommand {
 			interaction.guildId
 		);
 
-		if (!guildPreferences || !guildPreferences.hotmResultsChannelId || !guildPreferences.hotmEndTime) {
+		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
 			interaction.reply({
 				content: "This feature hasn't been configured.",
 				ephemeral: true
 			});
 
-			return;
-		}
-
-		if (Date.now() >= guildPreferences.hotmEndTime) {
-			interaction.reply({
-				content: "HOTM voting has either ended or not begun yet.",
-				ephemeral: true
-			})
 			return;
 		}
 
