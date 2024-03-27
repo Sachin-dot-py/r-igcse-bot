@@ -20,6 +20,8 @@ const schema = new Schema("GuildPreferences", {
 	confessionApprovalChannelId: { type: "string" },
 	countingChannelId: { type: "string" },
 	hotmResultsChannelId: { type: "string" },
+	hotmResultsEmbedId: { type: "string" },
+	hotmEndTime: { type: "number" },
 	studySessionChannelId: { type: "string" },
 	modmailCreateChannelId: { type: "string" },
 	modmailThreadsChannelId: { type: "string" },
