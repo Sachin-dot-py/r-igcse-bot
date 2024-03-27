@@ -15,14 +15,6 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 				.setDMPermission(false)
-			        .addIntegerOption((option) =>
-					option
-						.setName("end")
-						.setDescription(
-							"When to end HOTM voting. (Epoch)"
-						)
-						.setRequired(false)
-				)
 		);
 	}
 
@@ -30,16 +22,7 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const end = interaction.options.getInteger("end", false);
 
-		if (end) {
-			await GuildPreferences.updateOne({
-				guildId: interaction.guild.id
-			}, {
-				hotmEndTime: end * 1000 // milliseconds
-			})
-		}
-		
 		await HOTM.deleteMany({ guildId: interaction.guild.id });
 		await HOTMUser.deleteMany({ guildId: interaction.guild.id });
 		await GuildPreferences.updateOne({
