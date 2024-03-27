@@ -484,22 +484,6 @@ export default class MessageCreateEvent extends BaseEvent {
 		const users = new Set<User>();
 
 		if (
-			message.reference &&
-			ywAliases.some((alias) =>
-				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
-			)
-		) {
-			const reference = await message.fetchReference();
-
-			if (reference.author.id === message.author.id)
-				message.reply("You can't rep yourself dummy!");
-			else {
-				const referenceRepped = await this.getReppedUsers(reference);
-
-				if (!referenceRepped.has(message.author))
-					users.add(message.author);
-			}
-		} else if (
 			tyAliases.some((alias) =>
 				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
 			)
@@ -515,6 +499,22 @@ export default class MessageCreateEvent extends BaseEvent {
 				if (message.author.id === reference.author.id)
 					message.reply("You can't rep yourself dummy!");
 				else users.add(reference.author);
+			}
+		} else if (
+			message.reference &&
+			ywAliases.some((alias) =>
+				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+			)
+		) {
+			const reference = await message.fetchReference();
+
+			if (reference.author.id === message.author.id)
+				message.reply("You can't rep yourself dummy!");
+			else {
+				const referenceRepped = await this.getReppedUsers(reference);
+
+				if (!referenceRepped.has(message.author))
+					users.add(message.author);
 			}
 		}
 
