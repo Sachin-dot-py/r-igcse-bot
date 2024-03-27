@@ -16,7 +16,6 @@ export type IGuildPreferences = {
 	countingChannelId: string;
 	hotmResultsChannelId: string;
 	hotmResultsEmbedId: string;
-	hotmEndTime: number; // epoch time, in milliseconds
 	studySessionChannelId: string;
 
 	modmailCreateChannelId: string;
@@ -44,7 +43,6 @@ const schema = new Schema<IGuildPreferences>({
 	countingChannelId: { type: String, default: null },
 	hotmResultsChannelId: { type: String, default: null },
 	hotmResultsEmbedId: { type: String, default: null },
-	hotmEndTime: { type: Number, default: null },
 	studySessionChannelId: { type: String, default: null },
 	modmailCreateChannelId: { type: String, default: null },
 	modmailThreadsChannelId: { type: String, default: null },
