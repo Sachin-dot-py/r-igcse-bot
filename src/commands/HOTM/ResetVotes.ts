@@ -22,14 +22,16 @@ export default class HOTMResetVotesCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-
 		await HOTM.deleteMany({ guildId: interaction.guild.id });
 		await HOTMUser.deleteMany({ guildId: interaction.guild.id });
-		await GuildPreferences.updateOne({
-			guildId: interaction.guild.id
-		}, {
-			hotmResultsEmbedId: null
-		})
+		await GuildPreferences.updateOne(
+			{
+				guildId: interaction.guild.id
+			},
+			{
+				hotmResultsEmbedId: null
+			}
+		);
 
 		interaction.reply({
 			content: "Votes have been reset",

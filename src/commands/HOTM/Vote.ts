@@ -6,7 +6,12 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
-import { APIEmbedField, EmbedBuilder, SlashCommandBuilder, TextChannel } from "discord.js";
+import {
+	APIEmbedField,
+	EmbedBuilder,
+	SlashCommandBuilder,
+	TextChannel
+} from "discord.js";
 
 export default class HOTMVotingCommand extends BaseCommand {
 	constructor() {
@@ -136,8 +141,12 @@ export default class HOTMVotingCommand extends BaseCommand {
 			},
 			{ upsert: true }
 		);
-		
-		this.handleEmbed(interaction, guildPreferences.hotmResultsEmbedId, guildPreferences.hotmResultsChannelId)
+
+		this.handleEmbed(
+			interaction,
+			guildPreferences.hotmResultsEmbedId,
+			guildPreferences.hotmResultsChannelId
+		);
 
 		Logger.channel(
 			interaction.guild,
@@ -153,34 +162,52 @@ export default class HOTMVotingCommand extends BaseCommand {
 		});
 	}
 
-        private async handleEmbed(interaction: DiscordChatInputCommandInteraction<"cached">, messageId: string, channelId: string) {
-		const resultsChannel = await interaction.guild.channels.cache.get(channelId);
+	private async handleEmbed(
+		interaction: DiscordChatInputCommandInteraction<"cached">,
+		messageId: string,
+		channelId: string
+	) {
+		const resultsChannel =
+			await interaction.guild.channels.cache.get(channelId);
 		if (!resultsChannel || !(resultsChannel instanceof TextChannel)) return;
-		let embedMessage = await resultsChannel.messages.fetch(messageId).catch(() => null)
-		const results = await HOTM.find({ guildId: interaction.guild.id }).sort({ votes: -1 }).limit(20).exec();
-		const fields: APIEmbedField[] = []
+		let embedMessage = await resultsChannel.messages
+			.fetch(messageId)
+			.catch(() => null);
+		const results = await HOTM.find({ guildId: interaction.guild.id })
+			.sort({ votes: -1 })
+			.limit(20)
+			.exec();
+		const fields: APIEmbedField[] = [];
 		for (const helper of results) {
-			const user = await interaction.guild.members.fetch(helper.helperId).catch(() => null)
+			const user = await interaction.guild.members
+				.fetch(helper.helperId)
+				.catch(() => null);
 			fields.push({
 				name: user ? `${user.user.tag} (${user.id})` : helper.helperId,
 				value: `Votes: ${helper.votes}`
-			})
+			});
 		}
-		const embed = new EmbedBuilder().setTitle("HOTM Results").setTimestamp().addFields(...fields)
-		
+		const embed = new EmbedBuilder()
+			.setTitle("HOTM Results")
+			.setTimestamp()
+			.addFields(...fields);
+
 		if (!messageId || !embedMessage) {
 			embedMessage = await resultsChannel.send({
 				embeds: [embed]
-			})
-			await GuildPreferences.updateOne({
-				guildId: interaction.guild.id
-			}, {
-				hotmResultsEmbedId: embedMessage.id
-			})
+			});
+			await GuildPreferences.updateOne(
+				{
+					guildId: interaction.guild.id
+				},
+				{
+					hotmResultsEmbedId: embedMessage.id
+				}
+			);
 			return;
 		}
 		await embedMessage.edit({
 			embeds: [embed]
-		})
+		});
 	}
 }
