@@ -67,7 +67,7 @@ export default class ErrorEvent extends BaseEvent {
 			.addFields([
 				{
 					name: "Username",
-					value: autoModerationActionExecution.user.name
+					value: `${autoModerationActionExecution.user.name} (${autoModerationActionExecution.user.id})`
 				},
 				{
 					name: "Moderator",
