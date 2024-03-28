@@ -57,7 +57,7 @@ export default class ErrorEvent extends BaseEvent {
 		});
 
 		const modEmbed = new EmbedBuilder()
-			.setTitle(`User Timed Out | Case #${caseNumber} | Auto Mod`)
+			.setTitle(`Timeout | Case #${caseNumber}`)
 			.setDescription(reason)
 			.setColor(Colors.Red)
 			.setAuthor({
@@ -66,19 +66,20 @@ export default class ErrorEvent extends BaseEvent {
 			})
 			.addFields([
 				{
-					name: "User ID",
-					value: autoModerationActionExecution.user.id,
-					inline: true
+					name: "Username",
+					value: autoModerationActionExecution.user.name
+				},
+				{
+					name: "Moderator",
+					value: "AutoMod"
 				},
 				{
 					name: "Duration",
-					value: durationString,
-					inline: true
+					value: durationString
 				},
 				{
 					name: "Reason",
-					value: reason || "No reason provided.",
-					inline: false
+					value: "Derogatory Language"
 				}
 			]);
 
