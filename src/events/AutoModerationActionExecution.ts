@@ -67,19 +67,19 @@ export default class ErrorEvent extends BaseEvent {
 			.addFields([
 				{
 					name: "Username",
-					value: `${autoModerationActionExecution.user.name} (${autoModerationActionExecution.user.id})`
+					value: `${autoModerationActionExecution.user.tag} (${autoModerationActionExecution.user.id})`
 				},
 				{
 					name: "Moderator",
 					value: "AutoMod"
 				},
 				{
-					name: "Duration",
-					value: durationString
-				},
-				{
 					name: "Reason",
 					value: "Derogatory Language"
+				},
+				{
+					name: "Duration",
+					value: `${durationString} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
 				}
 			]);
 
