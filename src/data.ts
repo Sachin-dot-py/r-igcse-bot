@@ -5,9 +5,7 @@ export const ywAliases = [
 	"ur welcome",
 	"yw",
 	"no problem",
-	"np",
-	"no worries",
-	"nw"
+	"np"
 ];
 
 export const tyAliases = [
