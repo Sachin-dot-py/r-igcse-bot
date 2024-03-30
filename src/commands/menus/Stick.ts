@@ -112,7 +112,6 @@ export default class StickMessageCommand extends BaseCommand {
 			.setPlaceholder("Select a channel")
 			.setMaxValues(1)
 			.setMinValues(1)
-			.setDefaultChannels(interaction.channel.id)
 			.setChannelTypes(
 				ChannelType.GuildText,
 				ChannelType.PublicThread,
