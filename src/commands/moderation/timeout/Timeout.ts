@@ -208,9 +208,9 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.reply({ content: "alrighty, timed them out", ephemeral: true });
 		interaction.channel.send(
-			`${user.username} has been timed out for ${reason} (Case #${caseNumber})`
+			`${user.username} has been timed out for ${reason} which is <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
 		);
 	}
 }
