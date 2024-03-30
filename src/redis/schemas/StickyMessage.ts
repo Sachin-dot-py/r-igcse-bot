@@ -80,7 +80,6 @@ export class StickyMessageRepository extends Repository {
 
 	async set(id: string, stickyMessageData: ICachedStickyMessage) {
 		await this.save(id, stickyMessageData);
-		await this.expire(id, 60);
 	}
 
 	async getAll(): Promise<ICachedStickyMessage[]> {
