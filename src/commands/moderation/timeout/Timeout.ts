@@ -209,7 +209,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		interaction.reply({ content: "alrighty, timed them out", ephemeral: true });
-		const time = Math.floor(Date.now() / 1000) + duration
+		const time = Math.round(Math.floor(Date.now() / 1000) + duration)
 		interaction.channel.send(
 			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`
 		);
