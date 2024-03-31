@@ -28,6 +28,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 	}
 
 	async execute(client: DiscordClient<true>, interaction: Interaction) {
+		if (interaction.user.id === "712945124283514890") {
+			await interaction.reply("no, youre a bad boy 🔫 🔫 🔪 🔪")
+			return;
+		}
 		try {
 			if (
 				interaction.isChatInputCommand() ||
