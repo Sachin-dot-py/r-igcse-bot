@@ -55,7 +55,7 @@ export default class MessageCreateEvent extends BaseEvent {
 								text: `Requested by ${message.author.tag}`
 							})
 							.setColor(Colors.Blue);
-						message.channel.send(reply({ embeds: [embed] });
+						message.channel.send({ embeds: [embed] });
 					} else if (keywordReponse) {
 						message.channel.send(keywordReponse);
 					}
