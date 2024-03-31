@@ -121,6 +121,15 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
+		if (duration < 60) {
+			interaction.reply({
+				content: "The duration must be at least one minute.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		const memberHighestRole = guildMember.roles.highest;
 		const modHighestRole = interaction.member.roles.highest;
 
