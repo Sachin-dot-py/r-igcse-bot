@@ -57,7 +57,7 @@ export default class MessageCreateEvent extends BaseEvent {
 							.setColor(Colors.Blue);
 						message.channel.send(reply({ embeds: [embed] });
 					} else if (keywordReponse) {
-						message.reply(keywordReponse);
+						message.channel.send(keywordReponse);
 					}
 				})
 				.catch(Logger.error);
