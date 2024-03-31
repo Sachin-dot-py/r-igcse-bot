@@ -83,9 +83,9 @@ export default class TimeoutCommand extends BaseCommand {
 			? 2419200
 			: parse(durationString, "second") ?? 86400;
 
-		if (duration <= 0) {
+		if (duration <= 60) {
 			interaction.reply({
-				content: "Invalid duration!",
+				content: "Duration must be at least 1 minute",
 				ephemeral: true
 			});
 
@@ -209,7 +209,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		interaction.reply({ content: "alrighty, timed them out", ephemeral: true });
-		const time = Math.floor(Date.now() / 1000) + duration
+		const time = Math.floor(Date.now() / 1000 + duration)
 		interaction.channel.send(
 			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`
 		);
