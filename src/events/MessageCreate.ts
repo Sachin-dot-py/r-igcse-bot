@@ -529,9 +529,9 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		for (const stickyMessage of stickyMessages) {
 			if (stickyMessage.messageId) {
-				const oldSticky = await message.channel.messages.cache.get(
+				const oldSticky = await message.channel.messages.fetch(
 					stickyMessage.messageId
-				);
+				).catch(() => null)
 
 				if (oldSticky) await oldSticky.delete().catch(() => {});
 			}
