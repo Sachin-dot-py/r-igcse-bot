@@ -56,15 +56,18 @@ export default class TimeoutCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 		const durationString = interaction.options.getString("duration", true);
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
 
 		if (!guildPreferences) {
-			interaction.reply({
+			interaction.editReply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
 			});
 			return;
 		}
@@ -84,9 +87,8 @@ export default class TimeoutCommand extends BaseCommand {
 			: parse(durationString, "second") ?? 86400;
 
 		if (duration <= 60) {
-			interaction.reply({
-				content: "Duration must be at least 1 minute",
-				ephemeral: true
+			interaction.editReply({
+				content: "Duration must be at least 1 minute"
 			});
 
 			return;
@@ -95,27 +97,24 @@ export default class TimeoutCommand extends BaseCommand {
 		const guildMember = await interaction.guild.members.fetch(user.id);
 
 		if (!guildMember) {
-			interaction.reply({
+			interaction.editReply({
 				content: "User not found!",
-				ephemeral: true
 			});
 
 			return;
 		}
 
 		if (guildMember.id === interaction.user.id) {
-			interaction.reply({
+			interaction.editReply({
 				content: "You cannot timeout yourself.",
-				ephemeral: true
 			});
 
 			return;
 		}
 
 		if (guildMember.isCommunicationDisabled()) {
-			interaction.reply({
+			interaction.editReply({
 				content: "User is already timed out!",
-				ephemeral: true
 			});
 
 			return;
@@ -125,10 +124,9 @@ export default class TimeoutCommand extends BaseCommand {
 		const modHighestRole = interaction.member.roles.highest;
 
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-			interaction.reply({
+			interaction.editReply({
 				content:
 					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
-				ephemeral: true
 			});
 			return;
 		}
@@ -146,9 +144,8 @@ export default class TimeoutCommand extends BaseCommand {
 				]
 			});
 		} catch (error) {
-			interaction.reply({
+			interaction.editReply({
 				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
-				ephemeral: true
 			});
 
 			client.log(
@@ -208,7 +205,7 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "alrighty, timed them out", ephemeral: true });
+		interaction.editReply({ content: "alrighty, timed them out" });
 		const time = Math.floor(Date.now() / 1000 + duration)
 		interaction.channel.send(
 			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`
