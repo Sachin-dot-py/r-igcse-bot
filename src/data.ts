@@ -710,3 +710,5 @@ export const allSubjects: Subject[] = [
 	{ "code": "0539", "name": "Urdu-as-a-Second-Language", "insert": false },
 	{ "code": "0408", "name": "World-Literature", "insert": false }
 ];
+
+export const subreddits = ["memes", "dankmemes", "wholesomememes"]
