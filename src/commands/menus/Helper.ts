@@ -123,7 +123,7 @@ export default class HelperMenu extends BaseCommand {
 					) ||
 					member.roles.cache.has(role.id))
 			) {
-				canceled = false;
+				canceled = true;
 
 				pingMessage.edit({
 					content: `Ping cancelled by ${i.user.tag}`,
