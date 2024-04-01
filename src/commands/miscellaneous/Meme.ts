@@ -10,13 +10,20 @@ export default class MemeCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("meme")
-				.setDescription("Get a random meme (random subreddit unless specified)")
+				.setDescription(
+					"Get a random meme (random subreddit unless specified)"
+				)
 				.addStringOption((option) =>
 					option
 						.setName("subreddit")
 						.setDescription("From which subreddit")
 						.setRequired(false)
-						.addChoices(...subreddits.map(x => { name: `r/${x}`, value: x }))
+						.addChoices(
+							...subreddits.map((x) => ({
+								name: `r/${x}`,
+								value: x
+							}))
+						)
 				)
 		);
 	}
@@ -26,7 +33,8 @@ export default class MemeCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction
 	) {
 		const subreddit =
-			interaction.options.getString("subreddit", false) || subreddits[Math.floor(Math.random() * subreddits.length)];
+			interaction.options.getString("subreddit", false) ||
+			subreddits[Math.floor(Math.random() * subreddits.length)];
 
 		await interaction.deferReply();
 
