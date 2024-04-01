@@ -4,18 +4,16 @@ import BaseCommand, {
 } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 
+var subs: string[];
+subs = ["memes", "dankmemes", "wholesomememes"]
+
+
 export default class MemeCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
 				.setName("meme")
 				.setDescription("Get a random meme")
-				.addStringOption((option) =>
-					option
-						.setName("subreddit")
-						.setDescription("From which subreddit")
-						.setRequired(false)
-				)
 		);
 	}
 
@@ -23,10 +21,12 @@ export default class MemeCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction
 	) {
-		const subreddit =
-			interaction.options.getString("subreddit", false) || "";
 
 		await interaction.deferReply();
+	
+		let subreddit = "memes"
+		let index = getRandomInt(0, subs.length - 1);
+		subreddit = subs[index];
 
 		const res = await fetch(`https://meme-api.com/gimme/${subreddit}`);
 
@@ -41,4 +41,9 @@ export default class MemeCommand extends BaseCommand {
 
 		await interaction.followUp(data.url);
 	}
+}
+function getRandomInt(min: number, max: number): number {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
