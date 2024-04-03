@@ -195,7 +195,7 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 	}
 
 	private async refreshChannelLockdowns() {
-		const time = Date.now();
+		const time = Date.now() / 1000;
 
 		const lockdownData = await ChannelLockdown.find();
 
