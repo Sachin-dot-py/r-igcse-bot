@@ -22,6 +22,11 @@ export default class HistoryCommand extends BaseCommand {
 						.setDescription("User to view history of")
 						.setRequired(true)
 				)
+				.addBooleanOption((option) =>
+					option
+						.setName("modVisible")
+						.setDescription("Control if mods who punished are visible")
+						.setRequired(false))
 				.setDefaultMemberPermissions(
 					PermissionFlagsBits.ModerateMembers
 				)
@@ -72,38 +77,45 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
-			punishmentsList.push(
-				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
-			);
+
+			if (!interaction.options.getBoolean('modVisible')) {
+				punishmentsList.push(
+					`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}`
+				);
+			} else {
+				punishmentsList.push(
+					`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
+				);
+			}
+
+			let description = `**Number of offenses:** ${offenceCount}\n`;
+
+			description += Object.entries(counts)
+				.map(([action, count]) =>
+					count > 0 ? `- **${action}s:** ${count}` : ""
+				)
+				.filter((x) => x !== "")
+				.join("\n");
+
+			description += `\n\n**Total points:** ${totalPoints}\n\n`;
+			description += "```";
+			description += punishmentsList.join("\n");
+			description += "```";
+
+			const embed = new EmbedBuilder()
+				.setTitle(
+					`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
+				)
+				.setAuthor({
+					name: user.username,
+					iconURL: user.displayAvatarURL()
+				})
+				.setColor(Colors.DarkOrange)
+				.setDescription(description);
+
+			await interaction.reply({
+				embeds: [embed]
+			});
 		}
-
-		let description = `**Number of offenses:** ${offenceCount}\n`;
-
-		description += Object.entries(counts)
-			.map(([action, count]) =>
-				count > 0 ? `- **${action}s:** ${count}` : ""
-			)
-			.filter((x) => x !== "")
-			.join("\n");
-
-		description += `\n\n**Total points:** ${totalPoints}\n\n`;
-		description += "```";
-		description += punishmentsList.join("\n");
-		description += "```";
-
-		const embed = new EmbedBuilder()
-			.setTitle(
-				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
-			)
-			.setAuthor({
-				name: user.username,
-				iconURL: user.displayAvatarURL()
-			})
-			.setColor(Colors.DarkOrange)
-			.setDescription(description);
-
-		await interaction.reply({
-			embeds: [embed]
-		});
 	}
 }

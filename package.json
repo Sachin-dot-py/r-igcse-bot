@@ -1,36 +1,36 @@
 {
-	"name": "r-igcse-bot",
-	"module": "src/index.ts",
-	"type": "module",
-	"scripts": {
-		"start": "bun src/index.ts",
-		"cron:actionRequired": "bun src/cron/actionRequired.ts",
-		"start:watch": "bun --watch src/index.ts",
-		"lint": "eslint .",
-		"format": "prettier . --write"
-	},
-	"dependencies": {
-		"chucklejs": "^1",
-		"discord.js": "^14",
-		"humanize-duration": "^3.31.0",
-		"inquirer": "^9.2.16",
-		"mongoose": "^8",
-		"parse-duration": "^1.1.0",
-		"redis": "^4",
-		"redis-om": "^0.4",
-		"uuid": "^9"
-	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"@types/humanize-duration": "^3.27.4",
-		"@types/inquirer": "^9.0.7",
-		"@types/uuid": "^9",
-		"@typescript-eslint/eslint-plugin": "latest",
-		"@typescript-eslint/parser": "latest",
-		"dotenv": "latest",
-		"eslint": "latest",
-		"eslint-config-prettier": "^9.1.0",
-		"prettier": "latest",
-		"typescript": "latest"
-	}
+  "name": "r-igcse-bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "cron:actionRequired": "bun src/cron/actionRequired.ts",
+    "start:watch": "bun --watch src/index.ts",
+    "lint": "eslint .",
+    "format": "prettier . --write"
+  },
+  "dependencies": {
+    "chucklejs": "^1",
+    "discord.js": "^14.14.1",
+    "humanize-duration": "^3.31.0",
+    "inquirer": "^9.2.16",
+    "mongoose": "^8",
+    "parse-duration": "^1.1.0",
+    "redis": "^4",
+    "redis-om": "^0.4",
+    "uuid": "^9"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/humanize-duration": "^3.27.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/uuid": "^9",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "dotenv": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "latest",
+    "typescript": "latest"
+  }
 }
