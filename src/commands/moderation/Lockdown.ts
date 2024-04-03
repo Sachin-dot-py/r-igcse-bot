@@ -89,7 +89,7 @@ export default class LockdownCommand extends BaseCommand {
 		const duration = interaction.options.getString("duration", false) ?? "";
 
 		const startTimestamp =
-			start ?? Date.now() + (parse(begining, "second") ?? 0);
+			start ?? time + (parse(begining, "second") ?? 0);
 		const endTimestamp =
 			end ?? startTimestamp + (parse(duration, "second") ?? 86400);
 
