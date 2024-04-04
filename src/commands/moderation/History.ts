@@ -114,7 +114,7 @@ export default class HistoryCommand extends BaseCommand {
 				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
 			)
 			.setAuthor({
-				name: user.username,
+				name: `${user.username} (ID: ${user.id})`,
 				iconURL: user.displayAvatarURL()
 			})
 			.setColor(Colors.DarkOrange)
