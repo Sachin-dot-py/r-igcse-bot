@@ -31,11 +31,14 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			interaction.guildId
 		);
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		if (!guildPreferences) {
-			await interaction.reply({
+			await interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+					"Please setup the bot using the command `/setup` first."
 			});
 			return;
 		}
@@ -87,13 +90,9 @@ export default class RefreshHelpersCommand extends BaseCommand {
 					name: "Channels",
 					value: changed.join(", "),
 					inline: false
-				},
-				{
-					name: "Date",
-					value: `<t:${Date.now()}:F>`,
-					inline: false
 				}
-			);
+			)
+			.setTimestamp();
 
 		if (guildPreferences.generalLogsChannelId) {
 			await Logger.channel(
@@ -104,5 +103,9 @@ export default class RefreshHelpersCommand extends BaseCommand {
 				}
 			);
 		}
+
+		await interaction.editReply({
+			content: "Helper channels have been refreshed."
+		});
 	}
 }
