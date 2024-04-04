@@ -184,7 +184,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				try {
 					const newThread = await threadsChannel.threads.create({
-						name: member.id,
+						name: `${member.user.tag} (${member.id})`,
 						message: {
 							content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``
 						}
