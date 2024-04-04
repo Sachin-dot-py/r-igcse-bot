@@ -24,9 +24,9 @@ export default class HistoryCommand extends BaseCommand {
 				)
 				.addBooleanOption((option) =>
 					option
-						.setName("modVisible")
+						.setName("modvisibility")
 						.setDescription("Control if mods who punished are visible")
-						.setRequired(false))
+				)
 				.setDefaultMemberPermissions(
 					PermissionFlagsBits.ModerateMembers
 				)
@@ -39,6 +39,7 @@ export default class HistoryCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
+		const modVisible = interaction.options.getBoolean("modvisibility", false);
 
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
@@ -77,45 +78,40 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
+			const punishmentsListModerator = modVisible ?
+				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}` :
+				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}`;
 
-			if (!interaction.options.getBoolean('modVisible')) {
-				punishmentsList.push(
-					`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}`
-				);
-			} else {
-				punishmentsList.push(
-					`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
-				);
-			}
-
-			let description = `**Number of offenses:** ${offenceCount}\n`;
-
-			description += Object.entries(counts)
-				.map(([action, count]) =>
-					count > 0 ? `- **${action}s:** ${count}` : ""
-				)
-				.filter((x) => x !== "")
-				.join("\n");
-
-			description += `\n\n**Total points:** ${totalPoints}\n\n`;
-			description += "```";
-			description += punishmentsList.join("\n");
-			description += "```";
-
-			const embed = new EmbedBuilder()
-				.setTitle(
-					`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
-				)
-				.setAuthor({
-					name: user.username,
-					iconURL: user.displayAvatarURL()
-				})
-				.setColor(Colors.DarkOrange)
-				.setDescription(description);
-
-			await interaction.reply({
-				embeds: [embed]
-			});
+			punishmentsList.push(punishmentsListModerator);
 		}
+
+		let description = `**Number of offenses:** ${offenceCount}\n`;
+
+		description += Object.entries(counts)
+			.map(([action, count]) =>
+				count > 0 ? `- **${action}s:** ${count}` : ""
+			)
+			.filter((x) => x !== "")
+			.join("\n");
+
+		description += `\n\n**Total points:** ${totalPoints}\n\n`;
+		description += "```";
+		description += punishmentsList.join("\n");
+		description += "```";
+
+		const embed = new EmbedBuilder()
+			.setTitle(
+				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
+			)
+			.setAuthor({
+				name: user.username,
+				iconURL: user.displayAvatarURL()
+			})
+			.setColor(Colors.DarkOrange)
+			.setDescription(description);
+
+		await interaction.reply({
+			embeds: [embed]
+		});
 	}
 }

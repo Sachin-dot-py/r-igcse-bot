@@ -57,7 +57,7 @@ await mongo.connect(process.env.MONGO_URL, {
 await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
 
-for (;;)
+for (; ;)
 	await inquirer
 		.prompt([
 			{
@@ -73,11 +73,9 @@ for (;;)
 				case "cron run actionRequired":
 					actionRequired(client as DiscordClient<true>);
 					break;
-				case "refreshCommandData":
+				case "sync_commands":
 					syncCommands(client as DiscordClient<true>)
-						.then(() =>
-							Logger.info("Synced application commands globally")
-						)
+						.then(() => Logger.info("Commands synced"))
 						.catch(Logger.error);
 					break;
 				default:
