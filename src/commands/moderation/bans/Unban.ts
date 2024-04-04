@@ -35,15 +35,18 @@ export default class UnbanCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
 
 		if (!guildPreferences) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"Please configure the bot using `/setup` command first.",
-				ephemeral: true
+					"Please configure the bot using `/setup` command first."
 			});
 			return;
 		}
@@ -51,9 +54,8 @@ export default class UnbanCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 
 		if (!interaction.guild.bans.fetch(user.id)) {
-			interaction.reply({
-				content: "I cannot unban a user that isn't banned.",
-				ephemeral: true
+			interaction.editReply({
+				content: "I cannot unban a user that isn't banned."
 			});
 
 			return;
@@ -73,9 +75,8 @@ export default class UnbanCommand extends BaseCommand {
 				`Unbanned by ${interaction.user.tag}`
 			);
 		} catch (error) {
-			interaction.reply({
-				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`,
-				ephemeral: true
+			interaction.editReply({
+				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`
 			});
 
 			client.log(
@@ -125,7 +126,7 @@ export default class UnbanCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.editReply({ content: "there ya go good sir" });
 		interaction.channel.send(`${user.username} has been unbanned.`);
 	}
 }

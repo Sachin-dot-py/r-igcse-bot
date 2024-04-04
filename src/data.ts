@@ -711,4 +711,4 @@ export const allSubjects: Subject[] = [
 	{ "code": "0408", "name": "World-Literature", "insert": false }
 ];
 
-export const subreddits = ["memes", "dankmemes", "wholesomememes"]
+export const subreddits = ["memes", "dankmemes", "wholesomememes"];

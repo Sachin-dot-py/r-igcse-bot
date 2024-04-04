@@ -88,7 +88,7 @@ export default class PingCommand extends BaseCommand {
 
 		await DmGuildPreference.deleteMany({
 			userId: message.author.id
-		})
+		});
 
 		DmGuildPreference.create({
 			userId: message.author.id,

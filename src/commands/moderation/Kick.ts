@@ -42,14 +42,17 @@ export default class KickCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
 		if (user.id === interaction.user.id) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"You cannot kick yourself, ||consider leaving the server instead||.",
-				ephemeral: true
+					"You cannot kick yourself, ||consider leaving the server instead||."
 			});
 			return;
 		}
@@ -59,10 +62,9 @@ export default class KickCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+					"Please setup the bot using the command `/setup` first."
 			});
 			return;
 		}
@@ -89,9 +91,8 @@ export default class KickCommand extends BaseCommand {
 		if (!guildMember) return;
 
 		if (!guildMember.kickable) {
-			interaction.reply({
-				content: "I cannot kick this user! (Missing permissions)",
-				ephemeral: true
+			interaction.editReply({
+				content: "I cannot kick this user! (Missing permissions)"
 			});
 
 			return;
@@ -101,10 +102,9 @@ export default class KickCommand extends BaseCommand {
 		const modHighestRole = interaction.member.roles.highest;
 
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
-				ephemeral: true
+					"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)"
 			});
 
 			return;
@@ -117,9 +117,8 @@ export default class KickCommand extends BaseCommand {
 		try {
 			await interaction.guild.members.kick(user, reason);
 		} catch (error) {
-			interaction.reply({
-				content: `Failed to kick user ${error instanceof Error ? `(${error.message})` : ""}`,
-				ephemeral: true
+			interaction.editReply({
+				content: `Failed to kick user ${error instanceof Error ? `(${error.message})` : ""}`
 			});
 
 			client.log(
@@ -173,7 +172,10 @@ export default class KickCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.editReply({
+			content:
+				"https://tenor.com/view/asdf-movie-punt-kick-donewiththis-gif-26537188"
+		});
 		interaction.channel.send(`${user.username} has been kicked.`);
 	}
 }

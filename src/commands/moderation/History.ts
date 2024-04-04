@@ -25,7 +25,9 @@ export default class HistoryCommand extends BaseCommand {
 				.addBooleanOption((option) =>
 					option
 						.setName("show_mod_username")
-						.setDescription("Show the usernames of the mod (default: false).")
+						.setDescription(
+							"Show the usernames of the mod (default: false)."
+						)
 						.setRequired(false)
 				)
 				.setDefaultMemberPermissions(
@@ -40,7 +42,10 @@ export default class HistoryCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
-		const showUsername = interaction.options.getBoolean("show_mod_username", false) ?? false;
+		const showUsername =
+			interaction.options.getBoolean("show_mod_username", false) ?? false;
+
+		await interaction.deferReply();
 
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
@@ -48,9 +53,8 @@ export default class HistoryCommand extends BaseCommand {
 		}).sort({ when: 1 });
 
 		if (punishments.length < 1) {
-			await interaction.reply({
-				content: `${user.tag} does not have any previous offenses.`,
-				ephemeral: true
+			await interaction.editReply({
+				content: `${user.tag} does not have any previous offenses.`
 			});
 			return;
 		}
@@ -79,9 +83,12 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
-				
 			const date = when.toLocaleDateString("en-GB");
-			const time = when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" });
+			const time = when.toLocaleTimeString("en-GB", {
+				hour12: true,
+				hour: "2-digit",
+				minute: "2-digit"
+			});
 
 			punishmentsList.push(
 				`[${date} at ${time}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`
@@ -113,7 +120,7 @@ export default class HistoryCommand extends BaseCommand {
 			.setColor(Colors.DarkOrange)
 			.setDescription(description);
 
-		await interaction.reply({
+		await interaction.editReply({
 			embeds: [embed]
 		});
 	}

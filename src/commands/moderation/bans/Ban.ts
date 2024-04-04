@@ -55,19 +55,21 @@ export default class BanCommand extends BaseCommand {
 		const deleteMessagesDays =
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		if (user.id === interaction.user.id) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
-				ephemeral: true
+					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!"
 			});
 			return;
 		}
 
 		if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
-			interaction.reply({
-				content: "I cannot ban a user that's already banned.",
-				ephemeral: true
+			interaction.editReply({
+				content: "I cannot ban a user that's already banned."
 			});
 			return;
 		}
@@ -77,10 +79,9 @@ export default class BanCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			await interaction.reply({
+			await interaction.editReply({
 				content:
-					"Please configure the bot using `/setup` command first.",
-				ephemeral: true
+					"Please configure the bot using `/setup` command first."
 			});
 			return;
 		}
@@ -104,9 +105,8 @@ export default class BanCommand extends BaseCommand {
 
 		if (guildMember) {
 			if (!guildMember.bannable) {
-				await interaction.reply({
-					content: "I cannot ban this user. (Missing permissions)",
-					ephemeral: true
+				await interaction.editReply({
+					content: "I cannot ban this user. (Missing permissions)"
 				});
 				return;
 			}
@@ -115,10 +115,9 @@ export default class BanCommand extends BaseCommand {
 			const modHighestRole = interaction.member.roles.highest;
 
 			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-				interaction.reply({
+				interaction.editReply({
 					content:
-						"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
-					ephemeral: true
+						"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)"
 				});
 				return;
 			}
@@ -134,9 +133,8 @@ export default class BanCommand extends BaseCommand {
 				deleteMessageSeconds: deleteMessagesDays * 86400
 			});
 		} catch (error) {
-			interaction.reply({
-				content: `Failed to ban user ${error instanceof Error ? `(${error.message})` : ""}`,
-				ephemeral: true
+			interaction.editReply({
+				content: `Failed to ban user ${error instanceof Error ? `(${error.message})` : ""}`
 			});
 
 			client.log(
@@ -194,7 +192,10 @@ export default class BanCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.editReply({
+			content:
+				"https://giphy.com/gifs/ban-banned-admin-fe4dDMD2cAU5RfEaCU"
+		});
 		interaction.channel.send(`${user.username} has been banned.`);
 	}
 }

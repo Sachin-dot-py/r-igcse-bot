@@ -41,10 +41,13 @@ export default class UntimeoutCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 		const member = await interaction.guild.members.fetch(user.id);
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		if (!member.isCommunicationDisabled()) {
-			interaction.reply({
-				content: "User is not timed out!",
-				ephemeral: true
+			interaction.editReply({
+				content: "User is not timed out!"
 			});
 
 			return;
@@ -55,10 +58,9 @@ export default class UntimeoutCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+					"Please setup the bot using the command `/setup` first."
 			});
 			return;
 		}
@@ -76,9 +78,8 @@ export default class UntimeoutCommand extends BaseCommand {
 				]
 			});
 		} catch (error) {
-			interaction.reply({
-				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`,
-				ephemeral: true
+			interaction.editReply({
+				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`
 			});
 
 			client.log(
@@ -143,7 +144,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.editReply({ content: "there ya go good sir" });
 		interaction.channel.send(
 			`Timeout has been removed from ${user.username}`
 		);

@@ -159,19 +159,23 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 		const time = Date.now();
 
 		const stickyMessages = await StickyMessage.find();
-		const cachedStickyMessages = await StickyMessageCache.getAll()
+		const cachedStickyMessages = await StickyMessageCache.getAll();
 
 		for (const stickyMessage of stickyMessages) {
 			const stickTime = parseInt(stickyMessage.stickTime || "");
 			const unstickTime = parseInt(stickyMessage.unstickTime || "");
-			const cachedSticky = cachedStickyMessages.find(x => x[EntityId] === stickyMessage.id)
+			const cachedSticky = cachedStickyMessages.find(
+				(x) => x[EntityId] === stickyMessage.id
+			);
 
 			if (cachedSticky) await StickyMessageCache.remove(stickyMessage.id);
 
 			if (Number.isNaN(stickTime) || Number.isNaN(unstickTime)) {
 				await StickyMessageCache.set(stickyMessage.id, {
 					channelId: stickyMessage.channelId,
-					messageId: cachedSticky ? cachedSticky.messageId : stickyMessage.messageId,
+					messageId: cachedSticky
+						? cachedSticky.messageId
+						: stickyMessage.messageId,
 					embeds: stickyMessage.embeds as APIEmbedRedis[]
 				});
 				if (!client.stickyChannelIds.includes(stickyMessage.channelId))
@@ -182,7 +186,9 @@ No. of slash-commands: ${client.commands.size}\`\`\``,
 			if (stickTime <= time && unstickTime >= time)
 				await StickyMessageCache.set(stickyMessage.id, {
 					channelId: stickyMessage.channelId,
-					messageId: cachedSticky ? cachedSticky.messageId : stickyMessage.messageId,
+					messageId: cachedSticky
+						? cachedSticky.messageId
+						: stickyMessage.messageId,
 					embeds: stickyMessage.embeds as APIEmbedRedis[]
 				});
 			if (!client.stickyChannelIds.includes(stickyMessage.channelId))

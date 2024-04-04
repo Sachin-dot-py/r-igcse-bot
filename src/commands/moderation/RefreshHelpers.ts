@@ -95,10 +95,10 @@ export default class RefreshHelpersCommand extends BaseCommand {
 				}
 			);
 
-		if (guildPreferences.modlogChannelId) {
+		if (guildPreferences.generalLogsChannelId) {
 			await Logger.channel(
 				interaction.guild,
-				guildPreferences.modlogChannelId,
+				guildPreferences.generalLogsChannelId,
 				{
 					embeds: [embed]
 				}

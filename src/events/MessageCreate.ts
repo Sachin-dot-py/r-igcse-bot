@@ -529,9 +529,9 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		for (const stickyMessage of stickyMessages) {
 			if (stickyMessage.messageId) {
-				await message.channel.messages.delete(
-					stickyMessage.messageId
-				).catch(() => {})
+				await message.channel.messages
+					.delete(stickyMessage.messageId)
+					.catch(() => {});
 			}
 
 			const embeds = stickyMessage.embeds.map(
