@@ -80,6 +80,10 @@ export default class LockdownCommand extends BaseCommand {
 			ChannelType.PrivateThread
 		]);
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const time = Math.floor(Date.now() / 1000);
 
 		const start = interaction.options.getInteger("start", false);
@@ -88,15 +92,13 @@ export default class LockdownCommand extends BaseCommand {
 		const begining = interaction.options.getString("begin", false) ?? "";
 		const duration = interaction.options.getString("duration", false) ?? "";
 
-		const startTimestamp =
-			start ?? time + (parse(begining, "second") ?? 0);
+		const startTimestamp = start ?? time + (parse(begining, "second") ?? 0);
 		const endTimestamp =
 			end ?? startTimestamp + (parse(duration, "second") ?? 86400);
 
 		if (endTimestamp <= startTimestamp) {
-			await interaction.reply({
-				content: `Invalid timestamps provided.`,
-				ephemeral: true
+			await interaction.editReply({
+				content: `Invalid timestamps provided.`
 			});
 
 			return;
@@ -105,9 +107,8 @@ export default class LockdownCommand extends BaseCommand {
 		if (startTimestamp <= time && endTimestamp >= time)
 			if (channel instanceof ThreadChannel) {
 				if (channel.locked) {
-					await interaction.reply({
-						content: `<#${channel.id}> is already locked.`,
-						ephemeral: true
+					await interaction.editReply({
+						content: `<#${channel.id}> is already locked.`
 					});
 
 					return;
@@ -123,9 +124,8 @@ export default class LockdownCommand extends BaseCommand {
 				);
 
 				if (!permissions.has(PermissionFlagsBits.SendMessages)) {
-					await interaction.reply({
-						content: `<#${channel.id}> is already locked.`,
-						ephemeral: true
+					await interaction.editReply({
+						content: `<#${channel.id}> is already locked.`
 					});
 
 					return;
@@ -151,9 +151,8 @@ export default class LockdownCommand extends BaseCommand {
 			{ upsert: true }
 		);
 
-		await interaction.reply({
-			content: `<#${channel.id}> will be locked at <t:${Math.floor(startTimestamp)}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`,
-			ephemeral: true
+		await interaction.editReply({
+			content: `<#${channel.id}> will be locked at <t:${Math.floor(startTimestamp)}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`
 		});
 	}
 }

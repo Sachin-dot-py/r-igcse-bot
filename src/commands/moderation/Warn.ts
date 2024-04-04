@@ -46,15 +46,18 @@ export default class WarnCommand extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
 
 		if (!guildPreferences) {
-			interaction.reply({
+			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+					"Please setup the bot using the command `/setup` first."
 			});
 			return;
 		}
@@ -109,7 +112,7 @@ export default class WarnCommand extends BaseCommand {
 			);
 		}
 
-		interaction.reply({ content: "there ya go good sir", ephemeral: true });
+		interaction.editReply({ content: "there ya go good sir" });
 		interaction.channel.send(
 			`${user.username} has been warned for ${reason} (Case #${caseNumber})`
 		);

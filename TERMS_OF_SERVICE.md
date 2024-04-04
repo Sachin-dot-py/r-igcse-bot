@@ -24,12 +24,12 @@ Our Services are not directed to children. You’re not allowed to access or use
 
 We haven’t reviewed, and can’t review, all of the content posted to or made available through our Services by users or anyone else (“Content”) or on websites that link to, or are linked from, our Services. We’re not responsible for any use or effects of Content or third-party websites. So, for example:
 
-- We don’t have any control over third-party websites.
-- A link to or from one of our Services does not represent or imply that we endorse any third-party website.
-- We don’t endorse any Content or represent that Content is accurate, useful, or not harmful. Content could be offensive, indecent, or objectionable; include technical inaccuracies, typographical mistakes, or other errors; or violate or infringe the privacy, publicity rights, intellectual property rights, or other proprietary rights of third parties.
-- You’re fully responsible for the Content that you produce using this bot and any harm resulting from that Content. It’s your responsibility to ensure that your server's Content abides by applicable laws and by the Agreement.
-- We aren’t responsible for any harm resulting from anyone’s access, use, purchase, or downloading of Content, or for any harm resulting from third-party websites. You’re responsible for taking the necessary precautions to protect yourself and your computer systems from viruses, worms, Trojan horses, and other harmful or destructive content.
-- We are not a party to, and will have no responsibility or liability for, any communications, transactions, interactions, or disputes between you and the provider of any Content.
+-   We don’t have any control over third-party websites.
+-   A link to or from one of our Services does not represent or imply that we endorse any third-party website.
+-   We don’t endorse any Content or represent that Content is accurate, useful, or not harmful. Content could be offensive, indecent, or objectionable; include technical inaccuracies, typographical mistakes, or other errors; or violate or infringe the privacy, publicity rights, intellectual property rights, or other proprietary rights of third parties.
+-   You’re fully responsible for the Content that you produce using this bot and any harm resulting from that Content. It’s your responsibility to ensure that your server's Content abides by applicable laws and by the Agreement.
+-   We aren’t responsible for any harm resulting from anyone’s access, use, purchase, or downloading of Content, or for any harm resulting from third-party websites. You’re responsible for taking the necessary precautions to protect yourself and your computer systems from viruses, worms, Trojan horses, and other harmful or destructive content.
+-   We are not a party to, and will have no responsibility or liability for, any communications, transactions, interactions, or disputes between you and the provider of any Content.
 
 ## 5. Fees and Payment
 

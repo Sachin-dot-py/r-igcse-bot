@@ -67,7 +67,7 @@ export default class TimeoutCommand extends BaseCommand {
 		if (!guildPreferences) {
 			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first.",
+					"Please setup the bot using the command `/setup` first."
 			});
 			return;
 		}
@@ -98,7 +98,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (!guildMember) {
 			interaction.editReply({
-				content: "User not found!",
+				content: "User not found!"
 			});
 
 			return;
@@ -106,7 +106,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (guildMember.id === interaction.user.id) {
 			interaction.editReply({
-				content: "You cannot timeout yourself.",
+				content: "You cannot timeout yourself."
 			});
 
 			return;
@@ -114,7 +114,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (guildMember.isCommunicationDisabled()) {
 			interaction.editReply({
-				content: "User is already timed out!",
+				content: "User is already timed out!"
 			});
 
 			return;
@@ -126,7 +126,7 @@ export default class TimeoutCommand extends BaseCommand {
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
 			interaction.editReply({
 				content:
-					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
+					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)"
 			});
 			return;
 		}
@@ -145,7 +145,7 @@ export default class TimeoutCommand extends BaseCommand {
 			});
 		} catch (error) {
 			interaction.editReply({
-				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
+				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`
 			});
 
 			client.log(
@@ -206,7 +206,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		interaction.editReply({ content: "alrighty, timed them out" });
-		const time = Math.floor(Date.now() / 1000 + duration)
+		const time = Math.floor(Date.now() / 1000 + duration);
 		interaction.channel.send(
 			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`
 		);
