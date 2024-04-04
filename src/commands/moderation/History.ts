@@ -22,6 +22,12 @@ export default class HistoryCommand extends BaseCommand {
 						.setDescription("User to view history of")
 						.setRequired(true)
 				)
+				.addBooleanOption((option) =>
+					option
+						.setName("show_mod_username")
+						.setDescription("Show the usernames of the mod (default: false).")
+						.setRequired(false)
+				)
 				.setDefaultMemberPermissions(
 					PermissionFlagsBits.ModerateMembers
 				)
@@ -34,6 +40,7 @@ export default class HistoryCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
 		const user = interaction.options.getUser("user", true);
+		const showUsername = interaction.options.getBoolean("show_mod_username", false) ?? false;
 
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
@@ -72,8 +79,12 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
+				
+			const date = when.toLocaleDateString("en-GB");
+			const time = when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" });
+
 			punishmentsList.push(
-				`[${when.toLocaleDateString("en-GB")} at ${when.toLocaleTimeString("en-GB", { hour12: true, hour: "2-digit", minute: "2-digit" })}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} by ${moderator}`
+				`[${date} at ${time}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`
 			);
 		}
 
