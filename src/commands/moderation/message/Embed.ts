@@ -26,7 +26,9 @@ export default class EmbedCommand extends BaseCommand {
 						.addChannelOption((option) =>
 							option
 								.setName("channel")
-								.setDescription("Channel to send the embed in (default is current channel)")
+								.setDescription(
+									"Channel to send the embed in (default is current channel)"
+								)
 								.setRequired(false)
 						)
 				)
@@ -57,54 +59,72 @@ export default class EmbedCommand extends BaseCommand {
 					return;
 				}
 
-				const customId = uuidv4()
+				const customId = uuidv4();
 
 				const embedTitleField = new TextInputBuilder()
 					.setPlaceholder("Title")
 					.setRequired(false)
 					.setStyle(TextInputStyle.Short)
 					.setLabel("Embed Title")
-					.setCustomId(`title`)
+					.setCustomId(`title`);
 
 				const embedDescriptionField = new TextInputBuilder()
 					.setPlaceholder("Description")
 					.setRequired(false)
 					.setStyle(TextInputStyle.Paragraph)
 					.setLabel("Embed Description")
-					.setCustomId(`description`)
+					.setCustomId(`description`);
 
 				const embedFooterField = new TextInputBuilder()
 					.setPlaceholder("Footer")
 					.setRequired(false)
 					.setStyle(TextInputStyle.Short)
 					.setLabel("Embed Footer")
-					.setCustomId(`footer`)
+					.setCustomId(`footer`);
 
 				const actionRows = [
-					new ActionRowBuilder<TextInputBuilder>().addComponents(embedTitleField),
-					new ActionRowBuilder<TextInputBuilder>().addComponents(embedDescriptionField),
-					new ActionRowBuilder<TextInputBuilder>().addComponents(embedFooterField)
-				]
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						embedTitleField
+					),
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						embedDescriptionField
+					),
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						embedFooterField
+					)
+				];
 
 				const modal = new ModalBuilder()
 					.setTitle("Embed Builder")
 					.setCustomId(customId)
-					.addComponents(...actionRows)
+					.addComponents(...actionRows);
 
 				await interaction.showModal(modal);
 
 				const modalInteraction = await interaction.awaitModalSubmit({
 					time: 300_000,
-					filter: (i) => i.customId === customId && i.user.id === interaction.user.id
+					filter: (i) =>
+						i.customId === customId &&
+						i.user.id === interaction.user.id
 				});
 
-				const embedTitle = await modalInteraction.fields.getTextInputValue("title") || null;
-				const embedDescription = await modalInteraction.fields.getTextInputValue("description") || null;
-				const embedFooter = await modalInteraction.fields.getTextInputValue("footer") || null;
+				const embedTitle =
+					(await modalInteraction.fields.getTextInputValue(
+						"title"
+					)) || null;
+				const embedDescription =
+					(await modalInteraction.fields.getTextInputValue(
+						"description"
+					)) || null;
+				const embedFooter =
+					(await modalInteraction.fields.getTextInputValue(
+						"footer"
+					)) || null;
 
 				if (!embedTitle && !embedDescription && !embedFooter) {
 					await modalInteraction.reply({
-						content: "You must provide at least one field to send an embed!",
+						content:
+							"You must provide at least one field to send an embed!",
 						ephemeral: true
 					});
 
@@ -113,12 +133,12 @@ export default class EmbedCommand extends BaseCommand {
 
 				const embed = new EmbedBuilder()
 					.setTitle(embedTitle)
-					.setDescription(embedDescription)
-					
+					.setDescription(embedDescription);
+
 				if (embedFooter) {
 					embed.setFooter({
 						text: embedFooter
-					})
+					});
 				}
 
 				await channel.send({ embeds: [embed] });

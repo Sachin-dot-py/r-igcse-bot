@@ -85,13 +85,11 @@ export default class RefreshHelpersCommand extends BaseCommand {
 				name: `Helpers Refreshed - ${interaction.user.tag}`,
 				iconURL: interaction.user.displayAvatarURL()
 			})
-			.addFields(
-				{
-					name: "Channels",
-					value: changed.join(", "),
-					inline: false
-				}
-			)
+			.addFields({
+				name: "Channels",
+				value: changed.join(", "),
+				inline: false
+			})
 			.setTimestamp();
 
 		if (guildPreferences.generalLogsChannelId) {

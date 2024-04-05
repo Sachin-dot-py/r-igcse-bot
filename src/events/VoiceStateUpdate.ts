@@ -1,7 +1,6 @@
 import { Events, VoiceState } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
 
 export default class VoiceStateUpdateEvent extends BaseEvent {
 	constructor() {
@@ -11,13 +10,18 @@ export default class VoiceStateUpdateEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		oldState: VoiceState,
-        newState: VoiceState
+		newState: VoiceState
 	) {
-		if (!newState.guild || !oldState.channel || oldState.channelId === newState.channelId) return;
-        if (!oldState.channel.name.includes("Study Session")) return;
+		if (
+			!newState.guild ||
+			!oldState.channel ||
+			oldState.channelId === newState.channelId
+		)
+			return;
+		if (!oldState.channel.name.includes("Study Session")) return;
 
-        if (oldState.channel.members.size === 0) {
-            await oldState.channel.setName("General");
-        }
+		if (oldState.channel.members.size === 0) {
+			await oldState.channel.setName("General");
+		}
 	}
 }

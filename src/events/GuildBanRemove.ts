@@ -1,4 +1,10 @@
-import { AuditLogEvent, Colors, Events, EmbedBuilder, GuildBan } from "discord.js";
+import {
+	AuditLogEvent,
+	Colors,
+	Events,
+	EmbedBuilder,
+	GuildBan
+} from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { GuildPreferencesCache } from "@/redis";
@@ -10,25 +16,22 @@ export default class GuildBanRemoveEvent extends BaseEvent {
 		super(Events.GuildBanRemove);
 	}
 
-	async execute(
-		client: DiscordClient<true>,
-		ban: GuildBan
-	) {
-        const guildPreferences = await GuildPreferencesCache.get(ban.guild.id);
-        if (!guildPreferences) return;
+	async execute(client: DiscordClient<true>, ban: GuildBan) {
+		const guildPreferences = await GuildPreferencesCache.get(ban.guild.id);
+		if (!guildPreferences) return;
 
-        const auditLogs = await ban.guild.fetchAuditLogs({
-            type: AuditLogEvent.MemberBanRemove,
-            limit: 3
-        });
+		const auditLogs = await ban.guild.fetchAuditLogs({
+			type: AuditLogEvent.MemberBanRemove,
+			limit: 3
+		});
 
-        const entry = auditLogs.entries.find(
-            (entry) => entry.targetId === ban.user.id
-        );
+		const entry = auditLogs.entries.find(
+			(entry) => entry.targetId === ban.user.id
+		);
 
-        if (!entry || entry.executorId === client.user.id) return;
+		if (!entry || entry.executorId === client.user.id) return;
 
-        const latestPunishment = (
+		const latestPunishment = (
 			await Punishment.find({
 				guildId: ban.guild.id
 			}).sort({ when: -1 })
@@ -36,7 +39,7 @@ export default class GuildBanRemoveEvent extends BaseEvent {
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
-        await Punishment.create({
+		await Punishment.create({
 			guildId: ban.guild.id,
 			actionAgainst: ban.user.id,
 			actionBy: entry.executorId,
@@ -69,12 +72,9 @@ export default class GuildBanRemoveEvent extends BaseEvent {
 				])
 				.setTimestamp();
 
-			Logger.channel(
-				ban.guild,
-				guildPreferences.modlogChannelId,
-				{ embeds: [modEmbed] }
-			);
+			Logger.channel(ban.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed]
+			});
 		}
-
-    }
+	}
 }
