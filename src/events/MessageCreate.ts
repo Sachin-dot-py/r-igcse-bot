@@ -351,7 +351,10 @@ export default class MessageCreateEvent extends BaseEvent {
 			embed.addFields({
 				name: "Attachments",
 				value: message.attachments
-					.map((attachment) => `[Attachment](${attachment.url})`)
+					.map(
+						(attachment) =>
+							`[${attachment.name}](${attachment.url})`
+					)
 					.join("\n")
 			});
 		}
@@ -380,6 +383,11 @@ export default class MessageCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		message: Message<true>
 	) {
+		if (message.content.startsWith("//")) {
+			await message.react("👀");
+			return;
+		}
+
 		const dmThread = await PrivateDmThread.findOne({
 			threadId: message.channel.id
 		});
@@ -403,9 +411,21 @@ export default class MessageCreateEvent extends BaseEvent {
 				name: message.author.username,
 				iconURL: message.author.displayAvatarURL()
 			})
-			.setDescription(message.content)
+			.setDescription(message.content || "No content")
 			.setTimestamp(message.createdTimestamp)
 			.setColor(Colors.Green);
+
+		if (message.attachments.size > 0) {
+			embed.addFields({
+				name: "Attachments",
+				value: message.attachments
+					.map(
+						(attachment) =>
+							`[${attachment.name}](${attachment.url})`
+					)
+					.join("\n")
+			});
+		}
 
 		await sendDm(member, {
 			embeds: [embed]
