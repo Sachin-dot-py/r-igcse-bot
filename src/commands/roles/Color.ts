@@ -93,6 +93,7 @@ export default class ColorRolesCommand extends BaseCommand {
 			const role = interaction.guild.roles.cache.get(i.values[0]);
 
 			if (!role) {
+				await i.member.roles.remove(colorRoles.map((colorRole) => colorRole.roleId)).catch(() => { });
 				interaction.followUp({
 					content: "All color roles have been removed from you.",
 					ephemeral: true
@@ -108,7 +109,7 @@ export default class ColorRolesCommand extends BaseCommand {
 				} else {
 					await i.member.roles
 						.remove(colorRoles.map((colorRole) => colorRole.roleId))
-						.catch(() => {});
+						.catch(() => { });
 					await i.member.roles.add(role);
 				}
 
