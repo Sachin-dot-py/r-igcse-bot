@@ -94,7 +94,7 @@ ID: ${mainGuild.id}\`\`\``,
 						value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
 No. of members: ${mainGuild.memberCount}
 No. of bots: ${mainGuild.members.cache.filter((member) => member.user.bot).size}
-No. of catagories: ${channelCount.category}
+No. of categories: ${channelCount.category}
 No. of text-channels: ${channelCount.text}
 No. of voice-channels: ${channelCount.voice}
 No. of forum-channels: ${channelCount.forum}
