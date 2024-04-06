@@ -1,3 +1,4 @@
+import Pagination from "@/components/Pagination";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -10,7 +11,8 @@ import {
 	Colors,
 	ComponentType,
 	EmbedBuilder,
-	SlashCommandBuilder
+	SlashCommandBuilder,
+	type InteractionEditReplyOptions
 } from "discord.js";
 
 export default class ListKeywordsCommand extends BaseCommand {
@@ -48,7 +50,7 @@ export default class ListKeywordsCommand extends BaseCommand {
 			(_, i) => keywords.slice(i * 9, i * 9 + 9)
 		);
 
-		const embeds: EmbedBuilder[] = [];
+		const pages: InteractionEditReplyOptions[] = [];
 
 		for (const [i, chunk] of chunks.entries()) {
 			const embed = new EmbedBuilder()
@@ -59,67 +61,14 @@ export default class ListKeywordsCommand extends BaseCommand {
 			for (const { keyword } of chunk)
 				embed.addFields({ name: keyword, value: "\n", inline: true });
 
-			embeds.push(embed);
+			pages.push({ embeds: [embed] });
 		}
 
-		let page = 0;
+		const paginator = new Pagination(pages);
 
-		const getButtons = () => {
-			const firstButton = new ButtonBuilder()
-				.setCustomId("first")
-				.setEmoji("⏪")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === 0);
-
-			const previousButton = new ButtonBuilder()
-				.setCustomId("previous")
-				.setEmoji("⬅️")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === 0);
-
-			const lastButton = new ButtonBuilder()
-				.setCustomId("last")
-				.setEmoji("⏩")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length);
-
-			const nextButton = new ButtonBuilder()
-				.setCustomId("next")
-				.setEmoji("➡️")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length);
-
-			return new ActionRowBuilder<ButtonBuilder>().addComponents(
-				firstButton,
-				previousButton,
-				nextButton,
-				lastButton
-			);
-		};
-
-		await interaction.reply({
-			embeds: [embeds[page]],
-			components: [getButtons()],
-			ephemeral: true
-		});
-
-		const collector = interaction.channel.createMessageComponentCollector({
-			componentType: ComponentType.Button,
-			filter: (i) => i.user.id === interaction.user.id
-		});
-
-		collector.on("collect", async (i) => {
-			i.deferUpdate();
-
-			if (i.customId === "first") page = 0;
-			else if (i.customId === "previous") page--;
-			else if (i.customId === "next") page++;
-			else if (i.customId === "last") page = chunks.length - 1;
-
-			await interaction.editReply({
-				embeds: [embeds[page]],
-				components: [getButtons()]
-			});
+		await paginator.start({
+			interaction,
+			ephemeral: false
 		});
 	}
 }
