@@ -1,31 +1,29 @@
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import {
-	StringSelectMenuBuilder,
-	StringSelectMenuOptionBuilder,
+	RoleSelectMenuBuilder,
 	ComponentType,
 	Message,
-	ModalSubmitInteraction,
-	type APISelectMenuOption,
-	ButtonInteraction
+	ModalSubmitInteraction
 } from "discord.js";
 
-class Select extends StringSelectMenuBuilder {
+class RoleSelect extends RoleSelectMenuBuilder {
 	name: string;
 	isFirstComponent: boolean = true;
+
 	constructor(
 		name: string,
 		placeholder: string,
-		options: StringSelectMenuOptionBuilder[] | APISelectMenuOption[],
 		max_values: number,
-		customId: string
+		customId: string,
+		defaultRoles: string[]
 	) {
 		super();
 		this.name = name;
 		this.isFirstComponent = customId.split("_")[1] === "0";
 		this.setPlaceholder(placeholder)
-			.addOptions(...options)
 			.setMaxValues(max_values)
-			.setCustomId(customId);
+			.setCustomId(customId)
+			.setDefaultRoles(...defaultRoles);
 	}
 
 	async waitForResponse(
@@ -48,7 +46,7 @@ class Select extends StringSelectMenuBuilder {
 				{
 					filter: (i) => i.customId === customId,
 					time: 300_000,
-					componentType: ComponentType.StringSelect
+					componentType: ComponentType.RoleSelect
 				}
 			);
 
@@ -72,6 +70,15 @@ class Select extends StringSelectMenuBuilder {
 
 			if (buttonResponse.customId === `confirm_${buttonCustomId}`) {
 				if (value.length === 0) {
+					if (
+						selectCollector.total === 0 &&
+						this.data.default_values?.length
+					) {
+						return (
+							this.data.default_values?.map((role) => role.id) ||
+							false
+						);
+					}
 					switch (required) {
 						case true:
 							if (this.isFirstComponent) {
@@ -109,4 +116,4 @@ class Select extends StringSelectMenuBuilder {
 	}
 }
 
-export default Select;
+export default RoleSelect;
