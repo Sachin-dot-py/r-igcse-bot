@@ -5,11 +5,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
 	Colors,
-	ComponentType,
 	EmbedBuilder,
 	SlashCommandBuilder,
 	type InteractionEditReplyOptions
