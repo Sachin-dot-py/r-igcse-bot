@@ -1,6 +1,8 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	ActionRowBuilder,
+	ButtonBuilder,
+	Colors,
 	ComponentType,
 	EmbedBuilder,
 	ModalBuilder,
@@ -15,14 +17,14 @@ import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
+import { Application } from "@/mongo";
 
 export default class ApplyCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
 				.setName("apply")
-				.setDescription("Apply for positions in the server"),
-			true
+				.setDescription("Apply for positions in the server")
 		);
 	}
 
@@ -30,152 +32,143 @@ export default class ApplyCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		if (interaction.guildId !== process.env.MAIN_GUILD_ID) {
+		const applications = await Application.find({
+			guildId: interaction.guildId
+		});
+
+		if (applications.length === 0) {
 			await interaction.reply({
-				content: "Feature not yet implemented for your server.",
+				content:
+					"There are no applications in this server. Try again later.",
 				ephemeral: true
 			});
-
 			return;
 		}
 
-		const options = [
-			new StringSelectMenuOptionBuilder()
-				.setLabel("Chat Moderator")
-				.setValue("chat_mod")
-				.setEmoji("🗨️")
-		];
+		const options = applications.filter((app) => {
+			if (app.requiredRoles?.length) {
+				return app.requiredRoles.some((role) =>
+					interaction.member.roles.cache.has(role)
+				);
+			} else {
+				return true;
+			}
+		}).map((app) => {
+			return new StringSelectMenuOptionBuilder()
+				.setLabel(app.name)
+				.setValue(app.id)
+				.setDescription(app.description)
+				.setEmoji(app.emoji || "");
+		});
 
-		if (
-			interaction.guildId === process.env.MAIN_GUILD_ID &&
-			(interaction.member.roles.cache.has("884026286975115314") ||
-				interaction.member.roles.cache.has("696415516893380700") ||
-				interaction.member.roles.cache.has("789772710027984926") ||
-				interaction.member.roles.cache.has("869584464324468786"))
-		) {
-			options.push(
-				new StringSelectMenuOptionBuilder()
-					.setLabel("Debate Competition")
-					.setValue("debate_comp")
-					.setEmoji("🎤")
-			);
+		if (options.length === 0) {
+			await interaction.reply({
+				content:
+					"You do not have the required roles to apply for any positions!",
+				ephemeral: true
+			});
+			return;
 		}
 
 		const customId = uuidv4();
-		const positionSelect = new StringSelectMenuBuilder()
-			.setCustomId(`${customId}_0`)
-			.setPlaceholder("Select a position")
-			.addOptions(options);
 
-		const row =
-			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-				positionSelect
-			);
+		const selectMenu = new StringSelectMenuBuilder()
+			.setCustomId(customId)
+			.setPlaceholder("Select a position to apply for")
+			.addOptions(options)
+			.setMinValues(1)
+			.setMaxValues(1);
 
-		const message = await interaction.reply({
+		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
+
+		const selectInteraction = await interaction.reply({
+			content: "Select a position to apply for",
 			components: [row],
-			ephemeral: true,
-			fetchReply: true
+			ephemeral: true
 		});
 
-		const collector = await message.createMessageComponentCollector({
-			filter: (i) =>
-				i.customId.startsWith(customId) &&
-				i.user.id === interaction.user.id,
-			time: 600_000,
+		const selectResponse = await selectInteraction.awaitMessageComponent({
+			filter: (i) => i.customId === customId,
+			time: 300_000,
 			componentType: ComponentType.StringSelect
 		});
 
-		collector.on("collect", async (i) => {
-			const customId = i.customId.split("_")[1];
-			const position = i.values[0];
+		const applicationId = selectResponse.values[0];
 
-			switch (position) {
-				case "chat_mod": {
-					const timezoneInput = new TextInputBuilder()
-						.setPlaceholder("GMT+5:30")
-						.setStyle(TextInputStyle.Short)
-						.setLabel("Enter your timezone")
-						.setRequired(true)
-						.setCustomId("timezone");
+		const application = await Application.findById(applicationId);
 
-					const row =
-						new ActionRowBuilder<TextInputBuilder>().addComponents(
-							timezoneInput
-						);
+		if (!application) {
+			await selectResponse.reply({
+				content: "This application does not exist",
+				ephemeral: true
+			});
+			return;
+		}
 
-					const modal = new ModalBuilder()
-						.setTitle("Chat Moderator Application")
-						.setCustomId(customId)
-						.addComponents(row);
+		const inputRows: ActionRowBuilder<TextInputBuilder>[] = [];
 
-					await i.showModal(modal);
+		for (let i = 0; i < application.questions.length; i++) {
+			const input = new TextInputBuilder()
+				.setLabel(application.questions[i])
+				.setPlaceholder(application.questions[i])
+				.setRequired(true)
+				.setCustomId(`question_${i}`)
+				.setStyle(TextInputStyle.Paragraph);
 
-					const modalInteraction = await i.awaitModalSubmit({
-						time: 600_000
-					});
+			inputRows.push(
+				new ActionRowBuilder<TextInputBuilder>().addComponents(input)
+			);
+		}
 
-					if (!modalInteraction) return;
+		const modal = new ModalBuilder()
+			.setTitle(`${application.name} Application`)
+			.setCustomId(customId)
+			.addComponents(inputRows);
 
-					const timezone =
-						modalInteraction.fields.getTextInputValue("timezone");
+		await selectResponse.showModal(modal);
 
-					const embed = new EmbedBuilder()
-						.setTitle("Chat Moderator Application")
-						.setDescription(
-							`Submitted by ${interaction.user.tag} (${interaction.user.id})`
-						)
-						.addFields({
-							name: "Timezone",
-							value: timezone
-						})
-						.setTimestamp();
+		const modalInteraction = await selectResponse.awaitModalSubmit({
+			time: 900_000, // 15 minutes
+			filter: (i) => i.customId === customId
+		});
 
-					const chatModChannel =
-						await interaction.guild?.channels.cache.get(
-							process.env.CHAT_MOD_APPS_CHANNEL_ID
-						);
+		if (!modalInteraction) return;
 
-					if (!(chatModChannel instanceof TextChannel)) return;
+		const answers = modalInteraction.fields.fields
+			.map((field) => field.value);
 
-					await chatModChannel.send({
-						embeds: [embed]
-					});
+		const channel = interaction.guild.channels.cache.get(
+			application.submissionChannelId
+		);
 
-					await modalInteraction.reply({
-						content: "Submitted Chat Moderator Application",
-						ephemeral: true
-					});
+		if (!channel || !(channel instanceof TextChannel)) {
+			await interaction.reply({
+				content: "Invalid channel for submitting application. Please contact the server staff.",
+				ephemeral: true
+			});
+			return;
+		}
 
-					break;
+		const embed = new EmbedBuilder()
+			.setTitle(`New ${application.name} Application`)
+			.setAuthor({
+				name: interaction.user.tag,
+				iconURL: interaction.user.displayAvatarURL()
+			})
+			.setDescription(`Submitted by ${interaction.user} (${interaction.user.id})`)
+			.addFields(...answers.map((answer, i) => {
+				return {
+					name: application.questions[i],
+					value: answer
 				}
-				case "debate_comp": {
-					const embed = new EmbedBuilder()
-						.setTitle("Debate Competition")
-						.setDescription(
-							`Submitted by ${interaction.user.tag} (${interaction.user.id})`
-						)
-						.setTimestamp();
+			}))
+			.setColor(Colors.NotQuiteBlack);
 
-					const debateCompChannel =
-						await interaction.guild?.channels.cache.get(
-							process.env.DEBATE_APPS_CHANNEL_ID
-						);
+		await channel.send({ embeds: [embed] });
 
-					if (!(debateCompChannel instanceof TextChannel)) return;
-
-					await debateCompChannel.send({
-						embeds: [embed]
-					});
-
-					await i.reply({
-						content: "Submitted Debate Competition Application.",
-						ephemeral: true
-					});
-
-					break;
-				}
-			}
+		await modalInteraction.reply({
+			content: "Application submitted successfully",
+			ephemeral: true
 		});
 	}
 }

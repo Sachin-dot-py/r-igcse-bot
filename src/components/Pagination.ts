@@ -5,7 +5,7 @@ import {
 	ButtonStyle,
 	ComponentType,
 	type InteractionEditReplyOptions,
-	type InteractionReplyOptions,
+	type InteractionReplyOptions
 } from "discord.js";
 
 interface PaginationStartOptions {
