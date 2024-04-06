@@ -177,7 +177,7 @@ export default class ApplicationCommand extends BaseCommand {
 			.map((field) => field.value)
 			.filter((value) => value);
 
-		if (!questions) {
+		if (!questions.length) {
 			await modalInteraction.reply({
 				content: "You must provide at least one question",
 				ephemeral: true
@@ -292,7 +292,7 @@ export default class ApplicationCommand extends BaseCommand {
 			.map((field) => field.value)
 			.filter((value) => value);
 
-		if (!questions) {
+		if (!questions.length) {
 			await modalInteraction.reply({
 				content: "You must provide at least one question",
 				ephemeral: true
