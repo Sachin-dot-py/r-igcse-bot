@@ -45,21 +45,23 @@ export default class ApplyCommand extends BaseCommand {
 			return;
 		}
 
-		const options = applications.filter((app) => {
-			if (app.requiredRoles?.length) {
-				return app.requiredRoles.some((role) =>
-					interaction.member.roles.cache.has(role)
-				);
-			} else {
-				return true;
-			}
-		}).map((app) => {
-			return new StringSelectMenuOptionBuilder()
-				.setLabel(app.name)
-				.setValue(app.id)
-				.setDescription(app.description)
-				.setEmoji(app.emoji || "");
-		});
+		const options = applications
+			.filter((app) => {
+				if (app.requiredRoles?.length) {
+					return app.requiredRoles.some((role) =>
+						interaction.member.roles.cache.has(role)
+					);
+				} else {
+					return true;
+				}
+			})
+			.map((app) => {
+				return new StringSelectMenuOptionBuilder()
+					.setLabel(app.name)
+					.setValue(app.id)
+					.setDescription(app.description)
+					.setEmoji(app.emoji || "");
+			});
 
 		if (options.length === 0) {
 			await interaction.reply({
@@ -79,7 +81,10 @@ export default class ApplyCommand extends BaseCommand {
 			.setMinValues(1)
 			.setMaxValues(1);
 
-		const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
+		const row =
+			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+				selectMenu
+			);
 
 		const selectInteraction = await interaction.reply({
 			content: "Select a position to apply for",
@@ -134,8 +139,9 @@ export default class ApplyCommand extends BaseCommand {
 
 		if (!modalInteraction) return;
 
-		const answers = modalInteraction.fields.fields
-			.map((field) => field.value);
+		const answers = modalInteraction.fields.fields.map(
+			(field) => field.value
+		);
 
 		const channel = interaction.guild.channels.cache.get(
 			application.submissionChannelId
@@ -143,7 +149,8 @@ export default class ApplyCommand extends BaseCommand {
 
 		if (!channel || !(channel instanceof TextChannel)) {
 			await interaction.reply({
-				content: "Invalid channel for submitting application. Please contact the server staff.",
+				content:
+					"Invalid channel for submitting application. Please contact the server staff.",
 				ephemeral: true
 			});
 			return;
@@ -155,13 +162,17 @@ export default class ApplyCommand extends BaseCommand {
 				name: interaction.user.tag,
 				iconURL: interaction.user.displayAvatarURL()
 			})
-			.setDescription(`Submitted by ${interaction.user} (${interaction.user.id})`)
-			.addFields(...answers.map((answer, i) => {
-				return {
-					name: application.questions[i],
-					value: answer
-				}
-			}))
+			.setDescription(
+				`Submitted by ${interaction.user} (${interaction.user.id})`
+			)
+			.addFields(
+				...answers.map((answer, i) => {
+					return {
+						name: application.questions[i],
+						value: answer
+					};
+				})
+			)
 			.setColor(Colors.NotQuiteBlack);
 
 		await channel.send({ embeds: [embed] });
