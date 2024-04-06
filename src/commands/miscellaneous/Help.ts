@@ -42,8 +42,6 @@ export default class HelpCommand extends BaseCommand {
 			}
 		});
 
-		console.log(commands);
-
 		const pages: InteractionEditReplyOptions[] = [];
 
 		const chunks = Array.from(

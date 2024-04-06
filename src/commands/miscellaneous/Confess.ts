@@ -148,6 +148,10 @@ export default class FunFactCommand extends BaseCommand {
 			guildId: interaction.guild.id,
 			userHash: await Bun.password.hash(interaction.user.id)
 		});
+		ButtonInteractionCache.expire(
+			`${customId}_confession`,
+			3 * 24 * 60 * 60
+		); // 3 days
 		// Interaction will be handled in the InteractionCreate event and is stored in redis (@/events/InteractionCreate.ts)
 	}
 }
