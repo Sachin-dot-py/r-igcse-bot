@@ -1,10 +1,13 @@
+import Buttons from "@/components/practice/views/Buttons";
+import RoleSelect from "@/components/RoleSelect";
 import { GuildPreferences } from "@/mongo";
 import { ColorRole } from "@/mongo/schemas/ColorRole";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { v4 as uuidv4 } from "uuid";
 
 export default class ColorRolesCommand extends BaseCommand {
 	constructor() {
@@ -32,14 +35,6 @@ export default class ColorRolesCommand extends BaseCommand {
 							option
 								.setName("emoji")
 								.setDescription("The emoji to use")
-								.setRequired(false)
-						)
-						.addRoleOption((option) =>
-							option
-								.setName("required_role")
-								.setDescription(
-									"The role required to access this color role"
-								)
 								.setRequired(false)
 						)
 				)
@@ -70,10 +65,37 @@ export default class ColorRolesCommand extends BaseCommand {
 				const emoji = interaction.options.getString("emoji", false);
 				const label = interaction.options.getString("label", true);
 				const role = interaction.options.getRole("role", true);
-				const requiredRole = interaction.options.getRole(
-					"required_role",
+
+				const customId = uuidv4();
+
+				const roleSelectMenu = new RoleSelect(
+					"required_role_select",
+					"Select the required roles for this color roles",
+					25,
+					`${customId}_0`,
+					[]
+				)
+
+				const row = new ActionRowBuilder<RoleSelect>().addComponents(roleSelectMenu);
+
+				const selectInteraction = await interaction.reply({
+					content: "Select the required roles for this color role (click confirm to skip). User will need to have at least one of these roles to able to see this color role.",
+					components: [
+						row,
+						new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
+					],
+					ephemeral: true,
+					fetchReply: true
+				});
+
+				const requiredRoles = await roleSelectMenu.waitForResponse(
+					`${customId}_0`,
+					selectInteraction,
+					interaction,
 					false
 				);
+
+				if (requiredRoles === "Timed out") return;
 
 				await ColorRole.updateOne(
 					{
@@ -82,15 +104,15 @@ export default class ColorRolesCommand extends BaseCommand {
 						roleId: role.id
 					},
 					{
-						requirementRoleId: requiredRole?.id,
+						requirementRoleIds: requiredRoles || null,
 						emoji
 					},
 					{ upsert: true }
 				);
 
-				await interaction.reply({
+				await interaction.editReply({
 					content: "Successfully created color role!",
-					ephemeral: true
+					components: []
 				});
 
 				break;
@@ -114,8 +136,8 @@ export default class ColorRolesCommand extends BaseCommand {
 						error,
 						`${this.data.name} Command - Remove Color Role`,
 						`**Channel:** <#${interaction.channel?.id}>
-							**User:** <@${interaction.user.id}>
-							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+**User:** <@${interaction.user.id}>
+**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 					);
 				}
 

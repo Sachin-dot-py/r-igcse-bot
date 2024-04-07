@@ -38,13 +38,14 @@ export default class ColorRolesCommand extends BaseCommand {
 			return;
 		}
 
-		const colorRoles = guildColorRoles.filter(({ requirementRoleId }) =>
-			requirementRoleId
-				? interaction.member.roles.cache.has(requirementRoleId)
+		const colorRoles = guildColorRoles.filter(({ requirementRoleIds }) =>
+			requirementRoleIds
+				? requirementRoleIds.some((roleId) =>
+						interaction.member.roles.cache.has(roleId)
+				  )
 				: true
 		);
 
-		// TODO: Allow server boosters to have this as a perk
 		if (colorRoles.length < 1) {
 			await interaction.reply({
 				content: "No color roles are available for you ¯\\_(ツ)_/¯",
