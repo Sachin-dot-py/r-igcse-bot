@@ -14,12 +14,15 @@ interface PaginationStartOptions {
 	ephemeral: boolean;
 }
 
-export default class Pagination {
-	currentPage: number;
-	pages: InteractionEditReplyOptions[];
-	constructor(pages: InteractionEditReplyOptions[]) {
-		this.currentPage = 0;
-		this.pages = pages;
+export default class Pagination<T> {
+	constructor(
+		private chunks: T[][],
+		private mapChunk: (chunk: T[]) => Promise<InteractionEditReplyOptions>,
+		private currentPage = 0
+	) {
+		if (this.currentPage < 0) this.currentPage = 0;
+		if (this.currentPage >= this.chunks.length)
+			this.currentPage = this.chunks.length - 1;
 	}
 
 	async start({
@@ -29,17 +32,21 @@ export default class Pagination {
 	}: PaginationStartOptions): Promise<void> {
 		const row = await this.getButtons.bind(this)();
 
-		const messageData = this.pages[
-			this.currentPage
-		] as InteractionReplyOptions;
+		const messageData = (await this.mapChunk(
+			this.chunks[this.currentPage]
+		)) as InteractionReplyOptions;
 
-		const paginatorInteraction = await interaction.reply({
-			...messageData,
-			components: messageData.components
-				? [...messageData.components, row]
-				: [row],
-			ephemeral
-		});
+		const paginatorInteraction =
+			interaction.deferred || interaction.replied
+				? await interaction.editReply({
+						...messageData,
+						components: [...(messageData.components ?? []), row]
+					})
+				: await interaction.reply({
+						...messageData,
+						components: [...(messageData.components ?? []), row],
+						ephemeral
+					});
 
 		const collector = paginatorInteraction.createMessageComponentCollector({
 			filter: (i) => i.user.id === interaction.user.id,
@@ -61,7 +68,7 @@ export default class Pagination {
 					this.currentPage++;
 					break;
 				case "last":
-					this.currentPage = this.pages.length - 1;
+					this.currentPage = this.chunks.length - 1;
 					break;
 				default:
 					break;
@@ -69,51 +76,56 @@ export default class Pagination {
 
 			const componentsRow = await this.getButtons.bind(this)();
 
-			const data = this.pages[this.currentPage];
+			const data = await this.mapChunk(this.chunks[this.currentPage]);
 
 			await interaction.editReply({
 				...data,
-				components: data.components
-					? [...data.components, componentsRow]
-					: [componentsRow]
+				components: [...(messageData.components ?? []), componentsRow]
 			});
 		});
 
 		collector.on("end", async () => {
-			const data = this.pages[this.currentPage];
-			row.components.forEach((component) => component.setDisabled(true));
-			data.components = data.components
-				? [...data.components, row]
-				: [row];
+			const data = await this.mapChunk(this.chunks[this.currentPage]);
+			const componentsRow = await this.getButtons.bind(this)(true);
 
-			await interaction.editReply(data);
+			await interaction.editReply({
+				...data,
+				components: [...(messageData.components ?? []), componentsRow],
+				content: "Timed out!"
+			});
 		});
 	}
 
-	private async getButtons(): Promise<ActionRowBuilder<ButtonBuilder>> {
+	private async getButtons(
+		disabled?: boolean
+	): Promise<ActionRowBuilder<ButtonBuilder>> {
 		const firstButton = new ButtonBuilder()
 			.setCustomId("first")
 			.setEmoji("⏪")
 			.setStyle(ButtonStyle.Primary)
-			.setDisabled(this.currentPage === 0);
+			.setDisabled(disabled ?? this.currentPage === 0);
 
 		const previousButton = new ButtonBuilder()
 			.setCustomId("previous")
 			.setEmoji("⬅️")
 			.setStyle(ButtonStyle.Primary)
-			.setDisabled(this.currentPage === 0);
+			.setDisabled(disabled ?? this.currentPage === 0);
 
 		const lastButton = new ButtonBuilder()
 			.setCustomId("last")
 			.setEmoji("⏩")
 			.setStyle(ButtonStyle.Primary)
-			.setDisabled(this.currentPage + 1 === this.pages.length);
+			.setDisabled(
+				disabled ?? this.currentPage + 1 === this.chunks.length
+			);
 
 		const nextButton = new ButtonBuilder()
 			.setCustomId("next")
 			.setEmoji("➡️")
 			.setStyle(ButtonStyle.Primary)
-			.setDisabled(this.currentPage + 1 === this.pages.length);
+			.setDisabled(
+				disabled ?? this.currentPage + 1 === this.chunks.length
+			);
 
 		return new ActionRowBuilder<ButtonBuilder>().addComponents(
 			firstButton,
