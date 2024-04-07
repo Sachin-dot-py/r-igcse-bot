@@ -42,7 +42,7 @@ export default class ColorRolesCommand extends BaseCommand {
 			requirementRoleIds
 				? requirementRoleIds.some((roleId) =>
 						interaction.member.roles.cache.has(roleId)
-				  )
+					)
 				: true
 		);
 
@@ -95,7 +95,9 @@ export default class ColorRolesCommand extends BaseCommand {
 
 			if (!role) {
 				await i.member.roles
-					.remove(guildColorRoles.map((colorRole) => colorRole.roleId))
+					.remove(
+						guildColorRoles.map((colorRole) => colorRole.roleId)
+					)
 					.catch(() => {});
 				interaction.followUp({
 					content: "All color roles have been removed from you.",
@@ -111,7 +113,9 @@ export default class ColorRolesCommand extends BaseCommand {
 					return;
 				} else {
 					await i.member.roles
-						.remove(guildColorRoles.map((colorRole) => colorRole.roleId))
+						.remove(
+							guildColorRoles.map((colorRole) => colorRole.roleId)
+						)
 						.catch(() => {});
 					await i.member.roles.add(role);
 				}

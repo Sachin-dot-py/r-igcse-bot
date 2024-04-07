@@ -6,7 +6,12 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder
+} from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
 export default class ColorRolesCommand extends BaseCommand {
@@ -74,12 +79,15 @@ export default class ColorRolesCommand extends BaseCommand {
 					25,
 					`${customId}_0`,
 					[]
-				)
+				);
 
-				const row = new ActionRowBuilder<RoleSelect>().addComponents(roleSelectMenu);
+				const row = new ActionRowBuilder<RoleSelect>().addComponents(
+					roleSelectMenu
+				);
 
 				const selectInteraction = await interaction.reply({
-					content: "Select the required roles for this color role (click confirm to skip). User will need to have at least one of these roles to able to see this color role.",
+					content:
+						"Select the required roles for this color role (click confirm to skip). User will need to have at least one of these roles to able to see this color role.",
 					components: [
 						row,
 						new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
