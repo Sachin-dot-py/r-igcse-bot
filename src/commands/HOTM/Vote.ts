@@ -7,7 +7,7 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
-	APIEmbedField,
+	type APIEmbedField,
 	EmbedBuilder,
 	SlashCommandBuilder,
 	TextChannel
@@ -164,15 +164,15 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 	private async handleEmbed(
 		interaction: DiscordChatInputCommandInteraction<"cached">,
-		messageId: string,
+		messageId: string | undefined,
 		channelId: string
 	) {
 		const resultsChannel =
 			await interaction.guild.channels.cache.get(channelId);
 		if (!resultsChannel || !(resultsChannel instanceof TextChannel)) return;
-		let embedMessage = await resultsChannel.messages
-			.fetch(messageId)
-			.catch(() => null);
+		let embedMessage = messageId
+			? await resultsChannel.messages.fetch(messageId).catch(() => null)
+			: null;
 		const results = await HOTM.find({ guildId: interaction.guild.id })
 			.sort({ votes: -1 })
 			.limit(20)

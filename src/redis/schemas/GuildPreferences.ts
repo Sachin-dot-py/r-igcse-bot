@@ -22,6 +22,7 @@ const schema = new Schema("GuildPreferences", {
 	hotmResultsChannelId: { type: "string" },
 	hotmResultsEmbedId: { type: "string" },
 	studySessionChannelId: { type: "string" },
+	feedbackChannelId: { type: "string" },
 	modmailCreateChannelId: { type: "string" },
 	modmailThreadsChannelId: { type: "string" },
 	modmailLogsChannelId: { type: "string" },
