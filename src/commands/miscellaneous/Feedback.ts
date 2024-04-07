@@ -11,37 +11,17 @@ import {
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
+import { v4 as uuidv4 } from "uuid";
 
 export default class FeedbackCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
 				.setName("feedback")
-				.setDescription(
-					"Submit feedback to the teams behind the server"
-				)
-				.addStringOption((option) =>
-					option
-						.setName("team")
-						.setDescription("The team you want to send feedback to")
-						.setChoices(
-							{
-								name: "Moderators",
-								value: "mods"
-							},
-							{
-								name: "Bot Developers",
-								value: "devs"
-							},
-							{
-								name: "Resource Repository Team",
-								value: "resource"
-							}
-						)
-						.setRequired(true)
-				)
-				.setDMPermission(false),
-			true
+				.setDescription("Send feedback to the server moderators")
+				.setDMPermission(false)
 		);
 	}
 
@@ -49,21 +29,24 @@ export default class FeedbackCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		if (interaction.guildId !== process.env.MAIN_GUILD_ID) {
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId
+		);
+
+		if (!guildPreferences || !guildPreferences.feedbackChannelId) {
 			await interaction.reply({
-				content: "Feature not yet implemented for your server.",
+				content:
+					"Please setup the bot using the command `/setup` first.",
 				ephemeral: true
 			});
 
 			return;
 		}
 
-		const team = interaction.options.getString("team", true);
-
 		const feedbackInput = new TextInputBuilder()
 			.setCustomId("feedback-input")
-			.setLabel("Your feedback")
-			.setPlaceholder("The message you would like to send")
+			.setLabel("Feedback")
+			.setPlaceholder("The feedback you would like to send")
 			.setRequired(true)
 			.setStyle(TextInputStyle.Paragraph);
 
@@ -71,45 +54,25 @@ export default class FeedbackCommand extends BaseCommand {
 			feedbackInput
 		);
 
+		const modalCustomId = uuidv4();
+
 		const modal = new ModalBuilder()
-			.setCustomId("feedback-modal")
+			.setCustomId(modalCustomId)
 			.addComponents(row)
 			.setTitle("Feedback!");
 
 		await interaction.showModal(modal);
 
 		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 300_000,
-			filter: (i) => i.customId === "feedback-modal"
+			time: 600_000,
+			filter: (i) => i.customId === modalCustomId
 		});
 
 		const feedback =
 			modalInteraction.fields.getTextInputValue("feedback-input");
 
-		const channel = interaction.guild.channels.cache.get(
-			team === "devs"
-				? process.env.DEV_FEEDBACK_CHANNEL_ID
-				: process.env.MOD_FEEDBACK_CHANNEL_ID
-		);
-
-		if (!channel) {
-			await modalInteraction.reply(
-				`Unable to fetch ${team}-feedback channel. Try again later.`
-			);
-
-			return;
-		}
-
-		if (!channel.isTextBased()) {
-			await modalInteraction.reply(
-				"Feedback channel not configured correctly. Must be a text channel."
-			);
-
-			return;
-		}
-
 		const embed = new EmbedBuilder()
-			.setTitle(`bois we got some ${team} feedback`)
+			.setTitle(`bois we got some feedback`)
 			.setDescription(feedback)
 			.setColor(Colors.Blue)
 			.setAuthor({
@@ -117,7 +80,7 @@ export default class FeedbackCommand extends BaseCommand {
 				iconURL: interaction.user.displayAvatarURL()
 			});
 
-		await channel.send({
+		Logger.channel(interaction.guild, guildPreferences.feedbackChannelId, {
 			embeds: [embed]
 		});
 
