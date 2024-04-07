@@ -4,14 +4,14 @@ export interface IColorRole {
 	guildId: string;
 	label: string;
 	roleId: string;
-	requirementRoleId: string | null;
+	requirementRoleIds: string[] | null;
 	emoji: string | null;
 }
 
 const schema = new Schema<IColorRole>({
 	guildId: { type: String, required: true, unique: false },
-	requirementRoleId: {
-		type: String,
+	requirementRoleIds: {
+		type: [String],
 		required: false,
 		default: null,
 		unique: false

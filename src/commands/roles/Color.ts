@@ -38,13 +38,14 @@ export default class ColorRolesCommand extends BaseCommand {
 			return;
 		}
 
-		const colorRoles = guildColorRoles.filter(({ requirementRoleId }) =>
-			requirementRoleId
-				? interaction.member.roles.cache.has(requirementRoleId)
+		const colorRoles = guildColorRoles.filter(({ requirementRoleIds }) =>
+			requirementRoleIds
+				? requirementRoleIds.some((roleId) =>
+						interaction.member.roles.cache.has(roleId)
+					)
 				: true
 		);
 
-		// TODO: Allow server boosters to have this as a perk
 		if (colorRoles.length < 1) {
 			await interaction.reply({
 				content: "No color roles are available for you ¯\\_(ツ)_/¯",
@@ -94,7 +95,9 @@ export default class ColorRolesCommand extends BaseCommand {
 
 			if (!role) {
 				await i.member.roles
-					.remove(guildColorRoles.map((colorRole) => colorRole.roleId))
+					.remove(
+						guildColorRoles.map((colorRole) => colorRole.roleId)
+					)
 					.catch(() => {});
 				interaction.followUp({
 					content: "All color roles have been removed from you.",
@@ -110,7 +113,9 @@ export default class ColorRolesCommand extends BaseCommand {
 					return;
 				} else {
 					await i.member.roles
-						.remove(guildColorRoles.map((colorRole) => colorRole.roleId))
+						.remove(
+							guildColorRoles.map((colorRole) => colorRole.roleId)
+						)
 						.catch(() => {});
 					await i.member.roles.add(role);
 				}
