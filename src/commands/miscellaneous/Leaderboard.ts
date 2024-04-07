@@ -4,14 +4,11 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
 	Colors,
-	ComponentType,
 	EmbedBuilder,
 	SlashCommandBuilder
 } from "discord.js";
+import Pagination from "@/components/Pagination";
 
 export default class LeaderboardCommand extends BaseCommand {
 	constructor() {
@@ -35,7 +32,7 @@ export default class LeaderboardCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-		let page = interaction.options.getInteger("page", false) ?? 1;
+		let page = (interaction.options.getInteger("page", false) ?? 1) - 1;
 
 		await interaction.deferReply();
 
@@ -59,96 +56,34 @@ export default class LeaderboardCommand extends BaseCommand {
 			(_, i) => reps.slice(i * 9, i * 9 + 9)
 		);
 
-		const getPage = async (n: number) => {
-			if (n > chunks.length || n < 1)
-				return new EmbedBuilder()
-					.setTitle("Reputation Leaderboard")
+		const paginator = new Pagination(
+			chunks,
+			async (chunk) => {
+				const embed = new EmbedBuilder()
+					.setTitle("Rep Leaderboard")
 					.setColor(Colors.Blurple)
-					.setDescription("Invalid page number");
+					.setDescription(
+						`Page ${chunks.indexOf(chunk) + 1} of ${chunks.length}`
+					);
 
-			const embed = ((x) =>
-				chunks.length === 1
-					? x
-					: x.setDescription(`Page ${page} of ${chunks.length}`))(
-				new EmbedBuilder()
-			)
-				.setTitle("Reputation Leaderboard")
-				.setColor(Colors.Blurple);
+				for (const { userId, rep } of chunk) {
+					const user = await client.users.fetch(userId);
 
-			for (const { userId, rep } of chunks[n - 1])
-				await interaction.guild.members
-					.fetch(userId)
-					.then((member) =>
-						embed.addFields({
-							name: member.user.tag,
-							value: `${rep}`,
-							inline: true
-						})
-					)
-					.catch(() => {});
+					embed.addFields({
+						name: user.tag,
+						value: `${rep}`,
+						inline: true
+					});
+				}
 
-			return embed;
-		};
+				return { embeds: [embed] };
+			},
+			page
+		);
 
-		const getMessageComponents = () => {
-			if (chunks.length === 0) return [];
-
-			const firstButton = new ButtonBuilder()
-				.setCustomId("first")
-				.setEmoji("⏪")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === 1);
-
-			const previousButton = new ButtonBuilder()
-				.setCustomId("previous")
-				.setEmoji("⬅️")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === 1);
-
-			const nextButton = new ButtonBuilder()
-				.setCustomId("next")
-				.setEmoji("➡️")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length);
-
-			const lastButton = new ButtonBuilder()
-				.setCustomId("last")
-				.setEmoji("⏩")
-				.setStyle(ButtonStyle.Primary)
-				.setDisabled(page === chunks.length);
-
-			return [
-				new ActionRowBuilder<ButtonBuilder>().addComponents(
-					firstButton,
-					previousButton,
-					nextButton,
-					lastButton
-				)
-			];
-		};
-
-		const pageMessage = await interaction.followUp({
-			embeds: [await getPage(page)],
-			components: getMessageComponents()
-		});
-
-		const collector = pageMessage.createMessageComponentCollector({
-			componentType: ComponentType.Button,
-			filter: (i) => i.user.id === interaction.user.id
-		});
-
-		collector.on("collect", async (i) => {
-			i.deferUpdate();
-
-			if (i.customId === "first") page = 1;
-			else if (i.customId === "previous") page--;
-			else if (i.customId === "next") page++;
-			else if (i.customId === "last") page = chunks.length;
-
-			interaction.editReply({
-				embeds: [await getPage(page)],
-				components: getMessageComponents()
-			});
+		await paginator.start({
+			interaction,
+			ephemeral: false
 		});
 	}
 }

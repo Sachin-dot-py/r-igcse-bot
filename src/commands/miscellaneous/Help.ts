@@ -3,7 +3,6 @@ import {
 	EmbedBuilder,
 	PermissionsBitField,
 	SlashCommandBuilder,
-	type InteractionEditReplyOptions
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -42,18 +41,18 @@ export default class HelpCommand extends BaseCommand {
 			}
 		});
 
-		const pages: InteractionEditReplyOptions[] = [];
-
 		const chunks = Array.from(
 			{ length: Math.ceil(commands.size / 9) },
 			(_, i) => Array.from(commands.values()).slice(i * 9, i * 9 + 9)
 		);
 
-		for (const [i, chunk] of chunks.entries()) {
+		const paginator = new Pagination(chunks, async (chunk) => {
 			const embed = new EmbedBuilder()
 				.setTitle("Help Menu")
 				.setColor(Colors.Blurple)
-				.setDescription(`Page ${i + 1} of ${chunks.length}`);
+				.setDescription(
+					`Page ${chunks.indexOf(chunk) + 1} of ${chunks.length}`
+				);
 
 			for (const command of chunk) {
 				if ("description" in command.data)
@@ -63,10 +62,11 @@ export default class HelpCommand extends BaseCommand {
 					});
 			}
 
-			pages.push({ embeds: [embed] });
-		}
+			return {
+				embeds: [embed]
+			};
+		});
 
-		const paginator = new Pagination(pages);
 		await paginator.start({
 			interaction,
 			ephemeral: true,

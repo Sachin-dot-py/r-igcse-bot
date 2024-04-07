@@ -8,7 +8,6 @@ import {
 	Colors,
 	EmbedBuilder,
 	SlashCommandBuilder,
-	type InteractionEditReplyOptions
 } from "discord.js";
 
 export default class ListKeywordsCommand extends BaseCommand {
@@ -46,21 +45,19 @@ export default class ListKeywordsCommand extends BaseCommand {
 			(_, i) => keywords.slice(i * 9, i * 9 + 9)
 		);
 
-		const pages: InteractionEditReplyOptions[] = [];
-
-		for (const [i, chunk] of chunks.entries()) {
+		const paginator = new Pagination(chunks, async (chunk) => {
 			const embed = new EmbedBuilder()
 				.setTitle("Keywords")
 				.setColor(Colors.Blurple)
-				.setDescription(`Page ${i + 1} of ${chunks.length}`);
+				.setDescription(
+					`Page ${chunks.indexOf(chunk) + 1} of ${chunks.length}`
+				);
 
 			for (const { keyword } of chunk)
 				embed.addFields({ name: keyword, value: "\n", inline: true });
 
-			pages.push({ embeds: [embed] });
-		}
-
-		const paginator = new Pagination(pages);
+			return { embeds: [embed] };
+		});
 
 		await paginator.start({
 			interaction,
