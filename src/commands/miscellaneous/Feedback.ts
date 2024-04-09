@@ -14,7 +14,7 @@ import BaseCommand, {
 } from "../../registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import { v4 as uuidv4 } from "uuid";
-import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannels";
+import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannel";
 import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
 
@@ -41,16 +41,6 @@ export default class FeedbackCommand extends BaseCommand {
 				channelId: process.env.DEV_FEEDBACK_CHANNEL_ID
 			}]
 		});
-
-		if (feedbackTeams.length == 0) {
-			await interaction.reply({
-				content:
-					"Please setup feedback channels using the command `/feedback_channel add` first.",
-				ephemeral: true
-			});
-
-			return;
-		}
 
 		const feedbackInput = new TextInputBuilder()
 			.setCustomId("feedback-input")
@@ -79,15 +69,6 @@ export default class FeedbackCommand extends BaseCommand {
 
 		const feedback =
 			modalInteraction.fields.getTextInputValue("feedback-input");
-
-		const embed = new EmbedBuilder()
-			.setTitle(`bois we got some feedback rahh`)
-			.setDescription(feedback)
-			.setColor(Colors.Blue)
-			.setAuthor({
-				name: interaction.user.tag,
-				iconURL: interaction.user.displayAvatarURL()
-			});
 
 		const selectCustomId = uuidv4();
 
@@ -137,18 +118,31 @@ export default class FeedbackCommand extends BaseCommand {
 			return;
 		}
 
+		const embed = new EmbedBuilder()
+			.setTitle(`Feedback Received for ${team.label}`)
+			.setDescription(feedback)
+			.setColor(Colors.Blue)
+			.setAuthor({
+				name: interaction.user.tag,
+				iconURL: interaction.user.displayAvatarURL()
+			});
+
+		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
+
+		if (!mainGuild) return;
+
 		try {
-			Logger.channel(client.guilds.cache.get(process.env.MAIN_GUILD_ID)!, team.channelId, {
+			Logger.channel(mainGuild, team.channelId, {
 				embeds: [embed]
 			});
 
-			await modalInteraction.editReply({
+			modalInteraction.editReply({
 				content: "Feedback sent!",
 				components: []
 			});
 
 		} catch (error) {
-			await interaction.editReply({
+			interaction.editReply({
 				content:
 					"Encountered error while trying to send feedback. Please try again later."
 			});

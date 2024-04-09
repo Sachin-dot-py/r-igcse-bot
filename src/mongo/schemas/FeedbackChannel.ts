@@ -1,17 +1,15 @@
 import { Schema, model as createModel } from "mongoose";
 
-export interface IFeedbackChannels {
+export interface IFeedbackChannel {
     guildId: string;
     label: string;
     channelId: string;
 }
 
-const schema = new Schema<IFeedbackChannels>({
+const schema = new Schema<IFeedbackChannel>({
     guildId: { type: String, required: true, unique: false },
     label: { type: String, required: true, unique: false },
     channelId: { type: String, required: true, unique: false }
 });
 
-schema.index({ guildId: 1, label: 1 }, { unique: true });
-
-export const FeedbackChannels = createModel<IFeedbackChannels>("FeedbackChannels", schema);
+export const FeedbackChannels = createModel<IFeedbackChannel>("FeedbackChannel", schema);

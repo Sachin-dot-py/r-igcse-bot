@@ -1,4 +1,4 @@
-import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannels";
+import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
     type DiscordChatInputCommandInteraction
@@ -52,24 +52,15 @@ export default class FeedbackChannelCommand extends BaseCommand {
                 const channel = interaction.options.getChannel("channel", true);
                 const label = interaction.options.getString("team_label", true);
 
-                if (!channel?.isTextBased() || !channel) {
-                    await interaction.reply({
+                if (!channel.isTextBased()) {
+                    interaction.reply({
                         content: "Feedback channel must be a valid text channel.",
                         ephemeral: true
                     })
                     return;
                 }
 
-
-                if (!label) {
-                    await interaction.reply({
-                        content: "Please enter a valid team label.",
-                        ephemeral: true
-                    })
-                    return;
-                }
-
-                await interaction.reply({
+                interaction.reply({
                     content: `Adding feedback channel ${channel} for ${label}`,
                     ephemeral: true
                 })
@@ -86,32 +77,32 @@ export default class FeedbackChannelCommand extends BaseCommand {
                         { upsert: true }
                     );
 
-                    addChannel.upsertedCount > 0 ?
+                    if (addChannel.upsertedCount > 0) {
                         await interaction.editReply({
                             content: `Successfully added ${channel} as the feedback channel for ${label}!`
-                        }) :
-                        addChannel.modifiedCount > 0 ?
-                            await interaction.editReply({
-                                content: `Successfully updated ${channel} as the feedback channel for ${label}`
-                            }) :
-                            await interaction.editReply({
-                                content: `Error occured while creating feedback channel ${channel} for ${label}. Please try again later.`
-                            });
+                        });
+                    } else if (addChannel.modifiedCount > 0) {
+                        await interaction.editReply({
+                            content: `Successfully updated ${channel} as the feedback channel for ${label}`
+                        });
+                    } else {
+                        await interaction.editReply({
+                            content: `Error occured while creating feedback channel ${channel} for ${label}. Please try again later.`
+                        });
+                    }
                 } catch (error) {
-                    await interaction.editReply({
+                    interaction.editReply({
                         content:
                             `Encountered error while trying to add ${channel} as a feedback channel for ${label}. Please try again later.`
                     });
 
-                    console.log(error);
-
-                    // client.log(
-                    //     error,
-                    //     `${this.data.name} Command - Add Feedback Channel`,
-                    //     `**Channel:** <#${interaction.channel?.id}>
-                    // 		**User:** <@${interaction.user.id}>
-                    // 		**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
-                    // );
+                    client.log(
+                        error,
+                        `${this.data.name} Command - Add Feedback Channel`,
+                        `**Channel:** <#${interaction.channel?.id}>
+                    		**User:** <@${interaction.user.id}>
+                    		**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+                    );
                 }
                 break;
             }
@@ -122,7 +113,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
                 });
 
                 if (feedbackTeams.length == 0) {
-                    await interaction.reply({
+                    interaction.reply({
                         content: "There are no feedback channels to be removed",
                         ephemeral: true
                     })
@@ -160,7 +151,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
                 );
 
                 if (!response || response === "Timed out" || !response[0]) {
-                    await interaction.followUp({
+                    interaction.followUp({
                         content: "An error occurred",
                         ephemeral: false
                     })
@@ -170,21 +161,21 @@ export default class FeedbackChannelCommand extends BaseCommand {
                 const team = await FeedbackChannels.findById(response[0]);
 
                 if (!team) {
-                    await interaction.followUp({
+                    interaction.followUp({
                         content: "Team not found",
-                        ephemeral: false
+                        ephemeral: true
                     })
                     return;
                 }
 
                 try {
                     await team.deleteOne();
-                    await interaction.editReply({
+                    interaction.editReply({
                         content: `Successfully removed feedback for ${team.label}!`,
                         components: []
                     });
                 } catch (error) {
-                    await interaction.editReply({
+                    interaction.editReply({
                         content:
                             "Encountered error while trying to delete feedback channel. Please try again later."
                     });
