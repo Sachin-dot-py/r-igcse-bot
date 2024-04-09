@@ -37,6 +37,7 @@ export default class FeedbackCommand extends BaseCommand {
 	) {
 		const feedbackTeams = [
 			{
+				guildId: process.env.MAIN_GUILD_ID,
 				label: "Bot Developers",
 				channelId: process.env.DEV_FEEDBACK_CHANNEL_ID
 			},
@@ -44,7 +45,7 @@ export default class FeedbackCommand extends BaseCommand {
 				await FeedbackChannels.find({
 					guildId: interaction.guildId
 				})
-			).map((doc) => ({ label: doc.label, channelId: doc.channelId }))
+			).map((doc) => ({ guildId: doc.guildId, label: doc.label, channelId: doc.channelId }))
 		];
 
 		const feedbackInput = new TextInputBuilder()
@@ -80,10 +81,10 @@ export default class FeedbackCommand extends BaseCommand {
 		const teamSelect = new Select(
 			"team",
 			"Select a team to send the feedback to",
-			feedbackTeams.map(({ label, channelId }) =>
+			feedbackTeams.map(({ label }) =>
 				new StringSelectMenuOptionBuilder()
 					.setLabel(label)
-					.setValue(channelId)
+					.setValue(label)
 			),
 			1,
 			`${selectCustomId}_0`
@@ -114,8 +115,20 @@ export default class FeedbackCommand extends BaseCommand {
 			return;
 		}
 
+		const team = feedbackTeams.find((doc => doc.label === response[0]));
+
+		const feedbackGuild = client.guilds.cache.get(interaction.guildId);
+
+		if (!feedbackGuild || !team) return;
+
+		const messageGuild = client.guilds.cache.get(team.guildId)
+
+		if (!messageGuild) return;
+
+		const feedbackGuildMessage = team?.label === "Bot Developers" ? ` from ${feedbackGuild?.name} (${feedbackGuild?.id})` : "";
+
 		const embed = new EmbedBuilder()
-			.setTitle(`Feedback Received`)
+			.setTitle(`Feedback received${feedbackGuildMessage} for ${team.label}`)
 			.setDescription(feedback)
 			.setColor(Colors.Blue)
 			.setAuthor({
@@ -123,12 +136,8 @@ export default class FeedbackCommand extends BaseCommand {
 				iconURL: interaction.user.displayAvatarURL()
 			});
 
-		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
-
-		if (!mainGuild) return;
-
 		try {
-			Logger.channel(mainGuild, response[0], {
+			Logger.channel(messageGuild, team.channelId, {
 				embeds: [embed]
 			});
 

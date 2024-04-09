@@ -60,7 +60,15 @@ export default class FeedbackChannelCommand extends BaseCommand {
                     return;
                 }
 
-                interaction.deferReply({
+                if (label === "Bot Developers") {
+                    interaction.reply({
+                        content: "Label cannot be `Bot Developers`",
+                        ephemeral: true
+                    })
+                    return;
+                }
+
+                await interaction.deferReply({
                     ephemeral: true
                 });
 
