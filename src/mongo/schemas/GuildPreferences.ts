@@ -17,7 +17,6 @@ export type IGuildPreferences = {
 	hotmResultsChannelId: string;
 	hotmResultsEmbedId: string;
 	studySessionChannelId: string;
-	feedbackChannelId: string;
 
 	modmailCreateChannelId: string;
 	modmailThreadsChannelId: string;
@@ -45,7 +44,6 @@ const schema = new Schema<IGuildPreferences>({
 	hotmResultsChannelId: { type: String, default: null },
 	hotmResultsEmbedId: { type: String, default: null },
 	studySessionChannelId: { type: String, default: null },
-	feedbackChannelId: { type: String, default: null },
 	modmailCreateChannelId: { type: String, default: null },
 	modmailThreadsChannelId: { type: String, default: null },
 	modmailLogsChannelId: { type: String, default: null },

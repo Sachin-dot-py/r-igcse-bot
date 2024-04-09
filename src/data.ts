@@ -18,11 +18,14 @@ export const ywAliases = [
 	"شكر على واجب",//  Arabic
 	"bitte", // German
 	"kein problem", // German
+	"gern geschehen", // German
 	"不用客气", // Mandarin Chinese
 	"不用谢", // Mandarin Chinese
+	"不客气", // Mandarin Chinese
 	"bu yong", // Mandarin Chinese
 	"کوئی بات نہیں",//  Urdu
 	"مسئلہ نہیں", //  Urdu
+	"مَسْلَہ",//  Urdu
 	"koi baat nahi", // Urdu/Hindi
 	"masla nahi", // Urdu/Hindi
 	"कोई बात नहीं", // Hindi
@@ -52,9 +55,12 @@ export const tyAliases = [
 	"remerci", // French
 	"谢", // Mandarin Chinese
 	"谢谢", // Mandarin Chinese
+	"感谢", // Mandarin Chinese
+	"感恩", // Mandarin Chinese
 	"谢啦", // Mandarin Chinese
 	"谢了", // Mandarin Chinese
 	"谢过", // Mandarin Chinese
+	"没关系", // Mandarin Chinese
 	"xiexie", // Mandarin Chinese
 	"danke", // German
 	"vielen dank", // German
@@ -62,8 +68,8 @@ export const tyAliases = [
 	"shukriya", // Urdu/Hindi
 	"shukrya", // Urdu/Hindi
 	"shukria", // Urdu/Hindi
-	"dhanyewaat", // Hindi
-	"dhanyevaat",
+	"dhanyewaad", // Hindi
+	"dhanyevaad", // Hindi
 	"धन्येवात", // Hindi
 
 ];
@@ -420,11 +426,6 @@ export const preferences: Preference[] = [
 		name: "Study Session Channel",
 		type: "channel",
 		key: "studySessionChannelId"
-	},
-	{
-		name: "Feedback Channel",
-		type: "channel",
-		key: "feedbackChannelId"
 	},
 	{
 		name: "Modmail Create New DM Channel",
