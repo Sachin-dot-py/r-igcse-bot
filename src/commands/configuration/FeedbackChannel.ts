@@ -56,14 +56,13 @@ export default class FeedbackChannelCommand extends BaseCommand {
                     interaction.reply({
                         content: "Feedback channel must be a valid text channel.",
                         ephemeral: true
-                    })
+                    });
                     return;
                 }
 
-                interaction.reply({
-                    content: `Adding feedback channel ${channel} for ${label}`,
+                interaction.deferReply({
                     ephemeral: true
-                })
+                });
 
                 try {
                     const addChannel = await FeedbackChannels.updateOne(
@@ -116,7 +115,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
                     interaction.reply({
                         content: "There are no feedback channels to be removed",
                         ephemeral: true
-                    })
+                    });
                     return;
                 }
 
@@ -154,7 +153,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
                     interaction.followUp({
                         content: "An error occurred",
                         ephemeral: false
-                    })
+                    });
                     return;
                 }
 
@@ -164,7 +163,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
                     interaction.followUp({
                         content: "Team not found",
                         ephemeral: true
-                    })
+                    });
                     return;
                 }
 
