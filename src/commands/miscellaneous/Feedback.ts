@@ -1,6 +1,7 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	ActionRowBuilder,
+	ButtonBuilder,
 	Colors,
 	EmbedBuilder,
 	ModalBuilder,
@@ -11,16 +12,18 @@ import {
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
-import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
 import { v4 as uuidv4 } from "uuid";
+import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannels";
+import Select from "@/components/Select";
+import Buttons from "@/components/practice/views/Buttons";
 
 export default class FeedbackCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
 				.setName("feedback")
-				.setDescription("Send feedback to the server moderators")
+				.setDescription("Submit feedback to the teams behind the server")
 				.setDMPermission(false)
 		);
 	}
@@ -29,14 +32,20 @@ export default class FeedbackCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
-		);
 
-		if (!guildPreferences || !guildPreferences.feedbackChannelId) {
+		const feedbackTeams = await FeedbackChannels.find({
+			$or: [{
+				guildId: interaction.guildId
+			}, {
+				label: "Bot Developers",
+				channelId: process.env.DEV_FEEDBACK_CHANNEL_ID
+			}]
+		});
+
+		if (feedbackTeams.length == 0) {
 			await interaction.reply({
 				content:
-					"Please setup the bot using the command `/setup` first.",
+					"Please setup feedback channels using the command `/feedback_channel add` first.",
 				ephemeral: true
 			});
 
@@ -72,7 +81,7 @@ export default class FeedbackCommand extends BaseCommand {
 			modalInteraction.fields.getTextInputValue("feedback-input");
 
 		const embed = new EmbedBuilder()
-			.setTitle(`bois we got some feedback`)
+			.setTitle(`bois we got some feedback rahh`)
 			.setDescription(feedback)
 			.setColor(Colors.Blue)
 			.setAuthor({
@@ -80,13 +89,78 @@ export default class FeedbackCommand extends BaseCommand {
 				iconURL: interaction.user.displayAvatarURL()
 			});
 
-		Logger.channel(interaction.guild, guildPreferences.feedbackChannelId, {
-			embeds: [embed]
-		});
+		const selectCustomId = uuidv4();
 
-		await modalInteraction.reply({
-			content: "Feedback sent!",
+		const teamSelect = new Select(
+			"team",
+			"Select a team to send the feedback to",
+			feedbackTeams.map(({ label, id }) => ({
+				label: `${label}`,
+				value: id
+			})),
+			1,
+			`${selectCustomId}_0`
+		);
+
+		const selectInteraction = await modalInteraction.reply({
+			content: "Feedback acknowledged. Select a team to send feedback to",
+			components: [
+				new ActionRowBuilder<Select>().addComponents(teamSelect),
+				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>
+			],
+			fetchReply: true,
 			ephemeral: true
 		});
+
+		const response = await teamSelect.waitForResponse(
+			`${selectCustomId}_0`,
+			selectInteraction,
+			interaction,
+			true
+		);
+
+		if (!response || response === "Timed out" || !response[0]) {
+			await interaction.followUp({
+				content: "An error occurred",
+				ephemeral: false
+			})
+			return;
+		}
+
+		const team = await FeedbackChannels.findById(response[0]);
+
+		if (!team) {
+			await interaction.followUp({
+				content: "Team not found",
+				ephemeral: false
+			})
+			return;
+		}
+
+		try {
+			Logger.channel(client.guilds.cache.get(process.env.MAIN_GUILD_ID)!, team.channelId, {
+				embeds: [embed]
+			});
+
+			await modalInteraction.editReply({
+				content: "Feedback sent!",
+				components: []
+			});
+
+		} catch (error) {
+			await interaction.editReply({
+				content:
+					"Encountered error while trying to send feedback. Please try again later."
+			});
+
+			// client.log(
+			// 	error,
+			// 	`${this.data.name} Command - Send Feedback`,
+			// 	`**Channel:** <#${interaction.channel?.id}>
+			// 				**User:** <@${interaction.user.id}>
+			// 				**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+			// );
+		}
+
 	}
 }
