@@ -61,47 +61,12 @@ export default class ClientReadyEvent extends BaseEvent {
 				else if (channel instanceof ForumChannel) channelCount.forum++;
 
 			const readyEmbed = new EmbedBuilder()
-				.setTitle(`${client.user.tag} restarted successfully!`)
+				.setTitle(`Restarted successfully!`)
 				.setColor(Colors.Green)
 				.setAuthor({
 					name: client.user.tag,
 					iconURL: client.user.displayAvatarURL()
-				})
-				.addFields([
-					{
-						name: "Bot Information",
-						value: `\`\`\`Name: ${client.user.tag}
-Created on: ${timeFormatter(client.user.createdAt)}
-Joined on: ${timeFormatter(mainGuild.joinedAt)}
-Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
-No. of guilds: ${client.guilds.cache.size}
-ID: ${client.user.id}\`\`\``,
-						inline: false
-					},
-					{
-						name: "Guild Information",
-						value: `\`\`\`Name: ${mainGuild.name}
-Owner: ${(await mainGuild.fetchOwner()).user.tag}
-Created on: ${timeFormatter(mainGuild.createdAt)}
-Members: ${mainGuild.memberCount}
-Boosts: ${mainGuild.premiumSubscriptionCount}
-ID: ${mainGuild.id}\`\`\``,
-						inline: false
-					},
-
-					{
-						name: "Channels & Commands",
-						value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
-No. of members: ${mainGuild.memberCount}
-No. of bots: ${mainGuild.members.cache.filter((member) => member.user.bot).size}
-No. of categories: ${channelCount.category}
-No. of text-channels: ${channelCount.text}
-No. of voice-channels: ${channelCount.voice}
-No. of forum-channels: ${channelCount.forum}
-No. of slash-commands: ${client.commands.size}\`\`\``,
-						inline: false
-					}
-				]);
+				}).setTimestamp()
 
 			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [readyEmbed]
