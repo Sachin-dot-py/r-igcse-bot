@@ -6,6 +6,7 @@ import {
 	EmbedBuilder,
 	ModalBuilder,
 	SlashCommandBuilder,
+	StringSelectMenuOptionBuilder,
 	TextInputBuilder,
 	TextInputStyle
 } from "discord.js";
@@ -23,7 +24,9 @@ export default class FeedbackCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("feedback")
-				.setDescription("Submit feedback to the teams behind the server")
+				.setDescription(
+					"Submit feedback to the teams behind the server"
+				)
 				.setDMPermission(false)
 		);
 	}
@@ -32,15 +35,17 @@ export default class FeedbackCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-
-		const feedbackTeams = await FeedbackChannels.find({
-			$or: [{
-				guildId: interaction.guildId
-			}, {
+		const feedbackTeams = [
+			{
 				label: "Bot Developers",
 				channelId: process.env.DEV_FEEDBACK_CHANNEL_ID
-			}]
-		});
+			},
+			...(
+				await FeedbackChannels.find({
+					guildId: interaction.guildId
+				})
+			).map((doc) => ({ label: doc.label, channelId: doc.channelId }))
+		];
 
 		const feedbackInput = new TextInputBuilder()
 			.setCustomId("feedback-input")
@@ -75,10 +80,11 @@ export default class FeedbackCommand extends BaseCommand {
 		const teamSelect = new Select(
 			"team",
 			"Select a team to send the feedback to",
-			feedbackTeams.map(({ label, id }) => ({
-				label: `${label}`,
-				value: id
-			})),
+			feedbackTeams.map(({ label, channelId }) =>
+				new StringSelectMenuOptionBuilder()
+					.setLabel(label)
+					.setValue(channelId)
+			),
 			1,
 			`${selectCustomId}_0`
 		);
@@ -104,22 +110,12 @@ export default class FeedbackCommand extends BaseCommand {
 			await interaction.followUp({
 				content: "An error occurred",
 				ephemeral: false
-			})
-			return;
-		}
-
-		const team = await FeedbackChannels.findById(response[0]);
-
-		if (!team) {
-			await interaction.followUp({
-				content: "Team not found",
-				ephemeral: false
-			})
+			});
 			return;
 		}
 
 		const embed = new EmbedBuilder()
-			.setTitle(`Feedback Received for ${team.label}`)
+			.setTitle(`Feedback Received`)
 			.setDescription(feedback)
 			.setColor(Colors.Blue)
 			.setAuthor({
@@ -132,7 +128,7 @@ export default class FeedbackCommand extends BaseCommand {
 		if (!mainGuild) return;
 
 		try {
-			Logger.channel(mainGuild, team.channelId, {
+			Logger.channel(mainGuild, response[0], {
 				embeds: [embed]
 			});
 
@@ -140,7 +136,6 @@ export default class FeedbackCommand extends BaseCommand {
 				content: "Feedback sent!",
 				components: []
 			});
-
 		} catch (error) {
 			interaction.editReply({
 				content:
@@ -155,6 +150,5 @@ export default class FeedbackCommand extends BaseCommand {
 			// 				**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 			// );
 		}
-
 	}
 }
