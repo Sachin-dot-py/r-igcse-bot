@@ -428,11 +428,6 @@ export const preferences: Preference[] = [
 		key: "studySessionChannelId"
 	},
 	{
-		name: "Feedback Channel",
-		type: "channel",
-		key: "feedbackChannelId"
-	},
-	{
 		name: "Modmail Create New DM Channel",
 		type: "channel",
 		key: "modmailCreateChannelId"
