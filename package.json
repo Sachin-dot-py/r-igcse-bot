@@ -10,30 +10,29 @@
 		"format": "prettier . --write"
 	},
 	"dependencies": {
-		"bufferutil": "^4.0.8",
+		"bufferutil": "^4",
 		"chucklejs": "^1",
 		"discord.js": "^14",
-		"humanize-duration": "^3.31.0",
-		"inquirer": "^9.2.16",
+		"humanize-duration": "^3",
+		"inquirer": "^9",
 		"mongoose": "^8",
-		"parse-duration": "^1.1.0",
+		"parse-duration": "^1",
 		"redis": "^4",
 		"redis-om": "^0.4",
-		"utf-8-validate": "^6.0.3",
+		"utf-8-validate": "^6",
 		"uuid": "^9",
-		"zlib-sync": "^0.1.9"
+		"zlib-sync": "^0.1"
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
-		"@types/humanize-duration": "^3.27.4",
-		"@types/inquirer": "^9.0.7",
+		"@types/humanize-duration": "^3",
+		"@types/inquirer": "^9",
 		"@types/uuid": "^9",
-		"@typescript-eslint/eslint-plugin": "latest",
-		"@typescript-eslint/parser": "latest",
-		"dotenv": "latest",
-		"eslint": "latest",
-		"eslint-config-prettier": "^9.1.0",
-		"prettier": "latest",
-		"typescript": "latest"
+		"@typescript-eslint/eslint-plugin": "^7",
+		"@typescript-eslint/parser": "^7",
+		"eslint": "^8",
+		"eslint-config-prettier": "^9",
+		"prettier": "^3",
+		"typescript": "^5"
 	}
 }
