@@ -59,6 +59,11 @@ export default class HelperMenu extends BaseCommand {
 			return;
 		}
 
+		interaction.reply({
+			content: "okay",
+			ephemeral: true
+		});
+
 		const boosterRole = await interaction.guild.roles.cache.find(
 			(role) => role.name === "Server Booster"
 		);
