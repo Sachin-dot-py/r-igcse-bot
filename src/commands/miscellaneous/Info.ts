@@ -11,7 +11,7 @@ export default class InfoCommand extends BaseCommand {
 				.setName("info")
 				.setDescription("Bot information and statistics")
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-				.setDMPermission(false)
+				.setDMPermission(true)
 		);
 	}
 
@@ -22,18 +22,15 @@ export default class InfoCommand extends BaseCommand {
 		await interaction.deferReply();
 
 
-		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
-
 		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
 			year: "numeric",
 			month: "numeric",
 			day: "numeric"
 		});
 
-		var embed = new EmbedBuilder()
+		const embed = new EmbedBuilder()
 			.setTitle('Bot Information')
-		if (mainGuild) {
-
+		if (interaction.guild) {
 			const channelCount = {
 				category: 0,
 				text: 0,
@@ -41,7 +38,7 @@ export default class InfoCommand extends BaseCommand {
 				forum: 0
 			};
 
-			for (const channel of mainGuild.channels.cache.values())
+			for (const channel of interaction.guild.channels.cache.values())
 				if (channel instanceof TextChannel) channelCount.text++;
 				else if (channel instanceof CategoryChannel)
 					channelCount.category++;
@@ -53,7 +50,7 @@ export default class InfoCommand extends BaseCommand {
 					name: "General Information",
 					value: `\`\`\`Name: ${client.user.tag}
 Created on: ${timeFormatter(client.user.createdAt)}
-Joined on: ${timeFormatter(mainGuild.joinedAt)}
+Joined on: ${timeFormatter(interaction.guild.joinedAt)}
 Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
 No. of guilds: ${client.guilds.cache.size}
 ID: ${client.user.id}\`\`\``,
@@ -61,19 +58,19 @@ ID: ${client.user.id}\`\`\``,
 				},
 				{
 					name: "Guild Information",
-					value: `\`\`\`Name: ${mainGuild.name}
-Owner: ${(await mainGuild.fetchOwner()).user.tag}
-Created on: ${timeFormatter(mainGuild.createdAt)}
-Members: ${mainGuild.memberCount}
-Boosts: ${mainGuild.premiumSubscriptionCount}
-ID: ${mainGuild.id}\`\`\``,
+					value: `\`\`\`Name: ${interaction.guild.name}
+Owner: ${(await interaction.guild.fetchOwner()).user.tag}
+Created on: ${timeFormatter(interaction.guild.createdAt)}
+Members: ${interaction.guild.memberCount}
+Boosts: ${interaction.guild.premiumSubscriptionCount}
+ID: ${interaction.guild.id}\`\`\``,
 					inline: false
 				},
 				{
 					name: "Channels & Commands",
-					value: `\`\`\`No. of roles: ${mainGuild.roles.cache.size}
-No. of members: ${mainGuild.memberCount}
-No. of bots: ${mainGuild.members.cache.filter((member) => member.user.bot).size}
+					value: `\`\`\`No. of roles: ${interaction.guild.roles.cache.size}
+No. of members: ${interaction.guild.memberCount}
+No. of bots: ${interaction.guild.members.cache.filter((member) => member.user.bot).size}
 No. of catagories: ${channelCount.category}
 No. of text-channels: ${channelCount.text}
 No. of voice-channels: ${channelCount.voice}
