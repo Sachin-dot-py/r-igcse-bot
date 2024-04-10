@@ -28,7 +28,7 @@ export default class LeaderboardCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-		let page = (interaction.options.getInteger("page", false) ?? 1) - 1;
+		const page = (interaction.options.getInteger("page", false) ?? 1) - 1;
 
 		await interaction.deferReply();
 

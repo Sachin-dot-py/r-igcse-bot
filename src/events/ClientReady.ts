@@ -38,12 +38,6 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online"
 		});
 
-		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
-			year: "numeric",
-			month: "numeric",
-			day: "numeric"
-		});
-
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
 			const channelCount = {

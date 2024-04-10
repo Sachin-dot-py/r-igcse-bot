@@ -5,8 +5,7 @@ import {
 	ComponentType,
 	Message,
 	ModalSubmitInteraction,
-	type APISelectMenuOption,
-	ButtonInteraction
+	type APISelectMenuOption
 } from "discord.js";
 
 class Select extends StringSelectMenuBuilder {
