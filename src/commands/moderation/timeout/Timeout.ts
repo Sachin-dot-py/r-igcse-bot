@@ -86,7 +86,7 @@ export default class TimeoutCommand extends BaseCommand {
 			? 2419200
 			: parse(durationString, "second") ?? 86400;
 
-		if (duration <= 60) {
+		if (duration < 60) {
 			interaction.editReply({
 				content: "Duration must be at least 1 minute"
 			});
