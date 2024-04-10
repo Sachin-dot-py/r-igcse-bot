@@ -12,10 +12,10 @@ export const ywAliases = [
 	"derien", // French
 	"de rien", // French
 	"pas de problem", // French
-	"عفوا",//  Arabic
+	"عفوا", //  Arabic
 	"afwan", // Arabic
 	"aafwan", // Arabic
-	"شكر على واجب",//  Arabic
+	"شكر على واجب", //  Arabic
 	"bitte", // German
 	"kein problem", // German
 	"gern geschehen", // German
@@ -23,14 +23,13 @@ export const ywAliases = [
 	"不用谢", // Mandarin Chinese
 	"不客气", // Mandarin Chinese
 	"bu yong", // Mandarin Chinese
-	"کوئی بات نہیں",//  Urdu
+	"کوئی بات نہیں", //  Urdu
 	"مسئلہ نہیں", //  Urdu
-	"مَسْلَہ",//  Urdu
+	"مَسْلَہ", //  Urdu
 	"koi baat nahi", // Urdu/Hindi
 	"masla nahi", // Urdu/Hindi
 	"कोई बात नहीं", // Hindi
-	"मसला नहीं", // Hindi
-
+	"मसला नहीं" // Hindi
 ];
 
 export const tyAliases = [
@@ -46,7 +45,7 @@ export const tyAliases = [
 	"tq",
 	"tanku",
 	"terima", // Malay
-	"شكرا",//  Arabic
+	"شكرا", //  Arabic
 	"shukran", // Arabic
 	"shokran", // Arabic
 	"shkran", // Arabic
@@ -70,8 +69,7 @@ export const tyAliases = [
 	"shukria", // Urdu/Hindi
 	"dhanyewaad", // Hindi
 	"dhanyevaad", // Hindi
-	"धन्येवात", // Hindi
-
+	"धन्येवात" // Hindi
 ];
 
 export const botYwResponses = [

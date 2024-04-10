@@ -3,11 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import {
-	Colors,
-	EmbedBuilder,
-	SlashCommandBuilder
-} from "discord.js";
+import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import Pagination from "@/components/Pagination";
 
 export default class LeaderboardCommand extends BaseCommand {

@@ -1,4 +1,12 @@
-import { CategoryChannel, EmbedBuilder, ForumChannel, PermissionFlagsBits, SlashCommandBuilder, TextChannel, VoiceChannel } from "discord.js";
+import {
+	CategoryChannel,
+	EmbedBuilder,
+	ForumChannel,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+	TextChannel,
+	VoiceChannel
+} from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
@@ -21,15 +29,13 @@ export default class InfoCommand extends BaseCommand {
 	) {
 		await interaction.deferReply();
 
-
 		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
 			year: "numeric",
 			month: "numeric",
 			day: "numeric"
 		});
 
-		const embed = new EmbedBuilder()
-			.setTitle('Bot Information')
+		const embed = new EmbedBuilder().setTitle("Bot Information");
 		if (interaction.guild) {
 			const channelCount = {
 				category: 0,
@@ -89,9 +95,9 @@ Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
 No. of guilds: ${client.guilds.cache.size}
 ID: ${client.user.id}\`\`\``,
 					inline: false
-				}])
+				}
+			]);
 		}
-
 
 		await interaction.followUp({
 			embeds: [embed]
