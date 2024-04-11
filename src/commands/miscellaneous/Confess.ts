@@ -3,7 +3,10 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	EmbedBuilder,
-	SlashCommandBuilder
+	ModalBuilder,
+	SlashCommandBuilder,
+	TextInputBuilder,
+	TextInputStyle
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -24,14 +27,6 @@ export default class FunFactCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("confess")
 				.setDescription("Make an anonymous confession")
-				.addStringOption((option) =>
-					option
-						.setName("confession")
-						.setDescription(
-							"Write your confession and it will be sent anonymously"
-						)
-						.setRequired(true)
-				)
 		);
 	}
 
@@ -39,7 +34,6 @@ export default class FunFactCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const confession = interaction.options.getString("confession", true);
 
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
@@ -104,6 +98,41 @@ export default class FunFactCommand extends BaseCommand {
 			}
 		}
 
+		//#region Modal
+		const feedbackInput = new TextInputBuilder()
+			.setCustomId("confession-input")
+			.setLabel("Confession")
+			.setPlaceholder("The confession you would like to send")
+			.setRequired(true)
+			.setStyle(TextInputStyle.Paragraph);
+
+		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
+			feedbackInput
+		);
+
+		const modalCustomId = uuidv4();
+
+		const modal = new ModalBuilder()
+			.setCustomId(modalCustomId)
+			.addComponents(row)
+			.setTitle("Confession");
+
+		await interaction.showModal(modal);
+
+		const modalInteraction = await interaction.awaitModalSubmit({
+			time: 600_000,
+			filter: (i) => i.customId === modalCustomId
+		});
+
+		const confession =
+			modalInteraction.fields.getTextInputValue("confession-input");
+			
+		await modalInteraction.reply({
+			content: "Confession sent",
+			ephemeral: true
+		});
+		//#endregion
+
 		const embed = new EmbedBuilder()
 			.setDescription(confession)
 			.setColor("Random");
@@ -136,7 +165,7 @@ export default class FunFactCommand extends BaseCommand {
 			components: [buttonsRow]
 		});
 
-		await interaction.reply({
+		await interaction.followUp({
 			content:
 				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
 			ephemeral: true
