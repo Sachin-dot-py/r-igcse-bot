@@ -128,7 +128,7 @@ export default class FunFactCommand extends BaseCommand {
 			modalInteraction.fields.getTextInputValue("confession-input");
 			
 		await modalInteraction.reply({
-			content: "Confession sent",
+			content: "Your confession has been sent to the moderators.\nYou have to wait for their approval.",
 			ephemeral: true
 		});
 		//#endregion
@@ -163,12 +163,6 @@ export default class FunFactCommand extends BaseCommand {
 		const message = await approvalChannel.send({
 			embeds: [embed],
 			components: [buttonsRow]
-		});
-
-		await interaction.followUp({
-			content:
-				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
-			ephemeral: true
 		});
 
 		await ButtonInteractionCache.set(`${customId}_confession`, {
