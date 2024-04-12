@@ -446,7 +446,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 		if (repDisabledChannels.includes(channelId)) return;
 
-		for (const user of await this.getReppedUsers(message)) {
+		for (const user of await this.getReppedUsers(client, message)) {
 			if (user.id === client.user.id) {
 				await message.reply(
 					botYwResponses[
@@ -500,7 +500,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		}
 	}
 
-	private async getReppedUsers(message: Message) {
+	private async getReppedUsers(client: DiscordClient<true>, message: Message) {
 		const users = new Set<User>();
 
 		if (
@@ -538,7 +538,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			else if (reference.author.bot)
 				message.reply("Uh-oh, you can't get rep from a bot");
 			else {
-				const referenceRepped = await this.getReppedUsers(reference);
+				const referenceRepped = await this.getReppedUsers(client, reference);
 
 				if (!referenceRepped.has(message.author))
 					users.add(message.author);
