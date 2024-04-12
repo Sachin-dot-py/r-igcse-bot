@@ -13,7 +13,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
         super(
             new SlashCommandBuilder()
                 .setName("feedback_channel")
-                .setDescription("Modify feedback channel (for mods)")
+                .setDescription("Modify feedback channels (for mods)")
                 .addSubcommand((subcommand) =>
                     subcommand
                         .setName("add")

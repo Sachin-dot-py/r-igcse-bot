@@ -9,19 +9,18 @@ import Logger from "@/utils/Logger";
 import createTask from "@/utils/createTask";
 import {
 	ActivityType,
-	CategoryChannel,
 	Colors,
 	EmbedBuilder,
 	Events,
 	ForumChannel,
 	TextChannel,
-	ThreadChannel,
-	VoiceChannel
+	ThreadChannel
 } from "discord.js";
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { EntityId } from "redis-om";
+import type HOTMSessionCommand from "@/commands/HOTM/VotingSession";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -38,28 +37,8 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online"
 		});
 
-		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
-			year: "numeric",
-			month: "numeric",
-			day: "numeric"
-		});
-
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
-			const channelCount = {
-				category: 0,
-				text: 0,
-				voice: 0,
-				forum: 0
-			};
-
-			for (const channel of mainGuild.channels.cache.values())
-				if (channel instanceof TextChannel) channelCount.text++;
-				else if (channel instanceof CategoryChannel)
-					channelCount.category++;
-				else if (channel instanceof VoiceChannel) channelCount.voice++;
-				else if (channel instanceof ForumChannel) channelCount.forum++;
-
 			const readyEmbed = new EmbedBuilder()
 				.setTitle(`Restarted successfully!`)
 				.setColor(Colors.Green)
@@ -89,6 +68,15 @@ export default class ClientReadyEvent extends BaseEvent {
 		if (goStudyCommand) {
 			Logger.info("Starting go study loop");
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
+		}
+
+		const newSessionCommand = client.commands.get("hotm_session") as
+			| HOTMSessionCommand
+			| undefined;
+
+		if (newSessionCommand) {
+			Logger.info("Starting voting session loop");
+			setInterval(() => newSessionCommand.endSession(client), 3_600_000);
 		}
 
 		await this.loadKeywordsCache().catch(Logger.error);

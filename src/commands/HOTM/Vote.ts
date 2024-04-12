@@ -1,4 +1,5 @@
-import { HOTM, HOTMUser, GuildPreferences } from "@/mongo";
+import { GuildPreferences, HOTM, HOTMUser } from "@/mongo";
+import { HOTMSessions } from "@/mongo/schemas/HOTMSessions";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
@@ -6,12 +7,8 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
-import {
-	type APIEmbedField,
-	EmbedBuilder,
-	SlashCommandBuilder,
-	TextChannel
-} from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
+import HOTMSessionCommand from "./VotingSession";
 
 export default class HOTMVotingCommand extends BaseCommand {
 	constructor() {
@@ -33,6 +30,17 @@ export default class HOTMVotingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		const currentSession = await HOTMSessions.findOne({ guildId: interaction.guildId });
+
+		if (!currentSession || currentSession.startDate > Date.now()) {
+			await interaction.reply({
+				content: "The voting session for a Helper Of The Month hasn't started",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
@@ -70,6 +78,15 @@ export default class HOTMVotingCommand extends BaseCommand {
 				guildId: interaction.guild.id,
 				userId: interaction.user.id
 			}));
+
+		if (interaction.user.id === helper.id) {
+			interaction.reply({
+				content: "You cannot vote for yourself",
+				ephemeral: true
+			})
+
+			return;
+		}
 
 		if (hotmUser.voted.length >= 3) {
 			interaction.reply({
@@ -113,6 +130,10 @@ export default class HOTMVotingCommand extends BaseCommand {
 			return;
 		}
 
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const helperDoc = await HOTM.findOne({
 			guildId: interaction.guildId,
 			helperId: helper.id
@@ -142,13 +163,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 			{ upsert: true }
 		);
 
-		this.handleEmbed(
-			interaction,
-			guildPreferences.hotmResultsEmbedId,
-			guildPreferences.hotmResultsChannelId
-		);
-
-		Logger.channel(
+		await Logger.channel(
 			interaction.guild,
 			guildPreferences.hotmResultsChannelId,
 			{
@@ -156,58 +171,20 @@ export default class HOTMVotingCommand extends BaseCommand {
 			}
 		);
 
-		interaction.reply({
-			content: `You voted for ${helper.tag} and have ${3 - (hotmUser.voted.length + 1)} votes left.`,
-			ephemeral: true
-		});
-	}
+		const newSessionCommand = client.commands.get("hotm_session") as
+			| HOTMSessionCommand
+			| undefined;
 
-	private async handleEmbed(
-		interaction: DiscordChatInputCommandInteraction<"cached">,
-		messageId: string | undefined,
-		channelId: string
-	) {
-		const resultsChannel =
-			await interaction.guild.channels.cache.get(channelId);
-		if (!resultsChannel || !(resultsChannel instanceof TextChannel)) return;
-		let embedMessage = messageId
-			? await resultsChannel.messages.fetch(messageId).catch(() => null)
-			: null;
-		const results = await HOTM.find({ guildId: interaction.guild.id })
-			.sort({ votes: -1 })
-			.limit(20)
-			.exec();
-		const fields: APIEmbedField[] = [];
-		for (const helper of results) {
-			const user = await interaction.guild.members
-				.fetch(helper.helperId)
-				.catch(() => null);
-			fields.push({
-				name: user ? `${user.user.tag} (${user.id})` : helper.helperId,
-				value: `Votes: ${helper.votes}`
-			});
-		}
-		const embed = new EmbedBuilder()
-			.setTitle("HOTM Results")
-			.setTimestamp()
-			.addFields(...fields);
+		const updatedGuildPreferences = await GuildPreferences.findOne({ guildId: interaction.guildId });
 
-		if (!messageId || !embedMessage) {
-			embedMessage = await resultsChannel.send({
-				embeds: [embed]
-			});
-			await GuildPreferences.updateOne(
-				{
-					guildId: interaction.guild.id
-				},
-				{
-					hotmResultsEmbedId: embedMessage.id
-				}
-			);
-			return;
-		}
-		await embedMessage.edit({
-			embeds: [embed]
+		await newSessionCommand?.handleEmbed(
+			interaction.guild,
+			updatedGuildPreferences?.hotmResultsEmbedId,
+			guildPreferences.hotmResultsChannelId
+		);
+
+		interaction.editReply({
+			content: `You voted for ${helper.tag} and have ${3 - (hotmUser.voted.length + 1)} votes left.`
 		});
 	}
 }
