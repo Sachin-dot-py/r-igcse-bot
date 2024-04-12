@@ -1,4 +1,4 @@
-import { HOTM, HOTMUser, HOTMSession } from "@/mongo";
+import { HOTM, HOTMUser, HOTMSession, GuildPreferences } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
@@ -39,7 +39,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		) {
 			await interaction.reply({
 				content:
-					"The voting session for a Helper Of The Month hasn't started",
+					"The voting period has not started yet or has already ended.",
 				ephemeral: true
 			});
 
@@ -180,9 +180,13 @@ export default class HOTMVotingCommand extends BaseCommand {
 			| HOTMSessionCommand
 			| undefined;
 
+		const mongoGuildPreferences = await GuildPreferences.findOne({
+			guildId: interaction.guild.id
+		});
+
 		await newSessionCommand?.handleEmbed(
 			interaction.guild,
-			guildPreferences?.hotmResultsEmbedId,
+			mongoGuildPreferences?.hotmResultsEmbedId,
 			guildPreferences.hotmResultsChannelId
 		);
 
