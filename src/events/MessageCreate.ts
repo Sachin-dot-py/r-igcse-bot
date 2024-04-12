@@ -511,6 +511,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			for (const user of message.mentions.users.values())
 				if (message.author.id === user.id)
 					message.reply("You can't rep yourself dummy!");
+				else if (user.bot) message.reply("Uh-oh, you can't rep a bot");
 				else users.add(user);
 
 			if (message.reference) {
@@ -518,6 +519,8 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				if (message.author.id === reference.author.id)
 					message.reply("You can't rep yourself dummy!");
+				else if (reference.author.bot)
+					message.reply("Uh-oh, you can't rep a bot");
 				else users.add(reference.author);
 			}
 		} else if (
@@ -530,6 +533,10 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (reference.author.id === message.author.id)
 				message.reply("You can't rep yourself dummy!");
+			else if (reference.author.id === client.user.id)
+				message.reply("I never said thanks");
+			else if (reference.author.bot)
+				message.reply("Uh-oh, you can't get rep from a bot");
 			else {
 				const referenceRepped = await this.getReppedUsers(reference);
 

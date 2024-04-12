@@ -2,7 +2,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionsBitField,
-	SlashCommandBuilder,
+	SlashCommandBuilder
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction

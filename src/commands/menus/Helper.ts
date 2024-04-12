@@ -37,7 +37,7 @@ export default class HelperMenu extends BaseCommand {
 		});
 
 		if (!studyChannel) {
-			await interaction.reply({
+			interaction.reply({
 				content: "No helper for this channel",
 				ephemeral: true
 			});
@@ -50,7 +50,7 @@ export default class HelperMenu extends BaseCommand {
 		);
 
 		if (!role) {
-			await interaction.reply({
+			interaction.reply({
 				content:
 					"Invalid configuration for this channel's helper role. Please contact an admin.",
 				ephemeral: true
@@ -58,6 +58,11 @@ export default class HelperMenu extends BaseCommand {
 
 			return;
 		}
+
+		interaction.reply({
+			content: "okay",
+			ephemeral: true
+		});
 
 		const boosterRole = await interaction.guild.roles.cache.find(
 			(role) => role.name === "Server Booster"
@@ -72,10 +77,11 @@ export default class HelperMenu extends BaseCommand {
 					iconURL: interaction.user.displayAvatarURL()
 				});
 
-			await interaction.channel.send({
+			interaction.channel.send({
 				content: role.toString(),
 				embeds: [embed]
 			});
+
 			return;
 		}
 
@@ -97,7 +103,7 @@ export default class HelperMenu extends BaseCommand {
 			cancelButton
 		);
 
-		const pingMessage = await interaction.reply({
+		const pingMessage = await interaction.targetMessage.reply({
 			embeds: [embed],
 			components: [row]
 		});
@@ -154,7 +160,7 @@ export default class HelperMenu extends BaseCommand {
 					iconURL: interaction.user.displayAvatarURL()
 				});
 
-			await interaction.channel.send({
+			interaction.channel.send({
 				content: role.toString(),
 				embeds: [embed]
 			});

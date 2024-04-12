@@ -1,7 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	ActionRowBuilder,
-	ButtonBuilder,
 	Colors,
 	ComponentType,
 	EmbedBuilder,

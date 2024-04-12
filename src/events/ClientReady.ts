@@ -45,7 +45,8 @@ export default class ClientReadyEvent extends BaseEvent {
 				.setAuthor({
 					name: client.user.tag,
 					iconURL: client.user.displayAvatarURL()
-				}).setTimestamp()
+				})
+				.setTimestamp();
 
 			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [readyEmbed]

@@ -3,11 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import {
-	Colors,
-	EmbedBuilder,
-	SlashCommandBuilder
-} from "discord.js";
+import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import Pagination from "@/components/Pagination";
 
 export default class LeaderboardCommand extends BaseCommand {
@@ -32,7 +28,7 @@ export default class LeaderboardCommand extends BaseCommand {
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-		let page = (interaction.options.getInteger("page", false) ?? 1) - 1;
+		const page = (interaction.options.getInteger("page", false) ?? 1) - 1;
 
 		await interaction.deferReply();
 
