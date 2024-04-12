@@ -1,5 +1,4 @@
-import { GuildPreferences, HOTM, HOTMUser } from "@/mongo";
-import { HOTMSessions } from "@/mongo/schemas/HOTMSessions";
+import { HOTM, HOTMUser, HOTMSession } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
@@ -30,11 +29,17 @@ export default class HOTMVotingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const currentSession = await HOTMSessions.findOne({ guildId: interaction.guildId });
+		const currentSession = await HOTMSession.findOne({
+			guildId: interaction.guildId
+		});
 
-		if (!currentSession || currentSession.startDate > Date.now()) {
+		if (
+			!currentSession ||
+			currentSession.startDate.getTime() > Date.now()
+		) {
 			await interaction.reply({
-				content: "The voting session for a Helper Of The Month hasn't started",
+				content:
+					"The voting session for a Helper Of The Month hasn't started",
 				ephemeral: true
 			});
 
@@ -83,7 +88,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 			interaction.reply({
 				content: "You cannot vote for yourself",
 				ephemeral: true
-			})
+			});
 
 			return;
 		}
@@ -175,11 +180,9 @@ export default class HOTMVotingCommand extends BaseCommand {
 			| HOTMSessionCommand
 			| undefined;
 
-		const updatedGuildPreferences = await GuildPreferences.findOne({ guildId: interaction.guildId });
-
 		await newSessionCommand?.handleEmbed(
 			interaction.guild,
-			updatedGuildPreferences?.hotmResultsEmbedId,
+			guildPreferences?.hotmResultsEmbedId,
 			guildPreferences.hotmResultsChannelId
 		);
 

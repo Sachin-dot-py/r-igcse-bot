@@ -14,104 +14,104 @@ import { v4 as uuidv4 } from "uuid";
 import Buttons from "@/components/practice/views/Buttons";
 
 export default class FeedbackChannelCommand extends BaseCommand {
-    constructor() {
-        super(
-            new SlashCommandBuilder()
-                .setName("feedback_channel")
-                .setDescription("Modify feedback channels (for mods)")
-                .addSubcommand((subcommand) =>
-                    subcommand
-                        .setName("add")
-                        .setDescription("Add a feedback channel")
-                        .addChannelOption((option) =>
-                            option
-                                .setName("channel")
-                                .setDescription("The channel to send feedback to")
-                                .setRequired(true)
-                        )
-                        .addStringOption((option) =>
-                            option
-                                .setName("team_label")
-                                .setDescription("The team receiving feedback")
-                                .setRequired(true)
-                        )
-                )
-                .addSubcommand((subcommand) =>
-                    subcommand
-                        .setName("remove")
-                        .setDescription("Remove a feedback channel")
-                )
-                .setDMPermission(false)
-                .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-        );
-    }
+	constructor() {
+		super(
+			new SlashCommandBuilder()
+				.setName("feedback_channel")
+				.setDescription("Modify feedback channels (for mods)")
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("add")
+						.setDescription("Add a feedback channel")
+						.addChannelOption((option) =>
+							option
+								.setName("channel")
+								.setDescription(
+									"The channel to send feedback to"
+								)
+								.setRequired(true)
+						)
+						.addStringOption((option) =>
+							option
+								.setName("team_label")
+								.setDescription("The team receiving feedback")
+								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("remove")
+						.setDescription("Remove a feedback channel")
+				)
+				.setDMPermission(false)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+		);
+	}
 
-    async execute(
-        client: DiscordClient<true>,
-        interaction: DiscordChatInputCommandInteraction<"cached">
-    ) {
+	async execute(
+		client: DiscordClient<true>,
+		interaction: DiscordChatInputCommandInteraction<"cached">
+	) {
+		switch (interaction.options.getSubcommand()) {
+			case "add": {
+				const channel = interaction.options.getChannel("channel", true);
+				const label = interaction.options.getString("team_label", true);
 
-        switch (interaction.options.getSubcommand()) {
-            case "add": {
+				if (!channel.isTextBased()) {
+					interaction.reply({
+						content:
+							"Feedback channel must be a valid text channel.",
+						ephemeral: true
+					});
+					return;
+				}
 
-                const channel = interaction.options.getChannel("channel", true);
-                const label = interaction.options.getString("team_label", true);
+				if (label === "Bot Developers") {
+					interaction.reply({
+						content: "Label cannot be `Bot Developers`",
+						ephemeral: true
+					});
+					return;
+				}
 
-                if (!channel.isTextBased()) {
-                    interaction.reply({
-                        content: "Feedback channel must be a valid text channel.",
-                        ephemeral: true
-                    });
-                    return;
-                }
+				await interaction.deferReply({
+					ephemeral: true
+				});
 
-                if (label === "Bot Developers") {
-                    interaction.reply({
-                        content: "Label cannot be `Bot Developers`",
-                        ephemeral: true
-                    })
-                    return;
-                }
+				try {
+					const addChannel = await FeedbackChannels.updateOne(
+						{
+							guildId: interaction.guildId,
+							label: label
+						},
+						{
+							channelId: channel.id
+						},
+						{ upsert: true }
+					);
 
-                await interaction.deferReply({
-                    ephemeral: true
-                });
+					if (addChannel.upsertedCount > 0) {
+						await interaction.editReply({
+							content: `Successfully added ${channel} as the feedback channel for ${label}!`
+						});
+					} else if (addChannel.modifiedCount > 0) {
+						await interaction.editReply({
+							content: `Successfully updated ${channel} as the feedback channel for ${label}`
+						});
+					} else {
+						await interaction.editReply({
+							content: `Error occured while creating feedback channel ${channel} for ${label}. Please try again later.`
+						});
+					}
+				} catch (error) {
+					interaction.editReply({
+						content: `Encountered error while trying to add ${channel} as a feedback channel for ${label}. Please try again later.`
+					});
 
-                try {
-                    const addChannel = await FeedbackChannels.updateOne(
-                        {
-                            guildId: interaction.guildId,
-                            label: label
-                        },
-                        {
-                            channelId: channel.id
-                        },
-                        { upsert: true }
-                    );
-
-                    if (addChannel.upsertedCount > 0) {
-                        await interaction.editReply({
-                            content: `Successfully added ${channel} as the feedback channel for ${label}!`
-                        });
-                    } else if (addChannel.modifiedCount > 0) {
-                        await interaction.editReply({
-                            content: `Successfully updated ${channel} as the feedback channel for ${label}`
-                        });
-                    } else {
-                        await interaction.editReply({
-                            content: `Error occured while creating feedback channel ${channel} for ${label}. Please try again later.`
-                        });
-                    }
-                } catch (error) {
-                    interaction.editReply({
-                        content:
-                            `Encountered error while trying to add ${channel} as a feedback channel for ${label}. Please try again later.`
-                    });
-
-                    client.log(
-                        error,
-                        `${this.data.name} Command - Add Feedback Channel`,
-                        `**Channel:** <#${interaction.channel?.id}>
+					client.log(
+						error,
+						`${this.data.name} Command - Add Feedback Channel`,
+						`**Channel:** <#${interaction.channel?.id}>
 **User:** <@${interaction.user.id}>
 **Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 					);

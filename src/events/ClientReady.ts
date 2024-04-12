@@ -77,7 +77,10 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		if (newSessionCommand) {
 			Logger.info("Starting voting session loop");
-			setInterval(() => newSessionCommand.endSession(client), 3_600_000);
+			setInterval(
+				() => newSessionCommand.endSession(client),
+				21600 * 1000
+			);
 		}
 
 		await this.loadKeywordsCache().catch(Logger.error);

@@ -34,7 +34,6 @@ export default class FunFactCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
@@ -126,9 +125,10 @@ export default class FunFactCommand extends BaseCommand {
 
 		const confession =
 			modalInteraction.fields.getTextInputValue("confession-input");
-			
+
 		await modalInteraction.reply({
-			content: "Your confession has been sent to the moderators.\nYou have to wait for their approval.",
+			content:
+				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
 			ephemeral: true
 		});
 		//#endregion
