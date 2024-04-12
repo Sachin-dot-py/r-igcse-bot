@@ -18,7 +18,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("feedback_channel")
-				.setDescription("Modify feedback channel (for mods)")
+				.setDescription("Modify feedback channels (for mods)")
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName("add")
@@ -112,8 +112,8 @@ export default class FeedbackChannelCommand extends BaseCommand {
 						error,
 						`${this.data.name} Command - Add Feedback Channel`,
 						`**Channel:** <#${interaction.channel?.id}>
-                    		**User:** <@${interaction.user.id}>
-                    		**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+**User:** <@${interaction.user.id}>
+**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
 					);
 				}
 				break;
