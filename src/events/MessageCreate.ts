@@ -533,6 +533,10 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (reference.author.id === message.author.id)
 				message.reply("You can't rep yourself dummy!");
+			else if (reference.author.id === client.user.id)
+				message.reply("I never said thanks");
+			else if (reference.author.bot)
+				message.reply("Uh-oh, you can't get rep from a bot");
 			else {
 				const referenceRepped = await this.getReppedUsers(reference);
 
