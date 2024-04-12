@@ -91,7 +91,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
 							`${parseInt(lastMessage.content) + 1}` ===
-							message.content)) &&
+								message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
@@ -115,8 +115,8 @@ export default class MessageCreateEvent extends BaseEvent {
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-							stickyCounter[message.channelId]
-						);
+						stickyCounter[message.channelId]
+					);
 				}
 			}
 
@@ -214,7 +214,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-				guildPreferences.modmailThreadsChannelId
+					guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -445,13 +445,12 @@ export default class MessageCreateEvent extends BaseEvent {
 				: message.channelId) ?? "";
 
 		if (repDisabledChannels.includes(channelId)) return;
-		if (!this.getIsRepCommand(message) && message.mentions.has(client.user))
-			return message.reply('Stop pinging me')
+
 		for (const user of await this.getReppedUsers(message)) {
 			if (user.id === client.user.id) {
 				await message.reply(
 					botYwResponses[
-					Math.floor(Math.random() * botYwResponses.length)
+						Math.floor(Math.random() * botYwResponses.length)
 					]
 				);
 
@@ -501,14 +500,6 @@ export default class MessageCreateEvent extends BaseEvent {
 		}
 	}
 
-	private getIsRepCommand(message: Message) {
-		return tyAliases.some((alias) =>
-			new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
-		) || (message.reference && ywAliases.some((alias) =>
-			new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
-		))
-	}
-
 	private async getReppedUsers(message: Message) {
 		const users = new Set<User>();
 
@@ -520,8 +511,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			for (const user of message.mentions.users.values())
 				if (message.author.id === user.id)
 					message.reply("You can't rep yourself dummy!");
-				else if (user.bot)
-					message.reply("Uh-oh, you can't rep a bot");
+				else if (user.bot) message.reply("Uh-oh, you can't rep a bot");
 				else users.add(user);
 
 			if (message.reference) {
@@ -543,8 +533,6 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (reference.author.id === message.author.id)
 				message.reply("You can't rep yourself dummy!");
-			else if (reference.author.bot)
-				message.reply("I never said thanks");
 			else {
 				const referenceRepped = await this.getReppedUsers(reference);
 
@@ -566,7 +554,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (stickyMessage.messageId) {
 				await message.channel.messages
 					.delete(stickyMessage.messageId)
-					.catch(() => { });
+					.catch(() => {});
 			}
 
 			const embeds = stickyMessage.embeds.map(
