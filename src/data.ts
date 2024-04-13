@@ -3,6 +3,7 @@ import { type IGuildPreferences } from "@/mongo";
 export const ywAliases = [
 	"you're welcome",
 	"your welcome",
+	"youre welcome",
 	"ur welcome",
 	"yw",
 	"no problem",
