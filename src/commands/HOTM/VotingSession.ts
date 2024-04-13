@@ -91,7 +91,8 @@ export default class HOTMSessionCommand extends BaseCommand {
 		if (!guildPreferences) {
 			interaction.reply({
 				content:
-					"Configure the bot using `/setup` before starting sessions"
+					"Configure the bot using `/setup` before starting sessions",
+				ephemeral: true
 			});
 			return;
 		}
@@ -234,11 +235,11 @@ export default class HOTMSessionCommand extends BaseCommand {
 	async endSession(client: DiscordClient<true>, guildId?: string | null) {
 		const sessions = guildId
 			? await HOTMSession.find({
-					guildId
-				})
+				guildId
+			})
 			: await HOTMSession.find({
-					endDate: { $gte: Date.now() }
-				});
+				endDate: { $gte: Date.now() }
+			});
 		if (!sessions) return;
 
 		for (const session of sessions) {
@@ -299,7 +300,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 			.addFields(...fields);
 
 		if (messageId)
-			resultsChannel.messages.delete(messageId).catch(() => {});
+			resultsChannel.messages.delete(messageId).catch(() => { });
 
 		const embedMessage = await resultsChannel.send({
 			embeds: [embed]

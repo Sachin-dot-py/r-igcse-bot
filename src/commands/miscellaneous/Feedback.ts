@@ -129,21 +129,34 @@ export default class FeedbackCommand extends BaseCommand {
 
 		if (!messageGuild) return;
 
-		const feedbackGuildMessage =
-			team?.label === "Bot Developers"
-				? ` from ${feedbackGuild?.name} (${feedbackGuild?.id})`
-				: "";
+		let embed;
 
-		const embed = new EmbedBuilder()
-			.setTitle(
-				`Feedback received${feedbackGuildMessage} for ${team.label}`
-			)
-			.setDescription(feedback)
-			.setColor(Colors.Blue)
-			.setAuthor({
-				name: interaction.user.tag,
-				iconURL: interaction.user.displayAvatarURL()
-			});
+		if (team?.label === "Bot Developers") {
+			embed = new EmbedBuilder()
+				.setTitle(
+					`Bot Feedback Received`
+				)
+				.setDescription(feedback)
+				.setFooter({
+					text: `from ${feedbackGuild.name} (${feedbackGuild.id})`
+				})
+				.setColor(Colors.Blue)
+				.setAuthor({
+					name: interaction.user.tag,
+					iconURL: interaction.user.displayAvatarURL()
+				});
+		} else {
+			embed = new EmbedBuilder()
+				.setTitle(
+					`Feedback received for ${team.label}`
+				)
+				.setDescription(feedback)
+				.setColor(Colors.Blue)
+				.setAuthor({
+					name: interaction.user.tag,
+					iconURL: interaction.user.displayAvatarURL()
+				});
+		}
 
 		try {
 			Logger.channel(messageGuild, team.channelId, {
