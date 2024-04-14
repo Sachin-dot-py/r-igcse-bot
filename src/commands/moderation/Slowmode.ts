@@ -35,7 +35,7 @@ export default class SlowmodeCommand extends BaseCommand {
         const timeString = interaction.options.getString("time", true);
         const channel = interaction.options.getChannel("channel", false) ?? interaction.channel;
 
-        const time = parse(timeString, "second") ?? 0
+        const time = /^\d+$/.test(timeString) ? parseInt(timeString) : parse(timeString, "second") ?? 0
 
         if (!channel || !channel.isTextBased()) {
             interaction.reply({
@@ -47,7 +47,7 @@ export default class SlowmodeCommand extends BaseCommand {
 
         if (time > 21600 || time < 0) {
             interaction.reply({
-                content: "Enter a valid time between 6 hours and 0 seconds",
+                content: "Enter a valid time between 0 seconds and 6 hours.",
                 ephemeral: true
             });
             return;
