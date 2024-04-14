@@ -24,7 +24,7 @@ export default class SlowmodeCommand extends BaseCommand {
                         .setDescription("The channel to add the slowmode to")
                         .setRequired(false)
                 )
-                .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+                .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         );
     }
 
@@ -32,7 +32,7 @@ export default class SlowmodeCommand extends BaseCommand {
         client: DiscordClient<true>,
         interaction: DiscordChatInputCommandInteraction<"cached">
     ) {
-        const timeString = interaction.options.getString("time", true) ?? "0s";
+        const timeString = interaction.options.getString("time", true);
         const channel = interaction.options.getChannel("channel", false) ?? interaction.channel;
 
         const time = parse(timeString, "second") ?? 0
@@ -53,10 +53,10 @@ export default class SlowmodeCommand extends BaseCommand {
             return;
         }
 
-        await channel.setRateLimitPerUser(time);
+        await channel.setRateLimitPerUser(time, `Slowmode set by ${interaction.user.tag}`);
 
         interaction.reply({
-            content: `Added a slowmode of ${timeString} to ${channel}`,
+            content: `Slowmode for ${channel} successfully set to ${timeString}.`,
             ephemeral: true
         });
     }
