@@ -41,15 +41,13 @@ export default class extends BaseCommand {
 	) {
 		const user = interaction.options.getUser("user", true);
 
-		await interaction.deferReply({ ephemeral: true });
-
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
 			actionAgainst: user.id
 		});
 
 		if (punishments.length < 1) {
-			interaction.followUp(
+			await interaction.reply(
 				`${interaction.user.tag} does not have any previous offenses.`
 			);
 
@@ -62,20 +60,23 @@ export default class extends BaseCommand {
 			"punishment",
 			"Select a punishment to remove",
 			punishments.map(({ caseId, action, reason, id }) => ({
-				label: `Case #${caseId ?? "Unknown"} | ${action} - ${reason}`,
+				label: ((x) => (x.length > 100 ? `${x.slice(0, 97)}...` : x))(
+					`Case #${caseId ?? "Unknown"} | ${action} - ${reason}`
+				),
 				value: id
 			})),
 			1,
 			customId
 		);
 
-		const selectInteraction = await interaction.followUp({
+		const selectInteraction = await interaction.reply({
 			content: "Select a punishment to remove",
 			components: [
 				new ActionRowBuilder<Select>().addComponents(punishmentSelect),
 				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
 			],
-			fetchReply: true
+			fetchReply: true,
+			ephemeral: true
 		});
 
 		const response = await punishmentSelect.waitForResponse(
@@ -90,10 +91,10 @@ export default class extends BaseCommand {
 		const punishment = await Punishment.findById(response[0]);
 
 		if (!punishment) {
-			interaction.followUp({
-				content: "Punishment not found"
+			await interaction.reply({
+				content: "Punishment not found",
+				ephemeral: true
 			});
-
 			return;
 		}
 
@@ -117,7 +118,7 @@ export default class extends BaseCommand {
 			);
 		}
 
-		interaction.followUp({
+		await interaction.editReply({
 			content: `Punishment removed for ${user.username}`,
 			components: []
 		});
@@ -128,27 +129,31 @@ export default class extends BaseCommand {
 
 		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
 
-		Logger.channel(interaction.guild, guildPreferences.modlogChannelId, {
-			embeds: [
-				new EmbedBuilder()
-					.setTitle("Punishment Removed")
-					.setDescription(
-						`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`
-					)
-					.addFields(
-						{
-							name: "Punishment Reason",
-							value: punishment.reason
-						},
-						{
-							name: "Action",
-							value: punishment.action
-						}
-					)
-					.setFooter({
-						text: `Case #${punishment.caseId ?? "Unknown"}`
-					})
-			]
-		});
+		await Logger.channel(
+			interaction.guild,
+			guildPreferences.modlogChannelId,
+			{
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Punishment Removed")
+						.setDescription(
+							`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`
+						)
+						.addFields(
+							{
+								name: "Punishment Reason",
+								value: punishment.reason
+							},
+							{
+								name: "Action",
+								value: punishment.action
+							}
+						)
+						.setFooter({
+							text: `Case #${punishment.caseId ?? "Unknown"}`
+						})
+				]
+			}
+		);
 	}
 }
