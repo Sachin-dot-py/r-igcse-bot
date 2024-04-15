@@ -411,6 +411,11 @@ export const preferences: Preference[] = [
 		key: "confessionApprovalChannelId"
 	},
 	{
+		name: "Teaching Session Approval Channel",
+		type: "channel",
+		key: "teachingSessionApprovalChannelId"
+	},
+	{
 		name: "Counting Channel",
 		type: "channel",
 		key: "countingChannelId"
@@ -424,6 +429,11 @@ export const preferences: Preference[] = [
 		name: "Study Session Channel",
 		type: "channel",
 		key: "studySessionChannelId"
+	},
+	{
+		name: "Teaching Session Channel",
+		type: "channel",
+		key: "teachingSessionChannelId"
 	},
 	{
 		name: "Modmail Create New DM Channel",
