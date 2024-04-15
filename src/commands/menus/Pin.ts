@@ -5,7 +5,9 @@ import BaseCommand, {
 import {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
-	PermissionFlagsBits
+	PermissionFlagsBits,
+	TextChannel,
+	ThreadChannel
 } from "discord.js";
 
 export default class PinMenu extends BaseCommand {
@@ -26,6 +28,15 @@ export default class PinMenu extends BaseCommand {
 		if (!interaction.targetMessage.pinnable) {
 			await interaction.reply({
 				content: "Message isn't pinnable.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
+		if (!(interaction.channel instanceof TextChannel || interaction.channel instanceof ThreadChannel)) {
+			interaction.reply({
+				content: "You can't pin messages in this channel",
 				ephemeral: true
 			});
 
