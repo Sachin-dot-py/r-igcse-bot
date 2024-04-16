@@ -203,54 +203,57 @@ export default class TeachingSessionCommand extends BaseCommand {
             return;
         }
 
-        const subjectHelpers = interaction.guild.roles.cache.get(response[0])?.members;
+        const subjectHelpers = interaction.guild.roles.cache.get(response[0])?.members.filter((helper) => helper.id !== interaction.user.id);
 
-        if (!subjectHelpers) {
-            interaction.followUp({
-                content: "Couldn't find any helpers for your subject. Please contact an admin.",
+        let userResponse;
+        let userSelectInteraction;
+
+        if (subjectHelpers && subjectHelpers?.size > 0) {
+            const userSelectCustomId = uuidv4();
+
+            const userSelect = new Select(
+                "helpers",
+                "Select helpers that will host alongside you",
+                subjectHelpers.map((helper) =>
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(`${helper.displayName} (${helper.user.tag})`)
+                        .setValue(helper.user.id)
+                ),
+                1,
+                `${userSelectCustomId}_0`
+            ).setMaxValues(subjectHelpers.size);
+
+            userSelectInteraction = await interaction.followUp({
+                content: "Select co-hosts",
+                components: [
+                    new ActionRowBuilder<Select>().addComponents(userSelect),
+                    new Buttons(userSelectCustomId) as ActionRowBuilder<ButtonBuilder>
+                ],
+                fetchReply: true,
                 ephemeral: true
             });
-            return;
+
+            userResponse = await userSelect.waitForResponse(
+                `${userSelectCustomId}_0`,
+                userSelectInteraction,
+                interaction,
+                true
+            );
+
+            if (!userResponse || userResponse === "Timed out" || !userResponse[0]) {
+                await interaction.followUp({
+                    content: "An error occurred",
+                    ephemeral: false
+                });
+                return;
+            }
         }
 
-        const userSelectCustomId = uuidv4();
 
-        const userSelect = new Select(
-            "helpers",
-            "Select helpers that will co-host alongside you",
-            subjectHelpers.map((helper) =>
-                new StringSelectMenuOptionBuilder()
-                    .setLabel(`${helper.displayName} (${helper.user.tag})`)
-                    .setValue(helper.user.id)
-            ),
-            1,
-            `${userSelectCustomId}_0`
-        ).setMaxValues(6);
-
-        const userSelectInteraction = await interaction.followUp({
-            content: "Select helpers that will co-host alongside you",
-            components: [
-                new ActionRowBuilder<Select>().addComponents(userSelect),
-                new Buttons(userSelectCustomId) as ActionRowBuilder<ButtonBuilder>
-            ],
-            fetchReply: true,
-            ephemeral: true
+        interaction.editReply({
+            content: "Choose any co-hosts",
+            components: []
         });
-
-        const userResponse = await userSelect.waitForResponse(
-            `${userSelectCustomId}_0`,
-            userSelectInteraction,
-            interaction,
-            true
-        );
-
-        if (!userResponse || userResponse === "Timed out" || !userResponse[0]) {
-            await interaction.followUp({
-                content: "An error occurred",
-                ephemeral: false
-            });
-            return;
-        }
 
         const teachers = userResponse
             ? [interaction.user.id, ...userResponse]
@@ -326,8 +329,11 @@ export default class TeachingSessionCommand extends BaseCommand {
         // Interaction will be handled in the InteractionCreate event and is stored in redis (@/events/InteractionCreate.ts)
 
         await interaction.editReply({
-            content: "Teaching session sent for approval."
+            content: "Teaching session sent for approval.",
+            components: []
         })
+
+        await userSelectInteraction?.delete();
 
     }
 }
