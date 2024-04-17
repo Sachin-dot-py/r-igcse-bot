@@ -48,7 +48,7 @@ export default class extends BaseCommand {
 
 		if (punishments.length < 1) {
 			await interaction.reply(
-				`${interaction.user.tag} does not have any previous offenses.`
+				`${user.tag} does not have any previous offenses.`
 			);
 
 			return;
