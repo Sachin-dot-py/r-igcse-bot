@@ -36,7 +36,7 @@ export default class TimeoutCommand extends BaseCommand {
 				.addStringOption((option) =>
 					option
 						.setName("duration")
-						.setDescription("Duration for timeout")
+						.setDescription("Duration for timeout (from now)")
 						.setRequired(true)
 				)
 				.setDefaultMemberPermissions(
@@ -123,36 +123,31 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		if (guildMember.isCommunicationDisabled()) {
-			const latestTimeout = (
-				await Punishment.find({
-					guildId: interaction.guildId,
-					actionAgainst: guildMember.id,
-					action: "Timeout"
-				}).sort({ when: -1 })
-			)[0];
+		const latestTimeout = (
+			await Punishment.find({
+				guildId: interaction.guildId,
+				actionAgainst: guildMember.id,
+				action: "Timeout"
+			}).sort({ when: -1 })
+		)[0];
 
-			const newEndTime = latestTimeout.when.getTime() + (duration * 1000);
+		if (guildMember.isCommunicationDisabled()
+			&& latestTimeout.duration
+			&& latestTimeout.when.getTime() + (latestTimeout.duration * 1000) > Date.now()) {
 
-			if (newEndTime < Date.now()) {
-				interaction.editReply({
-					content: "This user's timeout has expired"
-				});
-
-				return;
-			}
+			const newEndTime = Date.now() + (duration * 1000);
 
 			const time = Math.floor(newEndTime / 1000);
 
 			try {
-				await guildMember.timeout(newEndTime - Date.now(), reason);
+				await guildMember.timeout(duration * 1000, reason);
 				sendDm(guildMember, {
 					embeds: [
 						new EmbedBuilder()
 							.setTitle("Timeout Duration Modified")
 							.setColor(Colors.Red)
 							.setDescription(
-								`Your timeout in ${interaction.guild.name} has been modified to be ${humanizeDuration(duration * 1000)} due to *${reason}*. Your timeout will end <t:${time}:R>.`
+								`Your timeout in ${interaction.guild.name} has been modified to last ${humanizeDuration(duration * 1000)} from now due to *${reason}*. Your timeout will end <t:${time}:R>.`
 							)
 					]
 				});
