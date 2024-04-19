@@ -485,7 +485,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			let content = `Gave +1 Rep to ${user.tag} (${rep})`;
 
-			if ([100, 500, 1000, 5000].some((amnt) => rep === amnt)) {
+			if ([100, 500, 1000, 5000, 10000].some((amnt) => rep === amnt)) {
 				const role = message.guild.roles.cache.find(
 					(x) => x.name === `${rep}+ Rep Club`
 				);
@@ -500,7 +500,10 @@ export default class MessageCreateEvent extends BaseEvent {
 		}
 	}
 
-	private async getReppedUsers(client: DiscordClient<true>, message: Message) {
+	private async getReppedUsers(
+		client: DiscordClient<true>,
+		message: Message
+	) {
 		const users = new Set<User>();
 
 		if (
@@ -538,7 +541,10 @@ export default class MessageCreateEvent extends BaseEvent {
 			else if (reference.author.bot)
 				message.reply("Uh-oh, you can't get rep from a bot");
 			else {
-				const referenceRepped = await this.getReppedUsers(client, reference);
+				const referenceRepped = await this.getReppedUsers(
+					client,
+					reference
+				);
 
 				if (!referenceRepped.has(message.author))
 					users.add(message.author);
