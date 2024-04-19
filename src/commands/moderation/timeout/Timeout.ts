@@ -36,7 +36,7 @@ export default class TimeoutCommand extends BaseCommand {
 				.addStringOption((option) =>
 					option
 						.setName("duration")
-						.setDescription("Duration for timeout")
+						.setDescription("Duration for timeout (from now)")
 						.setRequired(true)
 				)
 				.setDefaultMemberPermissions(
@@ -86,9 +86,9 @@ export default class TimeoutCommand extends BaseCommand {
 			? 2419200
 			: parse(durationString, "second") ?? 86400;
 
-		if (duration < 60) {
+		if (duration < 60 || duration > 2419200) {
 			interaction.editReply({
-				content: "Duration must be at least 1 minute"
+				content: "Duration must be between 1 minute and 28 days"
 			});
 
 			return;
@@ -112,14 +112,6 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		if (guildMember.isCommunicationDisabled()) {
-			interaction.editReply({
-				content: "User is already timed out!"
-			});
-
-			return;
-		}
-
 		const memberHighestRole = guildMember.roles.highest;
 		const modHighestRole = interaction.member.roles.highest;
 
@@ -128,6 +120,100 @@ export default class TimeoutCommand extends BaseCommand {
 				content:
 					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)"
 			});
+			return;
+		}
+
+		const latestTimeout = (
+			await Punishment.find({
+				guildId: interaction.guildId,
+				actionAgainst: guildMember.id,
+				action: "Timeout"
+			}).sort({ when: -1 })
+		)[0];
+
+		if (guildMember.isCommunicationDisabled()
+			&& latestTimeout.duration
+			&& latestTimeout.when.getTime() + (latestTimeout.duration * 1000) > Date.now()) {
+
+			const newEndTime = Date.now() + (duration * 1000);
+
+			const time = Math.floor(newEndTime / 1000);
+
+			try {
+				await guildMember.timeout(duration * 1000, reason);
+				sendDm(guildMember, {
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Timeout Duration Modified")
+							.setColor(Colors.Red)
+							.setDescription(
+								`Your timeout in ${interaction.guild.name} has been modified to last ${humanizeDuration(duration * 1000)} from now due to *${reason}*. Your timeout will end <t:${time}:R>.`
+							)
+					]
+				});
+			} catch (error) {
+				interaction.editReply({
+					content: `Failed to change user's timeout duration ${error instanceof Error ? `(${error.message})` : ""}`
+				});
+
+				client.log(
+					error,
+					`${this.data.name} Command`,
+					`**Channel:** <#${interaction.channel?.id}>
+						**User:** <@${interaction.user.id}>
+						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+				);
+
+				return;
+			}
+
+			const previousReason = latestTimeout.reason;
+
+			await latestTimeout.updateOne({
+				actionBy: interaction.user.id,
+				reason: `${previousReason}, ${reason}`,
+				duration: duration,
+				points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2
+			});
+
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`Timeout Duration Modified | Case #${latestTimeout.caseId}`)
+				.setColor(Colors.Red)
+				.addFields([
+					{
+						name: "User",
+						value: `${user.tag} (${user.id})`,
+						inline: false
+					},
+					{
+						name: "Moderator",
+						value: `${interaction.user.tag} (${interaction.user.id})`,
+						inline: false
+					},
+					{
+						name: "Reason",
+						value: reason
+					},
+					{
+						name: "Duration",
+						value: `${humanizeDuration(duration * 1000)} (<t:${time}:R>)`
+					}
+				]);
+
+			if (guildPreferences.modlogChannelId) {
+				Logger.channel(
+					interaction.guild,
+					guildPreferences.modlogChannelId,
+					{
+						embeds: [modEmbed]
+					}
+				);
+			}
+
+			interaction.editReply({ content: "changed user's timeout duration rahhhhhh" });
+			interaction.channel.send(
+				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`
+			);
 			return;
 		}
 
