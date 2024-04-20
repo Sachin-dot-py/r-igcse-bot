@@ -236,6 +236,10 @@ export default class MessageCreateEvent extends BaseEvent {
 			const guilds = client.guilds.cache.filter((guild) =>
 				guild.members.cache.has(message.author.id)
 			);
+			if (guilds.size === 0) {
+				await message.author.send("Hey there, please send a message in the server you're trying to contact and then try again.");
+				return;
+			}
 			const selectCustomId = uuidv4();
 			const guildSelect = new Select(
 				"guildSelect",
@@ -254,7 +258,10 @@ export default class MessageCreateEvent extends BaseEvent {
 			);
 
 			const selectInteraction = await message.author.send({
-				content: "Select a server to send a message to",
+				content: `Welcome to Modmail! Please select a server to contact using the dropdown menu below.
+If you don't see the server you're looking for, please send a message in that server and try again.
+
+To change the server you're contacting, use the \`/swap\` command`,
 				components: [
 					row,
 					new Buttons(
