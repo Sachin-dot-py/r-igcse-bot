@@ -38,6 +38,16 @@ export default class PingCommand extends BaseCommand {
 		const guilds = client.guilds.cache.filter((guild) =>
 			guild.members.cache.has(interaction.user.id)
 		);
+
+		if (!guilds.size) {
+			interaction.reply({
+				content: "Please try sending a message in the server you're trying to contact.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		const selectCustomId = v4();
 		const guildSelect = new Select(
 			"guildSelect",
@@ -86,13 +96,10 @@ export default class PingCommand extends BaseCommand {
 			components: []
 		});
 
-		await DmGuildPreference.deleteMany({
-			userId: message.author.id
-		});
-
-		DmGuildPreference.create({
-			userId: message.author.id,
-			guildId: guildResponse[0]
-		});
+		await DmGuildPreference.updateOne(
+			{ userId: interaction.user.id },
+			{ guildId: guild.id },
+			{ upsert: true }
+		);
 	}
 }
