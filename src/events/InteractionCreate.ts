@@ -21,7 +21,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { TeachingSession } from "@/mongo/schemas/TeachingSession";
+import { HostSession } from "@/mongo/schemas/HostSession";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -38,7 +38,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
-				this.handleTeachingSessionButton(client, interaction);
+				this.handleHostSessionButton(client, interaction);
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -329,19 +329,19 @@ export default class InteractionCreateEvent extends BaseEvent {
 		await ButtonInteractionCache.remove(confessionId);
 	}
 
-	async handleTeachingSessionButton(
+	async handleHostSessionButton(
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction
 	) {
-		const matchCustomIdRegex = /(.*_teaching_session)_(accept|reject|ban)/gi;
+		const matchCustomIdRegex = /(.*_host_session)_(accept|reject|ban)/gi;
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches) return;
 
-		const teachingSessionId = regexMatches[1];
+		const hostSessionId = regexMatches[1];
 		const action = regexMatches[2];
-		if (!teachingSessionId || !action) return;
+		if (!hostSessionId || !action) return;
 
-		const button = await ButtonInteractionCache.get(teachingSessionId);
+		const button = await ButtonInteractionCache.get(hostSessionId);
 		if (!button || !button.guildId || !button.userId) return;
 
 		const guildPreferences = await GuildPreferencesCache.get(
@@ -349,13 +349,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 		);
 		if (
 			!guildPreferences ||
-			!guildPreferences.teachingSessionApprovalChannelId ||
-			!guildPreferences.teachingSessionChannelId
+			!guildPreferences.hostSessionApprovalChannelId ||
+			!guildPreferences.hostSessionChannelId
 		)
 			return;
 
 		const approvalChannel = client.channels.cache.get(
-			guildPreferences.teachingSessionApprovalChannelId
+			guildPreferences.hostSessionApprovalChannelId
 		);
 		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
 			return;
@@ -363,47 +363,41 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const message = await approvalChannel.messages.fetch(button.messageId);
 		if (!message) return;
 
-		const teachingSession = await TeachingSession.findOne({
+		const hostSession = await HostSession.findOne({
 			messageId: button.messageId
 		});
 
-		if (!teachingSession) return;
+		if (!hostSession) return;
 
-		const teachers = teachingSession.teachers;
+		const teachers = hostSession.teachers;
 
 		let acceptedSessionMessage =
-			`<@&${teachingSession.studyPingRoleId}>, there will be a teaching session hosted <t:${teachingSession.startDate}:R> at <t:${teachingSession.startDate}:t>, and will end on <t:${teachingSession.endDate}:t>\nIt will be hosted by `;
+			`<@&${hostSession.studyPingRoleId}>, there will be a study session hosted <t:${hostSession.startDate}:R> at <t:${hostSession.startDate}:t>, and will end on <t:${hostSession.endDate}:t>\nIt will be hosted by `;
 
 		for (const teacherId of teachers) {
 			acceptedSessionMessage += `<@${teacherId}> `;
 		}
 
-		if (teachingSession.contents && teachingSession.contents[0]) {
-			acceptedSessionMessage += "\nThe following topics will be covered:";
-
-			for (const content of teachingSession.contents) {
-				acceptedSessionMessage += `\n - ${content}`;
-			}
-		}
+		acceptedSessionMessage += `\nThe following topics will be covered: ${hostSession.contents}`;
 
 		switch (action) {
 			case "accept": {
-				const teachingSessionChannel = client.channels.cache.get(
-					guildPreferences.teachingSessionChannelId
+				const hostSessionChannel = client.channels.cache.get(
+					guildPreferences.hostSessionChannelId
 				);
-				if (!teachingSessionChannel || !(teachingSessionChannel instanceof TextChannel)) return;
+				if (!hostSessionChannel || !(hostSessionChannel instanceof TextChannel)) return;
 
-				await teachingSession.updateOne({
+				await hostSession.updateOne({
 					accepted: true
 				});
 
-				await teachingSessionChannel.send({
+				await hostSessionChannel.send({
 					content: acceptedSessionMessage
 				});
 
 				const acceptEmbed = new EmbedBuilder()
 					.setAuthor({
-						name: `Teaching session accepted by ${interaction.user.tag}`
+						name: `Session accepted by ${interaction.user.tag}`
 					})
 					.setDescription(message.embeds[0].description)
 					.setColor("Green");
@@ -414,18 +408,18 @@ export default class InteractionCreateEvent extends BaseEvent {
 				});
 
 				await interaction.reply({
-					content: `Teaching session accepted`,
+					content: `Session accepted`,
 					ephemeral: true
 				});
 				break;
 			}
 			case "reject": {
 
-				await teachingSession.deleteOne();
+				await hostSession.deleteOne();
 
 				const rejectEmbed = new EmbedBuilder()
 					.setAuthor({
-						name: `Teaching session rejected by ${interaction.user.tag}`
+						name: `Session rejected by ${interaction.user.tag}`
 					})
 					.setDescription(message.embeds[0].description)
 					.setColor("Red");
@@ -436,7 +430,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				});
 
 				await interaction.reply({
-					content: "Teaching session rejected",
+					content: "Session rejected",
 					ephemeral: true
 				});
 				break;
@@ -445,7 +439,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 				break;
 		}
 
-		console.log(regexMatches[0]);
 		await ButtonInteractionCache.remove(regexMatches[1]);
 	}
 }

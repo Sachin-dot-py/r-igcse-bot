@@ -13,12 +13,12 @@ export type IGuildPreferences = {
 	welcomeChannelId: string;
 	confessionsChannelId: string;
 	confessionApprovalChannelId: string;
-	teachingSessionApprovalChannelId: string;
+	hostSessionApprovalChannelId: string;
 	countingChannelId: string;
 	hotmResultsChannelId: string;
 	hotmResultsEmbedId: string;
 	studySessionChannelId: string;
-	teachingSessionChannelId: string;
+	hostSessionChannelId: string;
 
 	modmailCreateChannelId: string;
 	modmailThreadsChannelId: string;
@@ -42,12 +42,12 @@ const schema = new Schema<IGuildPreferences>({
 	welcomeChannelId: { type: String, default: null },
 	confessionsChannelId: { type: String, default: null },
 	confessionApprovalChannelId: { type: String, default: null },
-	teachingSessionApprovalChannelId: { type: String, default: null },
+	hostSessionApprovalChannelId: { type: String, default: null },
 	countingChannelId: { type: String, default: null },
 	hotmResultsChannelId: { type: String, default: null },
 	hotmResultsEmbedId: { type: String, default: null },
 	studySessionChannelId: { type: String, default: null },
-	teachingSessionChannelId: { type: String, default: null },
+	hostSessionChannelId: { type: String, default: null },
 	modmailCreateChannelId: { type: String, default: null },
 	modmailThreadsChannelId: { type: String, default: null },
 	modmailLogsChannelId: { type: String, default: null },

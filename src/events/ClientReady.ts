@@ -21,6 +21,7 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { EntityId } from "redis-om";
 import type HOTMSessionCommand from "@/commands/HOTM/VotingSession";
+import type HostSessionCommand from "@/commands/study/HostSession";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -71,15 +72,28 @@ export default class ClientReadyEvent extends BaseEvent {
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
-		const newSessionCommand = client.commands.get("hotm_session") as
+		const newHOTMSessionCommand = client.commands.get("hotm_session") as
 			| HOTMSessionCommand
 			| undefined;
 
-		if (newSessionCommand) {
+		if (newHOTMSessionCommand) {
 			Logger.info("Starting voting session loop");
 			setInterval(
-				() => newSessionCommand.endSession(client),
+				() => newHOTMSessionCommand.endSession(client),
 				21600 * 1000
+			);
+		}
+
+		const hostSessionCommand = client.commands.get("host_session") as
+			| HostSessionCommand
+			| undefined;
+
+		if (hostSessionCommand) {
+			Logger.info("Starting hosted sessions loop");
+			setInterval(
+				() => hostSessionCommand.startSession(client),
+				5000
+				// 3_600_000
 			);
 		}
 

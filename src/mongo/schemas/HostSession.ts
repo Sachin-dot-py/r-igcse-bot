@@ -1,6 +1,6 @@
 import { Schema, model as createModel } from "mongoose";
 
-export interface ITeachingSession {
+export interface IHostingSession {
     guildId: string;
     teachers: string[]
     studyPingRoleId: string;
@@ -11,7 +11,7 @@ export interface ITeachingSession {
     contents?: string[];
 }
 
-const schema = new Schema<ITeachingSession>({
+const schema = new Schema<IHostingSession>({
     guildId: { type: String, required: true, unique: false },
     teachers: { type: [String], required: true, unique: false },
     studyPingRoleId: { type: String, required: true, unique: false },
@@ -22,7 +22,7 @@ const schema = new Schema<ITeachingSession>({
     contents: { type: [String], required: false, default: null, unique: false }
 });
 
-export const TeachingSession = createModel<ITeachingSession>(
-    "TeachingSession",
+export const HostSession = createModel<IHostingSession>(
+    "HostSession",
     schema
 );
