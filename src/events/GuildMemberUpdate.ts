@@ -25,9 +25,12 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 	) {
 		if (
 			oldMember.isCommunicationDisabled() ===
-			newMember.isCommunicationDisabled()
+				newMember.isCommunicationDisabled() &&
+			oldMember.communicationDisabledUntil ===
+				newMember.communicationDisabledUntil
 		)
 			return;
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			newMember.guild.id
 		);
@@ -66,62 +69,131 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						new Date().getTime()) /
 						10000
 				) * 10;
-			await Punishment.create({
-				guildId: newMember.guild.id,
-				actionAgainst: newMember.id,
-				actionBy: entry.executorId,
-				action: "Timeout",
-				caseId: caseNumber,
-				reason: entry.reason ?? "No reason provided",
-				points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
-				when: new Date(),
-				duration
-			});
 
-			if (guildPreferences.modlogChannelId) {
-				const modEmbed = new EmbedBuilder()
-					.setTitle(`Timeout | Case #${caseNumber}`)
-					.setColor(Colors.Red)
-					.addFields([
-						{
-							name: "User",
-							value: `${newMember.user.tag} (${newMember.id})`,
-							inline: false
-						},
-						{
-							name: "Moderator",
-							value: `${entry.executor?.tag} (${entry.executorId})`,
-							inline: false
-						},
-						{
-							name: "Reason",
-							value: entry.reason ?? "No reason provided"
-						},
-						{
-							name: "Duration",
-							value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
-						}
-					]);
+			if (
+				oldMember.isCommunicationDisabled() !==
+				newMember.isCommunicationDisabled()
+			) {
+				await Punishment.create({
+					guildId: newMember.guild.id,
+					actionAgainst: newMember.id,
+					actionBy: entry.executorId,
+					action: "Timeout",
+					caseId: caseNumber,
+					reason: entry.reason ?? "No reason provided",
+					points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+					when: new Date(),
+					duration
+				});
 
-				Logger.channel(
-					newMember.guild,
-					guildPreferences.modlogChannelId,
-					{
-						embeds: [modEmbed]
-					}
-				);
-			}
-
-			sendDm(newMember, {
-				embeds: [
-					new EmbedBuilder()
-						.setTitle("Timeout")
+				if (guildPreferences.modlogChannelId) {
+					const modEmbed = new EmbedBuilder()
+						.setTitle(`Timeout | Case #${caseNumber}`)
 						.setColor(Colors.Red)
-						.setDescription(
-							`You have been timed out in ${newMember.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${entry.reason ?? "No reason provided"}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
+						.addFields([
+							{
+								name: "User",
+								value: `${newMember.user.tag} (${newMember.id})`,
+								inline: false
+							},
+							{
+								name: "Moderator",
+								value: `${entry.executor?.tag} (${entry.executorId})`,
+								inline: false
+							},
+							{
+								name: "Reason",
+								value: entry.reason ?? "No reason provided"
+							},
+							{
+								name: "Duration",
+								value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
+							}
+						]);
+
+					Logger.channel(
+						newMember.guild,
+						guildPreferences.modlogChannelId,
+						{
+							embeds: [modEmbed]
+						}
+					);
+				}
+
+				sendDm(newMember, {
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Timeout")
+							.setColor(Colors.Red)
+							.setDescription(
+								`You have been timed out in ${newMember.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${entry.reason ?? "No reason provided"}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
+							)
+					]
+				});
+			} else {
+				const latestTimeout = (
+					await Punishment.find({
+						guildId: newMember.guild.id,
+						actionAgainst: newMember.id,
+						action: "Timeout"
+					}).sort({ when: -1 })
+				)?.[0];
+
+				latestTimeout.duration = duration;
+				latestTimeout.reason += `, ${entry.reason ?? "No reason provided"}`;
+				latestTimeout.actionBy =
+					entry.executorId ?? latestTimeout.actionBy;
+				latestTimeout.points =
+					duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2;
+				latestTimeout.save();
+
+				if (guildPreferences.modlogChannelId) {
+					const modEmbed = new EmbedBuilder()
+						.setTitle(
+							`Timeout Duration Modified | Case #${latestTimeout.caseId}`
 						)
-				]
-			});
+						.setColor(Colors.Red)
+						.addFields([
+							{
+								name: "User",
+								value: `${newMember.user.tag} (${newMember.id})`,
+								inline: false
+							},
+							{
+								name: "Moderator",
+								value: `${entry.executor?.tag} (${entry.executorId})`,
+								inline: false
+							},
+							{
+								name: "Reason",
+								value: entry.reason ?? "No reason provided"
+							},
+							{
+								name: "Duration",
+								value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
+							}
+						]);
+
+					Logger.channel(
+						newMember.guild,
+						guildPreferences.modlogChannelId,
+						{
+							embeds: [modEmbed]
+						}
+					);
+				}
+
+				sendDm(newMember, {
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Timeout Duration Modified")
+							.setColor(Colors.Red)
+							.setDescription(
+								`Your timeout duration in ${newMember.guild.name} has been modified by a moderator. It will now end at <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
+							)
+					]
+				});
+			}
 		} else {
 			const undoPunishment = (
 				await Punishment.find({
