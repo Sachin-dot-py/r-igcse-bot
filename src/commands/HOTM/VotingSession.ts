@@ -166,10 +166,9 @@ export default class HOTMSessionCommand extends BaseCommand {
 
 				if (startTime) {
 					if (startDate.getTime() < Date.now()) {
-						interaction.reply({
+						interaction.editReply({
 							content:
-								"Can't set the start date to a time in the past, i ain't got no time machine",
-							ephemeral: true
+								"Can't set the start date to a time in the past, i ain't got no time machine"
 						});
 						return;
 					}
@@ -188,10 +187,9 @@ export default class HOTMSessionCommand extends BaseCommand {
 					);
 
 					if (endDate.getTime() <= Date.now()) {
-						interaction.reply({
+						interaction.editReply({
 							content:
-								"Can't set the end date to a time in the past, i ain't got no time machine",
-							ephemeral: true
+								"Can't set the end date to a time in the past, i ain't got no time machine"
 						});
 
 						await HOTMSession.updateOne(
@@ -238,9 +236,8 @@ export default class HOTMSessionCommand extends BaseCommand {
 				guildId
 			})
 			: await HOTMSession.find({
-				endDate: { $gte: Date.now() }
+				endDate: { $lte: Date.now() }
 			});
-		if (!sessions) return;
 
 		for (const session of sessions) {
 			const guildPreferences = await GuildPreferencesCache.get(
