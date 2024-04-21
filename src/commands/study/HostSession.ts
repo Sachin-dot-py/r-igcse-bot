@@ -2,7 +2,7 @@ import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { HostSession } from "@/mongo/schemas/HostSession"
 import { ButtonInteractionCache, GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, SlashCommandBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, SlashCommandBuilder, StageChannel, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import BaseCommand, {
     type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
@@ -403,13 +403,31 @@ export default class HostSessionCommand extends BaseCommand {
         for (const session of sessions) {
             const guildPreferences = await GuildPreferencesCache.get(session.guildId);
 
-            if (!guildPreferences?.hostSessionChannelId) return;
+            if (!guildPreferences || !guildPreferences.hostSessionChannelId || !guildPreferences.studySessionChannelId) return;
 
             const sessionGuild = client.guilds.cache.get(session.guildId);
 
-            const sessionChannel = sessionGuild?.channels.cache.get(guildPreferences.hostSessionChannelId);
+            if (!sessionGuild) return;
 
-            if (!sessionChannel || !sessionChannel.isTextBased()) return;
+            const sessionChannel = sessionGuild.channels.cache.get(guildPreferences.studySessionChannelId);
+
+            if (!sessionChannel) return;
+
+            const studyChannel = await StudyChannel.findOne({
+                studyPingRoleId: session.studyPingRoleId
+            });
+
+            if (!studyChannel) return;
+
+            const subjectChannel = sessionGuild.channels.cache.get(studyChannel.channelId);
+
+            if (!subjectChannel || !(subjectChannel instanceof StageChannel)) return;
+
+            sessionChannel.setName(`${subjectChannel.name} hosted study session`);
+
+            const sessionAnnouncementChannel = sessionGuild.channels.cache.get(guildPreferences.hostSessionChannelId);
+
+            if (!sessionAnnouncementChannel || !sessionAnnouncementChannel.isTextBased()) return;
 
             const teachers = session.teachers;
 
@@ -422,7 +440,7 @@ export default class HostSessionCommand extends BaseCommand {
 
             acceptedSessionMessage += `is starting now! It will last ${humanizeDuration((session.endDate - session.startDate) * 1000)}\nThe following topics will be covered: ${session.contents}`;
 
-            await sessionChannel.send({
+            await sessionAnnouncementChannel.send({
                 content: acceptedSessionMessage
             });
 

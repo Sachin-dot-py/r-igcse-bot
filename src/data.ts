@@ -411,7 +411,7 @@ export const preferences: Preference[] = [
 		key: "confessionApprovalChannelId"
 	},
 	{
-		name: "Session Hosting Approval Channel",
+		name: "Hosted Study Session Approval Channel",
 		type: "channel",
 		key: "hostSessionApprovalChannelId"
 	},
@@ -426,14 +426,19 @@ export const preferences: Preference[] = [
 		key: "hotmResultsChannelId"
 	},
 	{
-		name: "Study Session Channel",
+		name: "Group Study Announcement Channel",
 		type: "channel",
-		key: "studySessionChannelId"
+		key: "groupStudyChannelId"
 	},
 	{
-		name: "Session Hosting Announcement Channel",
+		name: "Hosted Study Session Announcement Channel",
 		type: "channel",
 		key: "hostSessionChannelId"
+	},
+	{
+		name: "Hosted Study Session Stage Channel",
+		type: "channel",
+		key: "studySessionChannelId"
 	},
 	{
 		name: "Modmail Create New DM Channel",

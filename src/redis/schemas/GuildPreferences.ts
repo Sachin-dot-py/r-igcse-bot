@@ -31,7 +31,8 @@ const schema = new Schema("GuildPreferences", {
 	banAppealFormLink: { type: "string" },
 	forcedMuteRoleId: { type: "string" },
 	welcomeChannelMessage: { type: "string" },
-	welcomeDMMessage: { type: "string" }
+	welcomeDMMessage: { type: "string" },
+	groupStudyChannelId: { type: "string" }
 });
 
 export class GuildPreferencesRepository extends Repository {
