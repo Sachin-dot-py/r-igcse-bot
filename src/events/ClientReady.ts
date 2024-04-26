@@ -20,7 +20,6 @@ import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { EntityId } from "redis-om";
-import type HOTMSessionCommand from "@/commands/HOTM/VotingSession";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -69,18 +68,6 @@ export default class ClientReadyEvent extends BaseEvent {
 		if (goStudyCommand) {
 			Logger.info("Starting go study loop");
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
-		}
-
-		const newSessionCommand = client.commands.get("hotm_session") as
-			| HOTMSessionCommand
-			| undefined;
-
-		if (newSessionCommand) {
-			Logger.info("Starting voting session loop");
-			setInterval(
-				() => newSessionCommand.endSession(client),
-				21600 * 1000
-			);
 		}
 
 		await this.loadKeywordsCache().catch(Logger.error);

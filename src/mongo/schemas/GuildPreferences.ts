@@ -6,6 +6,7 @@ export type IGuildPreferences = {
 	repEnabled: boolean;
 	repDisabledChannelIds: string[];
 } & Partial<{
+	hotmSessionOngoing: boolean;
 	modlogChannelId: string;
 	generalLogsChannelId: string;
 	actionRequiredChannelId: string;
@@ -34,6 +35,7 @@ const schema = new Schema<IGuildPreferences>({
 	guildId: { type: String, required: true, unique: true },
 	repEnabled: { type: Boolean, default: false },
 	repDisabledChannelIds: { type: [String], default: [] },
+	hotmSessionOngoing: { type: Boolean, default: false },
 	modlogChannelId: { type: String, default: null },
 	generalLogsChannelId: { type: String, default: null },
 	actionRequiredChannelId: { type: String, default: null },
