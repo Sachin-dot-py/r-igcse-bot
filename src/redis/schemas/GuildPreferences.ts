@@ -12,6 +12,7 @@ const schema = new Schema("GuildPreferences", {
 	guildId: { type: "string" },
 	repEnabled: { type: "boolean" },
 	repDisabledChannelIds: { type: "string[]" },
+	hotmSessionOngoing: { type: "boolean" },
 	modlogChannelId: { type: "string" },
 	generalLogsChannelId: { type: "string" },
 	actionRequiredChannelId: { type: "string" },
