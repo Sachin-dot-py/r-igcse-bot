@@ -60,10 +60,6 @@ export default class ErrorEvent extends BaseEvent {
 			.setTitle(`Timeout | Case #${caseNumber}`)
 			.setDescription(reason)
 			.setColor(Colors.Red)
-			.setAuthor({
-				name: autoModerationActionExecution.user.tag,
-				iconURL: autoModerationActionExecution.user.displayAvatarURL()
-			})
 			.addFields([
 				{
 					name: "Username",
