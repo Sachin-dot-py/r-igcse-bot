@@ -12,7 +12,8 @@ import {
 	SlashCommandBuilder,
 	TextChannel,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
+	VoiceChannel
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -58,7 +59,10 @@ export default class KickCommand extends BaseCommand {
 				interaction.options.getChannel("channel", false) ||
 				interaction.channel;
 
-			if (!(channel instanceof TextChannel)) return;
+			if (!(channel instanceof TextChannel) && !(channel instanceof VoiceChannel)) {
+				interaction.reply({ content: 'This is not a text channel', ephemeral: true });
+				return;
+			};
 
 			const replyMessageId = new TextInputBuilder()
 				.setCustomId("reply_message_id")
@@ -118,8 +122,10 @@ export default class KickCommand extends BaseCommand {
 					if (
 						!guildPreferences ||
 						!guildPreferences.generalLogsChannelId
-					)
+					) {
+						interaction.reply({ content: 'Please setup the bot using the command `/setup` first.', ephemeral: true });
 						return;
+					};
 
 					await Logger.channel(
 						interaction.guild,
@@ -205,8 +211,10 @@ export default class KickCommand extends BaseCommand {
 					if (
 						!guildPreferences ||
 						!guildPreferences.generalLogsChannelId
-					)
+					) {
+						interaction.reply({ content: 'Please setup the bot using the command `/setup` first.', ephemeral: true });
 						return;
+					};
 
 					await Logger.channel(
 						interaction.guild,
