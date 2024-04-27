@@ -10,6 +10,7 @@ import {
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	StageChannel,
 	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
@@ -59,7 +60,7 @@ export default class KickCommand extends BaseCommand {
 				interaction.options.getChannel("channel", false) ||
 				interaction.channel;
 
-			if (!(channel instanceof TextChannel) && !(channel instanceof VoiceChannel)) {
+			if (!(channel instanceof TextChannel) && !(channel instanceof VoiceChannel) && !(channel instanceof StageChannel)) {
 				interaction.reply({ content: 'This is not a text channel', ephemeral: true });
 				return;
 			};
