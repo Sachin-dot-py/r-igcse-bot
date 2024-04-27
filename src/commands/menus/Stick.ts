@@ -115,7 +115,8 @@ export default class StickMessageCommand extends BaseCommand {
 			.setChannelTypes(
 				ChannelType.GuildText,
 				ChannelType.PublicThread,
-				ChannelType.PrivateThread
+				ChannelType.PrivateThread,
+				ChannelType.GuildStageVoice
 			);
 
 		const channelRow =
