@@ -55,8 +55,6 @@ await mongo.connect(process.env.MONGO_URL, {
 await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
 
-console.log(process.env.BOT_TOKEN);
-
 for (;;)
 	await inquirer
 		.prompt([
