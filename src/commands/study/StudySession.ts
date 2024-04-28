@@ -59,7 +59,15 @@ export default class StudySessionCommand extends BaseCommand {
 			return;
 		}
 
-		const studySessionChannel = await interaction.guild.channels.cache.get(
+		if (member.voice.channel.name !== "General") {
+			await interaction.reply({
+				content: "This voice channel is already in use."
+			});
+
+			return;
+		}
+
+		const studySessionChannel = interaction.guild.channels.cache.get(
 			guildPreferences.studySessionChannelId
 		);
 
