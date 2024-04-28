@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { GatewayIntentBits, Partials } from "discord.js";
 import mongo from "mongoose";
 import { redis } from "./redis";
@@ -56,6 +54,8 @@ await mongo.connect(process.env.MONGO_URL, {
 
 await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
+
+console.log(process.env.BOT_TOKEN);
 
 for (;;)
 	await inquirer
