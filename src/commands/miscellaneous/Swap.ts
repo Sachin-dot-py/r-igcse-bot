@@ -41,7 +41,8 @@ export default class PingCommand extends BaseCommand {
 
 		if (!guilds.size) {
 			interaction.reply({
-				content: "Please try sending a message in the server you're trying to contact.",
+				content:
+					"Please try sending a message in the server you're trying to contact.",
 				ephemeral: true
 			});
 

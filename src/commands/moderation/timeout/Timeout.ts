@@ -131,11 +131,13 @@ export default class TimeoutCommand extends BaseCommand {
 			}).sort({ when: -1 })
 		)[0];
 
-		if (guildMember.isCommunicationDisabled()
-			&& latestTimeout.duration
-			&& latestTimeout.when.getTime() + (latestTimeout.duration * 1000) > Date.now()) {
-
-			const newEndTime = Date.now() + (duration * 1000);
+		if (
+			guildMember.isCommunicationDisabled() &&
+			latestTimeout.duration &&
+			latestTimeout.when.getTime() + latestTimeout.duration * 1000 >
+				Date.now()
+		) {
+			const newEndTime = Date.now() + duration * 1000;
 
 			const time = Math.floor(newEndTime / 1000);
 
@@ -177,7 +179,9 @@ export default class TimeoutCommand extends BaseCommand {
 			});
 
 			const modEmbed = new EmbedBuilder()
-				.setTitle(`Timeout Duration Modified | Case #${latestTimeout.caseId}`)
+				.setTitle(
+					`Timeout Duration Modified | Case #${latestTimeout.caseId}`
+				)
 				.setColor(Colors.Red)
 				.addFields([
 					{
@@ -210,7 +214,9 @@ export default class TimeoutCommand extends BaseCommand {
 				);
 			}
 
-			interaction.editReply({ content: "changed user's timeout duration rahhhhhh" });
+			interaction.editReply({
+				content: "changed user's timeout duration rahhhhhh"
+			});
 			interaction.channel.send(
 				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`
 			);

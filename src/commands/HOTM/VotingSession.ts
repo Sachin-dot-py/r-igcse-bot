@@ -91,7 +91,6 @@ export default class HOTMSessionCommand extends BaseCommand {
 
 				await guildPreferences.updateOne({ hotmSessionOngoing: false });
 
-
 				if (!guildPreferences?.hotmResultsChannelId) return;
 
 				this.handleEmbed(
@@ -145,7 +144,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 			.addFields(...fields);
 
 		if (messageId)
-			resultsChannel.messages.delete(messageId).catch(() => { });
+			resultsChannel.messages.delete(messageId).catch(() => {});
 
 		const embedMessage = await resultsChannel.send({
 			embeds: [embed]

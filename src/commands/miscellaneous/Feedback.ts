@@ -133,9 +133,7 @@ export default class FeedbackCommand extends BaseCommand {
 
 		if (team?.label === "Bot Developers") {
 			embed = new EmbedBuilder()
-				.setTitle(
-					`Bot Feedback Received`
-				)
+				.setTitle(`Bot Feedback Received`)
 				.setDescription(feedback)
 				.setFooter({
 					text: `from ${feedbackGuild.name} (${feedbackGuild.id})`
@@ -147,9 +145,7 @@ export default class FeedbackCommand extends BaseCommand {
 				});
 		} else {
 			embed = new EmbedBuilder()
-				.setTitle(
-					`Feedback received for ${team.label}`
-				)
+				.setTitle(`Feedback received for ${team.label}`)
 				.setDescription(feedback)
 				.setColor(Colors.Blue)
 				.setAuthor({

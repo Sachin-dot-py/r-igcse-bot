@@ -237,7 +237,9 @@ export default class MessageCreateEvent extends BaseEvent {
 				guild.members.cache.has(message.author.id)
 			);
 			if (guilds.size === 0) {
-				await message.author.send("Hey there, please send a message in the server you're trying to contact and then try again.");
+				await message.author.send(
+					"Hey there, please send a message in the server you're trying to contact and then try again."
+				);
 				return;
 			}
 			const selectCustomId = uuidv4();

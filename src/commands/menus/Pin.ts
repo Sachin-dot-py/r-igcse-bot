@@ -34,7 +34,12 @@ export default class PinMenu extends BaseCommand {
 			return;
 		}
 
-		if (!(interaction.channel instanceof TextChannel || interaction.channel instanceof ThreadChannel)) {
+		if (
+			!(
+				interaction.channel instanceof TextChannel ||
+				interaction.channel instanceof ThreadChannel
+			)
+		) {
 			interaction.reply({
 				content: "You can't pin messages in this channel",
 				ephemeral: true

@@ -60,10 +60,17 @@ export default class KickCommand extends BaseCommand {
 				interaction.options.getChannel("channel", false) ||
 				interaction.channel;
 
-			if (!(channel instanceof TextChannel) && !(channel instanceof VoiceChannel) && !(channel instanceof StageChannel)) {
-				interaction.reply({ content: 'This is not a text channel', ephemeral: true });
+			if (
+				!(channel instanceof TextChannel) &&
+				!(channel instanceof VoiceChannel) &&
+				!(channel instanceof StageChannel)
+			) {
+				interaction.reply({
+					content: "This is not a text channel",
+					ephemeral: true
+				});
 				return;
-			};
+			}
 
 			const replyMessageId = new TextInputBuilder()
 				.setCustomId("reply_message_id")
@@ -124,9 +131,13 @@ export default class KickCommand extends BaseCommand {
 						!guildPreferences ||
 						!guildPreferences.generalLogsChannelId
 					) {
-						interaction.reply({ content: 'Please setup the bot using the command `/setup` first.', ephemeral: true });
+						interaction.reply({
+							content:
+								"Please setup the bot using the command `/setup` first.",
+							ephemeral: true
+						});
 						return;
-					};
+					}
 
 					await Logger.channel(
 						interaction.guild,
@@ -213,9 +224,13 @@ export default class KickCommand extends BaseCommand {
 						!guildPreferences ||
 						!guildPreferences.generalLogsChannelId
 					) {
-						interaction.reply({ content: 'Please setup the bot using the command `/setup` first.', ephemeral: true });
+						interaction.reply({
+							content:
+								"Please setup the bot using the command `/setup` first.",
+							ephemeral: true
+						});
 						return;
-					};
+					}
 
 					await Logger.channel(
 						interaction.guild,

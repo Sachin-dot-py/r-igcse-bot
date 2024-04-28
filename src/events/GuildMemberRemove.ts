@@ -24,11 +24,13 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 
 		const auditLogs = await member.guild.fetchAuditLogs({
 			type: AuditLogEvent.MemberKick,
-			limit: 3,
+			limit: 3
 		});
 
 		const entry = auditLogs.entries.find(
-			(entry) => entry.targetId === member.id && entry.createdTimestamp > Date.now() - 10000
+			(entry) =>
+				entry.targetId === member.id &&
+				entry.createdTimestamp > Date.now() - 10000
 		);
 
 		if (!entry || entry.executorId === client.user.id) return;

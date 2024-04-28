@@ -72,7 +72,14 @@ export default class HistoryCommand extends BaseCommand {
 
 		const punishmentsList = [];
 
-		for (const { when, actionBy, points, action, reason, duration } of punishments) {
+		for (const {
+			when,
+			actionBy,
+			points,
+			action,
+			reason,
+			duration
+		} of punishments) {
 			if (points) totalPoints += points;
 
 			if (action in counts) {

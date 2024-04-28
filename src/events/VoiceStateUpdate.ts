@@ -22,7 +22,7 @@ export default class VoiceStateUpdateEvent extends BaseEvent {
 
 		if (oldState.channel.members.size === 0) {
 			await oldState.channel.setName("General");
-			await oldState.channel.setRateLimitPerUser(0)
+			await oldState.channel.setRateLimitPerUser(0);
 		}
 	}
 }

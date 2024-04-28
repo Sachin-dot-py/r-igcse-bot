@@ -52,7 +52,15 @@ export default class extends BaseCommand {
 		);
 
 		if (res.modifiedCount + res.upsertedCount === 0) {
-			if (newRep == (await Reputation.findOne({ guildId: interaction.guild.id, userId: user.id }))?.rep) {
+			if (
+				newRep ==
+				(
+					await Reputation.findOne({
+						guildId: interaction.guild.id,
+						userId: user.id
+					})
+				)?.rep
+			) {
 				await interaction.reply({
 					content: `${user.tag}'s rep is already ${newRep}`
 				});

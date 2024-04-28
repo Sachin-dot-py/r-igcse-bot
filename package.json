@@ -25,15 +25,15 @@
 		"zlib-sync": "^0.1"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9",
 		"@types/bun": "latest",
 		"@types/humanize-duration": "^3",
 		"@types/inquirer": "^9",
 		"@types/uuid": "^9",
-		"@typescript-eslint/eslint-plugin": "^7",
-		"@typescript-eslint/parser": "^7",
-		"eslint": "^8",
-		"eslint-config-prettier": "^9",
+		"eslint": "^9",
+		"globals": "^15",
 		"prettier": "^3",
-		"typescript": "^5"
+		"typescript": "^5",
+		"typescript-eslint": "^7"
 	}
 }

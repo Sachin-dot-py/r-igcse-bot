@@ -29,7 +29,6 @@ export default class HOTMVotingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
@@ -42,8 +41,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 			return;
 		}
-		if (
-			!guildPreferences.hotmSessionOngoing) {
+		if (!guildPreferences.hotmSessionOngoing) {
 			await interaction.reply({
 				content:
 					"The voting period has not started yet or has already ended.",
