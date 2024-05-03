@@ -12,6 +12,8 @@ export const ywAliases = [
 	"derien", // French
 	"de rien", // French
 	"pas de problem", // French
+	"aucune probleme", // French
+	"aucune problème", // French
 	"عفوا", //  Arabic
 	"afwan", // Arabic
 	"aafwan", // Arabic
