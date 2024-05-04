@@ -492,7 +492,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 					rep: 1
 				});
 
-			let content = `Gave +1 Rep to ${user.tag} (${rep})`;
+			let content = `Gave +1 Rep to <@${user.id}> (${rep})`;
 
 			if ([100, 500, 1000, 5000, 10000].some((amnt) => rep === amnt)) {
 				const role = message.guild.roles.cache.find(
@@ -505,7 +505,10 @@ To change the server you're contacting, use the \`/swap\` command`,
 				}
 			}
 
-			message.channel.send(content);
+			message.channel.send({
+				content,
+				allowedMentions: { repliedUser: false }
+			});
 		}
 	}
 
