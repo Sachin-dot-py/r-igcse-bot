@@ -25,9 +25,9 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 	) {
 		if (
 			oldMember.isCommunicationDisabled() ===
-				newMember.isCommunicationDisabled() &&
+			newMember.isCommunicationDisabled() &&
 			oldMember.communicationDisabledUntil ===
-				newMember.communicationDisabledUntil
+			newMember.communicationDisabledUntil
 		)
 			return;
 
@@ -67,7 +67,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				Math.ceil(
 					(new Date(change.new as string).getTime() -
 						new Date().getTime()) /
-						10000
+					10000
 				) * 10;
 
 			if (
@@ -93,12 +93,12 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						.addFields([
 							{
 								name: "User",
-								value: `${newMember.user.tag} (${newMember.id})`,
+								value: `<@${newMember.id}>`,
 								inline: false
 							},
 							{
 								name: "Moderator",
-								value: `${entry.executor?.tag} (${entry.executorId})`,
+								value: `<@${entry.executorId}>`,
 								inline: false
 							},
 							{
@@ -115,7 +115,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						newMember.guild,
 						guildPreferences.modlogChannelId,
 						{
-							embeds: [modEmbed]
+							embeds: [modEmbed],
+							allowedMentions: { repliedUser: false }
 						}
 					);
 				}
@@ -156,12 +157,12 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						.addFields([
 							{
 								name: "User",
-								value: `${newMember.user.tag} (${newMember.id})`,
+								value: `<@${newMember.id}>`,
 								inline: false
 							},
 							{
 								name: "Moderator",
-								value: `${entry.executor?.tag} (${entry.executorId})`,
+								value: `<@${entry.executorId}>`,
 								inline: false
 							},
 							{
@@ -178,7 +179,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						newMember.guild,
 						guildPreferences.modlogChannelId,
 						{
-							embeds: [modEmbed]
+							embeds: [modEmbed],
+							allowedMentions: { repliedUser: false }
 						}
 					);
 				}
@@ -221,12 +223,12 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 					.addFields([
 						{
 							name: "User",
-							value: `${newMember.user.tag} (${newMember.id})`,
+							value: `$<@${newMember.id}>`,
 							inline: false
 						},
 						{
 							name: "Moderator",
-							value: `${entry.executor?.tag} (${entry.executorId})`,
+							value: `<@${entry.executorId}>`,
 							inline: false
 						},
 						{
@@ -239,7 +241,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 					newMember.guild,
 					guildPreferences.modlogChannelId,
 					{
-						embeds: [modEmbed]
+						embeds: [modEmbed],
+						allowedMentions: { repliedUser: false }
 					}
 				);
 			}

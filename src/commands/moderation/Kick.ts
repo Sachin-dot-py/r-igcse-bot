@@ -148,12 +148,12 @@ export default class KickCommand extends BaseCommand {
 				.addFields([
 					{
 						name: "User",
-						value: `${user.tag} (${user.id})`,
+						value: `<@${user.id}>`,
 						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${interaction.user.tag} (${interaction.user.id})`,
+						value: `<@${interaction.user.id}>`,
 						inline: false
 					},
 					{
@@ -167,7 +167,8 @@ export default class KickCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed]
+					embeds: [modEmbed],
+					allowedMentions: { repliedUser: false }
 				}
 			);
 		}

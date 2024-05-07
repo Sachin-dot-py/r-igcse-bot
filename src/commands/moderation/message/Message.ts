@@ -147,7 +147,7 @@ export default class KickCommand extends BaseCommand {
 								new EmbedBuilder()
 									.setTitle("Message Sent")
 									.setDescription(
-										`Message sent by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`
+										`Message sent by <@${interaction.user.id}> in <#${channel.id}>`
 									)
 									.setColor("Green")
 									.addFields({
@@ -159,7 +159,8 @@ export default class KickCommand extends BaseCommand {
 										inline: true
 									})
 									.setTimestamp()
-							]
+							],
+							allowedMentions: { repliedUser: false }
 						}
 					);
 				})
@@ -240,7 +241,7 @@ export default class KickCommand extends BaseCommand {
 								new EmbedBuilder()
 									.setTitle("Message Edited")
 									.setDescription(
-										`Message edited by ${interaction.user.tag} (${interaction.user.id}) in <#${interaction.channel.id}>`
+										`Message edited by <@${interaction.user.id}> in <#${interaction.channel.id}>`
 									)
 									.setColor("Green")
 									.addFields(
@@ -259,7 +260,8 @@ export default class KickCommand extends BaseCommand {
 										}
 									)
 									.setTimestamp()
-							]
+							],
+							allowedMentions: { repliedUser: false }
 						}
 					);
 				})

@@ -62,7 +62,8 @@ export default class extends BaseCommand {
 				)?.rep
 			) {
 				await interaction.reply({
-					content: `${user.tag}'s rep is already ${newRep}`
+					content: `<@${user.id}>'s rep is already ${newRep}`,
+					allowedMentions: { repliedUser: false }
 				});
 				return;
 			}
@@ -73,7 +74,8 @@ export default class extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Changed ${user.tag} rep to ${newRep}`
+			content: `Changed <@${user.id}> rep to ${newRep}`,
+			allowedMentions: { repliedUser: false }
 		});
 	}
 }
