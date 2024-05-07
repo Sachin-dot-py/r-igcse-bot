@@ -24,10 +24,11 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 		newMember: GuildMember
 	) {
 		if (
-			oldMember.isCommunicationDisabled() ===
-			newMember.isCommunicationDisabled() &&
-			oldMember.communicationDisabledUntil ===
-			newMember.communicationDisabledUntil
+			oldMember.user.bot ||
+			(oldMember.isCommunicationDisabled() ===
+				newMember.isCommunicationDisabled() &&
+				oldMember.communicationDisabledUntil ===
+					newMember.communicationDisabledUntil)
 		)
 			return;
 

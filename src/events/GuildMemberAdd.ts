@@ -41,6 +41,11 @@ export default class GuildMemberAddEvent extends BaseEvent {
 
 			await member.send({ content: welcomeDMMessage });
 		}
+		if (member.guild.id == process.env.MAIN_GUILD_ID && member.user.createdAt.getTime() >= (new Date().getTime() - 60 * 60 * 24 * 1000)) {
+			await member.send({
+				content: "We apologize for any inconvenience caused by our current policy. We use timeouts to prevent troublemakers, but we understand it's frustrating for new users like you. We're working on a better solution. Thank you for your patience."
+			})
+		}
 
 		const welcomeChannel = await member.guild.channels.cache.get(
 			guildPreferences.welcomeChannelId
