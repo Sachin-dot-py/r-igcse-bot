@@ -54,6 +54,8 @@ export default class StickMessageCommand extends BaseCommand {
 		}
 
 		try {
+			if (interaction.targetMessage.pinned)
+				await interaction.targetMessage.unpin();
 			interaction.targetMessage.pin();
 
 			interaction.targetMessage.reply({
@@ -69,7 +71,8 @@ export default class StickMessageCommand extends BaseCommand {
 			if (pinnedMessages.size >= 50) {
 				interaction.reply({
 					content:
-						"Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space."
+						"Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space.",
+					ephemeral: true
 				});
 
 				return;
@@ -79,6 +82,19 @@ export default class StickMessageCommand extends BaseCommand {
 				content: "Couldn't pin message.",
 				ephemeral: true
 			});
+
+			client.log(
+				error,
+				`${this.data.name} Menu`,
+				`**Channel:** <#${interaction.channel?.id}>
+					**User:** <@${interaction.user.id}>
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+			);
 		}
+
+		interaction.reply({
+			content: "Successfully sticky pinned message.",
+			ephemeral: true
+		});
 	}
 }
