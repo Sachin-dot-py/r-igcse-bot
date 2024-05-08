@@ -32,7 +32,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 		if (oldRes) {
 			interaction.reply({
-				content: `This channel already has a sticky pinned message: https://discord.com/channels/${interaction.guildId}/${oldRes.channelId}/${oldRes.messageId}}`,
+				content: `This channel already has a sticky pinned message: https://discord.com/channels/${interaction.guildId}/${oldRes.channelId}/${oldRes.messageId}`,
 				ephemeral: true
 			});
 
