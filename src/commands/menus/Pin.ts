@@ -1,3 +1,4 @@
+import { StickyPinnedMessage } from "@/mongo/schemas/StickyPinnedMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
@@ -48,8 +49,13 @@ export default class PinMenu extends BaseCommand {
 			return;
 		}
 
+		const res = await StickyPinnedMessage.findOne({
+			channelId: interaction.channel.id
+		});
+
 		try {
 			await interaction.targetMessage.pin();
+			if (res) await interaction.channel.messages.pin(res.messageId);
 			await interaction.targetMessage.reply({
 				content: `Messaged pinned by ${interaction.user}`
 			});
