@@ -26,7 +26,26 @@ export default class PinMenu extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
 	) {
+		if (
+			!(
+				interaction.channel instanceof TextChannel ||
+				interaction.channel instanceof ThreadChannel
+			)
+		) {
+			interaction.reply({
+				content: "You can't pin/unpin messages in this channel",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 		if (interaction.targetMessage.pinned) {
+			await StickyPinnedMessage.deleteOne({
+				channelId: interaction.channelId,
+				messageId: interaction.targetMessage.id
+			}).catch(() => null);
+
 			try {
 				await interaction.targetMessage.unpin();
 				await interaction.targetMessage.reply({
@@ -61,27 +80,16 @@ export default class PinMenu extends BaseCommand {
 				return;
 			}
 
-			if (
-				!(
-					interaction.channel instanceof TextChannel ||
-					interaction.channel instanceof ThreadChannel
-				)
-			) {
-				interaction.reply({
-					content: "You can't pin messages in this channel",
-					ephemeral: true
-				});
-
-				return;
-			}
-
 			const res = await StickyPinnedMessage.findOne({
 				channelId: interaction.channel.id
 			});
 
 			try {
 				await interaction.targetMessage.pin();
-				if (res) await interaction.channel.messages.pin(res.messageId);
+				if (res) {
+					await interaction.channel.messages.unpin(res.messageId);
+					await interaction.channel.messages.pin(res.messageId);
+				}
 				await interaction.targetMessage.reply({
 					content: `Messaged pinned by ${interaction.user}`
 				});
