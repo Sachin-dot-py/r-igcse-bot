@@ -28,7 +28,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 			(oldMember.isCommunicationDisabled() ===
 				newMember.isCommunicationDisabled() &&
 				oldMember.communicationDisabledUntil ===
-					newMember.communicationDisabledUntil)
+				newMember.communicationDisabledUntil)
 		)
 			return;
 
@@ -46,7 +46,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 			(entry) => entry.targetId === newMember.id
 		);
 
-		if (!entry || entry.executorId === client.user.id) return;
+		if (!entry || entry.executorId === client.user.id || entry.executor?.bot) return;
 
 		const change = entry.changes.find(
 			(change) => change.key === "communication_disabled_until"
@@ -68,7 +68,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				Math.ceil(
 					(new Date(change.new as string).getTime() -
 						new Date().getTime()) /
-						10000
+					10000
 				) * 10;
 
 			if (
