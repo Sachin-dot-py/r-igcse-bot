@@ -29,14 +29,14 @@ export default class TimeoutCommand extends BaseCommand {
 				)
 				.addStringOption((option) =>
 					option
-						.setName("reason")
-						.setDescription("Reason for timeout")
+						.setName("duration")
+						.setDescription("Duration for timeout (from now)")
 						.setRequired(true)
 				)
 				.addStringOption((option) =>
 					option
-						.setName("duration")
-						.setDescription("Duration for timeout (from now)")
+						.setName("reason")
+						.setDescription("Reason for timeout")
 						.setRequired(true)
 				)
 				.setDefaultMemberPermissions(
