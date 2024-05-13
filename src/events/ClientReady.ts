@@ -147,37 +147,33 @@ export default class ClientReadyEvent extends BaseEvent {
 	private async refreshChannelLockdowns() {
 		const time = Date.now() / 1000;
 
-		const lockdownData = await ChannelLockdown.find();
-
-		for (const lockdown of lockdownData) {
+		for (const lockdown of await ChannelLockdown.find()) {
 			const startTime = parseInt(lockdown.startTimestamp);
 			const endTime = parseInt(lockdown.endTimestamp);
 
-			if (endTime <= time) {
-				await ChannelLockdown.deleteOne({
-					channelId: lockdown.channelId
-				});
+			if (startTime > time) continue;
 
-				continue;
-			}
+			const locked = time <= endTime;
 
-			const locked = startTime >= time ? false : true;
+			const channel = await client.channels.fetch(lockdown.channelId);
 
-			const channel = client.channels.cache.get(lockdown.channelId);
-
-			if (channel instanceof ThreadChannel && !channel.locked)
-				await channel.setLocked(locked);
+			if (channel instanceof ThreadChannel) channel.setLocked(locked);
 			else if (
 				channel instanceof TextChannel ||
 				channel instanceof ForumChannel
 			)
-				await channel.permissionOverwrites.edit(
+				channel.permissionOverwrites.edit(
 					channel.guild.roles.everyone,
 					{
 						SendMessages: !locked,
 						SendMessagesInThreads: !locked
 					}
 				);
+
+			if (endTime <= time)
+				ChannelLockdown.deleteOne({
+					channelId: lockdown.channelId
+				});
 		}
 	}
 }
