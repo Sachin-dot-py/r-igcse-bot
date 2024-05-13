@@ -1,3 +1,4 @@
+import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -31,6 +32,14 @@ export default class KickCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription("Channel to send message")
+								.setRequired(false)
+						)
+						.addNumberOption((option) =>
+							option
+								.setName("schedule_time")
+								.setDescription(
+									"When to send the message. (Epoch) (Defaults to immediately)"
+								)
 								.setRequired(false)
 						)
 				)
@@ -72,6 +81,18 @@ export default class KickCommand extends BaseCommand {
 				return;
 			}
 
+			const scheduleTime = interaction.options.getNumber("schedule_time", false);
+
+			if (scheduleTime && scheduleTime <= (Date.now() / 1000)) {
+				interaction.reply({
+					content:
+						"Scheduled time cannot be in the past",
+					ephemeral: true
+				});
+
+				return;
+			}
+
 			const replyMessageId = new TextInputBuilder()
 				.setCustomId("reply_message_id")
 				.setLabel("Reply Message Id")
@@ -110,6 +131,81 @@ export default class KickCommand extends BaseCommand {
 					time: 300_000 // 5 minutes
 				})
 				.then(async (i) => {
+					if (scheduleTime) {
+						await ScheduledMessage.create({
+							guildId: interaction.guildId,
+							channelId: channel.id,
+							message: {
+								content: i.fields.getTextInputValue("message_content"),
+								reply: {
+									messageReference: i.fields.getTextInputValue("reply_message_id")
+								}
+							},
+							scheduleTime
+						})
+
+						await i.reply({
+							content: `Message scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
+							ephemeral: true
+						});
+
+						const guildPreferences = await GuildPreferencesCache.get(
+							interaction.guildId
+						);
+
+						if (
+							!guildPreferences ||
+							!guildPreferences.generalLogsChannelId
+						) {
+							interaction.reply({
+								content:
+									"Please setup the bot using the command `/setup` first.",
+								ephemeral: true
+							});
+							return;
+						}
+
+						await Logger.channel(
+							interaction.guild,
+							guildPreferences.generalLogsChannelId,
+							{
+								embeds: [
+									new EmbedBuilder()
+										.setTitle("Message Scheduled")
+										.setDescription(
+											`Message scheduled by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`
+										)
+										.setColor("Green")
+										.addFields(
+											{
+												name: "Message Content",
+												value:
+													i.fields.getTextInputValue(
+														"message_content"
+													) ?? "None",
+												inline: true
+											},
+											{
+												name: "Scheduled Time",
+												value: `<t:${scheduleTime}> (<t:${scheduleTime}:R>)`,
+												inline: true
+											}
+										)
+										.setTimestamp(scheduleTime * 1000)
+								]
+							}
+						).catch(() => {
+							interaction.followUp({
+								content: "Invalid log channel, contact admins",
+								ephemeral: true
+							});
+						});
+
+						return;
+					}
+
+
+
 					await channel.send({
 						content: i.fields.getTextInputValue("message_content"),
 						reply: {

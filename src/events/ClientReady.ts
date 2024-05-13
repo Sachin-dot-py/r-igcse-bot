@@ -20,6 +20,7 @@ import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { EntityId } from "redis-om";
+import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -71,6 +72,9 @@ export default class ClientReadyEvent extends BaseEvent {
 		}
 
 		await this.loadKeywordsCache().catch(Logger.error);
+
+		Logger.info("Starting scheduled messages loop");
+		createTask(() => this.sendScheduledMessage(client).catch(Logger.error), 60000);
 
 		createTask(
 			async () =>
@@ -175,5 +179,30 @@ export default class ClientReadyEvent extends BaseEvent {
 					channelId: lockdown.channelId
 				});
 		}
+	}
+
+	private async sendScheduledMessage(client: DiscordClient) {
+
+		const scheduledMessages = await ScheduledMessage.find({
+			$expr: {
+				$lte: [
+					{ $toLong: "$scheduleTime" },
+					{ $divide: [Date.now(), 1000] }
+				]
+			}
+		});
+
+		for (let scheduledMessage of scheduledMessages) {
+			const messageGuild = client.guilds.cache.get(scheduledMessage.guildId);
+
+			const messageChannel = messageGuild?.channels.cache.get(scheduledMessage.channelId);
+
+			if (!messageChannel || !messageChannel.isTextBased()) return;
+
+			await messageChannel.send(scheduledMessage.message);
+
+			await scheduledMessage.deleteOne();
+		}
+
 	}
 }

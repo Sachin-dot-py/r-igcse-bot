@@ -1,3 +1,4 @@
+import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -9,7 +10,8 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
+	type MessageCreateOptions
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -28,6 +30,14 @@ export default class EmbedCommand extends BaseCommand {
 								.setName("channel")
 								.setDescription(
 									"Channel to send the embed in (default is current channel)"
+								)
+								.setRequired(false)
+						)
+						.addNumberOption((option) =>
+							option
+								.setName("schedule_time")
+								.setDescription(
+									"When to send the embed. (Epoch) (Defaults to immediately)"
 								)
 								.setRequired(false)
 						)
@@ -53,6 +63,18 @@ export default class EmbedCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid channel type, must be a text channel.",
+						ephemeral: true
+					});
+
+					return;
+				}
+
+				const scheduleTime = interaction.options.getNumber("schedule_time", false);
+
+				if (scheduleTime && scheduleTime <= (Date.now() / 1000)) {
+					interaction.reply({
+						content:
+							"Scheduled time cannot be in the past",
 						ephemeral: true
 					});
 
@@ -109,15 +131,15 @@ export default class EmbedCommand extends BaseCommand {
 				});
 
 				const embedTitle =
-					(await modalInteraction.fields.getTextInputValue(
+					(modalInteraction.fields.getTextInputValue(
 						"title"
 					)) || null;
 				const embedDescription =
-					(await modalInteraction.fields.getTextInputValue(
+					(modalInteraction.fields.getTextInputValue(
 						"description"
 					)) || null;
 				const embedFooter =
-					(await modalInteraction.fields.getTextInputValue(
+					(modalInteraction.fields.getTextInputValue(
 						"footer"
 					)) || null;
 
@@ -139,6 +161,22 @@ export default class EmbedCommand extends BaseCommand {
 					embed.setFooter({
 						text: embedFooter
 					});
+				}
+
+				if (scheduleTime) {
+					ScheduledMessage.create({
+						guildId: interaction.guildId,
+						channelId: channel.id,
+						message: { embeds: [embed.data] },
+						scheduleTime: scheduleTime.toString()
+					});
+
+					await modalInteraction.reply({
+						content: `Embed scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
+						ephemeral: true
+					});
+
+					return;
 				}
 
 				await channel.send({ embeds: [embed] });
