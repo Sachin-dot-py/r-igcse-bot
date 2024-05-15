@@ -184,14 +184,14 @@ export default class GoStudyCommand extends BaseCommand {
 		});
 
 		for (const mute of expiredMutes) {
-			const guild = await client.guilds.fetch(mute.guildId);
+			const guild = await client.guilds.fetch(mute.guildId).catch(x => null);
 
 			if (!guild) {
 				await mute.deleteOne();
 				continue;
 			}
 
-			const member = await guild.members.fetch(mute.userId);
+			const member = await guild.members.fetch(mute.userId).catch(x => null);
 
 			if (!member) {
 				await mute.deleteOne();
