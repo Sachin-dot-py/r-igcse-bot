@@ -1,9 +1,12 @@
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import Logger from "@/utils/Logger";
+import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import parse from "parse-duration";
+import humanizeDuration from "humanize-duration";
 
 export default class SlowmodeCommand extends BaseCommand {
 	constructor() {
@@ -66,5 +69,54 @@ export default class SlowmodeCommand extends BaseCommand {
 			content: `Slowmode for ${channel} successfully set to ${timeString}.`,
 			ephemeral: true
 		});
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId
+		);
+
+		if (
+			!guildPreferences ||
+			!guildPreferences.generalLogsChannelId
+		) {
+			interaction.reply({
+				content:
+					"Please setup the bot using the command `/setup` first.",
+				ephemeral: true
+			});
+			return;
+		}
+
+		await Logger.channel(
+			interaction.guild,
+			guildPreferences.generalLogsChannelId,
+			{
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Slowmode added")
+						.setDescription(
+							`Slowmode added in ${channel}`
+						)
+						.setColor("Red")
+						.addFields(
+							{
+								name: "Moderator",
+								value: `${interaction.user.tag} (<@${interaction.user.id}>)`
+							},
+							{
+								name: "Duration",
+								value: `${humanizeDuration(time * 1000)}`
+							}
+						)
+						.setTimestamp()
+				],
+				allowedMentions: { repliedUser: false }
+			}
+		).catch(() => {
+			interaction.followUp({
+				content: "Invalid log channel, contact admins",
+				ephemeral: true
+			});
+		});
+
+		return;
 	}
 }
