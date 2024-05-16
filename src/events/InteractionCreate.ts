@@ -145,6 +145,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const allUsersSorted = session.users.sort();
 
 		if (
+			question.userAnswers.length === allUsersSorted.length &&
 			question.userAnswers
 				.map((x) => x.user)
 				.sort()

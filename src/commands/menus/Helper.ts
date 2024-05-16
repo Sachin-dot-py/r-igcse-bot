@@ -60,7 +60,7 @@ export default class HelperMenu extends BaseCommand {
 		}
 
 		interaction.reply({
-			content: "okay",
+			content: "https://tenor.com/Wta8.gif",
 			ephemeral: true
 		});
 

@@ -1,4 +1,4 @@
-import { HOTM, HOTMUser, HOTMSession, GuildPreferences } from "@/mongo";
+import { HOTM, HOTMUser, GuildPreferences } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
@@ -29,23 +29,6 @@ export default class HOTMVotingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const currentSession = await HOTMSession.findOne({
-			guildId: interaction.guildId
-		});
-
-		if (
-			!currentSession ||
-			currentSession.startDate.getTime() > Date.now()
-		) {
-			await interaction.reply({
-				content:
-					"The voting period has not started yet or has already ended.",
-				ephemeral: true
-			});
-
-			return;
-		}
-
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
@@ -53,6 +36,15 @@ export default class HOTMVotingCommand extends BaseCommand {
 		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
 			interaction.reply({
 				content: "This feature hasn't been configured.",
+				ephemeral: true
+			});
+
+			return;
+		}
+		if (!guildPreferences.hotmSessionOngoing) {
+			await interaction.reply({
+				content:
+					"The voting period has not started yet or has already ended.",
 				ephemeral: true
 			});
 

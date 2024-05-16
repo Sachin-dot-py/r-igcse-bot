@@ -5,6 +5,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
+import sendDm from "@/utils/sendDm";
 import {
 	Colors,
 	EmbedBuilder,
@@ -49,6 +50,15 @@ export default class WarnCommand extends BaseCommand {
 		await interaction.deferReply({
 			ephemeral: true
 		});
+
+		const guildMember = await interaction.guild.members.fetch(user.id);
+
+		if (!guildMember) {
+			interaction.editReply({
+				content: "User not found in server."
+			});
+			return;
+		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
@@ -111,6 +121,17 @@ export default class WarnCommand extends BaseCommand {
 				}
 			);
 		}
+
+		sendDm(guildMember, {
+			embeds: [
+				new EmbedBuilder()
+					.setTitle("Warn")
+					.setColor(Colors.Red)
+					.setDescription(
+						`You have been warned in ${interaction.guild.name} for: \`${reason}\`.`
+					)
+			]
+		});
 
 		interaction.editReply({ content: "there ya go good sir" });
 		interaction.channel.send(

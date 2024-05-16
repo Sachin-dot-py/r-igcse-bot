@@ -9,6 +9,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from "discord.js";
+import humanizeDuration from "humanize-duration";
 
 export default class HistoryCommand extends BaseCommand {
 	constructor() {
@@ -71,7 +72,14 @@ export default class HistoryCommand extends BaseCommand {
 
 		const punishmentsList = [];
 
-		for (const { when, actionBy, points, action, reason } of punishments) {
+		for (const {
+			when,
+			actionBy,
+			points,
+			action,
+			reason,
+			duration
+		} of punishments) {
 			if (points) totalPoints += points;
 
 			if (action in counts) {
@@ -91,7 +99,7 @@ export default class HistoryCommand extends BaseCommand {
 			});
 
 			punishmentsList.push(
-				`[${date} at ${time}] ${action}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`
+				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`
 			);
 		}
 

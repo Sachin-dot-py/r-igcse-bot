@@ -52,8 +52,11 @@ export default class UnbanCommand extends BaseCommand {
 		}
 
 		const user = interaction.options.getUser("user", true);
+		const ban = await interaction.guild.bans
+			.fetch(user.id)
+			.catch(() => null);
 
-		if (!interaction.guild.bans.fetch(user.id)) {
+		if (!ban) {
 			interaction.editReply({
 				content: "I cannot unban a user that isn't banned."
 			});

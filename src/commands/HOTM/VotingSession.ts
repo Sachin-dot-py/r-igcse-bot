@@ -1,5 +1,4 @@
-import { HOTM, HOTMUser, GuildPreferences, HOTMSession } from "@/mongo";
-import { GuildPreferencesCache } from "@/redis";
+import { HOTM, GuildPreferences, HOTMUser } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -18,53 +17,11 @@ export default class HOTMSessionCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("hotm_session")
-				.setDescription("Start, modify, or end an HOTM voting session")
+				.setDescription("Start or end an HOTM voting session")
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName("start")
 						.setDescription("Start a new voting session")
-						.addNumberOption((option) =>
-							option
-								.setName("duration")
-								.setDescription(
-									"Duration of the voting session (days; number only)"
-								)
-								.setMinValue(1)
-								.setRequired(true)
-						)
-						.addNumberOption((option) =>
-							option
-								.setName("start_time")
-								.setDescription(
-									"When the voting session will start (Epoch timestamp; default is right now)"
-								)
-								.setRequired(false)
-						)
-				)
-				.addSubcommand((subcommand) =>
-					subcommand
-						.setName("modify")
-						.setDescription(
-							"Modify an ongoing/future voting session"
-						)
-						.addNumberOption((option) =>
-							option
-								.setName("start_time")
-								.setDescription(
-									"Change when the voting session will start (Epoch timestamp)"
-								)
-								.setMinValue(0)
-								.setRequired(false)
-						)
-						.addNumberOption((option) =>
-							option
-								.setName("duration")
-								.setDescription(
-									"Change how long the voting session will last (days)"
-								)
-								.setMinValue(1)
-								.setRequired(false)
-						)
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -80,10 +37,6 @@ export default class HOTMSessionCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
-		const session = await HOTMSession.findOne({
-			guildId: interaction.guildId
-		});
-
 		const guildPreferences = await GuildPreferences.findOne({
 			guildId: interaction.guildId
 		});
@@ -99,23 +52,10 @@ export default class HOTMSessionCommand extends BaseCommand {
 
 		switch (interaction.options.getSubcommand()) {
 			case "start": {
-				const startTime =
-					interaction.options.getNumber("start_time", false) ??
-					Math.floor(Date.now() / 1000); // epoch timestamp; defaults to right now
-				const duration = interaction.options.getNumber(
-					"duration",
-					true
-				);
-
-				const startDate = new Date(startTime * 1000);
-				const endDate = new Date(
-					startDate.getTime() + duration * 24 * 60 * 60 * 1000
-				);
-
-				if (session) {
+				if (guildPreferences.hotmSessionOngoing) {
 					interaction.reply({
 						content:
-							"A HOTM session is already ongoing, end it before starting a new one or modify the current one using `/hotm_session modify`",
+							"A HOTM session is already ongoing, end it before starting a new one",
 						ephemeral: true
 					});
 					return;
@@ -125,91 +65,21 @@ export default class HOTMSessionCommand extends BaseCommand {
 					ephemeral: true
 				});
 
-				await HOTMSession.create({
-					guildId: interaction.guildId,
-					startDate: startDate,
-					endDate: endDate
+				await guildPreferences.updateOne({
+					hotmSessionOngoing: true,
+					hotmResultsEmbedId: null
 				});
+				await HOTM.deleteMany({ guildId: interaction.guildId });
+				await HOTMUser.deleteMany({ guildId: interaction.guildId });
 
 				interaction.editReply({
-					content: `Starting a new voting session <t:${(startDate.getTime() / 1000).toFixed(0)}:R>, which will end <t:${(endDate.getTime() / 1000).toFixed(0)}:R>`
+					content: `Started a new voting session`
 				});
-				break;
-			}
-
-			case "modify": {
-				if (!session) {
-					interaction.reply({
-						content:
-							"There is currently no active voting session, start one using `/hotm_session start`",
-						ephemeral: true
-					});
-					return;
-				}
-
-				await interaction.deferReply({
-					ephemeral: true
-				});
-
-				const startTime = interaction.options.getNumber(
-					"start_time",
-					false
-				);
-				const duration = interaction.options.getNumber(
-					"duration",
-					false
-				);
-
-				const startDate = startTime
-					? new Date(startTime * 1000)
-					: session.startDate;
-
-				if (startTime) {
-					if (startDate.getTime() < Date.now()) {
-						interaction.editReply({
-							content:
-								"Can't set the start date to a time in the past, i ain't got no time machine"
-						});
-						return;
-					}
-
-					await HOTMSession.updateOne(
-						{ guildId: interaction.guildId },
-						{ startDate: startDate }
-					);
-
-					return;
-				}
-
-				if (duration) {
-					const endDate = new Date(
-						startDate.getTime() + duration * 24 * 60 * 60 * 1000
-					);
-
-					if (endDate.getTime() <= Date.now()) {
-						interaction.editReply({
-							content:
-								"Can't set the end date to a time in the past, i ain't got no time machine"
-						});
-
-						await HOTMSession.updateOne(
-							{ guildId: interaction.guildId },
-							{ endDate: endDate }
-						);
-
-						return;
-					}
-				}
-
-				interaction.editReply({
-					content: "Session modified successfully."
-				});
-
 				break;
 			}
 
 			case "end": {
-				if (!session) {
+				if (!guildPreferences.hotmSessionOngoing) {
 					interaction.reply({
 						content: "There is no voting session to end",
 						ephemeral: true
@@ -219,48 +89,25 @@ export default class HOTMSessionCommand extends BaseCommand {
 
 				await interaction.deferReply({ ephemeral: true });
 
-				await session.updateOne({ endDate: Date.now() });
+				await guildPreferences.updateOne({ hotmSessionOngoing: false });
 
-				await this.endSession(client, interaction.guildId);
+				if (!guildPreferences?.hotmResultsChannelId) return;
 
-				interaction.editReply("Session ended");
+				this.handleEmbed(
+					interaction.guild,
+					guildPreferences.hotmResultsEmbedId,
+					guildPreferences.hotmResultsChannelId,
+					"HOTM session has ended."
+				);
+
+				await guildPreferences.updateOne({ hotmResultsEmbedId: null });
+				await HOTM.deleteMany({ guildId: interaction.guildId });
+				await HOTMUser.deleteMany({ guildId: interaction.guildId });
+
+				interaction.editReply("Voting session ended");
 
 				break;
 			}
-		}
-	}
-
-	async endSession(client: DiscordClient<true>, guildId?: string | null) {
-		const sessions = guildId
-			? await HOTMSession.find({
-				guildId
-			})
-			: await HOTMSession.find({
-				endDate: { $lte: Date.now() }
-			});
-
-		for (const session of sessions) {
-			const guildPreferences = await GuildPreferencesCache.get(
-				session.guildId
-			);
-
-			if (!guildPreferences?.hotmResultsChannelId) return;
-
-			this.handleEmbed(
-				client.guilds.cache.get(session.guildId),
-				guildPreferences.hotmResultsEmbedId,
-				guildPreferences.hotmResultsChannelId,
-				"HOTM session has ended."
-			);
-
-			await GuildPreferences.updateOne(
-				{ guildId: session.guildId },
-				{ hotmResultsEmbedId: null }
-			);
-
-			await session.deleteOne();
-			await HOTM.deleteMany({ guildId: session.guildId });
-			await HOTMUser.deleteMany({ guildId: session.guildId });
 		}
 	}
 

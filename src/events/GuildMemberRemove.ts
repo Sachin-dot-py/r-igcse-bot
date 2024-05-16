@@ -28,7 +28,9 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 		});
 
 		const entry = auditLogs.entries.find(
-			(entry) => entry.targetId === member.id
+			(entry) =>
+				entry.targetId === member.id &&
+				entry.createdTimestamp > Date.now() - 10000
 		);
 
 		if (!entry || entry.executorId === client.user.id) return;

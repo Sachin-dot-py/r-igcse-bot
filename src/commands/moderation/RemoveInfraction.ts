@@ -48,7 +48,7 @@ export default class extends BaseCommand {
 
 		if (punishments.length < 1) {
 			await interaction.reply(
-				`${interaction.user.tag} does not have any previous offenses.`
+				`${user.tag} does not have any previous offenses.`
 			);
 
 			return;
@@ -60,7 +60,9 @@ export default class extends BaseCommand {
 			"punishment",
 			"Select a punishment to remove",
 			punishments.map(({ caseId, action, reason, id }) => ({
-				label: `Case #${caseId ?? "Unknown"} | ${action} - ${reason}`,
+				label: ((x) => (x.length > 100 ? `${x.slice(0, 97)}...` : x))(
+					`Case #${caseId ?? "Unknown"} | ${action} - ${reason}`
+				),
 				value: id
 			})),
 			1,
@@ -96,7 +98,25 @@ export default class extends BaseCommand {
 			return;
 		}
 
-		await punishment.deleteOne();
+		try {
+			await punishment.deleteOne();
+		} catch (error) {
+			interaction.followUp({
+				content: `Failed to remove infraction ${error instanceof Error ? `(${error.message})` : ""}`
+			});
+
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`
+	* * Channel:** <#${interaction.channel?.id} >
+
+			  	
+
+					**User:** <@${interaction.user.id}>
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+			);
+		}
 
 		await interaction.editReply({
 			content: `Punishment removed for ${user.username}`,

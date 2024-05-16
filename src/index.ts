@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { GatewayIntentBits, Partials } from "discord.js";
 import mongo from "mongoose";
 import { redis } from "./redis";

@@ -20,6 +20,7 @@ import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { EntityId } from "redis-om";
+import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import type HOTMSessionCommand from "@/commands/HOTM/VotingSession";
 import type HostSessionCommand from "@/commands/study/HostSession";
 
@@ -72,18 +73,6 @@ export default class ClientReadyEvent extends BaseEvent {
 			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
 		}
 
-		const newHOTMSessionCommand = client.commands.get("hotm_session") as
-			| HOTMSessionCommand
-			| undefined;
-
-		if (newHOTMSessionCommand) {
-			Logger.info("Starting voting session loop");
-			setInterval(
-				() => newHOTMSessionCommand.endSession(client),
-				21600 * 1000
-			);
-		}
-
 		const hostSessionCommand = client.commands.get("host_session") as
 			| HostSessionCommand
 			| undefined;
@@ -98,6 +87,9 @@ export default class ClientReadyEvent extends BaseEvent {
 		}
 
 		await this.loadKeywordsCache().catch(Logger.error);
+
+		Logger.info("Starting scheduled messages loop");
+		createTask(() => this.sendScheduledMessage(client).catch(Logger.error), 60000);
 
 		createTask(
 			async () =>
@@ -174,37 +166,58 @@ export default class ClientReadyEvent extends BaseEvent {
 	private async refreshChannelLockdowns() {
 		const time = Date.now() / 1000;
 
-		const lockdownData = await ChannelLockdown.find();
-
-		for (const lockdown of lockdownData) {
+		for (const lockdown of await ChannelLockdown.find()) {
 			const startTime = parseInt(lockdown.startTimestamp);
 			const endTime = parseInt(lockdown.endTimestamp);
 
-			if (endTime <= time) {
-				await ChannelLockdown.deleteOne({
-					channelId: lockdown.channelId
-				});
+			if (startTime > time) continue;
 
-				continue;
-			}
+			const locked = time <= endTime;
 
-			const locked = startTime >= time ? false : true;
+			const channel = await client.channels.fetch(lockdown.channelId);
 
-			const channel = client.channels.cache.get(lockdown.channelId);
-
-			if (channel instanceof ThreadChannel && !channel.locked)
-				await channel.setLocked(locked);
+			if (channel instanceof ThreadChannel) channel.setLocked(locked);
 			else if (
 				channel instanceof TextChannel ||
 				channel instanceof ForumChannel
 			)
-				await channel.permissionOverwrites.edit(
+				channel.permissionOverwrites.edit(
 					channel.guild.roles.everyone,
 					{
 						SendMessages: !locked,
 						SendMessagesInThreads: !locked
 					}
 				);
+
+			if (endTime <= time)
+				ChannelLockdown.deleteOne({
+					channelId: lockdown.channelId
+				});
 		}
+	}
+
+	private async sendScheduledMessage(client: DiscordClient) {
+
+		const scheduledMessages = await ScheduledMessage.find({
+			$expr: {
+				$lte: [
+					{ $toLong: "$scheduleTime" },
+					{ $divide: [Date.now(), 1000] }
+				]
+			}
+		});
+
+		for (let scheduledMessage of scheduledMessages) {
+			const messageGuild = client.guilds.cache.get(scheduledMessage.guildId);
+
+			const messageChannel = messageGuild?.channels.cache.get(scheduledMessage.channelId);
+
+			if (!messageChannel || !messageChannel.isTextBased()) return;
+
+			await messageChannel.send(scheduledMessage.message);
+
+			await scheduledMessage.deleteOne();
+		}
+
 	}
 }

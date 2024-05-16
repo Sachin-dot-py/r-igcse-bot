@@ -59,6 +59,14 @@ export default class GroupStudyCommand extends BaseCommand {
 			return;
 		}
 
+		if (member.voice.channel.name !== "General") {
+			await interaction.reply({
+				content: "This voice channel is already in use."
+			});
+
+			return;
+		}
+
 		const groupStudyChannel = await interaction.guild.channels.cache.get(
 			guildPreferences.groupStudyChannelId
 		);

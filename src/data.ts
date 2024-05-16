@@ -2,16 +2,20 @@ import { type IGuildPreferences } from "@/mongo";
 
 export const ywAliases = [
 	"you're welcome",
+	"your welcome",
+	"youre welcome",
 	"ur welcome",
 	"yw",
 	"no problem",
 	"np",
-	"nws",
-	"nw",
 	"sama sama", // Malay
 	"derien", // French
 	"de rien", // French
 	"pas de problem", // French
+	"aucun probleme", // French
+	"aucun problème", // French
+	"aucune probleme", // French
+	"aucune problème", // French
 	"عفوا", //  Arabic
 	"afwan", // Arabic
 	"aafwan", // Arabic
