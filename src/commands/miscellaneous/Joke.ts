@@ -22,10 +22,6 @@ export default class JokeCommand extends BaseCommand {
 								value: "Programming"
 							},
 							{
-								name: "dark",
-								value: "Dark"
-							},
-							{
 								name: "pun",
 								value: "Pun"
 							},
@@ -53,12 +49,12 @@ export default class JokeCommand extends BaseCommand {
 		const category = interaction.options.getString("category", false);
 		const categories: JokeCategory[] = category
 			? [category as JokeCategory]
-			: ["Misc", "Dark", "Pun"];
+			: ["Misc", "Pun"];
 
 		await interaction.deferReply();
 
 		const joke = (await getJoke(categories))[0];
 
-		await interaction.followUp(joke);
+		interaction.followUp(joke);
 	}
 }
