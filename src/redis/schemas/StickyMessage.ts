@@ -1,3 +1,4 @@
+import type { APIEmbed, MessageCreateOptions } from "discord.js";
 import {
 	Repository,
 	Schema,
@@ -52,16 +53,21 @@ export type APIEmbedRedis = {
 	}[];
 };
 
+export type MessageCreateOptionsRedis = {
+	content?: string;
+	embeds?: APIEmbedRedis[];
+};
+
 export interface ICachedStickyMessage extends Entity {
 	channelId: string;
 	messageId: string | null;
-	embeds: APIEmbedRedis[];
+	message: MessageCreateOptionsRedis;
 }
 
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
-	titles: { type: "string[]", path: "$.embeds[*].title" }
+	content: { type: "string", path: "$.message.content" }
 });
 
 export class StickyMessageRepository extends Repository {
@@ -75,7 +81,7 @@ export class StickyMessageRepository extends Repository {
 			return null;
 		}
 
-		return res as ICachedStickyMessage;
+		return res;
 	}
 
 	async set(id: string, stickyMessageData: ICachedStickyMessage) {

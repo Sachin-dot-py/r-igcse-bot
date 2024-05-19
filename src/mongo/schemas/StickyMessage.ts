@@ -1,10 +1,10 @@
-import type { APIEmbed } from "discord.js";
+import type { APIEmbed, MessageCreateOptions } from "discord.js";
 import { Schema, model as createModel } from "mongoose";
 
 export interface IStickyMessage {
 	channelId: string;
 	messageId: string | null;
-	embeds: APIEmbed[];
+	message: MessageCreateOptions[];
 	stickTime: string | null;
 	unstickTime: string | null;
 }
@@ -12,7 +12,7 @@ export interface IStickyMessage {
 const schema = new Schema<IStickyMessage>({
 	channelId: { type: String, required: true, unique: false },
 	messageId: { type: String, required: false, unique: false },
-	embeds: { type: [Object], required: true, unique: false },
+	message: { type: [Object], required: true, unique: false },
 	stickTime: { type: String, required: false, unique: false },
 	unstickTime: { type: String, required: false, unique: false }
 });

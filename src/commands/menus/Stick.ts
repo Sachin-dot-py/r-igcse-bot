@@ -16,7 +16,10 @@ import { StickyMessageCache } from "@/redis";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
+import type {
+	APIEmbedRedis,
+	MessageCreateOptionsRedis
+} from "@/redis/schemas/StickyMessage";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
@@ -173,9 +176,12 @@ export default class StickMessageCommand extends BaseCommand {
 			await StickyMessageCache.set(res.id, {
 				channelId: channel.id,
 				messageId: null,
-				embeds: interaction.targetMessage.embeds.map((embed) =>
-					embed.toJSON()
-				) as APIEmbedRedis[]
+				message: {
+					content: interaction.targetMessage.content,
+					embeds: interaction.targetMessage.embeds.map((embed) =>
+						embed.toJSON()
+					) as APIEmbedRedis[]
+				}
 			});
 
 			client.stickyChannelIds.push(channel.id);

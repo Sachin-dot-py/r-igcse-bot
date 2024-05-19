@@ -22,7 +22,8 @@ import {
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
 	User,
-	type APIEmbed
+	type APIEmbed,
+	type MessageCreateOptions
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -579,13 +580,9 @@ To change the server you're contacting, use the \`/swap\` command`,
 					.catch(() => {});
 			}
 
-			const embeds = stickyMessage.embeds.map(
-				(embed) => new EmbedBuilder(embed as APIEmbed)
+			const newSticky = await message.channel.send(
+				stickyMessage.message as MessageCreateOptions
 			);
-
-			const newSticky = await message.channel.send({
-				embeds
-			});
 
 			stickyMessage.messageId = newSticky.id;
 			await StickyMessageCache.save(stickyMessage);

@@ -4,7 +4,10 @@ import { StickyMessage } from "@/mongo";
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache, StickyMessageCache } from "@/redis";
-import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
+import type {
+	APIEmbedRedis,
+	MessageCreateOptionsRedis
+} from "@/redis/schemas/StickyMessage";
 import Logger from "@/utils/Logger";
 import createTask from "@/utils/createTask";
 import {
@@ -74,7 +77,10 @@ export default class ClientReadyEvent extends BaseEvent {
 		await this.loadKeywordsCache().catch(Logger.error);
 
 		Logger.info("Starting scheduled messages loop");
-		createTask(() => this.sendScheduledMessage(client).catch(Logger.error), 60000);
+		createTask(
+			() => this.sendScheduledMessage(client).catch(Logger.error),
+			60000
+		);
 
 		createTask(
 			async () =>
@@ -124,7 +130,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					messageId: cachedSticky
 						? cachedSticky.messageId
 						: stickyMessage.messageId,
-					embeds: stickyMessage.embeds as APIEmbedRedis[]
+					message: stickyMessage.message as MessageCreateOptionsRedis
 				});
 				if (!client.stickyChannelIds.includes(stickyMessage.channelId))
 					client.stickyChannelIds.push(stickyMessage.channelId);
@@ -137,7 +143,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					messageId: cachedSticky
 						? cachedSticky.messageId
 						: stickyMessage.messageId,
-					embeds: stickyMessage.embeds as APIEmbedRedis[]
+					message: stickyMessage.message as MessageCreateOptionsRedis
 				});
 			if (!client.stickyChannelIds.includes(stickyMessage.channelId))
 				client.stickyChannelIds.push(stickyMessage.channelId);
@@ -182,7 +188,6 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async sendScheduledMessage(client: DiscordClient) {
-
 		const scheduledMessages = await ScheduledMessage.find({
 			$expr: {
 				$lte: [
@@ -193,9 +198,13 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (let scheduledMessage of scheduledMessages) {
-			const messageGuild = client.guilds.cache.get(scheduledMessage.guildId);
+			const messageGuild = client.guilds.cache.get(
+				scheduledMessage.guildId
+			);
 
-			const messageChannel = messageGuild?.channels.cache.get(scheduledMessage.channelId);
+			const messageChannel = messageGuild?.channels.cache.get(
+				scheduledMessage.channelId
+			);
 
 			if (!messageChannel || !messageChannel.isTextBased()) return;
 
@@ -203,6 +212,5 @@ export default class ClientReadyEvent extends BaseEvent {
 
 			await scheduledMessage.deleteOne();
 		}
-
 	}
 }
