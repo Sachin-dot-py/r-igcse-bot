@@ -580,12 +580,6 @@ To change the server you're contacting, use the \`/swap\` command`,
 					.catch(() => {});
 			}
 
-			console.log(stickyMessage);
-			console.log({
-				content: stickyMessage.message.content,
-				embeds: stickyMessage.message.embeds as APIEmbed[]
-			});
-
 			const newSticky = await message.channel.send({
 				content: stickyMessage.message.content,
 				embeds: stickyMessage.message.embeds as APIEmbed[]

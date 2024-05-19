@@ -67,7 +67,8 @@ export interface ICachedStickyMessage extends Entity {
 const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
-	content: { type: "string", path: "$.message.content" }
+	content: { type: "string", path: "$.message.content" },
+	titles: { type: "string[]", path: "$.message.embeds[*].title" }
 });
 
 export class StickyMessageRepository extends Repository {
