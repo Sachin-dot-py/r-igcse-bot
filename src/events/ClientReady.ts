@@ -62,7 +62,17 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		if (practiceCommand) {
 			Logger.info("Starting practice questions loop");
-			setInterval(() => practiceCommand.sendQuestions(client), 3500);
+			createTask(
+				() =>
+					practiceCommand
+						.sendQuestions(client)
+						.catch((e) =>
+							Logger.error(
+								`Error at practiceCommand.sendQuestions: ${e}`
+							)
+						),
+				3500
+			);
 		}
 
 		const goStudyCommand = client.commands.get("gostudy") as
@@ -71,34 +81,55 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		if (goStudyCommand) {
 			Logger.info("Starting go study loop");
-			setInterval(() => goStudyCommand.expireForcedMute(client), 60000);
+			createTask(
+				() =>
+					goStudyCommand
+						.expireForcedMute(client)
+						.catch((e) =>
+							Logger.error(
+								`Error at goStudyCommand.expireForcedMute: ${e}`
+							)
+						),
+				60000
+			);
 		}
 
-		await this.loadKeywordsCache().catch(Logger.error);
+		await this.loadKeywordsCache().catch((e) =>
+			Logger.error(`Error at loadKeywordsCache: ${e}`)
+		);
 
 		Logger.info("Starting scheduled messages loop");
 		createTask(
-			() => this.sendScheduledMessage(client).catch(Logger.error),
+			() =>
+				this.sendScheduledMessage(client).catch((e) =>
+					Logger.error(`Error at sendScheduledMessage: ${e}`)
+				),
 			60000
 		);
 
 		createTask(
 			async () =>
-				await this.refreshStickyMessageCache().catch(Logger.error),
+				await this.refreshStickyMessageCache().catch((e) =>
+					Logger.error(`Error at refreshStickyMessageCache: ${e}`)
+				),
 			60000
 		);
 
 		createTask(
 			async () =>
-				await this.refreshChannelLockdowns().catch(Logger.error),
+				await this.refreshChannelLockdowns().catch((e) =>
+					Logger.error(`Error at sendScheduledMessage: ${e}`)
+				),
 			120000
 		);
 	}
 
 	private async loadKeywordsCache() {
-		(await KeywordCache.search().returnAllIds()).forEach((id) =>
-			KeywordCache.remove(id)
-		);
+		(
+			await KeywordCache.search()
+				.returnAllIds()
+				.catch(() => [])
+		).forEach((id) => KeywordCache.remove(id));
 
 		const keywords = await Keyword.find();
 
@@ -113,7 +144,9 @@ export default class ClientReadyEvent extends BaseEvent {
 		const time = Date.now();
 
 		const stickyMessages = await StickyMessage.find();
-		const cachedStickyMessages = await StickyMessageCache.getAll();
+		const cachedStickyMessages = await StickyMessageCache.getAll().catch(
+			() => []
+		);
 
 		for (const stickyMessage of stickyMessages) {
 			const stickTime = parseInt(stickyMessage.stickTime || "");
@@ -143,7 +176,10 @@ export default class ClientReadyEvent extends BaseEvent {
 					messageId: cachedSticky
 						? cachedSticky.messageId
 						: stickyMessage.messageId,
-					message: stickyMessage.message as MessageCreateOptionsRedis
+					message: {
+						content: stickyMessage.message.content,
+						embeds: stickyMessage.message.embeds as APIEmbedRedis[]
+					}
 				});
 			if (!client.stickyChannelIds.includes(stickyMessage.channelId))
 				client.stickyChannelIds.push(stickyMessage.channelId);

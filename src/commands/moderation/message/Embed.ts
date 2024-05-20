@@ -3,6 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,
@@ -183,7 +184,7 @@ export default class EmbedCommand extends BaseCommand {
 					ephemeral: true
 				});
 
-				console.log(`Embed sent by ${interaction.user.username}`);
+				Logger.info(`Embed sent by ${interaction.user.username}`);
 				break;
 			}
 

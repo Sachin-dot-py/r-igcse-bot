@@ -267,7 +267,7 @@ export default class KickCommand extends BaseCommand {
 					);
 				})
 				.catch(Logger.error);
-			console.log(`Message sent by ${interaction.user.username}`);
+			Logger.info(`Message sent by ${interaction.user.username}`);
 		} else if (interaction.options.getSubcommand() === "edit") {
 			const messageId = interaction.options.getString("message_id", true);
 
@@ -368,7 +368,7 @@ export default class KickCommand extends BaseCommand {
 					);
 				})
 				.catch(Logger.error);
-			console.log(`Message edited by ${interaction.user.username}`);
+			Logger.info(`Message edited by ${interaction.user.username}`);
 		}
 	}
 }
