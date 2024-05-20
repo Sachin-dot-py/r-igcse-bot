@@ -1,10 +1,10 @@
-import type { MessageCreateOptions } from "discord.js";
+import type { APIEmbed, MessageCreateOptions } from "discord.js";
 import { Schema, model as createModel } from "mongoose";
 
 export interface IStickyMessage {
 	channelId: string;
 	messageId: string | null;
-	message: MessageCreateOptions;
+	message: { content: string; embeds: APIEmbed[] };
 	stickTime: string | null;
 	unstickTime: string | null;
 }

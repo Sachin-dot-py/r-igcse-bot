@@ -144,7 +144,12 @@ export default class StickMessageCommand extends BaseCommand {
 		const res = await StickyMessage.create({
 			channelId: channel.id,
 			messageId: null,
-			message: interaction.targetMessage,
+			message: {
+				content: interaction.targetMessage.content,
+				embeds: interaction.targetMessage.embeds.map((embed) =>
+					embed.toJSON()
+				)
+			},
 			stickTime: stickTime?.toString(),
 			unstickTime: unstickTime?.toString()
 		});
