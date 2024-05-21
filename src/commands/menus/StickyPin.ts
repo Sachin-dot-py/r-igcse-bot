@@ -6,7 +6,9 @@ import BaseCommand, {
 import {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
-	PermissionFlagsBits
+	EmbedBuilder,
+	PermissionFlagsBits,
+	type AnyThreadChannel
 } from "discord.js";
 
 export default class StickMessageCommand extends BaseCommand {
@@ -69,13 +71,48 @@ export default class StickMessageCommand extends BaseCommand {
 			).sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
 			if (pinnedMessages.size >= 50) {
-				interaction.reply({
-					content:
-						"Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space.",
-					ephemeral: true
-				});
+				let thread = interaction.guild.channels.cache.filter(x => x.isThread() && x.parent?.id === interaction.channelId && x.name === "Old Pins" && x.ownerId === client.user.id).first() as AnyThreadChannel<boolean> | undefined;
+				if (!thread) {
+					const embed = new EmbedBuilder().setTitle("Old pins thread")
+					thread = await (await interaction.channel?.send({ embeds: [embed] }))?.startThread({ name: "Old Pins" })
+				}
+				try {
+					const targetMessage = (await interaction.channel.messages.fetchPinned(true)).last();
+					if (!targetMessage) throw '';
+					const embed = new EmbedBuilder()
+						.setDescription(targetMessage.content)
+						.setAuthor({
+							name: targetMessage.author.tag,
+							iconURL: targetMessage.author.displayAvatarURL()
+						})
+					const message = await thread.send({ embeds: [embed] })
 
-				return;
+					await targetMessage.unpin();
+					await targetMessage.reply({
+						content: `Messaged unpinned and moved to ${message.url} due to the pin limit`
+					});
+
+					if (interaction.targetMessage.pinned)
+						await interaction.targetMessage.unpin();
+					await interaction.targetMessage.pin();
+					interaction.targetMessage.reply({
+						content: `Messaged sticky pinned by ${interaction.user}`
+					});
+					interaction.reply({
+						content:
+							"Successfully sticky pinned message.",
+						ephemeral: true
+					});
+					return;
+				} catch {
+					interaction.reply({
+						content:
+							"Heads up! We've hit the pin limit for this channel. You can unpin some previously pinned messages to free up space.",
+						ephemeral: true
+					});
+					return;
+				}
+
 			}
 
 			interaction.reply({
