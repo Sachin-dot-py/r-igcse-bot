@@ -86,14 +86,16 @@ export default class PinMenu extends BaseCommand {
 					try {
 						await interaction.targetMessage.unpin();
 						if (thread) {
-							const embed = new EmbedBuilder()
+							let embed = new EmbedBuilder()
 								.setDescription(interaction.targetMessage.content)
 								.setAuthor({
 									name: interaction.targetMessage.author.tag,
 									iconURL: interaction.targetMessage.author.displayAvatarURL()
 								})
+							for (const img of interaction.targetMessage.attachments.filter(a => a.contentType === 'image').toJSON())
+								embed = embed.setImage(img.url)
 							const message = await thread.send({ embeds: [embed] })
-
+							if (!thread.locked) await thread.setLocked(true)
 							await interaction.targetMessage.reply({
 								content: `Messaged unpinned by ${interaction.user} and moved to ${message.url}`
 							});
@@ -163,18 +165,21 @@ export default class PinMenu extends BaseCommand {
 						const embed = new EmbedBuilder().setTitle("Old pins thread")
 						thread = await (await interaction.channel?.send({ embeds: [embed] }))?.startThread({ name: "Old Pins" })
 					}
+
 					await interaction.deferReply({ ephemeral: true })
 					try {
 						const targetMessage = (await interaction.channel?.messages.fetchPinned(true))?.last();
 						if (!targetMessage) throw '';
-						const embed = new EmbedBuilder()
+						let embed = new EmbedBuilder()
 							.setDescription(targetMessage.content)
 							.setAuthor({
 								name: targetMessage.author.tag,
 								iconURL: targetMessage.author.displayAvatarURL()
 							})
+						for (const img of targetMessage.attachments.filter(a => a.contentType === 'image').toJSON())
+							embed = embed.setImage(img.url)
 						const message = await thread.send({ embeds: [embed] })
-
+						if (!thread.locked) await thread.setLocked(true)
 						await targetMessage.unpin();
 						await targetMessage.reply({
 							content: `Messaged unpinned and moved to ${message.url} due to the pin limit`
