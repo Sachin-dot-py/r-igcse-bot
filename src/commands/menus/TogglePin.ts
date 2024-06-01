@@ -6,6 +6,7 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	ApplicationCommandType,
+	AttachmentBuilder,
 	ButtonBuilder,
 	ButtonStyle,
 	ContextMenuCommandBuilder,
@@ -87,14 +88,17 @@ export default class PinMenu extends BaseCommand {
 						await interaction.targetMessage.unpin();
 						if (thread) {
 							let embed = new EmbedBuilder()
-								.setDescription(interaction.targetMessage.content)
 								.setAuthor({
 									name: interaction.targetMessage.author.tag,
 									iconURL: interaction.targetMessage.author.displayAvatarURL()
 								})
-							for (const img of interaction.targetMessage.attachments.filter(a => a.contentType === 'image').toJSON())
-								embed = embed.setImage(img.url)
-							const message = await thread.send({ embeds: [embed] })
+							if (interaction.targetMessage.content) embed = embed.setDescription(interaction.targetMessage.content)
+							const files = []
+							for (const file of interaction.targetMessage.attachments.toJSON()) {
+								const buffer = Buffer.from(await (await fetch(file.url)).arrayBuffer())
+								if (buffer) files.push(new AttachmentBuilder(buffer, { name: file.name, description: file.description || undefined }))
+							}
+							const message = await thread.send({ embeds: [embed], files })
 							if (!thread.locked) await thread.setLocked(true)
 							await interaction.targetMessage.reply({
 								content: `Messaged unpinned by ${interaction.user} and moved to ${message.url}`
@@ -138,6 +142,7 @@ export default class PinMenu extends BaseCommand {
 					await confirmation.update({ content: 'Successfully unpinned message.', components: [] });
 				}
 			} catch (e) {
+				console.error(e);
 				await interaction.editReply({ content: 'Did not unpin', components: [] });
 			}
 		} else {
@@ -176,9 +181,13 @@ export default class PinMenu extends BaseCommand {
 								name: targetMessage.author.tag,
 								iconURL: targetMessage.author.displayAvatarURL()
 							})
-						for (const img of targetMessage.attachments.filter(a => a.contentType === 'image').toJSON())
-							embed = embed.setImage(img.url)
-						const message = await thread.send({ embeds: [embed] })
+						const files = []
+						for (const file of targetMessage.attachments.toJSON()) {
+							const buffer = Buffer.from(await (await fetch(file.url)).arrayBuffer())
+							if (buffer) files.push(new AttachmentBuilder(buffer, { name: file.name, description: file.description || undefined }))
+						}
+
+						const message = await thread.send({ embeds: [embed], files })
 						if (!thread.locked) await thread.setLocked(true)
 						await targetMessage.unpin();
 						await targetMessage.reply({
