@@ -367,7 +367,7 @@ export const resourceRepositories: Record<
 
 interface Preference {
 	name: string;
-	type: "rep" | "channel" | "role";
+	type: "rep" | "channel" | "role" | "categoryChannel";
 	key: keyof IGuildPreferences;
 	maxValues?: number;
 }
@@ -440,11 +440,6 @@ export const preferences: Preference[] = [
 		key: "hostSessionChannelId"
 	},
 	{
-		name: "Hosted Study Session Stage Channel",
-		type: "channel",
-		key: "studySessionChannelId"
-	},
-	{
 		name: "Modmail Create New DM Channel",
 		type: "channel",
 		key: "modmailCreateChannelId"
@@ -468,6 +463,11 @@ export const preferences: Preference[] = [
 		name: "Forced Mute Role",
 		type: "role",
 		key: "forcedMuteRoleId"
+	},
+	{
+		name: "Archived Sessions Category",
+		type: "categoryChannel",
+		key: "archiveSessionCategoryId"
 	}
 ];
 

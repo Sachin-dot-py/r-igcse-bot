@@ -2,7 +2,7 @@ import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { HostSession } from "@/mongo/schemas/HostSession"
 import { ButtonInteractionCache, GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, SlashCommandBuilder, StageChannel, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, ModalBuilder, SlashCommandBuilder, StageChannel, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import BaseCommand, {
     type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
@@ -11,6 +11,7 @@ import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
 import parse from "parse-duration";
 import humanizeDuration from "humanize-duration";
+import UserSelect from "@/components/practice/UserSelect";
 
 export default class HostSessionCommand extends BaseCommand {
     constructor() {
@@ -26,6 +27,15 @@ export default class HostSessionCommand extends BaseCommand {
         client: DiscordClient<true>,
         interaction: DiscordChatInputCommandInteraction<"cached">
     ) {
+
+        if (!interaction.guild.features.includes('COMMUNITY')) {
+            interaction.reply({
+                content: "Host sessions may only be used in community servers",
+                ephemeral: true
+            });
+
+            return;
+        }
 
         const guildPreferences = await GuildPreferencesCache.get(
             interaction.guildId
@@ -113,8 +123,8 @@ export default class HostSessionCommand extends BaseCommand {
 
         const startTimeInput = new TextInputBuilder()
             .setCustomId("start-time")
-            .setLabel("Start Time")
-            .setPlaceholder("The time from now the session will start at")
+            .setLabel("Start Time (Epoch)")
+            .setPlaceholder("The time when the session will start at (epoch)")
             .setRequired(true)
             .setStyle(TextInputStyle.Short);
 
@@ -158,15 +168,33 @@ export default class HostSessionCommand extends BaseCommand {
             filter: (i) => i.customId === modalCustomId
         });
 
-        const startTimeString =
-            modalInteraction.fields.getTextInputValue("start-time");
-        const startTime = /^\d+$/.test(startTimeString) ? parseInt(startTimeString) : parse(startTimeString, "ms") ?? 0;
+        const startTimeString = modalInteraction.fields.getTextInputValue("start-time");
+        const startDate = Math.round((parseInt(startTimeString) / 1800)) * 1800; // Rounded off to 30 mins
 
-        if (startTime < 3600000) {
+        if (isNaN(startDate)) {
             modalInteraction.reply({
-                content: "Session can't be hosted that soon.",
+                content: "Ensure you entered a valid epoch timestamp",
+                ephemeral: true
+            })
+
+            return;
+        }
+
+        if (startDate - (Date.now() / 1000) < 3600) {
+            modalInteraction.reply({
+                content: "Session can't be hosted before an hour.",
                 ephemeral: true
             });
+
+            return;
+        }
+
+        if (startDate.toString().length !== 10) {
+            modalInteraction.reply({
+                content: "Ensure you enter a valid starting time (epoch in seconds)",
+                ephemeral: true
+            });
+
             return;
         }
 
@@ -174,11 +202,12 @@ export default class HostSessionCommand extends BaseCommand {
             modalInteraction.fields.getTextInputValue("duration");
         const duration = /^\d+$/.test(durationString) ? parseInt(durationString) * 60 * 1000 : parse(durationString, "ms") ?? 0;
 
-        if (duration > 43200000) {
+        if (duration > 43_200_000 || duration < 900_000 || isNaN(duration)) {
             modalInteraction.reply({
-                content: "Session can't be hosted for that long.",
+                content: "Ensure you enter a valid duration",
                 ephemeral: true
             });
+
             return;
         }
 
@@ -218,6 +247,7 @@ export default class HostSessionCommand extends BaseCommand {
                 content: "An error occurred",
                 ephemeral: false
             });
+
             return;
         }
 
@@ -249,55 +279,52 @@ export default class HostSessionCommand extends BaseCommand {
             return;
         }
 
-        const subjectHelpers = interaction.guild.roles.cache.get(response[0])?.members.filter((helper) => helper.id !== interaction.user.id);
+        await interaction.guild.members.fetch()
+        const subjectHelpers = (await interaction.guild.roles.fetch(response[0]))?.members.filter((helper) => helper.id !== interaction.user.id);
 
         let userResponse;
         let userSelectInteraction;
 
         if (subjectHelpers && subjectHelpers?.size > 0) {
-
-            modalInteraction.editReply({
-                content: "Choose any co-hosts",
+            await modalInteraction.editReply({
+                content: "Select any co-hosts (leave empty for none)",
                 components: []
             });
 
             const userSelectCustomId = uuidv4();
 
-            const userSelect = new Select(
-                "helpers",
-                "Select helpers that will host alongside you",
-                subjectHelpers.map((helper) =>
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel(`${helper.displayName} (${helper.user.tag})`)
-                        .setValue(helper.user.id)
-                ),
-                1,
-                `${userSelectCustomId}_0`
-            ).setMaxValues(subjectHelpers.size);
+            const userSelect = new UserSelect(
+                userSelectCustomId,
+                "Select helpers that will host alongside you (leave empty for none)",
+                25,
+                userSelectCustomId
+            );
 
-            userSelectInteraction = await modalInteraction.followUp({
-                content: "Select co-hosts",
+            userSelectInteraction = await modalInteraction.editReply({
+                content: "Select co-hosts (leave empty for none)",
                 components: [
-                    new ActionRowBuilder<Select>().addComponents(userSelect),
+                    new ActionRowBuilder<UserSelect>().addComponents(userSelect),
                     new Buttons(userSelectCustomId) as ActionRowBuilder<ButtonBuilder>
-                ],
-                fetchReply: true,
-                ephemeral: true
+                ]
             });
 
             userResponse = await userSelect.waitForResponse(
-                `${userSelectCustomId}_0`,
+                userSelectCustomId,
                 userSelectInteraction,
                 modalInteraction,
                 true
             );
 
-            if (!userResponse || userResponse === "Timed out" || !userResponse[0]) {
-                await modalInteraction.followUp({
-                    content: "An error occurred",
-                    ephemeral: false
-                });
-                return;
+            if (userResponse) {
+                for (const user of userResponse) {
+                    if (!Array.from(subjectHelpers.keys()).includes(user)) {
+                        modalInteraction.editReply({
+                            content: "Users selected must also be helpers of the subject"
+                        });
+
+                        return;
+                    }
+                }
             }
         }
 
@@ -305,7 +332,6 @@ export default class HostSessionCommand extends BaseCommand {
             ? [interaction.user.id, ...userResponse]
             : [interaction.user.id];
 
-        const startDate = Math.round((Math.round((Date.now() + startTime) / 1000)) / 1800) * 1800; // Rounded off
         const endDate = startDate + Math.round(duration / 1000);
 
         const contentsArray = modalInteraction.fields.getTextInputValue("contents").split(",")
@@ -383,11 +409,9 @@ export default class HostSessionCommand extends BaseCommand {
         // Interaction will be handled in the InteractionCreate event and is stored in redis (@/events/InteractionCreate.ts)
 
         await modalInteraction.editReply({
-            content: "Session to be hosted sent for approval.",
+            content: "Session to be hosted sent for approval",
             components: []
-        })
-
-        await userSelectInteraction?.delete();
+        });
 
     }
 
@@ -395,39 +419,33 @@ export default class HostSessionCommand extends BaseCommand {
 
         const sessions = await HostSession.find({
             startDate: { $lte: Date.now() / 1000 },
-            accepted: true
+            accepted: true,
+            scheduled: false
         });
-
-        if (sessions.length > 0) console.log(`HELO ${sessions}`);
 
         for (const session of sessions) {
             const guildPreferences = await GuildPreferencesCache.get(session.guildId);
-
-            if (!guildPreferences || !guildPreferences.hostSessionChannelId || !guildPreferences.studySessionChannelId) return;
+            if (!guildPreferences || !guildPreferences.hostSessionChannelId) continue;
 
             const sessionGuild = client.guilds.cache.get(session.guildId);
-
-            if (!sessionGuild) return;
-
-            const sessionChannel = sessionGuild.channels.cache.get(guildPreferences.studySessionChannelId);
-
-            if (!sessionChannel) return;
+            if (!sessionGuild) continue;
 
             const studyChannel = await StudyChannel.findOne({
                 studyPingRoleId: session.studyPingRoleId
             });
+            if (!studyChannel) continue;
 
-            if (!studyChannel) return;
+            if (!session.channelId) continue;
 
-            const subjectChannel = sessionGuild.channels.cache.get(studyChannel.channelId);
+            const sessionChannel = sessionGuild.channels.cache.get(session.channelId);
 
-            if (!subjectChannel || !(subjectChannel instanceof StageChannel)) return;
+            if (!sessionChannel || sessionChannel.type !== ChannelType.GuildStageVoice) continue;
 
-            sessionChannel.setName(`${subjectChannel.name} hosted study session`);
+            sessionChannel.permissionOverwrites.delete(sessionGuild.roles.everyone.id);
 
             const sessionAnnouncementChannel = sessionGuild.channels.cache.get(guildPreferences.hostSessionChannelId);
 
-            if (!sessionAnnouncementChannel || !sessionAnnouncementChannel.isTextBased()) return;
+            if (!sessionAnnouncementChannel || !sessionAnnouncementChannel.isTextBased()) continue;
 
             const teachers = session.teachers;
 
@@ -438,13 +456,21 @@ export default class HostSessionCommand extends BaseCommand {
                 acceptedSessionMessage += `<@${teacherId}> `;
             }
 
-            acceptedSessionMessage += `is starting now! It will last ${humanizeDuration((session.endDate - session.startDate) * 1000)}\nThe following topics will be covered: ${session.contents}`;
+            if (!session.scheduledEventId) continue;
+
+            const event = sessionGuild.scheduledEvents.cache.get(session.scheduledEventId);
+
+            if (!event) return;
+
+            const eventLink = await event.createInviteURL()
+
+            acceptedSessionMessage += `is starting now! It will last ${humanizeDuration((session.endDate - session.startDate) * 1000, { largest: 2 })}\nThe following topics will be covered: ${session.contents}\n\n${eventLink}`;
 
             await sessionAnnouncementChannel.send({
                 content: acceptedSessionMessage
             });
 
-            await session.deleteOne();
+            await session.updateOne({ scheduled: true });
         }
     }
 }

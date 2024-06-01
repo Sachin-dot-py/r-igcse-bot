@@ -29,23 +29,25 @@ export default class HOTMVotingCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">
 	) {
+		await interaction.deferReply({
+			ephemeral: true
+		});
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId
 		);
 
 		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
-			interaction.reply({
-				content: "This feature hasn't been configured.",
-				ephemeral: true
+			interaction.editReply({
+				content: "This feature hasn't been configured."
 			});
 
 			return;
 		}
 		if (!guildPreferences.hotmSessionOngoing) {
-			await interaction.reply({
+			await interaction.editReply({
 				content:
-					"The voting period has not started yet or has already ended.",
-				ephemeral: true
+					"The voting period has not started yet or has already ended."
 			});
 
 			return;
@@ -58,9 +60,8 @@ export default class HOTMVotingCommand extends BaseCommand {
 		});
 
 		if (studyChannels.length < 1) {
-			interaction.reply({
-				content: "This feature hasn't been configured.",
-				ephemeral: true
+			interaction.editReply({
+				content: "This feature hasn't been configured."
 			});
 
 			return;
@@ -77,27 +78,24 @@ export default class HOTMVotingCommand extends BaseCommand {
 			}));
 
 		if (interaction.user.id === helper.id) {
-			interaction.reply({
-				content: "You cannot vote for yourself",
-				ephemeral: true
+			interaction.editReply({
+				content: "You cannot vote for yourself"
 			});
 
 			return;
 		}
 
 		if (hotmUser.voted.length >= 3) {
-			interaction.reply({
-				content: "You don't have any votes left",
-				ephemeral: true
+			interaction.editReply({
+				content: "You don't have any votes left"
 			});
 
 			return;
 		}
 
 		if (hotmUser.voted.includes(helper.id)) {
-			interaction.reply({
-				content: "You have already voted for this helper",
-				ephemeral: true
+			interaction.editReply({
+				content: "You have already voted for this helper"
 			});
 
 			return;
@@ -110,26 +108,20 @@ export default class HOTMVotingCommand extends BaseCommand {
 		);
 
 		if (helperRoles.size < 1) {
-			interaction.reply({
-				content: "Helper roles not found",
-				ephemeral: true
+			interaction.editReply({
+				content: "Helper roles not found"
 			});
 
 			return;
 		}
 
 		if (!helperRoles.some((role) => role.members.has(helper.id))) {
-			interaction.reply({
-				content: `${helper.tag} is not a helper`,
-				ephemeral: true
+			interaction.editReply({
+				content: `${helper.tag} is not a helper`
 			});
 
 			return;
 		}
-
-		await interaction.deferReply({
-			ephemeral: true
-		});
 
 		const helperDoc = await HOTM.findOne({
 			guildId: interaction.guildId,

@@ -8,10 +8,14 @@ import {
 } from "@/redis";
 import Logger from "@/utils/Logger";
 import {
+	ChannelType,
 	ChatInputCommandInteraction,
 	ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
+	PermissionFlagsBits,
+	PermissionOverwriteManager,
+	PermissionsBitField,
 	TextChannel,
 	type ActionRowBuilder,
 	type ButtonBuilder,
@@ -22,6 +26,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { HostSession } from "@/mongo/schemas/HostSession";
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -381,15 +386,72 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 		acceptedSessionMessage += `\nThe following topics will be covered: ${hostSession.contents}`;
 
+		const studyChannelDocument = await StudyChannel.findOne({ studyPingRoleId: hostSession.studyPingRoleId });
+		if (!studyChannelDocument) return;
+		const studyChannel = interaction.guild?.channels.cache.get(studyChannelDocument.channelId)
+		if (!studyChannel) return;
+
+		let nameArray = studyChannel?.name.split('-');
+
+		for (let i = 0; i < nameArray.length; i++) {
+			const splitName = `${nameArray[i].substring(0, 1).toUpperCase()}${nameArray[i].substring(1)}`;
+			nameArray[i] = splitName;
+		}
+
+		let name = `${nameArray.toString().replace(/,/g, " ").replace('Ig', "IGCSE").replace('As', 'AS').replace('Al', 'AL')} Hosted Study Session`
+
 		switch (action) {
 			case "accept": {
+				interaction.deferReply({ ephemeral: true });
+
 				const hostSessionChannel = client.channels.cache.get(
 					guildPreferences.hostSessionChannelId
 				);
 				if (!hostSessionChannel || !(hostSessionChannel instanceof TextChannel)) return;
 
+				const sessionChannel = await interaction.guild?.channels.create({
+					name,
+					type: ChannelType.GuildStageVoice,
+					permissionOverwrites: [{
+						id: message.guild.roles.everyone.id,
+						deny: PermissionFlagsBits.Connect
+					}]
+				});
+
+				if (!sessionChannel) {
+					interaction.editReply({
+						content: "An error occurred"
+					});
+
+					return;
+				}
+
+				const event = await interaction.guild?.scheduledEvents.create({
+					name,
+					description: acceptedSessionMessage,
+					scheduledStartTime: new Date(hostSession.startDate * 1000),
+					scheduledEndTime: new Date(hostSession.endDate * 1000),
+					privacyLevel: 2,
+					entityType: 1,
+					channel: sessionChannel
+				})
+
+				if (!event) {
+					interaction.editReply({
+						content: "An error occurred"
+					});
+
+					return;
+				}
+
+				const eventLink = await event.createInviteURL()
+
+				acceptedSessionMessage += `\n\n${eventLink}`;
+
 				await hostSession.updateOne({
-					accepted: true
+					accepted: true,
+					channelId: sessionChannel.id,
+					scheduledEventId: event.id
 				});
 
 				await hostSessionChannel.send({
@@ -408,9 +470,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 					components: []
 				});
 
-				await interaction.reply({
-					content: `Session accepted`,
-					ephemeral: true
+				await interaction.editReply({
+					content: `Session accepted`
 				});
 				break;
 			}

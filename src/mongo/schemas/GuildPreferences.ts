@@ -18,8 +18,8 @@ export type IGuildPreferences = {
 	countingChannelId: string;
 	hotmResultsChannelId: string;
 	hotmResultsEmbedId: string;
-	studySessionChannelId: string;
 	hostSessionChannelId: string;
+	archiveSessionCategoryId: string;
 
 	modmailCreateChannelId: string;
 	modmailThreadsChannelId: string;
@@ -50,8 +50,8 @@ const schema = new Schema<IGuildPreferences>({
 	countingChannelId: { type: String, default: null },
 	hotmResultsChannelId: { type: String, default: null },
 	hotmResultsEmbedId: { type: String, default: null },
-	studySessionChannelId: { type: String, default: null },
 	hostSessionChannelId: { type: String, default: null },
+	archiveSessionCategoryId: { type: String, default: null },
 	modmailCreateChannelId: { type: String, default: null },
 	modmailThreadsChannelId: { type: String, default: null },
 	modmailLogsChannelId: { type: String, default: null },

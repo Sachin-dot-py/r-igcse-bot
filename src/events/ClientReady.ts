@@ -21,7 +21,6 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { EntityId } from "redis-om";
 import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
-import type HOTMSessionCommand from "@/commands/HOTM/VotingSession";
 import type HostSessionCommand from "@/commands/study/HostSession";
 
 export default class ClientReadyEvent extends BaseEvent {
@@ -81,7 +80,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			Logger.info("Starting hosted sessions loop");
 			setInterval(
 				() => hostSessionCommand.startSession(client),
-				5000
+				10_000
 				// 3_600_000
 			);
 		}

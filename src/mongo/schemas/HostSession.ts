@@ -7,8 +7,11 @@ export interface IHostingSession {
     startDate: number;
     endDate: number;
     accepted: boolean;
+    scheduled?: boolean;
     messageId?: string;
     contents?: string[];
+    channelId?: string;
+    scheduledEventId?: string;
 }
 
 const schema = new Schema<IHostingSession>({
@@ -18,8 +21,11 @@ const schema = new Schema<IHostingSession>({
     startDate: { type: Number, required: true, unique: false },
     endDate: { type: Number, required: true, unique: false },
     accepted: { type: Boolean, required: false, default: false, unique: false },
+    scheduled: { type: Boolean, required: false, default: false, unique: false },
     messageId: { type: String, required: false, default: null, unique: true },
-    contents: { type: [String], required: false, default: null, unique: false }
+    contents: { type: [String], required: false, default: null, unique: false },
+    channelId: { type: String, required: false, default: null, unique: false },
+    scheduledEventId: { type: String, required: false, default: null, unique: false }
 });
 
 export const HostSession = createModel<IHostingSession>(
