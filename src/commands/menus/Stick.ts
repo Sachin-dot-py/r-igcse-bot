@@ -1,5 +1,10 @@
 import { StickyMessage } from "@/mongo";
+import { StickyMessageCache } from "@/redis";
+import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
+import BaseCommand, {
+	type DiscordMessageContextMenuCommandInteraction
+} from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
 	ApplicationCommandType,
@@ -12,11 +17,6 @@ import {
 	TextInputBuilder,
 	TextInputStyle
 } from "discord.js";
-import { StickyMessageCache } from "@/redis";
-import BaseCommand, {
-	type DiscordMessageContextMenuCommandInteraction
-} from "@/registry/Structure/BaseCommand";
-import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
@@ -34,15 +34,6 @@ export default class StickMessageCommand extends BaseCommand {
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
 	) {
 		if (!interaction.channel) return;
-
-		if (interaction.targetMessage.embeds.length < 1) {
-			interaction.reply({
-				content: "This message does not have any embeds.",
-				ephemeral: true
-			});
-
-			return;
-		}
 
 		const time = Date.now();
 		const stickTimeInput = new TextInputBuilder()
@@ -153,9 +144,12 @@ export default class StickMessageCommand extends BaseCommand {
 		const res = await StickyMessage.create({
 			channelId: channel.id,
 			messageId: null,
-			embeds: interaction.targetMessage.embeds.map((embed) =>
-				embed.toJSON()
-			),
+			message: {
+				content: interaction.targetMessage.content,
+				embeds: interaction.targetMessage.embeds.map((embed) =>
+					embed.toJSON()
+				)
+			},
 			stickTime: stickTime?.toString(),
 			unstickTime: unstickTime?.toString()
 		});
@@ -173,9 +167,12 @@ export default class StickMessageCommand extends BaseCommand {
 			await StickyMessageCache.set(res.id, {
 				channelId: channel.id,
 				messageId: null,
-				embeds: interaction.targetMessage.embeds.map((embed) =>
-					embed.toJSON()
-				) as APIEmbedRedis[]
+				message: {
+					content: interaction.targetMessage.content,
+					embeds: interaction.targetMessage.embeds.map((embed) =>
+						embed.toJSON()
+					) as APIEmbedRedis[]
+				}
 			});
 
 			client.stickyChannelIds.push(channel.id);

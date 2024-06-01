@@ -136,22 +136,29 @@ export default class KickCommand extends BaseCommand {
 							guildId: interaction.guildId,
 							channelId: channel.id,
 							message: {
-								content: i.fields.getTextInputValue("message_content"),
+								content:
+									i.fields.getTextInputValue(
+										"message_content"
+									),
 								reply: {
-									messageReference: i.fields.getTextInputValue("reply_message_id")
+									messageReference:
+										i.fields.getTextInputValue(
+											"reply_message_id"
+										)
 								}
 							},
 							scheduleTime
-						})
+						});
 
 						await i.reply({
 							content: `Message scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
 							ephemeral: true
 						});
 
-						const guildPreferences = await GuildPreferencesCache.get(
-							interaction.guildId
-						);
+						const guildPreferences =
+							await GuildPreferencesCache.get(
+								interaction.guildId
+							);
 
 						if (
 							!guildPreferences ||
@@ -203,8 +210,6 @@ export default class KickCommand extends BaseCommand {
 
 						return;
 					}
-
-
 
 					await channel.send({
 						content: i.fields.getTextInputValue("message_content"),
@@ -260,6 +265,7 @@ export default class KickCommand extends BaseCommand {
 					);
 				})
 				.catch(Logger.error);
+			Logger.info(`Message sent by ${interaction.user.username}`);
 		} else if (interaction.options.getSubcommand() === "edit") {
 			const messageId = interaction.options.getString("message_id", true);
 
@@ -360,6 +366,7 @@ export default class KickCommand extends BaseCommand {
 					);
 				})
 				.catch(Logger.error);
+			Logger.info(`Message edited by ${interaction.user.username}`);
 		}
 	}
 }

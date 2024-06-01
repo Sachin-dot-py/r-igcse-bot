@@ -52,6 +52,16 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 			return;
 		}
+		if (!guildPreferences.hotmSessionOngoing) {
+			await interaction.reply({
+				content:
+					"The voting period has not started yet or has already ended.",
+				ephemeral: true
+			});
+
+			return;
+		}
+
 
 		const helper = interaction.options.getUser("helper", true);
 

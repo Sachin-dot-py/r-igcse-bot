@@ -3,6 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,
@@ -69,12 +70,14 @@ export default class EmbedCommand extends BaseCommand {
 					return;
 				}
 
-				const scheduleTime = interaction.options.getNumber("schedule_time", false);
+				const scheduleTime = interaction.options.getNumber(
+					"schedule_time",
+					false
+				);
 
-				if (scheduleTime && scheduleTime <= (Date.now() / 1000)) {
+				if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 					interaction.reply({
-						content:
-							"Scheduled time cannot be in the past",
+						content: "Scheduled time cannot be in the past",
 						ephemeral: true
 					});
 
@@ -131,17 +134,12 @@ export default class EmbedCommand extends BaseCommand {
 				});
 
 				const embedTitle =
-					(modalInteraction.fields.getTextInputValue(
-						"title"
-					)) || null;
+					modalInteraction.fields.getTextInputValue("title") || null;
 				const embedDescription =
-					(modalInteraction.fields.getTextInputValue(
-						"description"
-					)) || null;
+					modalInteraction.fields.getTextInputValue("description") ||
+					null;
 				const embedFooter =
-					(modalInteraction.fields.getTextInputValue(
-						"footer"
-					)) || null;
+					modalInteraction.fields.getTextInputValue("footer") || null;
 
 				if (!embedTitle && !embedDescription && !embedFooter) {
 					await modalInteraction.reply({
@@ -186,6 +184,7 @@ export default class EmbedCommand extends BaseCommand {
 					ephemeral: true
 				});
 
+				Logger.info(`Embed sent by ${interaction.user.username}`);
 				break;
 			}
 

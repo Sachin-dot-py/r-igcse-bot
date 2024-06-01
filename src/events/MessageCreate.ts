@@ -22,11 +22,13 @@ import {
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
 	User,
-	type APIEmbed
+	type APIEmbed,
+	type MessageCreateOptions
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { EntityId, type Entity } from "redis-om";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -110,7 +112,9 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyCounter[message.channelId] === 4 &&
 					stickyCounter[message.channelId] >= 4
 				) {
-					this.handleStickyMessages(message).catch(Logger.error);
+					this.handleStickyMessages(message).catch((e) =>
+						Logger.error(`Error at handleStickyMessages: ${e}`)
+					);
 					stickyCounter[message.channelId] = 0;
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
@@ -570,7 +574,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 		const stickyMessages = (await StickyMessageCache.search()
 			.where("channelId")
 			.equals(message.channelId)
-			.returnAll()) as ICachedStickyMessage[];
+			.returnAll()
+			.catch(() => [])) as ICachedStickyMessage[];
 
 		for (const stickyMessage of stickyMessages) {
 			if (stickyMessage.messageId) {
@@ -579,12 +584,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 					.catch(() => {});
 			}
 
-			const embeds = stickyMessage.embeds.map(
-				(embed) => new EmbedBuilder(embed as APIEmbed)
-			);
-
 			const newSticky = await message.channel.send({
-				embeds
+				content: ((x) => (x === "" ? undefined : x))(
+					stickyMessage.message.content
+				),
+				embeds: stickyMessage.message.embeds as APIEmbed[]
 			});
 
 			stickyMessage.messageId = newSticky.id;
