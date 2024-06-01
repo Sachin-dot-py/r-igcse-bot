@@ -6,6 +6,7 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	ApplicationCommandType,
+	AttachmentBuilder,
 	ButtonBuilder,
 	ButtonStyle,
 	ContextMenuCommandBuilder,
@@ -86,14 +87,19 @@ export default class PinMenu extends BaseCommand {
 					try {
 						await interaction.targetMessage.unpin();
 						if (thread) {
-							const embed = new EmbedBuilder()
-								.setDescription(interaction.targetMessage.content)
+							let embed = new EmbedBuilder()
 								.setAuthor({
 									name: interaction.targetMessage.author.tag,
 									iconURL: interaction.targetMessage.author.displayAvatarURL()
 								})
-							const message = await thread.send({ embeds: [embed] })
-
+							if (interaction.targetMessage.content) embed = embed.setDescription(interaction.targetMessage.content)
+							const files = []
+							for (const file of interaction.targetMessage.attachments.toJSON()) {
+								const buffer = Buffer.from(await (await fetch(file.url)).arrayBuffer())
+								if (buffer) files.push(new AttachmentBuilder(buffer, { name: file.name, description: file.description || undefined }))
+							}
+							const message = await thread.send({ embeds: [embed], files })
+							if (!thread.locked) await thread.setLocked(true)
 							await interaction.targetMessage.reply({
 								content: `Messaged unpinned by ${interaction.user} and moved to ${message.url}`
 							});
@@ -136,6 +142,7 @@ export default class PinMenu extends BaseCommand {
 					await confirmation.update({ content: 'Successfully unpinned message.', components: [] });
 				}
 			} catch (e) {
+				console.error(e);
 				await interaction.editReply({ content: 'Did not unpin', components: [] });
 			}
 		} else {
@@ -163,18 +170,25 @@ export default class PinMenu extends BaseCommand {
 						const embed = new EmbedBuilder().setTitle("Old pins thread")
 						thread = await (await interaction.channel?.send({ embeds: [embed] }))?.startThread({ name: "Old Pins" })
 					}
+
 					await interaction.deferReply({ ephemeral: true })
 					try {
 						const targetMessage = (await interaction.channel?.messages.fetchPinned(true))?.last();
 						if (!targetMessage) throw '';
-						const embed = new EmbedBuilder()
+						let embed = new EmbedBuilder()
 							.setDescription(targetMessage.content)
 							.setAuthor({
 								name: targetMessage.author.tag,
 								iconURL: targetMessage.author.displayAvatarURL()
 							})
-						const message = await thread.send({ embeds: [embed] })
+						const files = []
+						for (const file of targetMessage.attachments.toJSON()) {
+							const buffer = Buffer.from(await (await fetch(file.url)).arrayBuffer())
+							if (buffer) files.push(new AttachmentBuilder(buffer, { name: file.name, description: file.description || undefined }))
+						}
 
+						const message = await thread.send({ embeds: [embed], files })
+						if (!thread.locked) await thread.setLocked(true)
 						await targetMessage.unpin();
 						await targetMessage.reply({
 							content: `Messaged unpinned and moved to ${message.url} due to the pin limit`
