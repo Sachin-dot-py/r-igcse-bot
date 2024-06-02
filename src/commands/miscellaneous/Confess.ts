@@ -94,6 +94,8 @@ export default class FunFactCommand extends BaseCommand {
 		const confession =
 			modalInteraction.fields.getTextInputValue("confession-input");
 
+		await modalInteraction.deferReply({ ephemeral: true });
+
 		const bannedQuery: IBannedData[] | null =
 			(await ConfessionBan.aggregate([
 				{
@@ -115,20 +117,18 @@ export default class FunFactCommand extends BaseCommand {
 
 		for (const userHash of bannedUsers) {
 			if (await Bun.password.verify(interaction.user.id, userHash)) {
-				await modalInteraction.reply({
+				await modalInteraction.editReply({
 					content:
-						"You have been banned from making confessions in this server.",
-					ephemeral: true
+						"You have been banned from making confessions in this server."
 				});
 
 				return;
 			}
 		}
 
-		await modalInteraction.reply({
+		await modalInteraction.editReply({
 			content:
-				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
-			ephemeral: true
+				"Your confession has been sent to the moderators.\nYou have to wait for their approval."
 		});
 
 		const embed = new EmbedBuilder()
