@@ -96,7 +96,6 @@ export default class ResourcesCommand extends BaseCommand {
 				}
 
 				case "subject_group": {
-					console.log(resourceRepositories[level], i.values)
 					const resourceRows = [new ActionRowBuilder<ButtonBuilder>().addComponents(
 						Object.entries(
 							resourceRepositories[level][i.values[0]]
