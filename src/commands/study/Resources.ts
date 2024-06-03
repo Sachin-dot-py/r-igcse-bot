@@ -96,20 +96,40 @@ export default class ResourcesCommand extends BaseCommand {
 				}
 
 				case "subject_group": {
-					const resourceRow =
-						new ActionRowBuilder<ButtonBuilder>().addComponents(
+					const resourceRows = [new ActionRowBuilder<ButtonBuilder>().addComponents(
+						Object.entries(
+							resourceRepositories[level][i.values[0]]
+						).slice(0, 5).map(([label, link]) =>
+							new ButtonBuilder()
+								.setLabel(label)
+								.setURL(link)
+								.setStyle(ButtonStyle.Link)
+						)
+					)];
+					if (Object.entries(resourceRepositories[level][i.values[0]]).length > 5)
+						resourceRows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
 							Object.entries(
 								resourceRepositories[level][i.values[0]]
-							).map(([label, link]) =>
+							).slice(5, 10).map(([label, link]) =>
 								new ButtonBuilder()
 									.setLabel(label)
 									.setURL(link)
 									.setStyle(ButtonStyle.Link)
 							)
-						);
-
+						))
+					if (Object.entries(resourceRepositories[level][i.values[0]]).length > 10)
+						resourceRows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
+							Object.entries(
+								resourceRepositories[level][i.values[0]]
+							).slice(10).map(([label, link]) =>
+								new ButtonBuilder()
+									.setLabel(label)
+									.setURL(link)
+									.setStyle(ButtonStyle.Link)
+							)
+						))
 					interaction.editReply({
-						components: [resourceRow]
+						components: resourceRows
 					});
 
 					break;
