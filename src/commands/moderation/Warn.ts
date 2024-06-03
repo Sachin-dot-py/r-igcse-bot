@@ -133,7 +133,7 @@ export default class WarnCommand extends BaseCommand {
 			]
 		});
 
-		interaction.editReply({ content: "there ya go good sir" });
+		interaction.editReply({ content: "https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639" });
 		interaction.channel.send(
 			`${user.username} has been warned for ${reason} (Case #${caseNumber})`
 		);
