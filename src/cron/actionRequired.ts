@@ -49,13 +49,12 @@ export default async function actionRequired(
 			},
 			{
 				$match: {
-					$expr: {
-						$gte: ["$totalPoints", 10],
+					totalPoints: {
+						$gte: 10
+					},
+					lastPunishment: {
 						// 30 days
-						$gt: [
-							"$lastPunishment",
-							new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
-						]
+						$gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
 					}
 				}
 			},
