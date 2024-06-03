@@ -297,7 +297,7 @@ export default class TimeoutCommand extends BaseCommand {
 			);
 		}
 
-		interaction.editReply({ content: "alrighty, timed them out" });
+		interaction.editReply({ content: "https://tenor.com/view/we-wish-you-a-married-christmas-pascale-hutton-time-out-okay-time-out-gif-26984147" });
 		const time = Math.floor(Date.now() / 1000 + duration);
 		interaction.channel.send(
 			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`
