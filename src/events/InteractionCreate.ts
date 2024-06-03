@@ -8,10 +8,14 @@ import {
 } from "@/redis";
 import Logger from "@/utils/Logger";
 import {
+	ChannelType,
 	ChatInputCommandInteraction,
 	ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
+	PermissionFlagsBits,
+	PermissionOverwriteManager,
+	PermissionsBitField,
 	TextChannel,
 	type ActionRowBuilder,
 	type ButtonBuilder,
@@ -21,6 +25,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { HostSession } from "@/mongo/schemas/HostSession";
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -37,6 +43,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
+				this.handleHostSessionButton(client, interaction);
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -326,5 +333,174 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await ButtonInteractionCache.remove(confessionId);
+	}
+
+	async handleHostSessionButton(
+		client: DiscordClient<true>,
+		interaction: ButtonInteraction
+	) {
+		const matchCustomIdRegex = /(.*_host_session)_(accept|reject|ban)/gi;
+		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
+		if (!regexMatches) return;
+
+		const hostSessionId = regexMatches[1];
+		const action = regexMatches[2];
+		if (!hostSessionId || !action) return;
+
+		const button = await ButtonInteractionCache.get(hostSessionId);
+		if (!button || !button.guildId || !button.userId) return;
+
+		const guildPreferences = await GuildPreferencesCache.get(
+			button.guildId
+		);
+		if (
+			!guildPreferences ||
+			!guildPreferences.hostSessionApprovalChannelId ||
+			!guildPreferences.hostSessionChannelId
+		)
+			return;
+
+		const approvalChannel = client.channels.cache.get(
+			guildPreferences.hostSessionApprovalChannelId
+		);
+		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
+			return;
+
+		const message = await approvalChannel.messages.fetch(button.messageId);
+		if (!message) return;
+
+		const hostSession = await HostSession.findOne({
+			messageId: button.messageId
+		});
+
+		if (!hostSession) return;
+
+		const teachers = hostSession.teachers;
+
+		let acceptedSessionMessage =
+			`<@&${hostSession.studyPingRoleId}>, there will be a study session hosted <t:${hostSession.startDate}:R> at <t:${hostSession.startDate}:t>, and will end on <t:${hostSession.endDate}:t>\nIt will be hosted by `;
+
+		for (const teacherId of teachers) {
+			acceptedSessionMessage += `<@${teacherId}> `;
+		}
+
+		acceptedSessionMessage += `\nThe following topics will be covered: ${hostSession.contents}`;
+
+		const studyChannelDocument = await StudyChannel.findOne({ studyPingRoleId: hostSession.studyPingRoleId });
+		if (!studyChannelDocument) return;
+		const studyChannel = interaction.guild?.channels.cache.get(studyChannelDocument.channelId)
+		if (!studyChannel) return;
+
+		let nameArray = studyChannel?.name.split('-');
+
+		for (let i = 0; i < nameArray.length; i++) {
+			const splitName = `${nameArray[i].substring(0, 1).toUpperCase()}${nameArray[i].substring(1)}`;
+			nameArray[i] = splitName;
+		}
+
+		let name = `${nameArray.toString().replace(/,/g, " ").replace('Ig', "IGCSE").replace('As', 'AS').replace('Al', 'AL')} Hosted Study Session`
+
+		switch (action) {
+			case "accept": {
+				interaction.deferReply({ ephemeral: true });
+
+				const hostSessionChannel = client.channels.cache.get(
+					guildPreferences.hostSessionChannelId
+				);
+				if (!hostSessionChannel || !(hostSessionChannel instanceof TextChannel)) return;
+
+				const sessionChannel = await interaction.guild?.channels.create({
+					name,
+					type: ChannelType.GuildStageVoice,
+					permissionOverwrites: [{
+						id: message.guild.roles.everyone.id,
+						deny: PermissionFlagsBits.Connect
+					}]
+				});
+
+				if (!sessionChannel) {
+					interaction.editReply({
+						content: "An error occurred"
+					});
+
+					return;
+				}
+
+				const event = await interaction.guild?.scheduledEvents.create({
+					name,
+					description: acceptedSessionMessage,
+					scheduledStartTime: new Date(hostSession.startDate * 1000),
+					scheduledEndTime: new Date(hostSession.endDate * 1000),
+					privacyLevel: 2,
+					entityType: 1,
+					channel: sessionChannel
+				})
+
+				if (!event) {
+					interaction.editReply({
+						content: "An error occurred"
+					});
+
+					return;
+				}
+
+				const eventLink = await event.createInviteURL()
+
+				acceptedSessionMessage += `\n\n${eventLink}`;
+
+				await hostSession.updateOne({
+					accepted: true,
+					channelId: sessionChannel.id,
+					scheduledEventId: event.id
+				});
+
+				await hostSessionChannel.send({
+					content: acceptedSessionMessage
+				});
+
+				const acceptEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Session accepted by ${interaction.user.tag}`
+					})
+					.setDescription(message.embeds[0].description)
+					.setColor("Green");
+
+				await message.edit({
+					embeds: [acceptEmbed],
+					components: []
+				});
+
+				await interaction.editReply({
+					content: `Session accepted`
+				});
+				break;
+			}
+			case "reject": {
+
+				await hostSession.deleteOne();
+
+				const rejectEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Session rejected by ${interaction.user.tag}`
+					})
+					.setDescription(message.embeds[0].description)
+					.setColor("Red");
+
+				await message.edit({
+					embeds: [rejectEmbed],
+					components: []
+				});
+
+				await interaction.reply({
+					content: "Session rejected",
+					ephemeral: true
+				});
+				break;
+			}
+			default:
+				break;
+		}
+
+		await ButtonInteractionCache.remove(regexMatches[1]);
 	}
 }

@@ -19,10 +19,12 @@ const schema = new Schema("GuildPreferences", {
 	welcomeChannelId: { type: "string" },
 	confessionsChannelId: { type: "string" },
 	confessionApprovalChannelId: { type: "string" },
+	hostSessionApprovalChannelId: { type: "string" },
 	countingChannelId: { type: "string" },
 	hotmResultsChannelId: { type: "string" },
 	hotmResultsEmbedId: { type: "string" },
-	studySessionChannelId: { type: "string" },
+	hostSessionChannelId: { type: "string" },
+	archiveSessionCategoryId: { type: "string" },
 	modmailCreateChannelId: { type: "string" },
 	modmailThreadsChannelId: { type: "string" },
 	modmailLogsChannelId: { type: "string" },
@@ -30,7 +32,8 @@ const schema = new Schema("GuildPreferences", {
 	banAppealFormLink: { type: "string" },
 	forcedMuteRoleId: { type: "string" },
 	welcomeChannelMessage: { type: "string" },
-	welcomeDMMessage: { type: "string" }
+	welcomeDMMessage: { type: "string" },
+	groupStudyChannelId: { type: "string" }
 });
 
 export class GuildPreferencesRepository extends Repository {

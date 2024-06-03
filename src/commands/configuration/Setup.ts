@@ -13,18 +13,21 @@ import { preferences } from "@/data";
 import StringSelect from "@/components/setup/StringSelect";
 import ChannelSelect from "@/components/setup/ChannelSelect";
 import RoleSelect from "@/components/setup/RoleSelect";
+import CategoryChannelSelect from "@/components/setup/CategoryChannelSelect";
 import { GuildPreferencesCache } from "@/redis";
 import { v4 as uuidv4 } from "uuid";
 import SetupButtons from "@/components/setup/SetupButtons";
 
 const typeToComponent: {
 	[key: string]:
-		| typeof StringSelect
-		| typeof ChannelSelect
-		| typeof RoleSelect;
+	| typeof StringSelect
+	| typeof ChannelSelect
+	| typeof CategoryChannelSelect
+	| typeof RoleSelect;
 } = {
 	rep: StringSelect,
 	channel: ChannelSelect,
+	categoryChannel: CategoryChannelSelect,
 	role: RoleSelect
 };
 
@@ -101,13 +104,29 @@ export default class SetupCommand extends BaseCommand {
 					) {
 						typeof guildPreferences[preference.key] === "string"
 							? component.setDefaultChannels(
-									// @ts-expect-error - guildPreferences[preference.key] will not be undefined
-									guildPreferences[preference.key]
-								)
+								// @ts-expect-error - guildPreferences[preference.key] will not be undefined
+								guildPreferences[preference.key]
+							)
 							: component.setDefaultChannels(
-									// @ts-expect-error - guildPreferences[preference.key] will either be a string or an array of strings
-									...guildPreferences[preference.key]
-								);
+								// @ts-expect-error - guildPreferences[preference.key] will either be a string or an array of strings
+								...guildPreferences[preference.key]
+							);
+					}
+					break;
+
+				case "categoryChannel":
+					if (
+						guildPreferences?.[preference.key] &&
+						component instanceof CategoryChannelSelect
+					) {
+						typeof guildPreferences[preference.key] === "string"
+							? component.setDefaultChannels(
+								// @ts-expect-error - guildPreferences[preference.key] will not be undefined
+								guildPreferences[preference.key]
+							)
+							: component.setDefaultChannels(
+								...guildPreferences[preference.key]
+							);
 					}
 					break;
 
@@ -118,12 +137,12 @@ export default class SetupCommand extends BaseCommand {
 					) {
 						typeof guildPreferences[preference.key] === "string"
 							? component.setDefaultRoles(
-									// @ts-expect-error - guildPreferences[preference.key] will not be undefined
-									guildPreferences[preference.key]
-								)
+								// @ts-expect-error - guildPreferences[preference.key] will not be undefined
+								guildPreferences[preference.key]
+							)
 							: component.setDefaultRoles(
-									...guildPreferences[preference.key]
-								);
+								...guildPreferences[preference.key]
+							);
 					}
 					break;
 

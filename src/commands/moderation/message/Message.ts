@@ -81,14 +81,12 @@ export default class KickCommand extends BaseCommand {
 				return;
 			}
 
-			const scheduleTime = interaction.options.getNumber(
-				"schedule_time",
-				false
-			);
+			const scheduleTime = interaction.options.getNumber("schedule_time", false);
 
-			if (scheduleTime && scheduleTime <= Date.now() / 1000) {
+			if (scheduleTime && scheduleTime <= (Date.now() / 1000)) {
 				interaction.reply({
-					content: "Scheduled time cannot be in the past",
+					content:
+						"Scheduled time cannot be in the past",
 					ephemeral: true
 				});
 

@@ -14,10 +14,12 @@ export type IGuildPreferences = {
 	welcomeChannelId: string;
 	confessionsChannelId: string;
 	confessionApprovalChannelId: string;
+	hostSessionApprovalChannelId: string;
 	countingChannelId: string;
 	hotmResultsChannelId: string;
 	hotmResultsEmbedId: string;
-	studySessionChannelId: string;
+	hostSessionChannelId: string;
+	archiveSessionCategoryId: string;
 
 	modmailCreateChannelId: string;
 	modmailThreadsChannelId: string;
@@ -29,6 +31,8 @@ export type IGuildPreferences = {
 	forcedMuteRoleId: string;
 	welcomeChannelMessage: string;
 	welcomeDMMessage: string;
+
+	groupStudyChannelId: string;
 }>;
 
 const schema = new Schema<IGuildPreferences>({
@@ -42,10 +46,12 @@ const schema = new Schema<IGuildPreferences>({
 	welcomeChannelId: { type: String, default: null },
 	confessionsChannelId: { type: String, default: null },
 	confessionApprovalChannelId: { type: String, default: null },
+	hostSessionApprovalChannelId: { type: String, default: null },
 	countingChannelId: { type: String, default: null },
 	hotmResultsChannelId: { type: String, default: null },
 	hotmResultsEmbedId: { type: String, default: null },
-	studySessionChannelId: { type: String, default: null },
+	hostSessionChannelId: { type: String, default: null },
+	archiveSessionCategoryId: { type: String, default: null },
 	modmailCreateChannelId: { type: String, default: null },
 	modmailThreadsChannelId: { type: String, default: null },
 	modmailLogsChannelId: { type: String, default: null },
@@ -53,7 +59,8 @@ const schema = new Schema<IGuildPreferences>({
 	banAppealFormLink: { type: String, default: null },
 	forcedMuteRoleId: { type: String, default: null },
 	welcomeChannelMessage: { type: String, default: null },
-	welcomeDMMessage: { type: String, default: null }
+	welcomeDMMessage: { type: String, default: null },
+	groupStudyChannelId: { type: String, default: null }
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

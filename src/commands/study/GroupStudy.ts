@@ -6,12 +6,12 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
 
-export default class StudySessionCommand extends BaseCommand {
+export default class GroupStudyCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
-				.setName("study_session")
-				.setDescription("Start a study session")
+				.setName("group_study")
+				.setDescription("Start a group study session")
 				.setDMPermission(false)
 		);
 	}
@@ -34,10 +34,10 @@ export default class StudySessionCommand extends BaseCommand {
 			interaction.guildId
 		);
 
-		if (!guildPreferences || !guildPreferences.studySessionChannelId) {
+		if (!guildPreferences || !guildPreferences.groupStudyChannelId) {
 			await interaction.reply({
 				content:
-					"This guild hasn't configured study sessions. Please contact an admistrator (`/setup`)",
+					"This guild hasn't configured group study sessions. Please contact an admistrator (`/setup`)",
 				ephemeral: true
 			});
 
@@ -67,24 +67,24 @@ export default class StudySessionCommand extends BaseCommand {
 			return;
 		}
 
-		const studySessionChannel = interaction.guild.channels.cache.get(
-			guildPreferences.studySessionChannelId
+		const groupStudyChannel = await interaction.guild.channels.cache.get(
+			guildPreferences.groupStudyChannelId
 		);
 
-		if (!studySessionChannel) {
+		if (!groupStudyChannel) {
 			await interaction.reply({
 				content:
-					"The Study Session Channel couldn't be found. Please contact an admin.",
+					"The Group Study Announcement Channel couldn't be found. Please contact an admin.",
 				ephemeral: true
 			});
 
 			return;
 		}
 
-		if (!studySessionChannel.isTextBased()) {
+		if (!groupStudyChannel.isTextBased()) {
 			await interaction.reply({
 				content:
-					"The Study Session Channel is of an invalid type. Please contact an admin.",
+					"The Group Study Announcement Channel is of an invalid type. Please contact an admin.",
 				ephemeral: true
 			});
 
@@ -105,7 +105,7 @@ export default class StudySessionCommand extends BaseCommand {
 			return;
 		}
 
-		const pingRole = await interaction.guild.roles.cache.get(
+		const pingRole = interaction.guild.roles.cache.get(
 			studyChannelData.studyPingRoleId
 		);
 
@@ -119,7 +119,7 @@ export default class StudySessionCommand extends BaseCommand {
 			return;
 		}
 
-		const messages = await studySessionChannel.messages.fetch({
+		const messages = await groupStudyChannel.messages.fetch({
 			limit: 10
 		});
 
@@ -133,7 +133,7 @@ export default class StudySessionCommand extends BaseCommand {
 
 			await interaction.reply({
 				content:
-					"Please wait for at least 1 hour after the previous study session in this channel.",
+					"Please wait for at least 1 hour after the previous group study in this channel.",
 				ephemeral: true
 			});
 
@@ -141,15 +141,15 @@ export default class StudySessionCommand extends BaseCommand {
 		}
 
 		await interaction.reply({
-			content: `Successfully started a <#${interaction.channelId}> Study Session in <#${member.voice.channel.id}>`
+			content: `Successfully started a <#${interaction.channelId}> Group Study Session in <#${member.voice.channel.id}>`
 		});
 
-		await studySessionChannel.send(
+		await groupStudyChannel.send(
 			`<@&${pingRole.id}> - Requested by <@${interaction.user.id}> - Please join <#${member.voice.channel.id}>`
 		);
 
 		await member.voice.channel.edit({
-			name: `${interaction.channel.name} Study Session`
+			name: `${interaction.channel.name} Group Study`
 		});
 	}
 }

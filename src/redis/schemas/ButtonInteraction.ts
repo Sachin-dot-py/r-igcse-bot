@@ -10,13 +10,15 @@ export interface IButtonInteraction extends Entity {
 	messageId: string;
 	guildId?: string;
 	userHash?: string;
+	userId?: string;
 }
 
 export const ButtonInteraction = new Schema("ButtonInteraction", {
 	customId: { type: "string" },
 	messageId: { type: "string" },
 	guildId: { type: "string" },
-	userHash: { type: "string" }
+	userHash: { type: "string" },
+	userId: { type: "string" }
 });
 
 export class ButtonInteractionRepository extends Repository {
