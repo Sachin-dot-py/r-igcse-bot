@@ -26,15 +26,44 @@ export default async function actionRequired(
 			_id: string;
 			totalPoints: number;
 		}>([
-			{ $match: { guildId: guild.id } },
+			{
+				$match: {
+					guildId: guild.id
+				}
+			},
+			{
+				$sort: {
+					when: -1
+				}
+			},
 			{
 				$group: {
 					_id: "$actionAgainst",
-					totalPoints: { $sum: "$points" }
+					totalPoints: {
+						$sum: "$points"
+					},
+					lastPunishment: {
+						$first: "$when"
+					}
 				}
 			},
-			{ $match: { $expr: { $gte: ["$totalPoints", 10] } } },
-			{ $sort: { totalPoints: -1 } }
+			{
+				$match: {
+					$expr: {
+						$gte: ["$totalPoints", 10],
+						// 30 days
+						$gt: [
+							"$lastPunishment",
+							new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
+						]
+					}
+				}
+			},
+			{
+				$sort: {
+					totalPoints: -1
+				}
+			}
 		]);
 
 		const fields = [] as APIEmbedField[];
