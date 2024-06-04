@@ -33,7 +33,7 @@ const schema = new Schema("GuildPreferences", {
 	forcedMuteRoleId: { type: "string" },
 	welcomeChannelMessage: { type: "string" },
 	welcomeDMMessage: { type: "string" },
-	groupStudyChannelId: { type: "string" }
+	studySessionChannelId: { type: "string" }
 });
 
 export class GuildPreferencesRepository extends Repository {

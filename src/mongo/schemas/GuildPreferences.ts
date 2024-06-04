@@ -32,7 +32,7 @@ export type IGuildPreferences = {
 	welcomeChannelMessage: string;
 	welcomeDMMessage: string;
 
-	groupStudyChannelId: string;
+	studySessionChannelId: string;
 }>;
 
 const schema = new Schema<IGuildPreferences>({
@@ -60,7 +60,7 @@ const schema = new Schema<IGuildPreferences>({
 	forcedMuteRoleId: { type: String, default: null },
 	welcomeChannelMessage: { type: String, default: null },
 	welcomeDMMessage: { type: String, default: null },
-	groupStudyChannelId: { type: String, default: null }
+	studySessionChannelId: { type: String, default: null }
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

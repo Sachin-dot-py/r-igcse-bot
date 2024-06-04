@@ -430,9 +430,9 @@ export const preferences: Preference[] = [
 		key: "hotmResultsChannelId"
 	},
 	{
-		name: "Group Study Announcement Channel",
+		name: "Study Session Announcement Channel",
 		type: "channel",
-		key: "groupStudyChannelId"
+		key: "studySessionChannelId"
 	},
 	{
 		name: "Hosted Study Session Announcement Channel",

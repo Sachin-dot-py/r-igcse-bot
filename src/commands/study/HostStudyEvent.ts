@@ -2,7 +2,7 @@ import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { HostSession } from "@/mongo/schemas/HostSession"
 import { ButtonInteractionCache, GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, ModalBuilder, SlashCommandBuilder, StageChannel, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, ModalBuilder, SlashCommandBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import BaseCommand, {
     type DiscordChatInputCommandInteraction
 } from "../../registry/Structure/BaseCommand";
@@ -17,7 +17,7 @@ export default class HostSessionCommand extends BaseCommand {
     constructor() {
         super(
             new SlashCommandBuilder()
-                .setName("host_session")
+                .setName("host_study_event")
                 .setDescription("Schedule a study session you want to host")
                 .setDMPermission(false)
         );
