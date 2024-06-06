@@ -10,6 +10,7 @@
 		"format": "prettier . --write"
 	},
 	"dependencies": {
+		"@discordforge/pagination": "^1",
 		"bufferutil": "^4",
 		"chucklejs": "^1",
 		"discord.js": "^14",
