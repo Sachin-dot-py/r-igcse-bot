@@ -1,6 +1,6 @@
-import Select from "../../Select";
 import { practiceSubjects } from "@/data";
 import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import Select from "../../Select";
 
 class SubjectSelect {
 	rows: ActionRowBuilder<Select>[];
@@ -10,7 +10,7 @@ class SubjectSelect {
 			"Select a subject",
 			this.getSubjects(),
 			1,
-			`${customId}_0`
+			`${customId}_0`,
 		);
 
 		const row = new ActionRowBuilder<Select>().addComponents(subjectSelect);
@@ -21,7 +21,7 @@ class SubjectSelect {
 		return Object.entries(practiceSubjects).map(([key, value]) =>
 			new StringSelectMenuOptionBuilder()
 				.setLabel(`${value} (${key})`)
-				.setValue(key)
+				.setValue(key),
 		);
 	}
 }

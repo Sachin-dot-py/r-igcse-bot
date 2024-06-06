@@ -2,14 +2,14 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 
 export default class UnbanCommand extends BaseCommand {
@@ -22,31 +22,31 @@ export default class UnbanCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to unban")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences) {
 			interaction.editReply({
 				content:
-					"Please configure the bot using `/setup` command first."
+					"Please configure the bot using `/setup` command first.",
 			});
 			return;
 		}
@@ -58,7 +58,7 @@ export default class UnbanCommand extends BaseCommand {
 
 		if (!ban) {
 			interaction.editReply({
-				content: "I cannot unban a user that isn't banned."
+				content: "I cannot unban a user that isn't banned.",
 			});
 
 			return;
@@ -66,7 +66,7 @@ export default class UnbanCommand extends BaseCommand {
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: interaction.guildId
+				guildId: interaction.guildId,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -75,11 +75,11 @@ export default class UnbanCommand extends BaseCommand {
 		try {
 			await interaction.guild.bans.remove(
 				user,
-				`Unbanned by ${interaction.user.tag}`
+				`Unbanned by ${interaction.user.tag}`,
 			);
 		} catch (error) {
 			interaction.editReply({
-				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`
+				content: `Failed to unban user ${error instanceof Error ? `(${error.message})` : ""}`,
 			});
 
 			client.log(
@@ -87,7 +87,7 @@ export default class UnbanCommand extends BaseCommand {
 				`${this.data.name} Command`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 		}
 
@@ -99,7 +99,7 @@ export default class UnbanCommand extends BaseCommand {
 			caseId: caseNumber,
 			reason: "",
 			points: 0,
-			when: new Date()
+			when: new Date(),
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -110,13 +110,13 @@ export default class UnbanCommand extends BaseCommand {
 					{
 						name: "User",
 						value: `${user.tag} (${user.id})`,
-						inline: false
+						inline: false,
 					},
 					{
 						name: "Moderator",
 						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: false
-					}
+						inline: false,
+					},
 				])
 				.setTimestamp();
 
@@ -124,8 +124,8 @@ export default class UnbanCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed]
-				}
+					embeds: [modEmbed],
+				},
 			);
 		}
 

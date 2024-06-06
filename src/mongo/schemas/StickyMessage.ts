@@ -1,4 +1,4 @@
-import type { APIEmbed, MessageCreateOptions } from "discord.js";
+import type { APIEmbed } from "discord.js";
 import { Schema, model as createModel } from "mongoose";
 
 export interface IStickyMessage {
@@ -14,10 +14,10 @@ const schema = new Schema<IStickyMessage>({
 	messageId: { type: String, required: false, unique: false },
 	message: { type: Object, required: true, unique: false },
 	stickTime: { type: String, required: false, unique: false },
-	unstickTime: { type: String, required: false, unique: false }
+	unstickTime: { type: String, required: false, unique: false },
 });
 
 export const StickyMessage = createModel<IStickyMessage>(
 	"StickyMessage",
-	schema
+	schema,
 );

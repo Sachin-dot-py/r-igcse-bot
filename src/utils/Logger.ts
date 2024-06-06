@@ -1,4 +1,4 @@
-import { Guild, MessagePayload, type MessageCreateOptions } from "discord.js";
+import type { Guild, MessageCreateOptions, MessagePayload } from "discord.js";
 
 export default class Logger {
 	public static info(message: unknown) {
@@ -11,20 +11,20 @@ export default class Logger {
 
 	public static error(message: unknown) {
 		console.error(
-			`[ \x1b[0;31mx\x1b[0m ] ${message instanceof Error ? message.stack : message}`
+			`[ \x1b[0;31mx\x1b[0m ] ${message instanceof Error ? message.stack : message}`,
 		);
 	}
 
 	public static async channel(
 		guild: Guild,
 		channelId: string,
-		options: string | MessagePayload | MessageCreateOptions
+		options: string | MessagePayload | MessageCreateOptions,
 	) {
 		const channel = guild.channels.cache.get(channelId);
 
 		if (!channel || !channel.isTextBased())
 			throw new Error(
-				"Channel not found or is not a text-based channel."
+				"Channel not found or is not a text-based channel.",
 			);
 
 		return await channel.send(options);

@@ -1,19 +1,19 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "../../../registry/Structure/BaseCommand";
 
 const typeMap = {
-	"ms": "Mark Scheme",
-	"qp": "Question Paper",
-	"in": "Insert",
-	"sf": "Supporting Files",
-	"er": "Examiner Report",
-	"gt": "Grade Thresholds"
+	ms: "Mark Scheme",
+	qp: "Question Paper",
+	in: "Insert",
+	sf: "Supporting Files",
+	er: "Examiner Report",
+	gt: "Grade Thresholds",
 };
 
-interface PaperSCResponseItem {
+interface PaperScResponseItem {
 	doc: {
 		subject: string;
 		time: string;
@@ -41,20 +41,20 @@ export default class ResourcesCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("search_pyp")
 				.setDescription(
-					"Search for IGCSE past papers with subject code/question text"
+					"Search for IGCSE past papers with subject code/question text",
 				)
 				.addStringOption((option) =>
 					option
 						.setName("query")
 						.setDescription("Search Query")
-						.setRequired(true)
-				)
+						.setRequired(true),
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const query = interaction.options.getString("query", true);
 
@@ -62,7 +62,7 @@ export default class ResourcesCommand extends BaseCommand {
 
 		try {
 			const res = await fetch(
-				`https://paper.sc/search/?as=json&query=${query}`
+				`https://paper.sc/search/?as=json&query=${query}`,
 			);
 
 			if (!res.ok) throw Error(res.statusText);
@@ -76,7 +76,7 @@ export default class ResourcesCommand extends BaseCommand {
 				interaction.followUp({
 					content:
 						"No results found in past papers. Try changing your query for better results.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -84,7 +84,7 @@ export default class ResourcesCommand extends BaseCommand {
 
 			const fields = [];
 
-			for (const item of (list as PaperSCResponseItem[]).slice(0, 6)) {
+			for (const item of (list as PaperScResponseItem[]).slice(0, 6)) {
 				const { subject, time, type, paper, variant, _id } =
 					item["doc"];
 				let value = `[${typeMap[type]}](https://paper.sc/doc/${_id})`;
@@ -95,7 +95,7 @@ export default class ResourcesCommand extends BaseCommand {
 				}
 				fields.push({
 					name: `${subject}_${time}_${type}_${paper}${variant} on page ${item.index.page}`,
-					value
+					value,
 				});
 			}
 
@@ -108,7 +108,7 @@ export default class ResourcesCommand extends BaseCommand {
 			await interaction.editReply({ embeds: [embed] });
 		} catch (error) {
 			await interaction.editReply({
-				content: "Error occured while searching past papers"
+				content: "Error occured while searching past papers",
 			});
 
 			if (!interaction.inCachedGuild()) return;
@@ -118,7 +118,7 @@ export default class ResourcesCommand extends BaseCommand {
 				`${this.data.name} Command`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 		}
 	}

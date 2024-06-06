@@ -1,13 +1,13 @@
-import { HOTM, HOTMUser, GuildPreferences } from "@/mongo";
+import { GuildPreferences, HOTM, HOTMUser } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
-import HOTMSessionCommand from "./VotingSession";
+import type hotmSessionCommand from "./VotingSession";
 
 export default class HOTMVotingCommand extends BaseCommand {
 	constructor() {
@@ -19,27 +19,27 @@ export default class HOTMVotingCommand extends BaseCommand {
 					option
 						.setName("helper")
 						.setDescription("Choose the helper to vote for")
-						.setRequired(true)
+						.setRequired(true),
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
 			interaction.editReply({
-				content: "This feature hasn't been configured."
+				content: "This feature hasn't been configured.",
 			});
 
 			return;
@@ -47,7 +47,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		if (!guildPreferences.hotmSessionOngoing) {
 			await interaction.editReply({
 				content:
-					"The voting period has not started yet or has already ended."
+					"The voting period has not started yet or has already ended.",
 			});
 
 			return;
@@ -56,22 +56,21 @@ export default class HOTMVotingCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The voting period has not started yet or has already ended.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
-
 		const helper = interaction.options.getUser("helper", true);
 
 		const studyChannels = await StudyChannel.find({
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		if (studyChannels.length < 1) {
 			interaction.editReply({
-				content: "This feature hasn't been configured."
+				content: "This feature hasn't been configured.",
 			});
 
 			return;
@@ -80,16 +79,16 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const hotmUser =
 			(await HOTMUser.findOne({
 				guildId: interaction.guild.id,
-				userId: interaction.user.id
+				userId: interaction.user.id,
 			})) ??
 			(await HOTMUser.create({
 				guildId: interaction.guild.id,
-				userId: interaction.user.id
+				userId: interaction.user.id,
 			}));
 
 		if (interaction.user.id === helper.id) {
 			interaction.editReply({
-				content: "You cannot vote for yourself"
+				content: "You cannot vote for yourself",
 			});
 
 			return;
@@ -97,7 +96,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (hotmUser.voted.length >= 3) {
 			interaction.editReply({
-				content: "You don't have any votes left"
+				content: "You don't have any votes left",
 			});
 
 			return;
@@ -105,7 +104,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (hotmUser.voted.includes(helper.id)) {
 			interaction.editReply({
-				content: "You have already voted for this helper"
+				content: "You have already voted for this helper",
 			});
 
 			return;
@@ -114,12 +113,12 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const helperRoles = interaction.guild.roles.cache.filter((role) =>
 			studyChannels
 				.map((studyChannel) => studyChannel.helperRoleId)
-				.some((helperRoleId) => helperRoleId === role.id)
+				.some((helperRoleId) => helperRoleId === role.id),
 		);
 
 		if (helperRoles.size < 1) {
 			interaction.editReply({
-				content: "Helper roles not found"
+				content: "Helper roles not found",
 			});
 
 			return;
@@ -127,7 +126,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (!helperRoles.some((role) => role.members.has(helper.id))) {
 			interaction.editReply({
-				content: `${helper.tag} is not a helper`
+				content: `${helper.tag} is not a helper`,
 			});
 
 			return;
@@ -135,7 +134,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		const helperDoc = await HOTM.findOne({
 			guildId: interaction.guildId,
-			helperId: helper.id
+			helperId: helper.id,
 		});
 
 		const helperVotes = (helperDoc?.votes ?? 0) + 1;
@@ -144,48 +143,48 @@ export default class HOTMVotingCommand extends BaseCommand {
 			{ guildId: interaction.guild.id, helperId: helper.id },
 			{
 				$set: {
-					votes: helperVotes
-				}
+					votes: helperVotes,
+				},
 			},
 			{
-				upsert: true
-			}
+				upsert: true,
+			},
 		);
 
 		await HOTMUser.updateOne(
 			{ guildId: interaction.guild.id, userId: interaction.user.id },
 			{
 				$push: {
-					voted: helper.id
-				}
+					voted: helper.id,
+				},
 			},
-			{ upsert: true }
+			{ upsert: true },
 		);
 
 		await Logger.channel(
 			interaction.guild,
 			guildPreferences.hotmResultsChannelId,
 			{
-				content: `${interaction.user.tag} has voted for ${helper.tag} who now has ${helperVotes} votes.`
-			}
+				content: `${interaction.user.tag} has voted for ${helper.tag} who now has ${helperVotes} votes.`,
+			},
 		);
 
 		const newSessionCommand = client.commands.get("hotm_session") as
-			| HOTMSessionCommand
+			| hotmSessionCommand
 			| undefined;
 
 		const mongoGuildPreferences = await GuildPreferences.findOne({
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		await newSessionCommand?.handleEmbed(
 			interaction.guild,
 			mongoGuildPreferences?.hotmResultsEmbedId,
-			guildPreferences.hotmResultsChannelId
+			guildPreferences.hotmResultsChannelId,
 		);
 
 		interaction.editReply({
-			content: `You voted for ${helper.tag} and have ${3 - (hotmUser.voted.length + 1)} votes left.`
+			content: `You voted for ${helper.tag} and have ${3 - (hotmUser.voted.length + 1)} votes left.`,
 		});
 	}
 }

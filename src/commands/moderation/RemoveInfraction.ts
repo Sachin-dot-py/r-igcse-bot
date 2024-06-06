@@ -1,20 +1,20 @@
+import Select from "@/components/Select";
+import Buttons from "@/components/practice/views/Buttons";
 import { Punishment } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
+	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	EmbedBuilder
 } from "discord.js";
-import Select from "@/components/Select";
 import { v4 as uuidv4 } from "uuid";
-import Buttons from "@/components/practice/views/Buttons";
-import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
 
 export default class extends BaseCommand {
 	constructor() {
@@ -27,28 +27,28 @@ export default class extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to remove infractions from")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ModerateMembers
-				)
+					PermissionFlagsBits.ModerateMembers,
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
 
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
-			actionAgainst: user.id
+			actionAgainst: user.id,
 		});
 
 		if (punishments.length < 1) {
 			await interaction.reply(
-				`${user.tag} does not have any previous offenses.`
+				`${user.tag} does not have any previous offenses.`,
 			);
 
 			return;
@@ -61,29 +61,29 @@ export default class extends BaseCommand {
 			"Select a punishment to remove",
 			punishments.map(({ caseId, action, reason, id }) => ({
 				label: ((x) => (x.length > 100 ? `${x.slice(0, 97)}...` : x))(
-					`Case #${caseId ?? "Unknown"} | ${action} - ${reason}`
+					`Case #${caseId ?? "Unknown"} | ${action} - ${reason}`,
 				),
-				value: id
+				value: id,
 			})),
 			1,
-			customId
+			customId,
 		);
 
 		const selectInteraction = await interaction.reply({
 			content: "Select a punishment to remove",
 			components: [
 				new ActionRowBuilder<Select>().addComponents(punishmentSelect),
-				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
+				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const response = await punishmentSelect.waitForResponse(
 			customId,
 			selectInteraction,
 			interaction,
-			true
+			true,
 		);
 
 		if (!response || response === "Timed out") return;
@@ -93,7 +93,7 @@ export default class extends BaseCommand {
 		if (!punishment) {
 			await interaction.reply({
 				content: "Punishment not found",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -102,7 +102,7 @@ export default class extends BaseCommand {
 			await punishment.deleteOne();
 		} catch (error) {
 			interaction.followUp({
-				content: `Failed to remove infraction ${error instanceof Error ? `(${error.message})` : ""}`
+				content: `Failed to remove infraction ${error instanceof Error ? `(${error.message})` : ""}`,
 			});
 
 			client.log(
@@ -114,17 +114,17 @@ export default class extends BaseCommand {
 			  	
 
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 		}
 
 		await interaction.editReply({
 			content: `Punishment removed for ${user.username}`,
-			components: []
+			components: [],
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
@@ -137,23 +137,23 @@ export default class extends BaseCommand {
 					new EmbedBuilder()
 						.setTitle("Punishment Removed")
 						.setDescription(
-							`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`
+							`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`,
 						)
 						.addFields(
 							{
 								name: "Punishment Reason",
-								value: punishment.reason
+								value: punishment.reason,
 							},
 							{
 								name: "Action",
-								value: punishment.action
-							}
+								value: punishment.action,
+							},
 						)
 						.setFooter({
-							text: `Case #${punishment.caseId ?? "Unknown"}`
-						})
-				]
-			}
+							text: `Case #${punishment.caseId ?? "Unknown"}`,
+						}),
+				],
+			},
 		);
 	}
 }

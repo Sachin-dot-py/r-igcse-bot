@@ -1,9 +1,8 @@
-import type { APIEmbed, MessageCreateOptions } from "discord.js";
 import {
+	type Entity,
+	type RedisConnection,
 	Repository,
 	Schema,
-	type Entity,
-	type RedisConnection
 } from "redis-om";
 
 export type APIEmbedRedis = {
@@ -68,7 +67,7 @@ const schema = new Schema("StickyMessage", {
 	channelId: { type: "string" },
 	messageId: { type: "string" },
 	content: { type: "string", path: "$.message.content" },
-	titles: { type: "string[]", path: "$.message.embeds[*].title" }
+	titles: { type: "string[]", path: "$.message.embeds[*].title" },
 });
 
 export class StickyMessageRepository extends Repository {

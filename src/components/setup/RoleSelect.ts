@@ -1,25 +1,26 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
-import { ComponentType, Message, RoleSelectMenuBuilder } from "discord.js";
+import { ComponentType, type Message, RoleSelectMenuBuilder } from "discord.js";
 
 class RoleSelect extends RoleSelectMenuBuilder {
 	name: string;
-	isFirstComponent: boolean = true;
+	isFirstComponent = true;
 	maxValues: number;
 	customId: string;
 	constructor(
 		name: string,
 		placeholder: string,
 		maxValues: number,
-		customId: string
+		customId: string,
 	) {
 		super();
 		this.name = name;
 		this.maxValues = maxValues;
 		this.customId = customId;
 		// every 5th component is the first component aka 0, 5, 10 and so on
-		this.isFirstComponent = parseInt(customId.split("_")[1]) % 5 === 0;
+		this.isFirstComponent =
+			Number.parseInt(customId.split("_")[1]) % 5 === 0;
 		this.setPlaceholder(placeholder)
 			.setMaxValues(maxValues)
 			.setCustomId(customId);
@@ -28,12 +29,12 @@ class RoleSelect extends RoleSelectMenuBuilder {
 	async createCollector(
 		customId: string,
 		interaction: Message<true>,
-		maxValues: number
+		maxValues: number,
 	): Promise<void> {
 		const selectCollector = interaction.createMessageComponentCollector({
 			filter: (i) => i.customId === customId,
 			time: 600_000, // 10 minutes
-			componentType: ComponentType.RoleSelect
+			componentType: ComponentType.RoleSelect,
 		});
 
 		selectCollector.on("collect", async (i) => {
@@ -41,21 +42,21 @@ class RoleSelect extends RoleSelectMenuBuilder {
 
 			const result = await GuildPreferences.updateOne(
 				{
-					guildId: interaction.guildId
+					guildId: interaction.guildId,
 				},
 				{
-					[this.name]: maxValues === 1 ? i.values[0] : i.values
+					[this.name]: maxValues === 1 ? i.values[0] : i.values,
 				},
 				{
-					upsert: true
-				}
+					upsert: true,
+				},
 			);
 
 			if (!result?.acknowledged) {
 				await i.reply({
 					content:
 						"Failed to update the database. This exception has been logged.",
-					ephemeral: true
+					ephemeral: true,
 				});
 				Logger.error(`Failed to update the database for ${this.name}`);
 				return;
@@ -63,7 +64,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 
 			await i.followUp({
 				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `<@&${x}>`).join(", ")}.`,
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			await GuildPreferencesCache.remove(interaction.guildId);

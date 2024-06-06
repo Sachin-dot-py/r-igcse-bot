@@ -1,6 +1,6 @@
-import Select from "../../Select";
 import { subjectTopics } from "@/data";
 import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import Select from "../../Select";
 
 class TopicSelect {
 	rows: ActionRowBuilder<Select>[];
@@ -13,13 +13,13 @@ class TopicSelect {
 
 	private getTopics(subject: string): StringSelectMenuOptionBuilder[] {
 		return subjectTopics[subject].map((topic) =>
-			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic)
+			new StringSelectMenuOptionBuilder().setLabel(topic).setValue(topic),
 		);
 	}
 
 	private getTopicRows(
 		topicSelectOptions: StringSelectMenuOptionBuilder[],
-		customId: string
+		customId: string,
 	): ActionRowBuilder<Select>[] {
 		const topicRows: ActionRowBuilder<Select>[] = [];
 		for (let i = 0; i < topicSelectOptions.length; i += 25) {
@@ -30,10 +30,10 @@ class TopicSelect {
 				topicSelectOptions.length - i > 25
 					? 25
 					: topicSelectOptions.length - i,
-				`${customId}_${i / 25}`
+				`${customId}_${i / 25}`,
 			);
 			const row = new ActionRowBuilder<Select>().addComponents(
-				topicSelect
+				topicSelect,
 			);
 			topicRows.push(row);
 		}

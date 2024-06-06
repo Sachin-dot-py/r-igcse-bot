@@ -1,18 +1,18 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
-import { type ICachedGuildPreferences } from "@/redis/schemas/GuildPreferences";
+import type { ICachedGuildPreferences } from "@/redis/schemas/GuildPreferences";
 import {
+	ActionRowBuilder,
+	type ButtonInteraction,
 	ModalBuilder,
 	TextInputBuilder,
 	TextInputStyle,
-	ActionRowBuilder,
-	type ButtonInteraction
 } from "discord.js";
 
 class SetBanAppealModal extends ModalBuilder {
 	constructor(
 		customId: string,
-		guildPreferences: ICachedGuildPreferences | null
+		guildPreferences: ICachedGuildPreferences | null,
 	) {
 		super();
 		this.setTitle("Set ban appeal link").setCustomId(customId);
@@ -27,8 +27,8 @@ class SetBanAppealModal extends ModalBuilder {
 
 		const actionRows = [
 			new ActionRowBuilder<TextInputBuilder>().addComponents(
-				banAppealLink
-			)
+				banAppealLink,
+			),
 		];
 
 		this.addComponents(...actionRows);
@@ -36,12 +36,12 @@ class SetBanAppealModal extends ModalBuilder {
 
 	async waitForResponse(
 		customId: string,
-		interaction: ButtonInteraction
+		interaction: ButtonInteraction,
 	): Promise<void> {
 		try {
 			const followUpInteraction = await interaction.awaitModalSubmit({
 				time: 300_000,
-				filter: (i) => i.customId === customId
+				filter: (i) => i.customId === customId,
 			});
 
 			const banAppealLink =
@@ -51,21 +51,21 @@ class SetBanAppealModal extends ModalBuilder {
 			if (banAppealLink && interaction.guildId) {
 				await GuildPreferences.updateOne(
 					{
-						guildId: interaction.guildId
+						guildId: interaction.guildId,
 					},
 					{
-						banAppealFormLink: banAppealLink
+						banAppealFormLink: banAppealLink,
 					},
 					{
-						upsert: true
-					}
+						upsert: true,
+					},
 				);
 				await GuildPreferencesCache.remove(interaction.guildId);
 			}
 
 			await followUpInteraction.reply({
 				content: `Ban appeal link has been set to \`${banAppealLink}\``,
-				ephemeral: true
+				ephemeral: true,
 			});
 		} catch (error) {
 			return;

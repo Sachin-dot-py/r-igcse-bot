@@ -4,10 +4,9 @@
 	"type": "module",
 	"scripts": {
 		"start": "bun src/index.ts",
-		"cron:actionRequired": "bun src/cron/actionRequired.ts",
 		"start:watch": "bun --watch src/index.ts",
-		"lint": "eslint .",
-		"format": "prettier . --write"
+		"check": "biome check .",
+		"check:fix": "biome check . --write"
 	},
 	"dependencies": {
 		"@discordforge/pagination": "^1",
@@ -25,15 +24,11 @@
 		"zlib-sync": "^0.1"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9",
+		"@biomejs/biome": "^1",
 		"@types/bun": "latest",
 		"@types/humanize-duration": "^3",
 		"@types/inquirer": "^9",
 		"@types/uuid": "^9",
-		"eslint": "^9",
-		"globals": "^15",
-		"prettier": "^3",
-		"typescript": "^5",
-		"typescript-eslint": "^7"
+		"typescript": "^5"
 	}
 }

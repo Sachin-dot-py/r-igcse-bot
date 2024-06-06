@@ -2,11 +2,11 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
 import {
-	AutoModerationActionExecution,
+	type AutoModerationActionExecution,
 	AutoModerationActionType,
 	Colors,
 	EmbedBuilder,
-	Events
+	Events,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -19,7 +19,7 @@ export default class ErrorEvent extends BaseEvent {
 
 	async execute(
 		client: DiscordClient<true>,
-		autoModerationActionExecution: AutoModerationActionExecution
+		autoModerationActionExecution: AutoModerationActionExecution,
 	) {
 		if (
 			!(
@@ -39,7 +39,7 @@ export default class ErrorEvent extends BaseEvent {
 		const durationString = humanizeDuration(duration * 1000);
 
 		const latestPunishment = await Punishment.findOne({
-			guildId: autoModerationActionExecution.guild.id
+			guildId: autoModerationActionExecution.guild.id,
 		}).sort({ when: -1 });
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
@@ -53,7 +53,7 @@ export default class ErrorEvent extends BaseEvent {
 			duration,
 			reason,
 			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
-			when: new Date()
+			when: new Date(),
 		});
 
 		const modEmbed = new EmbedBuilder()
@@ -63,24 +63,24 @@ export default class ErrorEvent extends BaseEvent {
 			.addFields([
 				{
 					name: "Username",
-					value: `${autoModerationActionExecution.user.tag} (${autoModerationActionExecution.user.id})`
+					value: `${autoModerationActionExecution.user.tag} (${autoModerationActionExecution.user.id})`,
 				},
 				{
 					name: "Moderator",
-					value: "AutoMod"
+					value: "AutoMod",
 				},
 				{
 					name: "Reason",
-					value: "Derogatory Language"
+					value: "Derogatory Language",
 				},
 				{
 					name: "Duration",
-					value: `${durationString} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
-				}
+					value: `${durationString} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`,
+				},
 			]);
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			autoModerationActionExecution.guild.id
+			autoModerationActionExecution.guild.id,
 		);
 
 		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
@@ -89,8 +89,8 @@ export default class ErrorEvent extends BaseEvent {
 			autoModerationActionExecution.guild,
 			guildPreferences.modlogChannelId,
 			{
-				embeds: [modEmbed]
-			}
+				embeds: [modEmbed],
+			},
 		);
 	}
 }

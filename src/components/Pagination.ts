@@ -5,7 +5,7 @@ import {
 	ButtonStyle,
 	ComponentType,
 	type InteractionEditReplyOptions,
-	type InteractionReplyOptions
+	type InteractionReplyOptions,
 } from "discord.js";
 
 interface PaginationStartOptions {
@@ -18,7 +18,7 @@ export default class Pagination<T> {
 	constructor(
 		private chunks: T[][],
 		private mapChunk: (chunk: T[]) => Promise<InteractionEditReplyOptions>,
-		private currentPage = 0
+		private currentPage = 0,
 	) {
 		if (this.currentPage < 0) this.currentPage = 0;
 		if (this.currentPage >= this.chunks.length)
@@ -28,30 +28,30 @@ export default class Pagination<T> {
 	async start({
 		interaction,
 		time,
-		ephemeral
+		ephemeral,
 	}: PaginationStartOptions): Promise<void> {
 		const row = await this.getButtons.bind(this)();
 
 		const messageData = (await this.mapChunk(
-			this.chunks[this.currentPage]
+			this.chunks[this.currentPage],
 		)) as InteractionReplyOptions;
 
 		const paginatorInteraction =
 			interaction.deferred || interaction.replied
 				? await interaction.editReply({
 						...messageData,
-						components: [...(messageData.components ?? []), row]
+						components: [...(messageData.components ?? []), row],
 					})
 				: await interaction.reply({
 						...messageData,
 						components: [...(messageData.components ?? []), row],
-						ephemeral
+						ephemeral,
 					});
 
 		const collector = paginatorInteraction.createMessageComponentCollector({
 			filter: (i) => i.user.id === interaction.user.id,
 			time: time ?? 300_000,
-			componentType: ComponentType.Button
+			componentType: ComponentType.Button,
 		});
 
 		collector.on("collect", async (i) => {
@@ -80,7 +80,7 @@ export default class Pagination<T> {
 
 			await interaction.editReply({
 				...data,
-				components: [...(messageData.components ?? []), componentsRow]
+				components: [...(messageData.components ?? []), componentsRow],
 			});
 		});
 
@@ -91,13 +91,13 @@ export default class Pagination<T> {
 			await interaction.editReply({
 				...data,
 				components: [...(messageData.components ?? []), componentsRow],
-				content: "Timed out!"
+				content: "Timed out!",
 			});
 		});
 	}
 
 	private async getButtons(
-		disabled?: boolean
+		disabled?: boolean,
 	): Promise<ActionRowBuilder<ButtonBuilder>> {
 		const firstButton = new ButtonBuilder()
 			.setCustomId("first")
@@ -116,7 +116,7 @@ export default class Pagination<T> {
 			.setEmoji("⏩")
 			.setStyle(ButtonStyle.Primary)
 			.setDisabled(
-				disabled ?? this.currentPage + 1 === this.chunks.length
+				disabled ?? this.currentPage + 1 === this.chunks.length,
 			);
 
 		const nextButton = new ButtonBuilder()
@@ -124,14 +124,14 @@ export default class Pagination<T> {
 			.setEmoji("➡️")
 			.setStyle(ButtonStyle.Primary)
 			.setDisabled(
-				disabled ?? this.currentPage + 1 === this.chunks.length
+				disabled ?? this.currentPage + 1 === this.chunks.length,
 			);
 
 		return new ActionRowBuilder<ButtonBuilder>().addComponents(
 			firstButton,
 			previousButton,
 			nextButton,
-			lastButton
+			lastButton,
 		);
 	}
 }

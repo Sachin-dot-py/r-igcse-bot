@@ -2,7 +2,7 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
@@ -10,7 +10,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
@@ -25,30 +25,30 @@ export default class TimeoutCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to timeout")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("duration")
 						.setDescription("Duration for timeout (from now)")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
 						.setDescription("Reason for timeout")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ModerateMembers
+					PermissionFlagsBits.ModerateMembers,
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
@@ -57,38 +57,38 @@ export default class TimeoutCommand extends BaseCommand {
 		const durationString = interaction.options.getString("duration", true);
 
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences) {
 			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first."
+					"Please setup the bot using the command `/setup` first.",
 			});
 			return;
 		}
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: interaction.guildId
+				guildId: interaction.guildId,
 			}).sort({ when: -1 })
 		)[0];
 
 		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
 		const duration = ["unspecified", "permanent", "undecided"].some((s) =>
-			durationString.includes(s)
+			durationString.includes(s),
 		)
 			? 2419200
 			: parse(durationString, "second") ?? 86400;
 
 		if (duration < 60 || duration > 2419200) {
 			interaction.editReply({
-				content: "Duration must be between 1 minute and 28 days"
+				content: "Duration must be between 1 minute and 28 days",
 			});
 
 			return;
@@ -98,7 +98,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (!guildMember) {
 			interaction.editReply({
-				content: "User not found!"
+				content: "User not found!",
 			});
 
 			return;
@@ -106,7 +106,7 @@ export default class TimeoutCommand extends BaseCommand {
 
 		if (guildMember.id === interaction.user.id) {
 			interaction.editReply({
-				content: "You cannot timeout yourself."
+				content: "You cannot timeout yourself.",
 			});
 
 			return;
@@ -118,7 +118,7 @@ export default class TimeoutCommand extends BaseCommand {
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
 			interaction.editReply({
 				content:
-					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)"
+					"You cannot timeout this user due to role hierarchy! (Role is higher or equal to yours)",
 			});
 			return;
 		}
@@ -127,7 +127,7 @@ export default class TimeoutCommand extends BaseCommand {
 			await Punishment.find({
 				guildId: interaction.guildId,
 				actionAgainst: guildMember.id,
-				action: "Timeout"
+				action: "Timeout",
 			}).sort({ when: -1 })
 		)[0];
 
@@ -149,13 +149,13 @@ export default class TimeoutCommand extends BaseCommand {
 							.setTitle("Timeout Duration Modified")
 							.setColor(Colors.Red)
 							.setDescription(
-								`Your timeout in ${interaction.guild.name} has been modified to last ${humanizeDuration(duration * 1000)} from now due to *${reason}*. Your timeout will end <t:${time}:R>.`
-							)
-					]
+								`Your timeout in ${interaction.guild.name} has been modified to last ${humanizeDuration(duration * 1000)} from now due to *${reason}*. Your timeout will end <t:${time}:R>.`,
+							),
+					],
 				});
 			} catch (error) {
 				interaction.editReply({
-					content: `Failed to change user's timeout duration ${error instanceof Error ? `(${error.message})` : ""}`
+					content: `Failed to change user's timeout duration ${error instanceof Error ? `(${error.message})` : ""}`,
 				});
 
 				client.log(
@@ -163,7 +163,7 @@ export default class TimeoutCommand extends BaseCommand {
 					`${this.data.name} Command`,
 					`**Channel:** <#${interaction.channel?.id}>
 						**User:** <@${interaction.user.id}>
-						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 				);
 
 				return;
@@ -175,33 +175,33 @@ export default class TimeoutCommand extends BaseCommand {
 				actionBy: interaction.user.id,
 				reason: `${previousReason}, ${reason}`,
 				duration: duration,
-				points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2
+				points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
 			});
 
 			const modEmbed = new EmbedBuilder()
 				.setTitle(
-					`Timeout Duration Modified | Case #${latestTimeout.caseId}`
+					`Timeout Duration Modified | Case #${latestTimeout.caseId}`,
 				)
 				.setColor(Colors.Red)
 				.addFields([
 					{
 						name: "User",
 						value: `${user.tag} (${user.id})`,
-						inline: false
+						inline: false,
 					},
 					{
 						name: "Moderator",
 						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: false
+						inline: false,
 					},
 					{
 						name: "Reason",
-						value: reason
+						value: reason,
 					},
 					{
 						name: "Duration",
-						value: `${humanizeDuration(duration * 1000)} (<t:${time}:R>)`
-					}
+						value: `${humanizeDuration(duration * 1000)} (<t:${time}:R>)`,
+					},
 				]);
 
 			if (guildPreferences.modlogChannelId) {
@@ -209,16 +209,16 @@ export default class TimeoutCommand extends BaseCommand {
 					interaction.guild,
 					guildPreferences.modlogChannelId,
 					{
-						embeds: [modEmbed]
-					}
+						embeds: [modEmbed],
+					},
 				);
 			}
 
 			interaction.editReply({
-				content: "changed user's timeout duration rahhhhhh"
+				content: "changed user's timeout duration rahhhhhh",
 			});
 			interaction.channel.send(
-				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`
+				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`,
 			);
 			return;
 		}
@@ -231,13 +231,13 @@ export default class TimeoutCommand extends BaseCommand {
 						.setTitle("Timeout")
 						.setColor(Colors.Red)
 						.setDescription(
-							`You have been timed out in ${interaction.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${reason}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
-						)
-				]
+							`You have been timed out in ${interaction.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${reason}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`,
+						),
+				],
 			});
 		} catch (error) {
 			interaction.editReply({
-				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`
+				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 			});
 
 			client.log(
@@ -245,7 +245,7 @@ export default class TimeoutCommand extends BaseCommand {
 				`${this.data.name} Command`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 
 			return;
@@ -260,7 +260,7 @@ export default class TimeoutCommand extends BaseCommand {
 			duration,
 			reason,
 			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
-			when: new Date()
+			when: new Date(),
 		});
 
 		const modEmbed = new EmbedBuilder()
@@ -270,21 +270,21 @@ export default class TimeoutCommand extends BaseCommand {
 				{
 					name: "User",
 					value: `${user.tag} (${user.id})`,
-					inline: false
+					inline: false,
 				},
 				{
 					name: "Moderator",
 					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: false
+					inline: false,
 				},
 				{
 					name: "Reason",
-					value: reason
+					value: reason,
 				},
 				{
 					name: "Duration",
-					value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
-				}
+					value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`,
+				},
 			]);
 
 		if (guildPreferences.modlogChannelId) {
@@ -292,15 +292,18 @@ export default class TimeoutCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed]
-				}
+					embeds: [modEmbed],
+				},
 			);
 		}
 
-		interaction.editReply({ content: "https://tenor.com/view/we-wish-you-a-married-christmas-pascale-hutton-time-out-okay-time-out-gif-26984147" });
+		interaction.editReply({
+			content:
+				"https://tenor.com/view/we-wish-you-a-married-christmas-pascale-hutton-time-out-okay-time-out-gif-26984147",
+		});
 		const time = Math.floor(Date.now() / 1000 + duration);
 		interaction.channel.send(
-			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`
+			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>)`,
 		);
 	}
 }

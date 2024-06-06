@@ -1,10 +1,11 @@
 import { StickyPinnedMessage } from "@/mongo/schemas/StickyPinnedMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordMessageContextMenuCommandInteraction
+	type DiscordMessageContextMenuCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
+	type AnyThreadChannel,
 	ApplicationCommandType,
 	AttachmentBuilder,
 	ButtonBuilder,
@@ -14,7 +15,6 @@ import {
 	PermissionFlagsBits,
 	TextChannel,
 	ThreadChannel,
-	type AnyThreadChannel
 } from "discord.js";
 
 export default class PinMenu extends BaseCommand {
@@ -24,13 +24,13 @@ export default class PinMenu extends BaseCommand {
 				.setName("Toggle Pinned")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
-				.setType(ApplicationCommandType.Message)
+				.setType(ApplicationCommandType.Message),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
+		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
 	) {
 		if (
 			!(
@@ -40,17 +40,16 @@ export default class PinMenu extends BaseCommand {
 		) {
 			interaction.reply({
 				content: "You can't pin/unpin messages in this channel",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
 		if (interaction.targetMessage.pinned) {
-
 			await interaction.deferReply({
 				ephemeral: true,
-			})
+			});
 			if (!interaction.targetMessage.pinned) {
 				await interaction.editReply({
 					content: "Message isn't pinned.",
@@ -59,97 +58,146 @@ export default class PinMenu extends BaseCommand {
 				return;
 			}
 
-			let thread = interaction.guild.channels.cache.filter(x => x.isThread() && x.parent?.id === interaction.channelId && x.name === "Old Pins" && x.ownerId === client.user.id).first() as AnyThreadChannel<boolean> | undefined;
+			let thread = interaction.guild.channels.cache
+				.filter(
+					(x) =>
+						x.isThread() &&
+						x.parent?.id === interaction.channelId &&
+						x.name === "Old Pins" &&
+						x.ownerId === client.user.id,
+				)
+				.first() as AnyThreadChannel<boolean> | undefined;
 			const yesButton = new ButtonBuilder()
-				.setCustomId('yes')
-				.setLabel('Yes')
-				.setStyle(ButtonStyle.Primary)
+				.setCustomId("yes")
+				.setLabel("Yes")
+				.setStyle(ButtonStyle.Primary);
 			const noButton = new ButtonBuilder()
-				.setCustomId('no')
-				.setLabel('No')
-				.setStyle(ButtonStyle.Primary)
+				.setCustomId("no")
+				.setLabel("No")
+				.setStyle(ButtonStyle.Primary);
 			const response = await interaction.editReply({
-				content: `Shift to the ${thread?.url || 'old pins'} thread?`,
-				components: [new ActionRowBuilder().addComponents(yesButton, noButton) as any],
-			})
+				content: `Shift to the ${thread?.url || "old pins"} thread?`,
+				components: [
+					new ActionRowBuilder().addComponents(
+						yesButton,
+						noButton,
+					) as any,
+				],
+			});
 			try {
-				const confirmation = await response.awaitMessageComponent({ time: 60_000 });
+				const confirmation = await response.awaitMessageComponent({
+					time: 60_000,
+				});
 
-				if (confirmation.customId === 'yes') {
+				if (confirmation.customId === "yes") {
 					if (!thread) {
-						const embed = new EmbedBuilder().setTitle("Old pins thread")
-						thread = await (await interaction.channel?.send({ embeds: [embed] }))?.startThread({ name: "Old Pins" })
+						const embed = new EmbedBuilder().setTitle(
+							"Old pins thread",
+						);
+						thread = await (
+							await interaction.channel?.send({ embeds: [embed] })
+						)?.startThread({ name: "Old Pins" });
 					}
 					await StickyPinnedMessage.deleteOne({
 						channelId: interaction.channelId,
-						messageId: interaction.targetMessage.id
+						messageId: interaction.targetMessage.id,
 					}).catch(() => null);
 					try {
 						await interaction.targetMessage.unpin();
 						if (thread) {
-							let embed = new EmbedBuilder()
-								.setAuthor({
-									name: interaction.targetMessage.author.tag,
-									iconURL: interaction.targetMessage.author.displayAvatarURL()
-								})
-							if (interaction.targetMessage.content) embed = embed.setDescription(interaction.targetMessage.content)
-							const files = []
+							let embed = new EmbedBuilder().setAuthor({
+								name: interaction.targetMessage.author.tag,
+								iconURL:
+									interaction.targetMessage.author.displayAvatarURL(),
+							});
+							if (interaction.targetMessage.content)
+								embed = embed.setDescription(
+									interaction.targetMessage.content,
+								);
+							const files = [];
 							for (const file of interaction.targetMessage.attachments.toJSON()) {
-								const buffer = Buffer.from(await (await fetch(file.url)).arrayBuffer())
-								if (buffer) files.push(new AttachmentBuilder(buffer, { name: file.name, description: file.description || undefined }))
+								const buffer = Buffer.from(
+									await (await fetch(file.url)).arrayBuffer(),
+								);
+								if (buffer)
+									files.push(
+										new AttachmentBuilder(buffer, {
+											name: file.name,
+											description:
+												file.description || undefined,
+										}),
+									);
 							}
-							const message = await thread.send({ embeds: [embed], files })
-							if (!thread.locked) await thread.setLocked(true)
+							const message = await thread.send({
+								embeds: [embed],
+								files,
+							});
+							if (!thread.locked) await thread.setLocked(true);
 							await interaction.targetMessage.reply({
-								content: `Messaged unpinned by ${interaction.user} and moved to ${message.url}`
+								content: `Messaged unpinned by ${interaction.user} and moved to ${message.url}`,
 							});
 						} else
 							await interaction.targetMessage.reply({
-								content: `Messaged unpinned by ${interaction.user}`
+								content: `Messaged unpinned by ${interaction.user}`,
 							});
 					} catch (error) {
-						await confirmation.update({ content: "Couldn't unpin message.", components: [] });
+						await confirmation.update({
+							content: "Couldn't unpin message.",
+							components: [],
+						});
 
 						client.log(
 							error,
 							`${this.data.name} Menu`,
 							`**Channel:** <#${interaction.channel?.id}>
 							**User:** <@${interaction.user.id}>
-							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 						);
 						return;
 					}
-					await confirmation.update({ content: 'Successfully unpinned message.', components: [] });
-				} else if (confirmation.customId === 'no') {
+					await confirmation.update({
+						content: "Successfully unpinned message.",
+						components: [],
+					});
+				} else if (confirmation.customId === "no") {
 					await StickyPinnedMessage.deleteOne({
 						channelId: interaction.channelId,
-						messageId: interaction.targetMessage.id
+						messageId: interaction.targetMessage.id,
 					}).catch(() => null);
 					try {
 						await interaction.targetMessage.unpin();
 					} catch (error) {
-						await confirmation.update({ content: "Couldn't unpin message.", components: [] });
+						await confirmation.update({
+							content: "Couldn't unpin message.",
+							components: [],
+						});
 
 						client.log(
 							error,
 							`${this.data.name} Menu`,
 							`**Channel:** <#${interaction.channel?.id}>
 							**User:** <@${interaction.user.id}>
-							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 						);
 						return;
 					}
-					await confirmation.update({ content: 'Successfully unpinned message.', components: [] });
+					await confirmation.update({
+						content: "Successfully unpinned message.",
+						components: [],
+					});
 				}
 			} catch (e) {
 				console.error(e);
-				await interaction.editReply({ content: 'Did not unpin', components: [] });
+				await interaction.editReply({
+					content: "Did not unpin",
+					components: [],
+				});
 			}
 		} else {
 			if (!interaction.targetMessage.pinnable) {
 				await interaction.reply({
 					content: "Message isn't pinnable.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -158,51 +206,79 @@ export default class PinMenu extends BaseCommand {
 			try {
 				await interaction.targetMessage.pin();
 				await interaction.targetMessage.reply({
-					content: `Messaged pinned by ${interaction.user}`
+					content: `Messaged pinned by ${interaction.user}`,
 				});
 			} catch (error) {
 				const pinNo = Array.from(
-					(await interaction.channel?.messages.fetchPinned()) || []
+					(await interaction.channel?.messages.fetchPinned()) || [],
 				).length;
 				if (pinNo >= 50) {
-					let thread = interaction.guild.channels.cache.filter(x => x.isThread() && x.parent?.id === interaction.channelId && x.name === "Old Pins" && x.ownerId === client.user.id).first() as AnyThreadChannel<boolean> | undefined;
+					let thread = interaction.guild.channels.cache
+						.filter(
+							(x) =>
+								x.isThread() &&
+								x.parent?.id === interaction.channelId &&
+								x.name === "Old Pins" &&
+								x.ownerId === client.user.id,
+						)
+						.first() as AnyThreadChannel<boolean> | undefined;
 					if (!thread) {
-						const embed = new EmbedBuilder().setTitle("Old pins thread")
-						thread = await (await interaction.channel?.send({ embeds: [embed] }))?.startThread({ name: "Old Pins" })
+						const embed = new EmbedBuilder().setTitle(
+							"Old pins thread",
+						);
+						thread = await (
+							await interaction.channel?.send({ embeds: [embed] })
+						)?.startThread({ name: "Old Pins" });
 					}
 
-					await interaction.deferReply({ ephemeral: true })
+					await interaction.deferReply({ ephemeral: true });
 					try {
-						const targetMessage = (await interaction.channel?.messages.fetchPinned(true))?.last();
-						if (!targetMessage) throw '';
-						let embed = new EmbedBuilder()
+						const targetMessage = (
+							await interaction.channel?.messages.fetchPinned(
+								true,
+							)
+						)?.last();
+						if (!targetMessage) throw "";
+						const embed = new EmbedBuilder()
 							.setDescription(targetMessage.content)
 							.setAuthor({
 								name: targetMessage.author.tag,
-								iconURL: targetMessage.author.displayAvatarURL()
-							})
-						const files = []
+								iconURL:
+									targetMessage.author.displayAvatarURL(),
+							});
+						const files = [];
 						for (const file of targetMessage.attachments.toJSON()) {
-							const buffer = Buffer.from(await (await fetch(file.url)).arrayBuffer())
-							if (buffer) files.push(new AttachmentBuilder(buffer, { name: file.name, description: file.description || undefined }))
+							const buffer = Buffer.from(
+								await (await fetch(file.url)).arrayBuffer(),
+							);
+							if (buffer)
+								files.push(
+									new AttachmentBuilder(buffer, {
+										name: file.name,
+										description:
+											file.description || undefined,
+									}),
+								);
 						}
 
-						const message = await thread.send({ embeds: [embed], files })
-						if (!thread.locked) await thread.setLocked(true)
+						const message = await thread.send({
+							embeds: [embed],
+							files,
+						});
+						if (!thread.locked) await thread.setLocked(true);
 						await targetMessage.unpin();
 						await targetMessage.reply({
-							content: `Messaged unpinned and moved to ${message.url} due to the pin limit`
+							content: `Messaged unpinned and moved to ${message.url} due to the pin limit`,
 						});
 
 						if (interaction.targetMessage.pinned)
 							await interaction.targetMessage.unpin();
 						await interaction.targetMessage.pin();
 						interaction.targetMessage.reply({
-							content: `Messaged pinned by ${interaction.user}`
+							content: `Messaged pinned by ${interaction.user}`,
 						});
 						interaction.editReply({
-							content:
-								"Successfully pinned message.",
+							content: "Successfully pinned message.",
 						});
 						return;
 					} catch {
@@ -216,7 +292,7 @@ export default class PinMenu extends BaseCommand {
 
 				await interaction.reply({
 					content: "Couldn't pin message.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				client.log(
@@ -224,13 +300,13 @@ export default class PinMenu extends BaseCommand {
 					`${this.data.name} Menu`,
 					`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 				);
 			}
 
 			await interaction.reply({
 				content: "Successfully pinned message.",
-				ephemeral: true
+				ephemeral: true,
 			});
 		}
 	}

@@ -1,7 +1,7 @@
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
@@ -16,56 +16,56 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to remove forced mute from")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ModerateMembers
+					PermissionFlagsBits.ModerateMembers,
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
 
 		if (
 			!interaction.member.permissions.has(
-				PermissionFlagsBits.ModerateMembers
+				PermissionFlagsBits.ModerateMembers,
 			)
 		) {
 			await interaction.reply({
 				content:
 					"You do not have permission to remove gostudy from other users.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences || !guildPreferences.forcedMuteRoleId) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
 
 		const role = interaction.guild.roles.cache.get(
-			guildPreferences.forcedMuteRoleId
+			guildPreferences.forcedMuteRoleId,
 		);
 
 		if (!role) {
 			await interaction.reply({
 				content: "Forced mute role not found!",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -74,12 +74,12 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 		await interaction.deferReply({ ephemeral: true });
 
 		try {
-			await (
-				await interaction.guild.members.fetch(user)
-			).roles.remove(role);
+			await (await interaction.guild.members.fetch(user)).roles.remove(
+				role,
+			);
 			await interaction.followUp({
 				content: "Forced mute removed from " + user.username,
-				ephemeral: true
+				ephemeral: true,
 			});
 		} catch (error) {
 			client.log(
@@ -87,13 +87,13 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 				`${this.data.name} Command (remove role)`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 			Logger.error(error);
 			await interaction.followUp({
 				content:
 					"There was an error while removing the forced mute role.",
-				ephemeral: true
+				ephemeral: true,
 			});
 		}
 	}

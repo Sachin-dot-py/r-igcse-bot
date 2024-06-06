@@ -1,16 +1,16 @@
-import Buttons from "@/components/practice/views/Buttons";
 import RoleSelect from "@/components/RoleSelect";
+import Buttons from "@/components/practice/views/Buttons";
 import { GuildPreferences } from "@/mongo";
 import { ColorRole } from "@/mongo/schemas/ColorRole";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
-	ButtonBuilder,
+	type ButtonBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -28,20 +28,20 @@ export default class ColorRolesCommand extends BaseCommand {
 							option
 								.setName("label")
 								.setDescription("The label to use")
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addRoleOption((option) =>
 							option
 								.setName("role")
 								.setDescription("The role to add")
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addStringOption((option) =>
 							option
 								.setName("emoji")
 								.setDescription("The emoji to use")
-								.setRequired(false)
-						)
+								.setRequired(false),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -51,19 +51,19 @@ export default class ColorRolesCommand extends BaseCommand {
 							option
 								.setName("label")
 								.setDescription(
-									"The label of the color role to remove"
+									"The label of the color role to remove",
 								)
-								.setRequired(true)
-						)
+								.setRequired(true),
+						),
 				)
 				.setDMPermission(false)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		switch (interaction.options.getSubcommand()) {
 			case "add": {
@@ -78,11 +78,11 @@ export default class ColorRolesCommand extends BaseCommand {
 					"Select the required roles for this color roles",
 					25,
 					`${customId}_0`,
-					[]
+					[],
 				);
 
 				const row = new ActionRowBuilder<RoleSelect>().addComponents(
-					roleSelectMenu
+					roleSelectMenu,
 				);
 
 				const selectInteraction = await interaction.reply({
@@ -90,17 +90,19 @@ export default class ColorRolesCommand extends BaseCommand {
 						"Select the required roles for this color role (click confirm to skip). User will need to have at least one of these roles to able to see this color role.",
 					components: [
 						row,
-						new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
+						new Buttons(
+							customId,
+						) as ActionRowBuilder<ButtonBuilder>,
 					],
 					ephemeral: true,
-					fetchReply: true
+					fetchReply: true,
 				});
 
 				const requiredRoles = await roleSelectMenu.waitForResponse(
 					`${customId}_0`,
 					selectInteraction,
 					interaction,
-					false
+					false,
 				);
 
 				if (requiredRoles === "Timed out") return;
@@ -109,18 +111,18 @@ export default class ColorRolesCommand extends BaseCommand {
 					{
 						guildId: interaction.guildId,
 						label,
-						roleId: role.id
+						roleId: role.id,
 					},
 					{
 						requirementRoleIds: requiredRoles || null,
-						emoji
+						emoji,
 					},
-					{ upsert: true }
+					{ upsert: true },
 				);
 
 				await interaction.editReply({
 					content: "Successfully created color role!",
-					components: []
+					components: [],
 				});
 
 				break;
@@ -131,13 +133,13 @@ export default class ColorRolesCommand extends BaseCommand {
 				try {
 					await GuildPreferences.deleteOne({
 						guildId: interaction.guildId,
-						label
+						label,
 					});
 				} catch (error) {
 					await interaction.reply({
 						content:
 							"Encountered error while trying to delete color role. Please try again later.",
-						ephemeral: true
+						ephemeral: true,
 					});
 
 					client.log(
@@ -145,13 +147,13 @@ export default class ColorRolesCommand extends BaseCommand {
 						`${this.data.name} Command - Remove Color Role`,
 						`**Channel:** <#${interaction.channel?.id}>
 **User:** <@${interaction.user.id}>
-**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 					);
 				}
 
 				await interaction.reply({
 					content: "Successfully deleted color role.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				break;

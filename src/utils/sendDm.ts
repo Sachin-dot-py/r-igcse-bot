@@ -2,28 +2,28 @@ import { ClosedDmThread } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import {
 	ChannelType,
-	GuildMember,
-	MessagePayload,
+	type GuildMember,
+	type MessageCreateOptions,
+	type MessagePayload,
 	TextChannel,
-	ThreadChannel,
-	type MessageCreateOptions
+	type ThreadChannel,
 } from "discord.js";
 import Logger from "./Logger";
 
 const sendDm = async (
 	member: GuildMember,
-	message: string | MessagePayload | MessageCreateOptions
+	message: string | MessagePayload | MessageCreateOptions,
 ): Promise<void> => {
 	try {
 		await member.send(message);
 	} catch (error) {
 		const guildPreferences = await GuildPreferencesCache.get(
-			member.guild.id
+			member.guild.id,
 		);
 		if (!guildPreferences || !guildPreferences.closedDmChannelId) return;
 
 		const channel = member.guild.channels.cache.get(
-			guildPreferences.closedDmChannelId
+			guildPreferences.closedDmChannelId,
 		);
 		if (!channel || !(channel instanceof TextChannel)) return;
 
@@ -32,18 +32,20 @@ const sendDm = async (
 		const dmThread =
 			(await ClosedDmThread.findOne({
 				userId: member.id,
-				guildId: member.guild.id
+				guildId: member.guild.id,
 			})) ?? null;
-		if (!dmThread) {
+		if (dmThread) {
+			thread = channel.threads.cache.get(dmThread.threadId);
+		} else {
 			await channel.permissionOverwrites.create(member.id, {
 				ViewChannel: true,
 				SendMessages: false,
 				CreatePublicThreads: false,
-				CreatePrivateThreads: false
+				CreatePrivateThreads: false,
 			});
 			const newThread = await channel.threads.create({
 				name: `${member.user.username} (${member.id})`,
-				type: ChannelType.PrivateThread
+				type: ChannelType.PrivateThread,
 			});
 
 			await newThread.members
@@ -55,15 +57,13 @@ const sendDm = async (
 			await ClosedDmThread.create({
 				userId: member.id,
 				threadId: newThread.id,
-				guildId: member.guild.id
+				guildId: member.guild.id,
 			});
-		} else {
-			thread = channel.threads.cache.get(dmThread.threadId);
 		}
 
 		if (!thread) {
 			Logger.error(
-				`Thread not found for user ${member.id} in guild ${member.guild.id}`
+				`Thread not found for user ${member.id} in guild ${member.guild.id}`,
 			);
 			return;
 		}

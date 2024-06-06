@@ -1,6 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { PaginationBuilder } from "@discordforge/pagination";
 import { Colors, PermissionsBitField, SlashCommandBuilder } from "discord.js";
@@ -11,13 +11,13 @@ export default class HelpCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("help")
 				.setDescription("A list of all the commands available to you.")
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const commands = client.commands.filter((command) => {
 			if (!("description" in command.data)) return false;
@@ -29,7 +29,7 @@ export default class HelpCommand extends BaseCommand {
 			if (!command.data.default_member_permissions) return true;
 			if (interaction.member?.permissions instanceof PermissionsBitField)
 				return interaction.member.permissions.has(
-					BigInt(command.data.default_member_permissions)
+					BigInt(command.data.default_member_permissions),
 				);
 		});
 
@@ -39,12 +39,12 @@ export default class HelpCommand extends BaseCommand {
 				description:
 					"description" in data
 						? data.description
-						: "Couldn't get description. Report using `/feedback`"
+						: "Couldn't get description. Report using `/feedback`",
 			})),
 			async ({ name, description }) => ({
 				name: `/${name}`,
-				value: description
-			})
+				value: description,
+			}),
 		)
 			.setTitle("Help Menu")
 			.setColor(Colors.Blurple)

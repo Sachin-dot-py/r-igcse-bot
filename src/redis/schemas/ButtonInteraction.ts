@@ -1,8 +1,8 @@
 import {
-	Schema,
 	type Entity,
+	type RedisConnection,
 	Repository,
-	type RedisConnection
+	Schema,
 } from "redis-om";
 
 export interface IButtonInteraction extends Entity {
@@ -18,7 +18,7 @@ export const ButtonInteraction = new Schema("ButtonInteraction", {
 	messageId: { type: "string" },
 	guildId: { type: "string" },
 	userHash: { type: "string" },
-	userId: { type: "string" }
+	userId: { type: "string" },
 });
 
 export class ButtonInteractionRepository extends Repository {

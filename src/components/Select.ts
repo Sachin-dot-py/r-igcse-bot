@@ -1,29 +1,29 @@
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import {
-	StringSelectMenuBuilder,
-	StringSelectMenuOptionBuilder,
+	type APISelectMenuOption,
 	ComponentType,
 	Message,
-	ModalSubmitInteraction,
-	type APISelectMenuOption
+	type ModalSubmitInteraction,
+	StringSelectMenuBuilder,
+	type StringSelectMenuOptionBuilder,
 } from "discord.js";
 
 class Select extends StringSelectMenuBuilder {
 	name: string;
-	isFirstComponent: boolean = true;
+	isFirstComponent = true;
 	constructor(
 		name: string,
 		placeholder: string,
 		options: StringSelectMenuOptionBuilder[] | APISelectMenuOption[],
-		max_values: number,
-		customId: string
+		maxValues: number,
+		customId: string,
 	) {
 		super();
 		this.name = name;
 		this.isFirstComponent = customId.split("_")[1] === "0";
 		this.setPlaceholder(placeholder)
 			.addOptions(...options)
-			.setMaxValues(max_values)
+			.setMaxValues(maxValues)
 			.setCustomId(customId);
 	}
 
@@ -34,7 +34,7 @@ class Select extends StringSelectMenuBuilder {
 			| Message
 			| ModalSubmitInteraction
 			| DiscordChatInputCommandInteraction,
-		required: boolean
+		required: boolean,
 	): Promise<string[] | false | "Timed out"> {
 		const editMessage =
 			editableMessage instanceof Message
@@ -47,8 +47,8 @@ class Select extends StringSelectMenuBuilder {
 				{
 					filter: (i) => i.customId === customId,
 					time: 300_000,
-					componentType: ComponentType.StringSelect
-				}
+					componentType: ComponentType.StringSelect,
+				},
 			);
 
 			selectCollector.on("collect", async (i) => {
@@ -66,7 +66,7 @@ class Select extends StringSelectMenuBuilder {
 					);
 				},
 				time: 300_000,
-				componentType: ComponentType.Button
+				componentType: ComponentType.Button,
 			});
 
 			if (buttonResponse.customId === `confirm_${buttonCustomId}`) {
@@ -77,7 +77,7 @@ class Select extends StringSelectMenuBuilder {
 								await editMessage({
 									content:
 										"You must select at least one option",
-									components: []
+									components: [],
 								});
 							}
 							return false;
@@ -91,7 +91,7 @@ class Select extends StringSelectMenuBuilder {
 				if (this.isFirstComponent) {
 					await editMessage({
 						content: "Cancelled",
-						components: []
+						components: [],
 					});
 				}
 				return false;
@@ -100,7 +100,7 @@ class Select extends StringSelectMenuBuilder {
 			if (this.isFirstComponent) {
 				await editMessage({
 					content: "Timed out",
-					components: []
+					components: [],
 				});
 			}
 			return "Timed out";

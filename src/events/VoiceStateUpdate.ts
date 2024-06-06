@@ -1,8 +1,13 @@
-import { CategoryChannel, ChannelType, Events, VoiceState } from "discord.js";
+import { HostSession } from "@/mongo/schemas/HostSession";
+import { GuildPreferencesCache } from "@/redis";
+import {
+	CategoryChannel,
+	ChannelType,
+	Events,
+	type VoiceState,
+} from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
-import { HostSession } from "@/mongo/schemas/HostSession";
 
 export default class VoiceStateUpdateEvent extends BaseEvent {
 	constructor() {
@@ -12,20 +17,19 @@ export default class VoiceStateUpdateEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		oldState: VoiceState,
-		newState: VoiceState
+		newState: VoiceState,
 	) {
-		if (
-			oldState.channelId &&
-			newState.channelId
-		)
-			return;
+		if (oldState.channelId && newState.channelId) return;
 
-		if (oldState.channel) { // someone leaves
+		if (oldState.channel) {
+			// someone leaves
 			if (oldState.channel.type === ChannelType.GuildStageVoice) {
-				const guildPreferences = await GuildPreferencesCache.get(oldState.guild.id);
+				const guildPreferences = await GuildPreferencesCache.get(
+					oldState.guild.id,
+				);
 
 				const hostSession = await HostSession.findOne({
-					channelId: oldState.channelId
+					channelId: oldState.channelId,
 				});
 
 				if (!hostSession) return;
@@ -38,7 +42,9 @@ export default class VoiceStateUpdateEvent extends BaseEvent {
 
 						return;
 					}
-					const newParent = oldState.guild.channels.cache.get(guildPreferences.archiveSessionCategoryId);
+					const newParent = oldState.guild.channels.cache.get(
+						guildPreferences.archiveSessionCategoryId,
+					);
 
 					if (!newParent || !(newParent instanceof CategoryChannel)) {
 						oldState.channel.delete();
@@ -50,7 +56,6 @@ export default class VoiceStateUpdateEvent extends BaseEvent {
 
 					return;
 				}
-
 			}
 
 			if (!oldState.channel.name.includes("Study Session")) return;
@@ -59,10 +64,11 @@ export default class VoiceStateUpdateEvent extends BaseEvent {
 				await oldState.channel.setName("General");
 				await oldState.channel.setRateLimitPerUser(0);
 			}
-		} else if (newState.channel) { // someone joins
+		} else if (newState.channel) {
+			// someone joins
 			if (newState.channel.type === ChannelType.GuildStageVoice) {
 				const hostSession = await HostSession.findOne({
-					channelId: newState.channelId
+					channelId: newState.channelId,
 				});
 
 				if (!hostSession) return;

@@ -1,9 +1,9 @@
 import type { IKeyword } from "@/mongo/schemas/Keyword";
 import {
+	type Entity,
+	type RedisConnection,
 	Repository,
 	Schema,
-	type Entity,
-	type RedisConnection
 } from "redis-om";
 
 export type ICachedKeyword = IKeyword & Entity;
@@ -11,7 +11,7 @@ export type ICachedKeyword = IKeyword & Entity;
 const schema = new Schema("Keyword", {
 	guildId: { type: "string" },
 	keyword: { type: "string" },
-	response: { type: "string" }
+	response: { type: "string" },
 });
 
 export class KeywordRepository extends Repository {
@@ -31,7 +31,7 @@ export class KeywordRepository extends Repository {
 
 	async append(keyword: ICachedKeyword) {
 		await this.save(`${keyword.keyword}-${keyword.guildId}`, {
-			response: keyword.response
+			response: keyword.response,
 		});
 	}
 }

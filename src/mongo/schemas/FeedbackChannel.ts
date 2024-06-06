@@ -9,10 +9,10 @@ export interface IFeedbackChannel {
 const schema = new Schema<IFeedbackChannel>({
 	guildId: { type: String, required: true, unique: false },
 	label: { type: String, required: true, unique: false },
-	channelId: { type: String, required: true, unique: false }
+	channelId: { type: String, required: true, unique: false },
 });
 
 export const FeedbackChannels = createModel<IFeedbackChannel>(
 	"FeedbackChannel",
-	schema
+	schema,
 );

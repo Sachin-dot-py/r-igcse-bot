@@ -9,10 +9,10 @@ export interface IChannelLockdown {
 const schema = new Schema<IChannelLockdown>({
 	channelId: { type: String, required: true, unique: true },
 	startTimestamp: { type: String, required: true, unique: false },
-	endTimestamp: { type: String, required: true, unique: false }
+	endTimestamp: { type: String, required: true, unique: false },
 });
 
 export const ChannelLockdown = createModel<IChannelLockdown>(
 	"ChannelLockdown",
-	schema
+	schema,
 );

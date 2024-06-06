@@ -17,7 +17,7 @@ const schema = new Schema<IApplication>({
 	emoji: { type: String, default: null },
 	questions: { type: [String], required: true },
 	requiredRoles: { type: [String], default: null },
-	submissionChannelId: { type: String, required: true }
+	submissionChannelId: { type: String, required: true },
 });
 
 export const Application = createModel<IApplication>("Application", schema);

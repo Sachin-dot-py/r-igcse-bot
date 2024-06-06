@@ -1,20 +1,20 @@
+import RoleSelect from "@/components/RoleSelect";
+import Buttons from "@/components/practice/views/Buttons";
+import { Application } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
-	ButtonBuilder,
+	type ButtonBuilder,
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
 } from "discord.js";
-import { Application } from "@/mongo";
 import { v4 as uuidv4 } from "uuid";
-import RoleSelect from "@/components/RoleSelect";
-import Buttons from "@/components/practice/views/Buttons";
 
 export default class ApplicationCommand extends BaseCommand {
 	constructor() {
@@ -22,7 +22,7 @@ export default class ApplicationCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("application")
 				.setDescription(
-					"Create and edit /apply applications for your server (for admins)"
+					"Create and edit /apply applications for your server (for admins)",
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 				.setDMPermission(false)
@@ -34,32 +34,32 @@ export default class ApplicationCommand extends BaseCommand {
 							option
 								.setName("name")
 								.setDescription("The name of the position")
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addStringOption((option) =>
 							option
 								.setName("description")
 								.setDescription(
-									"The description of the position"
+									"The description of the position",
 								)
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addChannelOption((option) =>
 							option
 								.setName("channel")
 								.setDescription(
-									"The channel to send the application to, when submitted."
+									"The channel to send the application to, when submitted.",
 								)
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addStringOption((option) =>
 							option
 								.setName("emoji")
 								.setDescription(
-									"The emoji to use for the application"
+									"The emoji to use for the application",
 								)
-								.setRequired(false)
-						)
+								.setRequired(false),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -69,56 +69,56 @@ export default class ApplicationCommand extends BaseCommand {
 							option
 								.setName("name")
 								.setDescription(
-									"The name of the application to edit"
+									"The name of the application to edit",
 								)
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addStringOption((option) =>
 							option
 								.setName("description")
 								.setDescription(
-									"The new description of the position"
+									"The new description of the position",
 								)
-								.setRequired(false)
+								.setRequired(false),
 						)
 						.addChannelOption((option) =>
 							option
 								.setName("channel")
 								.setDescription(
-									"The new channel to send the application to, when submitted."
+									"The new channel to send the application to, when submitted.",
 								)
-								.setRequired(false)
+								.setRequired(false),
 						)
 						.addStringOption((option) =>
 							option
 								.setName("emoji")
 								.setDescription(
-									"The new emoji to use for the application"
+									"The new emoji to use for the application",
 								)
-								.setRequired(false)
-						)
+								.setRequired(false),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName("delete")
 						.setDescription(
-							"Delete an existing application (no confirmation)"
+							"Delete an existing application (no confirmation)",
 						)
 						.addStringOption((option) =>
 							option
 								.setName("name")
 								.setDescription(
-									"The name of the application to delete"
+									"The name of the application to delete",
 								)
-								.setRequired(true)
-						)
-				)
+								.setRequired(true),
+						),
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		switch (interaction.options.getSubcommand()) {
 			case "create": {
@@ -137,7 +137,7 @@ export default class ApplicationCommand extends BaseCommand {
 	}
 
 	private async createApplication(
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const name = interaction.options.getString("name", true);
 		const description = interaction.options.getString("description", true);
@@ -157,7 +157,7 @@ export default class ApplicationCommand extends BaseCommand {
 				.setStyle(TextInputStyle.Short);
 
 			inputRows.push(
-				new ActionRowBuilder<TextInputBuilder>().addComponents(input)
+				new ActionRowBuilder<TextInputBuilder>().addComponents(input),
 			);
 		}
 
@@ -169,7 +169,7 @@ export default class ApplicationCommand extends BaseCommand {
 		await interaction.showModal(modal);
 
 		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 600_000
+			time: 600_000,
 		});
 		if (!modalInteraction) return;
 
@@ -180,7 +180,7 @@ export default class ApplicationCommand extends BaseCommand {
 		if (!questions.length) {
 			await modalInteraction.reply({
 				content: "You must provide at least one question",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -190,10 +190,10 @@ export default class ApplicationCommand extends BaseCommand {
 			"Select the roles required for this application",
 			25,
 			`${customId}_0`,
-			[]
+			[],
 		);
 		const row = new ActionRowBuilder<RoleSelect>().addComponents(
-			roleSelect
+			roleSelect,
 		);
 
 		const selectInteraction = await modalInteraction.reply({
@@ -201,17 +201,17 @@ export default class ApplicationCommand extends BaseCommand {
 				"Select the roles required for the user to be able to see this application. If no roles are selected, everyone will be able to see it. (Any one of the selected roles will be required)",
 			components: [
 				row,
-				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
+				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			ephemeral: true,
-			fetchReply: true
+			fetchReply: true,
 		});
 
 		const requiredRoles = await roleSelect.waitForResponse(
 			`${customId}_0`,
 			selectInteraction,
 			interaction,
-			false
+			false,
 		);
 		if (requiredRoles === "Timed out") return;
 
@@ -222,19 +222,19 @@ export default class ApplicationCommand extends BaseCommand {
 			questions,
 			requiredRoles: requiredRoles || null,
 			submissionChannelId: channel.id,
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		await application.save();
 
 		await modalInteraction.editReply({
 			content: "Application created successfully",
-			components: []
+			components: [],
 		});
 	}
 
 	private async editApplication(
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const name = interaction.options.getString("name", true);
 		const description = interaction.options.getString("description", false);
@@ -243,13 +243,13 @@ export default class ApplicationCommand extends BaseCommand {
 
 		const application = await Application.findOne({
 			name,
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		if (!application) {
 			await interaction.reply({
 				content: "Application not found",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -272,7 +272,7 @@ export default class ApplicationCommand extends BaseCommand {
 				.setValue(application.questions[i] || "");
 
 			inputRows.push(
-				new ActionRowBuilder<TextInputBuilder>().addComponents(input)
+				new ActionRowBuilder<TextInputBuilder>().addComponents(input),
 			);
 		}
 
@@ -284,7 +284,7 @@ export default class ApplicationCommand extends BaseCommand {
 		await interaction.showModal(modal);
 
 		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 600_000
+			time: 600_000,
 		});
 		if (!modalInteraction) return;
 
@@ -295,7 +295,7 @@ export default class ApplicationCommand extends BaseCommand {
 		if (!questions.length) {
 			await modalInteraction.reply({
 				content: "You must provide at least one question",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -305,10 +305,10 @@ export default class ApplicationCommand extends BaseCommand {
 			"Select the roles required for this application",
 			25,
 			`${customId}_0`,
-			application.requiredRoles || []
+			application.requiredRoles || [],
 		);
 		const row = new ActionRowBuilder<RoleSelect>().addComponents(
-			roleSelect
+			roleSelect,
 		);
 
 		const selectInteraction = await modalInteraction.reply({
@@ -316,17 +316,17 @@ export default class ApplicationCommand extends BaseCommand {
 				"Select the roles required for the user to be able to see this application. If no roles are selected, everyone will be able to see it. (Any one of the selected roles will be required)",
 			components: [
 				row,
-				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>
+				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			ephemeral: true,
-			fetchReply: true
+			fetchReply: true,
 		});
 
 		const requiredRoles = await roleSelect.waitForResponse(
 			`${customId}_0`,
 			selectInteraction,
 			interaction,
-			false
+			false,
 		);
 		if (requiredRoles === "Timed out") return;
 
@@ -337,24 +337,24 @@ export default class ApplicationCommand extends BaseCommand {
 
 		await modalInteraction.editReply({
 			content: "Application edited successfully",
-			components: []
+			components: [],
 		});
 	}
 
 	private async deleteApplication(
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const name = interaction.options.getString("name", true);
 
 		const application = await Application.findOne({
 			name,
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		if (!application) {
 			await interaction.reply({
 				content: "Application not found",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -363,7 +363,7 @@ export default class ApplicationCommand extends BaseCommand {
 
 		await interaction.reply({
 			content: "Application deleted successfully",
-			ephemeral: true
+			ephemeral: true,
 		});
 	}
 }

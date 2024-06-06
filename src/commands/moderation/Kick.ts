@@ -2,15 +2,15 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import sendDm from "@/utils/sendDm";
 import Logger from "@/utils/Logger";
+import sendDm from "@/utils/sendDm";
 import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -23,27 +23,27 @@ export default class KickCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to kick")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
 						.setDescription("Reason for kick")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const user = interaction.options.getUser("user", true);
@@ -52,26 +52,26 @@ export default class KickCommand extends BaseCommand {
 		if (user.id === interaction.user.id) {
 			interaction.editReply({
 				content:
-					"You cannot kick yourself, ||consider leaving the server instead||."
+					"You cannot kick yourself, ||consider leaving the server instead||.",
 			});
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences) {
 			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first."
+					"Please setup the bot using the command `/setup` first.",
 			});
 			return;
 		}
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: interaction.guildId
+				guildId: interaction.guildId,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -80,10 +80,10 @@ export default class KickCommand extends BaseCommand {
 		const dmEmbed = new EmbedBuilder()
 			.setAuthor({
 				name: `You have been kicked from ${interaction.guild.name}!`,
-				iconURL: client.user.displayAvatarURL()
+				iconURL: client.user.displayAvatarURL(),
 			})
 			.setDescription(
-				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to \`${reason}\`.`
+				`Hi there from ${interaction.guild.name}. You have been kicked from the server due to \`${reason}\`.`,
 			)
 			.setColor(Colors.Red);
 
@@ -92,7 +92,7 @@ export default class KickCommand extends BaseCommand {
 
 		if (!guildMember.kickable) {
 			interaction.editReply({
-				content: "I cannot kick this user! (Missing permissions)"
+				content: "I cannot kick this user! (Missing permissions)",
 			});
 
 			return;
@@ -104,21 +104,21 @@ export default class KickCommand extends BaseCommand {
 		if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
 			interaction.editReply({
 				content:
-					"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)"
+					"You cannot kick this user due to role hierarchy! (Role is higher or equal to yours)",
 			});
 
 			return;
 		}
 
 		sendDm(guildMember, {
-			embeds: [dmEmbed]
+			embeds: [dmEmbed],
 		});
 
 		try {
 			await interaction.guild.members.kick(user, reason);
 		} catch (error) {
 			interaction.editReply({
-				content: `Failed to kick user ${error instanceof Error ? `(${error.message})` : ""}`
+				content: `Failed to kick user ${error instanceof Error ? `(${error.message})` : ""}`,
 			});
 
 			client.log(
@@ -126,7 +126,7 @@ export default class KickCommand extends BaseCommand {
 				`${this.data.name} Command`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 		}
 
@@ -138,7 +138,7 @@ export default class KickCommand extends BaseCommand {
 			caseId: caseNumber,
 			reason,
 			points: 0,
-			when: new Date()
+			when: new Date(),
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -149,17 +149,17 @@ export default class KickCommand extends BaseCommand {
 					{
 						name: "User",
 						value: `${user.tag} (${user.id})`,
-						inline: false
+						inline: false,
 					},
 					{
 						name: "Moderator",
 						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: false
+						inline: false,
 					},
 					{
 						name: "Reason",
-						value: reason
-					}
+						value: reason,
+					},
 				])
 				.setTimestamp();
 
@@ -167,14 +167,14 @@ export default class KickCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed]
-				}
+					embeds: [modEmbed],
+				},
 			);
 		}
 
 		interaction.editReply({
 			content:
-				"https://tenor.com/view/asdf-movie-punt-kick-donewiththis-gif-26537188"
+				"https://tenor.com/view/asdf-movie-punt-kick-donewiththis-gif-26537188",
 		});
 		interaction.channel.send(`${user.username} has been kicked.`);
 	}

@@ -1,23 +1,23 @@
+import Select from "@/components/Select";
+import Buttons from "@/components/practice/views/Buttons";
+import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
+import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
-	ButtonBuilder,
+	type ButtonBuilder,
 	Colors,
 	EmbedBuilder,
 	ModalBuilder,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
 } from "discord.js";
-import BaseCommand, {
-	type DiscordChatInputCommandInteraction
-} from "../../registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
 import { v4 as uuidv4 } from "uuid";
-import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannel";
-import Select from "@/components/Select";
-import Buttons from "@/components/practice/views/Buttons";
+import BaseCommand, {
+	type DiscordChatInputCommandInteraction,
+} from "../../registry/Structure/BaseCommand";
 
 export default class FeedbackCommand extends BaseCommand {
 	constructor() {
@@ -25,31 +25,31 @@ export default class FeedbackCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("feedback")
 				.setDescription(
-					"Submit feedback to the teams behind the server"
+					"Submit feedback to the teams behind the server",
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const feedbackTeams = [
 			{
 				guildId: process.env.MAIN_GUILD_ID,
 				label: "Bot Developers",
-				channelId: process.env.DEV_FEEDBACK_CHANNEL_ID
+				channelId: process.env.DEV_FEEDBACK_CHANNEL_ID,
 			},
 			...(
 				await FeedbackChannels.find({
-					guildId: interaction.guildId
+					guildId: interaction.guildId,
 				})
 			).map((doc) => ({
 				guildId: doc.guildId,
 				label: doc.label,
-				channelId: doc.channelId
-			}))
+				channelId: doc.channelId,
+			})),
 		];
 
 		const feedbackInput = new TextInputBuilder()
@@ -60,7 +60,7 @@ export default class FeedbackCommand extends BaseCommand {
 			.setStyle(TextInputStyle.Paragraph);
 
 		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			feedbackInput
+			feedbackInput,
 		);
 
 		const modalCustomId = uuidv4();
@@ -74,7 +74,7 @@ export default class FeedbackCommand extends BaseCommand {
 
 		const modalInteraction = await interaction.awaitModalSubmit({
 			time: 600_000,
-			filter: (i) => i.customId === modalCustomId
+			filter: (i) => i.customId === modalCustomId,
 		});
 
 		const feedback =
@@ -88,33 +88,33 @@ export default class FeedbackCommand extends BaseCommand {
 			feedbackTeams.map(({ label }) =>
 				new StringSelectMenuOptionBuilder()
 					.setLabel(label)
-					.setValue(label)
+					.setValue(label),
 			),
 			1,
-			`${selectCustomId}_0`
+			`${selectCustomId}_0`,
 		);
 
 		const selectInteraction = await modalInteraction.reply({
 			content: "Feedback acknowledged. Select a team to send feedback to",
 			components: [
 				new ActionRowBuilder<Select>().addComponents(teamSelect),
-				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>
+				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const response = await teamSelect.waitForResponse(
 			`${selectCustomId}_0`,
 			selectInteraction,
 			interaction,
-			true
+			true,
 		);
 
 		if (!response || response === "Timed out" || !response[0]) {
 			await interaction.followUp({
 				content: "An error occurred",
-				ephemeral: false
+				ephemeral: false,
 			});
 			return;
 		}
@@ -136,12 +136,12 @@ export default class FeedbackCommand extends BaseCommand {
 				.setTitle(`Bot Feedback Received`)
 				.setDescription(feedback)
 				.setFooter({
-					text: `from ${feedbackGuild.name} (${feedbackGuild.id})`
+					text: `from ${feedbackGuild.name} (${feedbackGuild.id})`,
 				})
 				.setColor(Colors.Blue)
 				.setAuthor({
 					name: interaction.user.tag,
-					iconURL: interaction.user.displayAvatarURL()
+					iconURL: interaction.user.displayAvatarURL(),
 				});
 		} else {
 			embed = new EmbedBuilder()
@@ -150,23 +150,23 @@ export default class FeedbackCommand extends BaseCommand {
 				.setColor(Colors.Blue)
 				.setAuthor({
 					name: interaction.user.tag,
-					iconURL: interaction.user.displayAvatarURL()
+					iconURL: interaction.user.displayAvatarURL(),
 				});
 		}
 
 		try {
 			Logger.channel(messageGuild, team.channelId, {
-				embeds: [embed]
+				embeds: [embed],
 			});
 
 			modalInteraction.editReply({
 				content: "Feedback sent!",
-				components: []
+				components: [],
 			});
 		} catch (error) {
 			interaction.editReply({
 				content:
-					"Encountered error while trying to send feedback. Please try again later."
+					"Encountered error while trying to send feedback. Please try again later.",
 			});
 
 			// client.log(

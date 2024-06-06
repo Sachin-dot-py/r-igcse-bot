@@ -1,12 +1,14 @@
 import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
+import type HostSessionCommand from "@/commands/study/HostSession";
 import type PracticeCommand from "@/commands/study/Practice";
 import { StickyMessage } from "@/mongo";
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
+import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import { KeywordCache, StickyMessageCache } from "@/redis";
 import type {
 	APIEmbedRedis,
-	MessageCreateOptionsRedis
+	MessageCreateOptionsRedis,
 } from "@/redis/schemas/StickyMessage";
 import Logger from "@/utils/Logger";
 import createTask from "@/utils/createTask";
@@ -17,14 +19,12 @@ import {
 	Events,
 	ForumChannel,
 	TextChannel,
-	ThreadChannel
+	ThreadChannel,
 } from "discord.js";
+import { EntityId } from "redis-om";
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { EntityId } from "redis-om";
-import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
-import type HostSessionCommand from "@/commands/study/HostSession";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -38,7 +38,7 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		client.user.setPresence({
 			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
-			status: "online"
+			status: "online",
 		});
 
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
@@ -48,12 +48,12 @@ export default class ClientReadyEvent extends BaseEvent {
 				.setColor(Colors.Green)
 				.setAuthor({
 					name: client.user.tag,
-					iconURL: client.user.displayAvatarURL()
+					iconURL: client.user.displayAvatarURL(),
 				})
 				.setTimestamp();
 
 			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
-				embeds: [readyEmbed]
+				embeds: [readyEmbed],
 			});
 		}
 
@@ -69,10 +69,10 @@ export default class ClientReadyEvent extends BaseEvent {
 						.sendQuestions(client)
 						.catch((e) =>
 							Logger.error(
-								`Error at practiceCommand.sendQuestions: ${e}`
-							)
+								`Error at practiceCommand.sendQuestions: ${e}`,
+							),
 						),
-				3500
+				3500,
 			);
 		}
 
@@ -88,24 +88,24 @@ export default class ClientReadyEvent extends BaseEvent {
 						.expireForcedMute(client)
 						.catch((e) =>
 							Logger.error(
-								`Error at goStudyCommand.expireForcedMute: ${e}`
-							)
+								`Error at goStudyCommand.expireForcedMute: ${e}`,
+							),
 						),
-				60000
+				60000,
 			);
 		}
 
 		await this.loadKeywordsCache().catch((e) =>
-			Logger.error(`Error at loadKeywordsCache: ${e}`)
+			Logger.error(`Error at loadKeywordsCache: ${e}`),
 		);
 
 		Logger.info("Starting scheduled messages loop");
 		createTask(
 			() =>
 				this.sendScheduledMessage(client).catch((e) =>
-					Logger.error(`Error at sendScheduledMessage: ${e}`)
+					Logger.error(`Error at sendScheduledMessage: ${e}`),
 				),
-			60000
+			60000,
 		);
 
 		const hostSessionCommand = client.commands.get("host_session") as
@@ -116,7 +116,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			Logger.info("Starting hosted sessions loop");
 			setInterval(
 				() => hostSessionCommand.startSession(client),
-				10_000
+				10_000,
 				// 3_600_000
 			);
 		}
@@ -124,17 +124,17 @@ export default class ClientReadyEvent extends BaseEvent {
 		createTask(
 			async () =>
 				await this.refreshStickyMessageCache().catch((e) =>
-					Logger.error(`Error at refreshStickyMessageCache: ${e}`)
+					Logger.error(`Error at refreshStickyMessageCache: ${e}`),
 				),
-			60000
+			60000,
 		);
 
 		createTask(
 			async () =>
 				await this.refreshChannelLockdowns().catch((e) =>
-					Logger.error(`Error at sendScheduledMessage: ${e}`)
+					Logger.error(`Error at sendScheduledMessage: ${e}`),
 				),
-			120000
+			120000,
 		);
 	}
 
@@ -149,7 +149,7 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const { _id, ...rest } of keywords.map((keyword) =>
-			keyword.toObject()
+			keyword.toObject(),
 		))
 			KeywordCache.append(rest);
 	}
@@ -159,14 +159,16 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		const stickyMessages = await StickyMessage.find();
 		const cachedStickyMessages = await StickyMessageCache.getAll().catch(
-			() => []
+			() => [],
 		);
 
 		for (const stickyMessage of stickyMessages) {
-			const stickTime = parseInt(stickyMessage.stickTime || "");
-			const unstickTime = parseInt(stickyMessage.unstickTime || "");
+			const stickTime = Number.parseInt(stickyMessage.stickTime || "");
+			const unstickTime = Number.parseInt(
+				stickyMessage.unstickTime || "",
+			);
 			const cachedSticky = cachedStickyMessages.find(
-				(x) => x[EntityId] === stickyMessage.id
+				(x) => x[EntityId] === stickyMessage.id,
 			);
 
 			if (cachedSticky) await StickyMessageCache.remove(stickyMessage.id);
@@ -177,7 +179,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					messageId: cachedSticky
 						? cachedSticky.messageId
 						: stickyMessage.messageId,
-					message: stickyMessage.message as MessageCreateOptionsRedis
+					message: stickyMessage.message as MessageCreateOptionsRedis,
 				});
 				if (!client.stickyChannelIds.includes(stickyMessage.channelId))
 					client.stickyChannelIds.push(stickyMessage.channelId);
@@ -192,8 +194,8 @@ export default class ClientReadyEvent extends BaseEvent {
 						: stickyMessage.messageId,
 					message: {
 						content: stickyMessage.message.content,
-						embeds: stickyMessage.message.embeds as APIEmbedRedis[]
-					}
+						embeds: stickyMessage.message.embeds as APIEmbedRedis[],
+					},
 				});
 			if (!client.stickyChannelIds.includes(stickyMessage.channelId))
 				client.stickyChannelIds.push(stickyMessage.channelId);
@@ -208,8 +210,8 @@ export default class ClientReadyEvent extends BaseEvent {
 		const time = Date.now() / 1000;
 
 		for (const lockdown of await ChannelLockdown.find()) {
-			const startTime = parseInt(lockdown.startTimestamp);
-			const endTime = parseInt(lockdown.endTimestamp);
+			const startTime = Number.parseInt(lockdown.startTimestamp);
+			const endTime = Number.parseInt(lockdown.endTimestamp);
 
 			if (startTime > time) continue;
 
@@ -226,13 +228,13 @@ export default class ClientReadyEvent extends BaseEvent {
 					channel.guild.roles.everyone,
 					{
 						SendMessages: !locked,
-						SendMessagesInThreads: !locked
-					}
+						SendMessagesInThreads: !locked,
+					},
 				);
 
 			if (endTime <= time)
 				ChannelLockdown.deleteOne({
-					channelId: lockdown.channelId
+					channelId: lockdown.channelId,
 				});
 		}
 	}
@@ -242,18 +244,18 @@ export default class ClientReadyEvent extends BaseEvent {
 			$expr: {
 				$lte: [
 					{ $toLong: "$scheduleTime" },
-					{ $divide: [Date.now(), 1000] }
-				]
-			}
+					{ $divide: [Date.now(), 1000] },
+				],
+			},
 		});
 
-		for (let scheduledMessage of scheduledMessages) {
+		for (const scheduledMessage of scheduledMessages) {
 			const messageGuild = client.guilds.cache.get(
-				scheduledMessage.guildId
+				scheduledMessage.guildId,
 			);
 
 			const messageChannel = messageGuild?.channels.cache.get(
-				scheduledMessage.channelId
+				scheduledMessage.channelId,
 			);
 
 			if (!messageChannel || !messageChannel.isTextBased()) return;
