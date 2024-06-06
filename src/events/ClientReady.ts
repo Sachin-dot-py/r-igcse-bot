@@ -116,8 +116,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			Logger.info("Starting hosted sessions loop");
 			setInterval(
 				() => hostSessionCommand.startSession(client),
-				10_000,
-				// 3_600_000
+				60_000,
 			);
 		}
 
