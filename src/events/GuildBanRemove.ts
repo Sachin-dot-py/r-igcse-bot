@@ -57,13 +57,13 @@ export default class GuildBanRemoveEvent extends BaseEvent {
 				.addFields([
 					{
 						name: "User",
-						value: `${ban.user.tag} (${ban.user.id})`,
-						inline: false,
+						value: `<@${ban.user.id}>`,
+						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${entry.executor?.tag} (${entry.executorId})`,
-						inline: false,
+						value: `<@${entry.executorId}>`,
+						inline: false
 					},
 					{
 						name: "Reason",
@@ -74,6 +74,7 @@ export default class GuildBanRemoveEvent extends BaseEvent {
 
 			Logger.channel(ban.guild, guildPreferences.modlogChannelId, {
 				embeds: [modEmbed],
+				allowedMentions: { repliedUser: false }
 			});
 		}
 	}

@@ -135,7 +135,7 @@ export default class TimeoutCommand extends BaseCommand {
 			guildMember.isCommunicationDisabled() &&
 			latestTimeout.duration &&
 			latestTimeout.when.getTime() + latestTimeout.duration * 1000 >
-				Date.now()
+			Date.now()
 		) {
 			const newEndTime = Date.now() + duration * 1000;
 
@@ -186,13 +186,13 @@ export default class TimeoutCommand extends BaseCommand {
 				.addFields([
 					{
 						name: "User",
-						value: `${user.tag} (${user.id})`,
-						inline: false,
+						value: `<@${user.id}>`,
+						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: false,
+						value: `<@${interaction.user.id}>`,
+						inline: false
 					},
 					{
 						name: "Reason",
@@ -209,8 +209,9 @@ export default class TimeoutCommand extends BaseCommand {
 					interaction.guild,
 					guildPreferences.modlogChannelId,
 					{
-						embeds: [modEmbed],
-					},
+						embeds: [
+						allowedMentions: { repliedUser: false }
+					}
 				);
 			}
 
@@ -269,13 +270,13 @@ export default class TimeoutCommand extends BaseCommand {
 			.addFields([
 				{
 					name: "User",
-					value: `${user.tag} (${user.id})`,
-					inline: false,
+					value: `<@${user.id}>`,
+					inline: false
 				},
 				{
 					name: "Moderator",
-					value: `${interaction.user.tag} (${interaction.user.id})`,
-					inline: false,
+					value: `<@${interaction.user.id}>`,
+					inline: 
 				},
 				{
 					name: "Reason",

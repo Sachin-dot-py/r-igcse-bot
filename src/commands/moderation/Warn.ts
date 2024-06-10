@@ -98,13 +98,13 @@ export default class WarnCommand extends BaseCommand {
 				.addFields([
 					{
 						name: "User",
-						value: `${user.tag} (${user.id})`,
-						inline: false,
+						value: `<@${user.id}>`,
+						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: false,
+						value: `<@${interaction.user.id}>`,
+						inline: false
 					},
 					{
 						name: "Reason",
@@ -118,7 +118,8 @@ export default class WarnCommand extends BaseCommand {
 				guildPreferences.modlogChannelId,
 				{
 					embeds: [modEmbed],
-				},
+					allowedMentions: { repliedUser: false }
+				}
 			);
 		}
 

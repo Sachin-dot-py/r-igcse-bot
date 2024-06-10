@@ -126,7 +126,8 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (!helperRoles.some((role) => role.members.has(helper.id))) {
 			interaction.editReply({
-				content: `${helper.tag} is not a helper`,
+				content: `<@${helper.id}> is not a helper`,
+				allowedMentions: { repliedUser: false }
 			});
 
 			return;
@@ -165,8 +166,8 @@ export default class HOTMVotingCommand extends BaseCommand {
 			interaction.guild,
 			guildPreferences.hotmResultsChannelId,
 			{
-				content: `${interaction.user.tag} has voted for ${helper.tag} who now has ${helperVotes} votes.`,
-			},
+				content: `$<@${interaction.user.id}> has voted for @<${helper.id}> who now has ${helperVotes} votes.`
+			}
 		);
 
 		const newSessionCommand = client.commands.get("hotm_session") as
@@ -184,7 +185,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		);
 
 		interaction.editReply({
-			content: `You voted for ${helper.tag} and have ${3 - (hotmUser.voted.length + 1)} votes left.`,
+			content: `You voted for @<${helper.id}> and have ${3 - (hotmUser.voted.length + 1)} votes left.`
 		});
 	}
 }

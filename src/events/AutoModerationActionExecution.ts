@@ -63,7 +63,7 @@ export default class ErrorEvent extends BaseEvent {
 			.addFields([
 				{
 					name: "Username",
-					value: `${autoModerationActionExecution.user.tag} (${autoModerationActionExecution.user.id})`,
+					value: `<@${autoModerationActionExecution.user.id}>`
 				},
 				{
 					name: "Moderator",
@@ -90,7 +90,8 @@ export default class ErrorEvent extends BaseEvent {
 			guildPreferences.modlogChannelId,
 			{
 				embeds: [modEmbed],
-			},
+				allowedMentions: { repliedUser: false }
+			}
 		);
 	}
 }

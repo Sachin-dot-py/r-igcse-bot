@@ -61,13 +61,13 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 				.addFields([
 					{
 						name: "User",
-						value: `${member.user.tag} (${member.user.id})`,
-						inline: false,
+						value: `<@${member.user.id}>`,
+						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${entry.executor?.tag} (${entry.executorId})`,
-						inline: false,
+						value: `<@${entry.executorId}>`,
+						inline: false
 					},
 					{
 						name: "Reason",
@@ -79,6 +79,7 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 
 			Logger.channel(member.guild, guildPreferences.modlogChannelId, {
 				embeds: [modEmbed],
+				allowedMentions: { repliedUser: false }
 			});
 		}
 	}

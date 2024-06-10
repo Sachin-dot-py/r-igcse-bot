@@ -73,7 +73,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				Math.ceil(
 					(new Date(change.new as string).getTime() -
 						new Date().getTime()) /
-						10000,
+					10000
 				) * 10;
 
 			if (
@@ -99,13 +99,13 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						.addFields([
 							{
 								name: "User",
-								value: `${newMember.user.tag} (${newMember.id})`,
-								inline: false,
+								value: `<@${newMember.id}>`,
+								inline: false
 							},
 							{
 								name: "Moderator",
-								value: `${entry.executor?.tag} (${entry.executorId})`,
-								inline: false,
+								value: `<@${entry.executorId}>`,
+								inline: false
 							},
 							{
 								name: "Reason",
@@ -122,7 +122,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						guildPreferences.modlogChannelId,
 						{
 							embeds: [modEmbed],
-						},
+							allowedMentions: { repliedUser: false }
+						}
 					);
 				}
 
@@ -162,13 +163,13 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						.addFields([
 							{
 								name: "User",
-								value: `${newMember.user.tag} (${newMember.id})`,
-								inline: false,
+								value: `<@${newMember.id}>`,
+								inline: false
 							},
 							{
 								name: "Moderator",
-								value: `${entry.executor?.tag} (${entry.executorId})`,
-								inline: false,
+								value: `<@${entry.executorId}>`,
+								inline: false
 							},
 							{
 								name: "Reason",
@@ -185,7 +186,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						guildPreferences.modlogChannelId,
 						{
 							embeds: [modEmbed],
-						},
+							allowedMentions: { repliedUser: false }
+						}
 					);
 				}
 
@@ -227,13 +229,13 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 					.addFields([
 						{
 							name: "User",
-							value: `${newMember.user.tag} (${newMember.id})`,
-							inline: false,
+							value: `$<@${newMember.id}>`,
+							inline: false
 						},
 						{
 							name: "Moderator",
-							value: `${entry.executor?.tag} (${entry.executorId})`,
-							inline: false,
+							value: `<@${entry.executorId}>`,
+							inline: false
 						},
 						{
 							name: "Reason",
@@ -246,7 +248,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 					guildPreferences.modlogChannelId,
 					{
 						embeds: [modEmbed],
-					},
+						allowedMentions: { repliedUser: false }
+					}
 				);
 			}
 
