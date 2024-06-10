@@ -2,7 +2,7 @@ import { Keyword } from "@/mongo/schemas/Keyword";
 import { KeywordCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 
@@ -20,14 +20,14 @@ export default class KeywordCommand extends BaseCommand {
 							option
 								.setName("keyword")
 								.setDescription("Name of the keyword")
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addStringOption((option) =>
 							option
 								.setName("response")
 								.setDescription("Response to the keyword")
-								.setRequired(true)
-						)
+								.setRequired(true),
+						),
 				)
 				.addSubcommand((command) =>
 					command
@@ -37,17 +37,17 @@ export default class KeywordCommand extends BaseCommand {
 							option
 								.setName("keyword")
 								.setDescription("Keyword to remove")
-								.setRequired(true)
-						)
+								.setRequired(true),
+						),
 				)
 				.setDMPermission(false)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (interaction.options.getSubcommand() === "add") {
 			const keyword = interaction.options.getString("keyword", true);
@@ -56,21 +56,21 @@ export default class KeywordCommand extends BaseCommand {
 			const res = await Keyword.updateOne(
 				{
 					guildId: interaction.guildId,
-					keyword
+					keyword,
 				},
 				{
-					response
+					response,
 				},
 				{
-					upsert: true
-				}
+					upsert: true,
+				},
 			);
 
 			if (res.modifiedCount + res.upsertedCount < 1) {
 				await interaction.reply({
 					content:
 						"Error occured while creating keyword. Please try again later.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -78,27 +78,27 @@ export default class KeywordCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully created keyword ${keyword}`,
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			await KeywordCache.append({
 				guildId: interaction.guildId,
 				keyword,
-				response
+				response,
 			});
 		} else if (interaction.options.getSubcommand() === "remove") {
 			const keyword = interaction.options.getString("keyword", true);
 
 			const res = await Keyword.deleteOne({
 				guildId: interaction.guildId,
-				keyword
+				keyword,
 			});
 
 			if (res.deletedCount < 1) {
 				await interaction.reply({
 					content:
 						"Error occured while deleting keyword. Please try again later.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -106,7 +106,7 @@ export default class KeywordCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully deleted \`${keyword}\`.`,
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			await KeywordCache.delete(interaction.guildId, keyword);

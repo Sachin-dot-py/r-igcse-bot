@@ -1,15 +1,15 @@
+import { Punishment } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 import {
 	AuditLogEvent,
 	Colors,
-	Events,
 	EmbedBuilder,
-	GuildMember
+	Events,
+	type GuildMember,
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
-import { Punishment } from "@/mongo";
-import Logger from "@/utils/Logger";
 
 export default class GuildMemberRemoveEvent extends BaseEvent {
 	constructor() {
@@ -18,26 +18,26 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 
 	async execute(client: DiscordClient<true>, member: GuildMember) {
 		const guildPreferences = await GuildPreferencesCache.get(
-			member.guild.id
+			member.guild.id,
 		);
 		if (!guildPreferences) return;
 
 		const auditLogs = await member.guild.fetchAuditLogs({
 			type: AuditLogEvent.MemberKick,
-			limit: 3
+			limit: 3,
 		});
 
 		const entry = auditLogs.entries.find(
 			(entry) =>
 				entry.targetId === member.id &&
-				entry.createdTimestamp > Date.now() - 10000
+				entry.createdTimestamp > Date.now() - 10000,
 		);
 
 		if (!entry || entry.executorId === client.user.id) return;
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: member.guild.id
+				guildId: member.guild.id,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -51,7 +51,7 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 			caseId: caseNumber,
 			reason: entry.reason ?? "No reason provided",
 			points: 0,
-			when: new Date()
+			when: new Date(),
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -61,24 +61,25 @@ export default class GuildMemberRemoveEvent extends BaseEvent {
 				.addFields([
 					{
 						name: "User",
-						value: `${member.user.tag} (${member.user.id})`,
+						value: `<@${member.user.id}>`,
 						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${entry.executor?.tag} (${entry.executorId})`,
+						value: `<@${entry.executorId}>`,
 						inline: false
 					},
 					{
 						name: "Reason",
 						value: entry.reason ?? "No reason provided",
-						inline: false
-					}
+						inline: false,
+					},
 				])
 				.setTimestamp();
 
 			Logger.channel(member.guild, guildPreferences.modlogChannelId, {
-				embeds: [modEmbed]
+				embeds: [modEmbed],
+				allowedMentions: { repliedUser: false }
 			});
 		}
 	}

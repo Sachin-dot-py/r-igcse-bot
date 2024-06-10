@@ -1,15 +1,15 @@
 import { GatewayIntentBits, Partials } from "discord.js";
+import inquirer from "inquirer";
 import mongo from "mongoose";
+import actionRequired from "./cron/actionRequired";
 import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
 import {
 	registerCommands,
 	registerEvents,
-	syncCommands
+	syncCommands,
 } from "./registry/index";
 import Logger from "./utils/Logger";
-import actionRequired from "./cron/actionRequired";
-import inquirer from "inquirer";
 
 redis.on("error", Logger.error);
 
@@ -33,13 +33,13 @@ export const client = new DiscordClient({
 		GatewayIntentBits.GuildVoiceStates,
 		GatewayIntentBits.GuildWebhooks,
 		GatewayIntentBits.Guilds,
-		GatewayIntentBits.MessageContent
+		GatewayIntentBits.MessageContent,
 	],
 	partials: [Partials.Message, Partials.Channel],
 	allowedMentions: {
 		parse: ["users", "roles"],
-		repliedUser: true
-	}
+		repliedUser: true,
+	},
 });
 
 await registerCommands(client);
@@ -47,9 +47,9 @@ await registerCommands(client);
 await mongo.connect(process.env.MONGO_URL, {
 	retryWrites: true,
 	writeConcern: {
-		w: "majority"
+		w: "majority",
 	},
-	dbName: "r-igcse-bot"
+	dbName: "r-igcse-bot",
 });
 
 await registerEvents(client);
@@ -61,8 +61,8 @@ for (;;)
 			{
 				type: "input",
 				name: "command",
-				message: "$"
-			}
+				message: "$",
+			},
 		])
 		.then((answers: { command: string }) => {
 			const command = answers["command"];
@@ -74,7 +74,7 @@ for (;;)
 				case "refreshCommandData":
 					syncCommands(client as DiscordClient<true>)
 						.then(() =>
-							Logger.info("Synced application commands globally")
+							Logger.info("Synced application commands globally"),
 						)
 						.catch(Logger.error);
 					break;

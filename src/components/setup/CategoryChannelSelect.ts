@@ -1,9 +1,14 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import Logger from "@/utils/Logger";
-import { ComponentType, type Message, RoleSelectMenuBuilder } from "discord.js";
+import {
+	ChannelSelectMenuBuilder,
+	ChannelType,
+	ComponentType,
+	type Message,
+} from "discord.js";
 
-class RoleSelect extends RoleSelectMenuBuilder {
+class CategoryChannelSelect extends ChannelSelectMenuBuilder {
 	name: string;
 	isFirstComponent = true;
 	maxValues: number;
@@ -23,7 +28,8 @@ class RoleSelect extends RoleSelectMenuBuilder {
 			Number.parseInt(customId.split("_")[1]) % 5 === 0;
 		this.setPlaceholder(placeholder)
 			.setMaxValues(maxValues)
-			.setCustomId(customId);
+			.setCustomId(customId)
+			.addChannelTypes(ChannelType.GuildCategory);
 	}
 
 	async createCollector(
@@ -34,7 +40,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 		const selectCollector = interaction.createMessageComponentCollector({
 			filter: (i) => i.customId === customId,
 			time: 600_000, // 10 minutes
-			componentType: ComponentType.RoleSelect,
+			componentType: ComponentType.ChannelSelect,
 		});
 
 		selectCollector.on("collect", async (i) => {
@@ -63,7 +69,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 			}
 
 			await i.followUp({
-				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `<@&${x}>`).join(", ")}.`,
+				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `<#${x}>`).join(", ")}.`,
 				ephemeral: true,
 			});
 
@@ -71,14 +77,14 @@ class RoleSelect extends RoleSelectMenuBuilder {
 		});
 
 		/*selectCollector.on("end", async () => {
-			if (this.isFirstComponent) {
-				await editMessage({
-					components: [],
-					content: "Timed out"
-				});
-			}
-		});*/
+            if (this.isFirstComponent) {
+                await editMessage({
+                    components: [],
+                    content: "Timed out"
+                });
+            }
+        });*/
 	}
 }
 
-export default RoleSelect;
+export default CategoryChannelSelect;

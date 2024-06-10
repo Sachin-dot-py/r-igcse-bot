@@ -1,15 +1,15 @@
+import { Punishment } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
 import {
 	AuditLogEvent,
 	Colors,
-	Events,
 	EmbedBuilder,
-	GuildBan
+	Events,
+	type GuildBan,
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
-import { Punishment } from "@/mongo";
-import Logger from "@/utils/Logger";
 
 export default class GuildBanAddEvent extends BaseEvent {
 	constructor() {
@@ -22,18 +22,18 @@ export default class GuildBanAddEvent extends BaseEvent {
 
 		const auditLogs = await ban.guild.fetchAuditLogs({
 			type: AuditLogEvent.MemberBanAdd,
-			limit: 3
+			limit: 3,
 		});
 
 		const entry = auditLogs.entries.find(
-			(entry) => entry.targetId === ban.user.id
+			(entry) => entry.targetId === ban.user.id,
 		);
 
 		if (!entry || entry.executorId === client.user.id) return;
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: ban.guild.id
+				guildId: ban.guild.id,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -47,7 +47,7 @@ export default class GuildBanAddEvent extends BaseEvent {
 			caseId: caseNumber,
 			reason: entry.reason ?? "No reason provided",
 			points: 0,
-			when: new Date()
+			when: new Date(),
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -57,23 +57,24 @@ export default class GuildBanAddEvent extends BaseEvent {
 				.addFields([
 					{
 						name: "User",
-						value: `${ban.user.tag} (${ban.user.id})`,
+						value: `<@${ban.user.id}>`,
 						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${entry.executor?.tag} (${entry.executorId})`,
+						value: `<@${entry.executorId}>`,
 						inline: false
 					},
 					{
 						name: "Reason",
-						value: entry.reason ?? "No reason provided"
-					}
+						value: entry.reason ?? "No reason provided",
+					},
 				])
 				.setTimestamp();
 
 			Logger.channel(ban.guild, guildPreferences.modlogChannelId, {
-				embeds: [modEmbed]
+				embeds: [modEmbed],
+				allowedMentions: { repliedUser: false }
 			});
 		}
 	}

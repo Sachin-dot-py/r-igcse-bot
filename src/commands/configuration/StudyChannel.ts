@@ -1,13 +1,13 @@
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
-import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 
 export default class StudyChannelCommand extends BaseCommand {
 	constructor() {
@@ -15,7 +15,7 @@ export default class StudyChannelCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("study_channel")
 				.setDescription(
-					"Create and edit study channels for your server (for admins)"
+					"Create and edit study channels for your server (for admins)",
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 				.setDMPermission(false)
@@ -27,26 +27,26 @@ export default class StudyChannelCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription(
-									"The channel to create as a study channel"
+									"The channel to create as a study channel",
 								)
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addRoleOption((option) =>
 							option
 								.setName("helper_role")
 								.setDescription(
-									"The helper role for this study channel"
+									"The helper role for this study channel",
 								)
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addRoleOption((option) =>
 							option
 								.setName("study_role")
 								.setDescription(
-									"The study ping role for this study channel"
+									"The study ping role for this study channel",
 								)
-								.setRequired(true)
-						)
+								.setRequired(true),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -56,24 +56,24 @@ export default class StudyChannelCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription("Channel to edit")
-								.setRequired(true)
+								.setRequired(true),
 						)
 						.addRoleOption((option) =>
 							option
 								.setName("helper_role")
 								.setDescription(
-									"The new helper role for this study channel"
+									"The new helper role for this study channel",
 								)
-								.setRequired(false)
+								.setRequired(false),
 						)
 						.addRoleOption((option) =>
 							option
 								.setName("study_role")
 								.setDescription(
-									"The new study ping role for this study channel"
+									"The new study ping role for this study channel",
 								)
-								.setRequired(false)
-						)
+								.setRequired(false),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -83,43 +83,43 @@ export default class StudyChannelCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription("Channel to delete")
-								.setRequired(true)
-						)
+								.setRequired(true),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName("list")
-						.setDescription("Lists all study channels")
-				)
+						.setDescription("Lists all study channels"),
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		switch (interaction.options.getSubcommand()) {
 			case "create": {
 				const channel = interaction.options.getChannel("channel", true);
 				const helperRole = interaction.options.getRole(
 					"helper_role",
-					true
+					true,
 				);
 				const studyRole = interaction.options.getRole(
 					"study_role",
-					true
+					true,
 				);
 
 				if (
 					await StudyChannel.findOne({
 						guildId: interaction.guildId,
-						channelId: channel.id
+						channelId: channel.id,
 					})
 				) {
 					await interaction.reply({
 						content:
 							"That channel is already a study channel. To edit a study channel, use `/study_channel edit`.",
-						ephemeral: true
+						ephemeral: true,
 					});
 					return;
 				}
@@ -128,12 +128,12 @@ export default class StudyChannelCommand extends BaseCommand {
 					guildId: interaction.guildId,
 					channelId: channel.id,
 					helperRoleId: helperRole.id,
-					studyPingRoleId: studyRole.id
+					studyPingRoleId: studyRole.id,
 				});
 
 				await interaction.reply({
 					content: `Study channel created: ${channel}`,
-					ephemeral: true
+					ephemeral: true,
 				});
 				break;
 			}
@@ -141,23 +141,23 @@ export default class StudyChannelCommand extends BaseCommand {
 				const channel = interaction.options.getChannel("channel", true);
 				const helperRole = interaction.options.getRole(
 					"helper_role",
-					false
+					false,
 				);
 				const studyRole = interaction.options.getRole(
 					"study_role",
-					false
+					false,
 				);
 
 				const studyChannel = await StudyChannel.findOne({
 					guildId: interaction.guildId,
-					channelId: channel.id
+					channelId: channel.id,
 				});
 
 				if (!studyChannel) {
 					await interaction.reply({
 						content:
 							"That channel is not a study channel. To create a study channel, use `/study_channel create`.",
-						ephemeral: true
+						ephemeral: true,
 					});
 					return;
 				}
@@ -174,7 +174,7 @@ export default class StudyChannelCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: `Study channel updated: ${channel}`,
-					ephemeral: true
+					ephemeral: true,
 				});
 				break;
 			}
@@ -183,13 +183,13 @@ export default class StudyChannelCommand extends BaseCommand {
 
 				const studyChannel = await StudyChannel.findOne({
 					guildId: interaction.guildId,
-					channelId: channel.id
+					channelId: channel.id,
 				});
 
 				if (!studyChannel) {
 					await interaction.reply({
 						content: "That channel is not a study channel.",
-						ephemeral: true
+						ephemeral: true,
 					});
 					return;
 				}
@@ -198,22 +198,22 @@ export default class StudyChannelCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: `Study channel deleted: ${channel}`,
-					ephemeral: true
+					ephemeral: true,
 				});
 				break;
 			}
 			case "list": {
 				const studyChannels = await StudyChannel.find({
-					guildId: interaction.guildId
+					guildId: interaction.guildId,
 				});
 
 				if (studyChannels.length === 0) {
 					const embed = new EmbedBuilder().setDescription(
-						"No study channels exist. Add a few with `/study_channel create`"
+						"No study channels exist. Add a few with `/study_channel create`",
 					);
 					await interaction.reply({
 						embeds: [embed],
-						ephemeral: true
+						ephemeral: true,
 					});
 					return;
 				}
@@ -221,10 +221,10 @@ export default class StudyChannelCommand extends BaseCommand {
 				for (const {
 					channelId,
 					helperRoleId,
-					studyPingRoleId
+					studyPingRoleId,
 				} of studyChannels) {
 					description.push(
-						`<#${channelId}: <@&${helperRoleId}>, <@&${studyPingRoleId}>`
+						`<#${channelId}: <@&${helperRoleId}>, <@&${studyPingRoleId}>`,
 					);
 				}
 				const embed = new EmbedBuilder()
@@ -232,7 +232,7 @@ export default class StudyChannelCommand extends BaseCommand {
 					.setDescription(description.join("\n"));
 				await interaction.reply({
 					embeds: [embed],
-					ephemeral: true
+					ephemeral: true,
 				});
 				return;
 			}

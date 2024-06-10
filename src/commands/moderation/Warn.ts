@@ -2,7 +2,7 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
@@ -10,7 +10,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 
 export default class WarnCommand extends BaseCommand {
@@ -23,24 +23,24 @@ export default class WarnCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to warn")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("reason")
 						.setDescription("Reason for warn")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ModerateMembers
+					PermissionFlagsBits.ModerateMembers,
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
@@ -48,33 +48,33 @@ export default class WarnCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const guildMember = await interaction.guild.members.fetch(user.id);
 
 		if (!guildMember) {
 			interaction.editReply({
-				content: "User not found in server."
+				content: "User not found in server.",
 			});
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences) {
 			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first."
+					"Please setup the bot using the command `/setup` first.",
 			});
 			return;
 		}
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: interaction.guildId
+				guildId: interaction.guildId,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -88,7 +88,7 @@ export default class WarnCommand extends BaseCommand {
 			caseId: caseNumber,
 			reason,
 			points: 1,
-			when: new Date()
+			when: new Date(),
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -98,18 +98,18 @@ export default class WarnCommand extends BaseCommand {
 				.addFields([
 					{
 						name: "User",
-						value: `${user.tag} (${user.id})`,
+						value: `<@${user.id}>`,
 						inline: false
 					},
 					{
 						name: "Moderator",
-						value: `${interaction.user.tag} (${interaction.user.id})`,
+						value: `<@${interaction.user.id}>`,
 						inline: false
 					},
 					{
 						name: "Reason",
-						value: reason
-					}
+						value: reason,
+					},
 				])
 				.setTimestamp();
 
@@ -117,7 +117,8 @@ export default class WarnCommand extends BaseCommand {
 				interaction.guild,
 				guildPreferences.modlogChannelId,
 				{
-					embeds: [modEmbed]
+					embeds: [modEmbed],
+					allowedMentions: { repliedUser: false }
 				}
 			);
 		}
@@ -128,14 +129,17 @@ export default class WarnCommand extends BaseCommand {
 					.setTitle("Warn")
 					.setColor(Colors.Red)
 					.setDescription(
-						`You have been warned in ${interaction.guild.name} for: \`${reason}\`.`
-					)
-			]
+						`You have been warned in ${interaction.guild.name} for: \`${reason}\`.`,
+					),
+			],
 		});
 
-		interaction.editReply({ content: "there ya go good sir" });
+		interaction.editReply({
+			content:
+				"https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639",
+		});
 		interaction.channel.send(
-			`${user.username} has been warned for ${reason} (Case #${caseNumber})`
+			`${user.username} has been warned for ${reason} (Case #${caseNumber})`,
 		);
 	}
 }

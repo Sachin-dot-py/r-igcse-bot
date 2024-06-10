@@ -1,7 +1,7 @@
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ChannelType,
@@ -9,7 +9,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextChannel,
-	ThreadChannel
+	ThreadChannel,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
@@ -28,60 +28,62 @@ export default class LockdownCommand extends BaseCommand {
 							ChannelType.GuildText,
 							ChannelType.PublicThread,
 							ChannelType.GuildForum,
-							ChannelType.PrivateThread
+							ChannelType.PrivateThread,
 						)
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("begin")
 						.setDescription(
-							"When to start the lockdown. (Defaults to immediately)"
+							"When to start the lockdown. (Defaults to immediately)",
 						)
-						.setRequired(false)
+						.setRequired(false),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("duration")
 						.setDescription(
-							"When to end the lockdown. (Defaults to 1 day)"
+							"When to end the lockdown. (Defaults to 1 day)",
 						)
-						.setRequired(false)
+						.setRequired(false),
 				)
 				.addIntegerOption((option) =>
 					option
 						.setName("start")
 						.setDescription(
-							"When to start the lockdown. (Epoch) (Defaults to immediately)"
+							"When to start the lockdown. (Epoch) (Defaults to immediately)",
 						)
-						.setRequired(false)
+						.setRequired(false),
 				)
 				.addIntegerOption((option) =>
 					option
 						.setName("end")
 						.setDescription(
-							"When to end the lockdown. (Epoch) (Defaults to 1 day)"
+							"When to end the lockdown. (Epoch) (Defaults to 1 day)",
 						)
-						.setRequired(false)
+						.setRequired(false),
 				)
 				.setDMPermission(false)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+				.setDefaultMemberPermissions(
+					PermissionFlagsBits.ManageChannels,
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const channel = interaction.options.getChannel("channel", true, [
 			ChannelType.GuildText,
 			ChannelType.PublicThread,
 			ChannelType.GuildForum,
-			ChannelType.PrivateThread
+			ChannelType.PrivateThread,
 		]);
 
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const time = Math.floor(Date.now() / 1000);
@@ -98,7 +100,7 @@ export default class LockdownCommand extends BaseCommand {
 
 		if (endTimestamp <= startTimestamp) {
 			await interaction.editReply({
-				content: `Invalid timestamps provided.`
+				content: `Invalid timestamps provided.`,
 			});
 
 			return;
@@ -108,7 +110,7 @@ export default class LockdownCommand extends BaseCommand {
 			if (channel instanceof ThreadChannel) {
 				if (channel.locked) {
 					await interaction.editReply({
-						content: `<#${channel.id}> is already locked.`
+						content: `<#${channel.id}> is already locked.`,
 					});
 
 					return;
@@ -120,12 +122,12 @@ export default class LockdownCommand extends BaseCommand {
 				channel instanceof ForumChannel
 			) {
 				const permissions = channel.permissionsFor(
-					interaction.guild.roles.everyone
+					interaction.guild.roles.everyone,
 				);
 
 				if (!permissions.has(PermissionFlagsBits.SendMessages)) {
 					await interaction.editReply({
-						content: `<#${channel.id}> is already locked.`
+						content: `<#${channel.id}> is already locked.`,
 					});
 
 					return;
@@ -135,8 +137,8 @@ export default class LockdownCommand extends BaseCommand {
 					interaction.guild.roles.everyone,
 					{
 						SendMessages: false,
-						SendMessagesInThreads: false
-					}
+						SendMessagesInThreads: false,
+					},
 				);
 			}
 
@@ -147,13 +149,13 @@ export default class LockdownCommand extends BaseCommand {
 			},
 			{
 				startTimestamp: startTimestamp.toString(),
-				endTimestamp: endTimestamp.toString()
+				endTimestamp: endTimestamp.toString(),
 			},
-			{ upsert: true }
+			{ upsert: true },
 		);
 
 		await interaction.editReply({
-			content: `<#${channel.id}> will be locked at <t:${Math.floor(startTimestamp)}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`
+			content: `<#${channel.id}> will be locked at <t:${Math.floor(startTimestamp)}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`,
 		});
 	}
 }

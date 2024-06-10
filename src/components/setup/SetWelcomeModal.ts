@@ -1,18 +1,18 @@
 import { GuildPreferences } from "@/mongo";
-import { type ICachedGuildPreferences } from "@/redis/schemas/GuildPreferences";
 import { GuildPreferencesCache } from "@/redis";
+import type { ICachedGuildPreferences } from "@/redis/schemas/GuildPreferences";
 import {
+	ActionRowBuilder,
+	type ButtonInteraction,
 	ModalBuilder,
 	TextInputBuilder,
 	TextInputStyle,
-	ActionRowBuilder,
-	type ButtonInteraction
 } from "discord.js";
 
 class SetWelcomeModal extends ModalBuilder {
 	constructor(
 		customId: string,
-		guildPreferences: ICachedGuildPreferences | null
+		guildPreferences: ICachedGuildPreferences | null,
 	) {
 		super();
 		this.setTitle("Set welcome messages").setCustomId(customId);
@@ -21,7 +21,7 @@ class SetWelcomeModal extends ModalBuilder {
 			.setCustomId("channelMessage")
 			.setLabel("Channel Message (sent in #welcome)")
 			.setPlaceholder(
-				"{user} just joined {guildName}. We now have {memberCount} members"
+				"{user} just joined {guildName}. We now have {memberCount} members",
 			)
 			.setStyle(TextInputStyle.Paragraph)
 			.setRequired(false)
@@ -37,9 +37,9 @@ class SetWelcomeModal extends ModalBuilder {
 
 		const actionRows = [
 			new ActionRowBuilder<TextInputBuilder>().addComponents(
-				channelMessage
+				channelMessage,
 			),
-			new ActionRowBuilder<TextInputBuilder>().addComponents(dmMessage)
+			new ActionRowBuilder<TextInputBuilder>().addComponents(dmMessage),
 		];
 
 		this.addComponents(...actionRows);
@@ -47,12 +47,12 @@ class SetWelcomeModal extends ModalBuilder {
 
 	async waitForResponse(
 		customId: string,
-		interaction: ButtonInteraction
+		interaction: ButtonInteraction,
 	): Promise<void> {
 		try {
 			const followUpInteraction = await interaction.awaitModalSubmit({
 				time: 300_000,
-				filter: (i) => i.customId === customId
+				filter: (i) => i.customId === customId,
 			});
 
 			const channelMessage =
@@ -65,14 +65,14 @@ class SetWelcomeModal extends ModalBuilder {
 			if (channelMessage) {
 				await GuildPreferences.updateOne(
 					{
-						guildId: interaction.guildId
+						guildId: interaction.guildId,
 					},
 					{
-						welcomeChannelMessage: channelMessage
+						welcomeChannelMessage: channelMessage,
 					},
 					{
-						upsert: true
-					}
+						upsert: true,
+					},
 				);
 				await GuildPreferencesCache.remove(interaction.guildId);
 			}
@@ -80,21 +80,21 @@ class SetWelcomeModal extends ModalBuilder {
 			if (dmMessage) {
 				await GuildPreferences.updateOne(
 					{
-						guildId: interaction.guildId
+						guildId: interaction.guildId,
 					},
 					{
-						welcomeDMMessage: dmMessage
+						welcomeDMMessage: dmMessage,
 					},
 					{
-						upsert: true
-					}
+						upsert: true,
+					},
 				);
 				await GuildPreferencesCache.remove(interaction.guildId);
 			}
 
 			await followUpInteraction.reply({
 				content: `Welcome message(s) have been set`,
-				ephemeral: true
+				ephemeral: true,
 			});
 		} catch (error) {
 			return;

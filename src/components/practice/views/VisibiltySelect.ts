@@ -1,5 +1,5 @@
-import Select from "../../Select";
 import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import Select from "../../Select";
 
 class VisibiltySelect {
 	rows: ActionRowBuilder<Select>[];
@@ -15,14 +15,14 @@ class VisibiltySelect {
 				new StringSelectMenuOptionBuilder()
 					.setLabel("Private")
 					.setValue("private")
-					.setDescription("Only invited members can join")
+					.setDescription("Only invited members can join"),
 			],
 			1,
-			`${customId}_0`
+			`${customId}_0`,
 		);
 
 		const row = new ActionRowBuilder<Select>().addComponents(
-			visbilitySelect
+			visbilitySelect,
 		);
 		this.rows = [row];
 	}

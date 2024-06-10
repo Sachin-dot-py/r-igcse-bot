@@ -1,10 +1,10 @@
-import {
-	Schema,
-	Repository,
-	type RedisConnection,
-	type Entity
-} from "redis-om";
 import { GuildPreferences, type IGuildPreferences } from "@/mongo";
+import {
+	type Entity,
+	type RedisConnection,
+	Repository,
+	Schema,
+} from "redis-om";
 
 export type ICachedGuildPreferences = IGuildPreferences & Entity;
 
@@ -19,10 +19,12 @@ const schema = new Schema("GuildPreferences", {
 	welcomeChannelId: { type: "string" },
 	confessionsChannelId: { type: "string" },
 	confessionApprovalChannelId: { type: "string" },
+	hostSessionApprovalChannelId: { type: "string" },
 	countingChannelId: { type: "string" },
 	hotmResultsChannelId: { type: "string" },
 	hotmResultsEmbedId: { type: "string" },
-	studySessionChannelId: { type: "string" },
+	hostSessionChannelId: { type: "string" },
+	archiveSessionCategoryId: { type: "string" },
 	modmailCreateChannelId: { type: "string" },
 	modmailThreadsChannelId: { type: "string" },
 	modmailLogsChannelId: { type: "string" },
@@ -30,7 +32,8 @@ const schema = new Schema("GuildPreferences", {
 	banAppealFormLink: { type: "string" },
 	forcedMuteRoleId: { type: "string" },
 	welcomeChannelMessage: { type: "string" },
-	welcomeDMMessage: { type: "string" }
+	welcomeDMMessage: { type: "string" },
+	groupStudyChannelId: { type: "string" },
 });
 
 export class GuildPreferencesRepository extends Repository {
@@ -58,7 +61,7 @@ export class GuildPreferencesRepository extends Repository {
 	async set(guildId: string, preferences: IGuildPreferences) {
 		const res = (await this.save(
 			guildId,
-			preferences
+			preferences,
 		)) as IGuildPreferences;
 
 		await this.expire(guildId, 120);

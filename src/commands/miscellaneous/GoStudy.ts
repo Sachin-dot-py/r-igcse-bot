@@ -2,14 +2,14 @@ import { ForcedMute } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 import parse from "parse-duration";
 
@@ -19,29 +19,29 @@ export default class GoStudyCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("gostudy")
 				.setDescription(
-					"Restricts access to off-topic channels so you can study in peace."
+					"Restricts access to off-topic channels so you can study in peace.",
 				)
 				.addUserOption((option) =>
 					option
 						.setName("user")
 						.setDescription("User to timeout (for mods)")
-						.setRequired(false)
+						.setRequired(false),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("duration")
 						.setDescription(
-							"Duration for gostudy (default: 1 hour)"
+							"Duration for gostudy (default: 1 hour)",
 						)
-						.setRequired(false)
+						.setRequired(false),
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		let user = interaction.options.getUser("user", false);
 		const durationString =
@@ -51,12 +51,12 @@ export default class GoStudyCommand extends BaseCommand {
 			user &&
 			interaction.user.id !== user.id &&
 			!interaction.member.permissions.has(
-				PermissionFlagsBits.ModerateMembers
+				PermissionFlagsBits.ModerateMembers,
 			)
 		) {
 			await interaction.reply({
 				content: "You do not have permission to gostudy other users.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -67,20 +67,20 @@ export default class GoStudyCommand extends BaseCommand {
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences || !guildPreferences.forcedMuteRoleId) {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
 
 		const duration = ["unspecified", "permanent", "undecided"].some((s) =>
-			durationString.includes(s)
+			durationString.includes(s),
 		)
 			? 2419200
 			: parse(durationString, "second") ?? 86400;
@@ -88,7 +88,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (duration <= 0) {
 			await interaction.reply({
 				content: "Invalid duration!",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -99,20 +99,20 @@ export default class GoStudyCommand extends BaseCommand {
 		if (!member) {
 			await interaction.reply({
 				content: "Invalid user!",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
 		const role = interaction.guild.roles.cache.get(
-			guildPreferences.forcedMuteRoleId
+			guildPreferences.forcedMuteRoleId,
 		);
 
 		if (!role) {
 			await interaction.reply({
 				content: "Forced mute role not found!",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -124,13 +124,13 @@ export default class GoStudyCommand extends BaseCommand {
 
 		const alreadyMuted = await ForcedMute.findOne({
 			userId: user.id,
-			guildId: interaction.guildId
+			guildId: interaction.guildId,
 		});
 
 		if (alreadyMuted?.expiration && alreadyMuted.expiration > expiration) {
 			await interaction.editReply({
 				content:
-					"You cannot reduce the duration of an existing forced mute! Feel free to extend it though."
+					"You cannot reduce the duration of an existing forced mute! Feel free to extend it though.",
 			});
 
 			return;
@@ -148,7 +148,7 @@ export default class GoStudyCommand extends BaseCommand {
 				`${this.data.name} Command (adding role)`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 			Logger.error(error);
 		}
@@ -156,42 +156,47 @@ export default class GoStudyCommand extends BaseCommand {
 		await new ForcedMute({
 			userId: user.id,
 			guildId: interaction.guildId,
-			expiration
+			expiration,
 		}).save();
 
 		const dmEmbed = new EmbedBuilder()
 			.setTitle(`It's time to study!`)
 			.setDescription(
-				`Time to study! You've been given a temporary break from the off-topic channels${user.id !== interaction.user.id ? ` thanks to ${interaction.user.tag}` : ""}. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
+				`Time to study! You've been given a temporary break from the off-topic channels${user.id !== interaction.user.id ? ` thanks to <@${interaction.user.id}>` : ""}. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
 			)
 			.setFooter({
-				text: `From ${interaction.guild.name}`
+				text: `From ${interaction.guild.name}`,
 			})
 			.setColor("Random");
 
 		await sendDm(member, {
-			embeds: [dmEmbed]
+			embeds: [dmEmbed],
+			allowedMentions: { repliedUser: false }
 		});
 
 		await interaction.editReply({
-			content: `Alright, you can study in peace now, make sure to actually study though. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
+			content: `Alright, you can study in peace now, make sure to actually study though. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`,
 		});
 	}
 
 	async expireForcedMute(client: DiscordClient<true>) {
 		const expiredMutes = await ForcedMute.find({
-			expiration: { $lte: new Date() }
+			expiration: { $lte: new Date() },
 		});
 
 		for (const mute of expiredMutes) {
-			const guild = await client.guilds.fetch(mute.guildId).catch(x => null);
+			const guild = await client.guilds
+				.fetch(mute.guildId)
+				.catch((x) => null);
 
 			if (!guild) {
 				await mute.deleteOne();
 				continue;
 			}
 
-			const member = await guild.members.fetch(mute.userId).catch(x => null);
+			const member = await guild.members
+				.fetch(mute.userId)
+				.catch((x) => null);
 
 			if (!member) {
 				await mute.deleteOne();
@@ -206,7 +211,7 @@ export default class GoStudyCommand extends BaseCommand {
 			}
 
 			const role = guild.roles.cache.get(
-				guildPreferences.forcedMuteRoleId
+				guildPreferences.forcedMuteRoleId,
 			);
 
 			if (!role) {
@@ -221,7 +226,7 @@ export default class GoStudyCommand extends BaseCommand {
 					error,
 					`${this.data.name} Command (removing role)`,
 					`**User:** <@${member.id}>
-						**Guild:** ${guild.name} (${guild.id})\n`
+						**Guild:** ${guild.name} (${guild.id})\n`,
 				);
 				Logger.error(error);
 			}

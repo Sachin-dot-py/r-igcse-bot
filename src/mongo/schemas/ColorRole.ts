@@ -14,11 +14,11 @@ const schema = new Schema<IColorRole>({
 		type: [String],
 		required: false,
 		default: null,
-		unique: false
+		unique: false,
 	},
 	emoji: { type: String, required: false, default: null, unique: false },
 	label: { type: String, required: true, unique: false },
-	roleId: { type: String, required: true, unique: false }
+	roleId: { type: String, required: true, unique: false },
 });
 
 export const ColorRole = createModel<IColorRole>("ColorRole", schema);

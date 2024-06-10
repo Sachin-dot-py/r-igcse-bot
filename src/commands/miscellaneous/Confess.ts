@@ -66,38 +66,6 @@ export default class FunFactCommand extends BaseCommand {
 			return;
 		}
 
-		const bannedQuery: IBannedData[] | null =
-			(await ConfessionBan.aggregate([
-				{
-					$match: {
-						guildId: interaction.guild.id
-					}
-				},
-				{
-					$group: {
-						_id: "$guildId",
-						bannedUsers: {
-							$push: "$userHash"
-						}
-					}
-				}
-			])) ?? null;
-
-		const bannedUsers = bannedQuery[0]?.bannedUsers || [];
-
-		for (const userHash of bannedUsers) {
-			if (await Bun.password.verify(interaction.user.id, userHash)) {
-				await interaction.reply({
-					content:
-						"You have been banned from making confessions in this server.",
-					ephemeral: true
-				});
-
-				return;
-			}
-		}
-
-		//#region Modal
 		const feedbackInput = new TextInputBuilder()
 			.setCustomId("confession-input")
 			.setLabel("Confession")
@@ -126,12 +94,42 @@ export default class FunFactCommand extends BaseCommand {
 		const confession =
 			modalInteraction.fields.getTextInputValue("confession-input");
 
-		await modalInteraction.reply({
+		await modalInteraction.deferReply({ ephemeral: true });
+
+		const bannedQuery: IBannedData[] | null =
+			(await ConfessionBan.aggregate([
+				{
+					$match: {
+						guildId: interaction.guild.id
+					}
+				},
+				{
+					$group: {
+						_id: "$guildId",
+						bannedUsers: {
+							$push: "$userHash"
+						}
+					}
+				}
+			])) ?? null;
+
+		const bannedUsers = bannedQuery[0]?.bannedUsers || [];
+
+		for (const userHash of bannedUsers) {
+			if (await Bun.password.verify(interaction.user.id, userHash)) {
+				await modalInteraction.editReply({
+					content:
+						"You have been banned from making confessions in this server."
+				});
+
+				return;
+			}
+		}
+
+		await modalInteraction.editReply({
 			content:
-				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
-			ephemeral: true
+				"Your confession has been sent to the moderators.\nYou have to wait for their approval."
 		});
-		//#endregion
 
 		const embed = new EmbedBuilder()
 			.setDescription(confession)

@@ -1,14 +1,9 @@
-import {
-	Colors,
-	EmbedBuilder,
-	PermissionsBitField,
-	SlashCommandBuilder
-} from "discord.js";
-import BaseCommand, {
-	type DiscordChatInputCommandInteraction
-} from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import Pagination from "@/components/Pagination";
+import BaseCommand, {
+	type DiscordChatInputCommandInteraction,
+} from "@/registry/Structure/BaseCommand";
+import { PaginationBuilder } from "@discordforge/pagination";
+import { Colors, PermissionsBitField, SlashCommandBuilder } from "discord.js";
 
 export default class HelpCommand extends BaseCommand {
 	constructor() {
@@ -16,13 +11,13 @@ export default class HelpCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("help")
 				.setDescription("A list of all the commands available to you.")
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const commands = client.commands.filter((command) => {
 			if (!("description" in command.data)) return false;
@@ -32,45 +27,27 @@ export default class HelpCommand extends BaseCommand {
 			)
 				return false;
 			if (!command.data.default_member_permissions) return true;
-			if (
-				interaction.member?.permissions instanceof PermissionsBitField
-			) {
+			if (interaction.member?.permissions instanceof PermissionsBitField)
 				return interaction.member.permissions.has(
-					BigInt(command.data.default_member_permissions)
+					BigInt(command.data.default_member_permissions),
 				);
-			}
 		});
 
-		const chunks = Array.from(
-			{ length: Math.ceil(commands.size / 9) },
-			(_, i) => Array.from(commands.values()).slice(i * 9, i * 9 + 9)
-		);
-
-		const paginator = new Pagination(chunks, async (chunk) => {
-			const embed = new EmbedBuilder()
-				.setTitle("Help Menu")
-				.setColor(Colors.Blurple)
-				.setDescription(
-					`Page ${chunks.indexOf(chunk) + 1} of ${chunks.length}`
-				);
-
-			for (const command of chunk) {
-				if ("description" in command.data)
-					embed.addFields({
-						name: `/${command.data.name}`,
-						value: command.data.description
-					});
-			}
-
-			return {
-				embeds: [embed]
-			};
-		});
-
-		await paginator.start({
-			interaction,
-			ephemeral: true,
-			time: 900_000 // 15 minutes
-		});
+		new PaginationBuilder(
+			commands.map(({ data }) => ({
+				name: data.name,
+				description:
+					"description" in data
+						? data.description
+						: "Couldn't get description. Report using `/feedback`",
+			})),
+			async ({ name, description }) => ({
+				name: `/${name}`,
+				value: description,
+			}),
+		)
+			.setTitle("Help Menu")
+			.setColor(Colors.Blurple)
+			.build((page) => interaction.reply(page), [interaction.user.id]);
 	}
 }

@@ -1,13 +1,13 @@
-import { GuildPreferences, Punishment, type IGuildPreferences } from "@/mongo";
+import { GuildPreferences, type IGuildPreferences, Punishment } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import Logger from "@/utils/Logger";
-import { Colors, EmbedBuilder, type APIEmbedField } from "discord.js";
+import { type APIEmbedField, Colors, EmbedBuilder } from "discord.js";
 
 export default async function actionRequired(
-	client: DiscordClient<true>
+	client: DiscordClient<true>,
 ): Promise<void> {
 	const guildsPreferences = (await GuildPreferences.find({
-		actionRequiredChannelId: { $ne: null }
+		actionRequiredChannelId: { $ne: null },
 	})) as (IGuildPreferences & { actionRequiredChannelId: string })[];
 
 	for (const guildPreferences of guildsPreferences) {
@@ -16,7 +16,7 @@ export default async function actionRequired(
 		if (!guild) continue;
 
 		const actionRequiredChannel = await guild.channels.fetch(
-			guildPreferences.actionRequiredChannelId
+			guildPreferences.actionRequiredChannelId,
 		);
 
 		if (!actionRequiredChannel || !actionRequiredChannel.isTextBased())
@@ -26,15 +26,43 @@ export default async function actionRequired(
 			_id: string;
 			totalPoints: number;
 		}>([
-			{ $match: { guildId: guild.id } },
+			{
+				$match: {
+					guildId: guild.id,
+				},
+			},
+			{
+				$sort: {
+					when: -1,
+				},
+			},
 			{
 				$group: {
 					_id: "$actionAgainst",
-					totalPoints: { $sum: "$points" }
-				}
+					totalPoints: {
+						$sum: "$points",
+					},
+					lastPunishment: {
+						$first: "$when",
+					},
+				},
 			},
-			{ $match: { $expr: { $gte: ["$totalPoints", 10] } } },
-			{ $sort: { totalPoints: -1 } }
+			{
+				$match: {
+					totalPoints: {
+						$gte: 10,
+					},
+					lastPunishment: {
+						// 30 days
+						$gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30),
+					},
+				},
+			},
+			{
+				$sort: {
+					totalPoints: -1,
+				},
+			},
 		]);
 
 		const fields = [] as APIEmbedField[];
@@ -49,7 +77,7 @@ export default async function actionRequired(
 
 			fields.push({
 				name: `${member.user.tag} (${member.id})`,
-				value: `Total Points: ${userPunishments.totalPoints}`
+				value: `Total Points: ${userPunishments.totalPoints}`,
 			});
 		}
 
@@ -57,22 +85,22 @@ export default async function actionRequired(
 
 		const chunks = Array.from(
 			{ length: Math.ceil(fields.length / 25) },
-			(_, i) => fields.slice(i * 25, i * 25 + 25)
+			(_, i) => fields.slice(i * 25, i * 25 + 25),
 		);
 
 		const embeds = chunks.map((chunk) =>
 			new EmbedBuilder()
 				.setTitle("Infraction Points Leaderboard")
 				.setDescription(
-					"The following users have accumulated 10 or more infraction points."
+					"The following users have accumulated 10 or more infraction points.",
 				)
 				.setColor(Colors.DarkNavy)
-				.addFields(chunk)
+				.addFields(chunk),
 		);
 
 		await actionRequiredChannel
 			.send({
-				embeds
+				embeds,
 			})
 			.catch(Logger.error);
 	}

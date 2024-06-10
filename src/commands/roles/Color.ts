@@ -1,14 +1,14 @@
 import { ColorRole } from "@/mongo/schemas/ColorRole";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
 	ComponentType,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
-	StringSelectMenuOptionBuilder
+	StringSelectMenuOptionBuilder,
 } from "discord.js";
 
 export default class ColorRolesCommand extends BaseCommand {
@@ -17,22 +17,22 @@ export default class ColorRolesCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("color")
 				.setDescription("Choose a display colour for your name")
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const guildColorRoles = await ColorRole.find({
-			guildId: interaction.guildId
+			guildId: interaction.guildId,
 		});
 
 		if (guildColorRoles.length < 1) {
 			await interaction.reply({
 				content: "Color roles not configured for this server",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -41,15 +41,15 @@ export default class ColorRolesCommand extends BaseCommand {
 		const colorRoles = guildColorRoles.filter(({ requirementRoleIds }) =>
 			requirementRoleIds
 				? requirementRoleIds.some((roleId) =>
-						interaction.member.roles.cache.has(roleId)
+						interaction.member.roles.cache.has(roleId),
 					)
-				: true
+				: true,
 		);
 
 		if (colorRoles.length < 1) {
 			await interaction.reply({
 				content: "No color roles are available for you ¯\\_(ツ)_/¯",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -65,19 +65,19 @@ export default class ColorRolesCommand extends BaseCommand {
 					((x) => (emoji ? x.setEmoji(emoji) : x))(
 						new StringSelectMenuOptionBuilder()
 							.setLabel(label)
-							.setValue(roleId)
-					)
-				)
+							.setValue(roleId),
+					),
+				),
 			);
 
 		const row =
 			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-				roleSelect
+				roleSelect,
 			);
 
 		const component = await interaction.reply({
 			components: [row],
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const collector = component.createMessageComponentCollector({
@@ -85,7 +85,7 @@ export default class ColorRolesCommand extends BaseCommand {
 				i.user.id === interaction.user.id &&
 				i.customId === "color_roles",
 			componentType: ComponentType.StringSelect,
-			time: 300_000
+			time: 300_000,
 		});
 
 		collector.on("collect", async (i) => {
@@ -93,28 +93,20 @@ export default class ColorRolesCommand extends BaseCommand {
 
 			const role = interaction.guild.roles.cache.get(i.values[0]);
 
-			if (!role) {
-				await i.member.roles
-					.remove(
-						guildColorRoles.map((colorRole) => colorRole.roleId)
-					)
-					.catch(() => {});
-				interaction.followUp({
-					content: "All color roles have been removed from you.",
-					ephemeral: true
-				});
-			} else {
+			if (role) {
 				if (i.member.roles.cache.has(role.id)) {
 					await i.member.roles.remove(role);
 					interaction.followUp({
 						content: `Removed role ${role.name}`,
-						ephemeral: true
+						ephemeral: true,
 					});
 					return;
 				} else {
 					await i.member.roles
 						.remove(
-							guildColorRoles.map((colorRole) => colorRole.roleId)
+							guildColorRoles.map(
+								(colorRole) => colorRole.roleId,
+							),
 						)
 						.catch(() => {});
 					await i.member.roles.add(role);
@@ -122,7 +114,17 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				interaction.followUp({
 					content: `Added role ${role.name}`,
-					ephemeral: true
+					ephemeral: true,
+				});
+			} else {
+				await i.member.roles
+					.remove(
+						guildColorRoles.map((colorRole) => colorRole.roleId),
+					)
+					.catch(() => {});
+				interaction.followUp({
+					content: "All color roles have been removed from you.",
+					ephemeral: true,
 				});
 			}
 		});

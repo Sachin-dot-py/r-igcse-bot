@@ -1,5 +1,5 @@
+import type { MessageCreateOptions } from "discord.js";
 import { Schema, model as createModel } from "mongoose";
-import { type MessageCreateOptions } from "discord.js";
 
 export interface IScheduledMessage {
 	guildId: string;
@@ -12,10 +12,10 @@ const schema = new Schema<IScheduledMessage>({
 	guildId: { type: String, required: true, unique: false },
 	channelId: { type: String, required: true, unique: false },
 	message: { type: Object, required: true, unique: false },
-	scheduleTime: { type: String, required: true, unique: false }
+	scheduleTime: { type: String, required: true, unique: false },
 });
 
 export const ScheduledMessage = createModel<IScheduledMessage>(
 	"ScheduledMessage",
-	schema
+	schema,
 );

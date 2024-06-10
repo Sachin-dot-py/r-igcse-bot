@@ -1,10 +1,10 @@
 import { Reputation } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import { Colors, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import Pagination from "@/components/Pagination";
+import { PaginationBuilder } from "@discordforge/pagination";
+import { Colors, SlashCommandBuilder } from "discord.js";
 
 export default class LeaderboardCommand extends BaseCommand {
 	constructor() {
@@ -17,14 +17,14 @@ export default class LeaderboardCommand extends BaseCommand {
 					option
 						.setName("page")
 						.setDescription("Page number to to display")
-						.setRequired(false)
-				)
+						.setRequired(false),
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
@@ -33,53 +33,31 @@ export default class LeaderboardCommand extends BaseCommand {
 		await interaction.deferReply();
 
 		const reps = await Reputation.find({
-			guildId: interaction.guildId
+			guildId: interaction.guildId,
 		}).sort({
-			rep: "descending"
+			rep: "descending",
 		});
 
 		if (reps.length === 0) {
 			interaction.followUp({
 				content: "No one in this server has rep 💀",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
-		const chunks = Array.from(
-			{ length: Math.ceil(reps.length / 9) },
-			(_, i) => reps.slice(i * 9, i * 9 + 9)
-		);
-
-		const paginator = new Pagination(
-			chunks,
-			async (chunk) => {
-				const embed = new EmbedBuilder()
-					.setTitle("Rep Leaderboard")
-					.setColor(Colors.Blurple)
-					.setDescription(
-						`Page ${chunks.indexOf(chunk) + 1} of ${chunks.length}`
-					);
-
-				for (const { userId, rep } of chunk) {
-					const user = await client.users.fetch(userId);
-
-					embed.addFields({
-						name: user.tag,
-						value: `${rep}`,
-						inline: true
-					});
-				}
-
-				return { embeds: [embed] };
-			},
-			page
-		);
-
-		await paginator.start({
-			interaction,
-			ephemeral: false
-		});
+		new PaginationBuilder(
+			reps.map(({ userId, rep }) => ({ userId, rep })),
+			async ({ userId, rep }) => ({
+				name: (await client.users.fetch(userId)).tag,
+				value: `${rep}`,
+				inline: true,
+			}),
+		)
+			.setTitle("Rep Leaderboard")
+			.setColor(Colors.Blurple)
+			.setInitialPage(page)
+			.build((page) => interaction.followUp(page), [interaction.user.id]);
 	}
 }

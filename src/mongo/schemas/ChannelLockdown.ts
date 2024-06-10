@@ -11,10 +11,10 @@ const schema = new Schema<IChannelLockdown>({
 	guildId: { type: String, required: true, unique: false },
 	channelId: { type: String, required: true, unique: true },
 	startTimestamp: { type: String, required: true, unique: false },
-	endTimestamp: { type: String, required: true, unique: false }
+	endTimestamp: { type: String, required: true, unique: false },
 });
 
 export const ChannelLockdown = createModel<IChannelLockdown>(
 	"ChannelLockdown",
-	schema
+	schema,
 );
