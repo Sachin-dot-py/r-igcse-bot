@@ -55,8 +55,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		if (punishments.length < 1) {
 			await interaction.editReply({
-				content: `<@${user.id}> does not have any previous offenses.`,
-				allowedMentions: { repliedUser: false }
+				content: `${user.tag} does not have any previous offenses.`,
 			});
 			return;
 		}

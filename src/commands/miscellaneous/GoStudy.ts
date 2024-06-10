@@ -162,7 +162,7 @@ export default class GoStudyCommand extends BaseCommand {
 		const dmEmbed = new EmbedBuilder()
 			.setTitle(`It's time to study!`)
 			.setDescription(
-				`Time to study! You've been given a temporary break from the off-topic channels${user.id !== interaction.user.id ? ` thanks to <@${interaction.user.id}>` : ""}. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`
+				`Time to study! You've been given a temporary break from the off-topic channels${user.id !== interaction.user.id ? ` thanks to ${interaction.user.tag}` : ""}. You'll be given access to off-topic channels again <t:${Math.floor(expiration.getTime() / 1000)}:R>`,
 			)
 			.setFooter({
 				text: `From ${interaction.guild.name}`,
@@ -171,7 +171,6 @@ export default class GoStudyCommand extends BaseCommand {
 
 		await sendDm(member, {
 			embeds: [dmEmbed],
-			allowedMentions: { repliedUser: false }
 		});
 
 		await interaction.editReply({
