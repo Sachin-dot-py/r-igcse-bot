@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import {
 	Colors,
 	EmbedBuilder,
@@ -120,13 +120,9 @@ export default class UnbanCommand extends BaseCommand {
 				])
 				.setTimestamp();
 
-			Logger.channel(
-				interaction.guild,
-				guildPreferences.modlogChannelId,
-				{
-					embeds: [modEmbed],
-				},
-			);
+			logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed],
+			});
 		}
 
 		interaction.editReply({ content: "there ya go good sir" });

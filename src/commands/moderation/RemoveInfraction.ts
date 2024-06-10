@@ -6,7 +6,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
@@ -129,31 +129,27 @@ export default class extends BaseCommand {
 
 		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
 
-		await Logger.channel(
-			interaction.guild,
-			guildPreferences.modlogChannelId,
-			{
-				embeds: [
-					new EmbedBuilder()
-						.setTitle("Punishment Removed")
-						.setDescription(
-							`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`,
-						)
-						.addFields(
-							{
-								name: "Punishment Reason",
-								value: punishment.reason,
-							},
-							{
-								name: "Action",
-								value: punishment.action,
-							},
-						)
-						.setFooter({
-							text: `Case #${punishment.caseId ?? "Unknown"}`,
-						}),
-				],
-			},
-		);
+		logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+			embeds: [
+				new EmbedBuilder()
+					.setTitle("Punishment Removed")
+					.setDescription(
+						`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`,
+					)
+					.addFields(
+						{
+							name: "Punishment Reason",
+							value: punishment.reason,
+						},
+						{
+							name: "Action",
+							value: punishment.action,
+						},
+					)
+					.setFooter({
+						text: `Case #${punishment.caseId ?? "Unknown"}`,
+					}),
+			],
+		});
 	}
 }

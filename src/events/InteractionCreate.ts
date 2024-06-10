@@ -8,7 +8,6 @@ import {
 	GuildPreferencesCache,
 	PracticeQuestionCache,
 } from "@/redis";
-import Logger from "@/utils/Logger";
 import {
 	type ActionRowBuilder,
 	type ButtonBuilder,
@@ -25,6 +24,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { Logger } from "@discordforge/logger";
+import { logToChannel } from "@/utils/Logger";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -62,7 +63,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			);
 			if (!mainGuild) return;
 
-			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
+			logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [embed],
 			});
 		}

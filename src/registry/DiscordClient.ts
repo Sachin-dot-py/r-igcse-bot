@@ -1,4 +1,3 @@
-import Logger from "@/utils/Logger";
 import {
 	Client,
 	type ClientOptions,
@@ -6,6 +5,7 @@ import {
 	EmbedBuilder,
 } from "discord.js";
 import type BaseCommand from "./Structure/BaseCommand";
+import { Logger } from "@discordforge/logger";
 
 export class DiscordClient<
 	Ready extends boolean = boolean,

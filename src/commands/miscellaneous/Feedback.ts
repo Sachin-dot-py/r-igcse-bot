@@ -2,7 +2,6 @@ import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
 import { FeedbackChannels } from "@/mongo/schemas/FeedbackChannel";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import Logger from "@/utils/Logger";
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
@@ -18,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger";
 
 export default class FeedbackCommand extends BaseCommand {
 	constructor() {
@@ -155,7 +155,7 @@ export default class FeedbackCommand extends BaseCommand {
 		}
 
 		try {
-			Logger.channel(messageGuild, team.channelId, {
+			logToChannel(messageGuild, team.channelId, {
 				embeds: [embed],
 			});
 

@@ -1,6 +1,6 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	ChannelSelectMenuBuilder,
 	ChannelType,
@@ -77,13 +77,13 @@ class CategoryChannelSelect extends ChannelSelectMenuBuilder {
 		});
 
 		/*selectCollector.on("end", async () => {
-            if (this.isFirstComponent) {
-                await editMessage({
-                    components: [],
-                    content: "Timed out"
-                });
-            }
-        });*/
+	    if (this.isFirstComponent) {
+		await editMessage({
+		    components: [],
+		    content: "Timed out"
+		});
+	    }
+	});*/
 	}
 }
 

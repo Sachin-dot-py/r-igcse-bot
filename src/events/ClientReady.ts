@@ -10,7 +10,6 @@ import type {
 	APIEmbedRedis,
 	MessageCreateOptionsRedis,
 } from "@/redis/schemas/StickyMessage";
-import Logger from "@/utils/Logger";
 import createTask from "@/utils/createTask";
 import {
 	ActivityType,
@@ -25,6 +24,8 @@ import { EntityId } from "redis-om";
 import { client } from "..";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { Logger } from "@discordforge/logger";
+import { logToChannel } from "@/utils/Logger";
 
 export default class ClientReadyEvent extends BaseEvent {
 	constructor() {
@@ -52,7 +53,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				})
 				.setTimestamp();
 
-			await Logger.channel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
+			await logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [readyEmbed],
 			});
 		}
@@ -114,10 +115,7 @@ export default class ClientReadyEvent extends BaseEvent {
 
 		if (hostSessionCommand) {
 			Logger.info("Starting hosted sessions loop");
-			setInterval(
-				() => hostSessionCommand.startSession(client),
-				60_000,
-			);
+			setInterval(() => hostSessionCommand.startSession(client), 60_000);
 		}
 
 		createTask(

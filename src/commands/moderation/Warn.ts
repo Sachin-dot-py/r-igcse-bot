@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
 	Colors,
@@ -113,13 +113,9 @@ export default class WarnCommand extends BaseCommand {
 				])
 				.setTimestamp();
 
-			Logger.channel(
-				interaction.guild,
-				guildPreferences.modlogChannelId,
-				{
-					embeds: [modEmbed],
-				},
-			);
+			logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed],
+			});
 		}
 
 		sendDm(guildMember, {

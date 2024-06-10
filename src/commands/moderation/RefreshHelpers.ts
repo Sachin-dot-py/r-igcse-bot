@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
@@ -93,7 +93,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			.setTimestamp();
 
 		if (guildPreferences.generalLogsChannelId) {
-			await Logger.channel(
+			logToChannel(
 				interaction.guild,
 				guildPreferences.generalLogsChannelId,
 				{

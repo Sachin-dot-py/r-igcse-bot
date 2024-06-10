@@ -9,7 +9,7 @@ import {
 	registerEvents,
 	syncCommands,
 } from "./registry/index";
-import Logger from "./utils/Logger";
+import { Logger } from "@discordforge/logger";
 
 redis.on("error", Logger.error);
 

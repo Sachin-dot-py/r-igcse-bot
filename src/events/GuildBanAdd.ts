@@ -1,6 +1,5 @@
 import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
 import {
 	AuditLogEvent,
 	Colors,
@@ -10,6 +9,7 @@ import {
 } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { logToChannel } from "@/utils/Logger";
 
 export default class GuildBanAddEvent extends BaseEvent {
 	constructor() {
@@ -72,7 +72,7 @@ export default class GuildBanAddEvent extends BaseEvent {
 				])
 				.setTimestamp();
 
-			Logger.channel(ban.guild, guildPreferences.modlogChannelId, {
+			logToChannel(ban.guild, guildPreferences.modlogChannelId, {
 				embeds: [modEmbed],
 			});
 		}

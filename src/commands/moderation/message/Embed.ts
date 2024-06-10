@@ -3,7 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,

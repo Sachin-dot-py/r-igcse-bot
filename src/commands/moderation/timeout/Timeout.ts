@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
 	Colors,
@@ -205,7 +205,7 @@ export default class TimeoutCommand extends BaseCommand {
 				]);
 
 			if (guildPreferences.modlogChannelId) {
-				Logger.channel(
+				logToChannel(
 					interaction.guild,
 					guildPreferences.modlogChannelId,
 					{
@@ -288,13 +288,9 @@ export default class TimeoutCommand extends BaseCommand {
 			]);
 
 		if (guildPreferences.modlogChannelId) {
-			Logger.channel(
-				interaction.guild,
-				guildPreferences.modlogChannelId,
-				{
-					embeds: [modEmbed],
-				},
-			);
+			logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed],
+			});
 		}
 
 		interaction.editReply({

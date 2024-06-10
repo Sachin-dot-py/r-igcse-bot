@@ -1,6 +1,5 @@
 import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
 import {
 	type AutoModerationActionExecution,
 	AutoModerationActionType,
@@ -11,6 +10,7 @@ import {
 import humanizeDuration from "humanize-duration";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { logToChannel } from "@/utils/Logger";
 
 export default class ErrorEvent extends BaseEvent {
 	constructor() {
@@ -85,7 +85,7 @@ export default class ErrorEvent extends BaseEvent {
 
 		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
 
-		await Logger.channel(
+		logToChannel(
 			autoModerationActionExecution.guild,
 			guildPreferences.modlogChannelId,
 			{

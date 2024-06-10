@@ -5,9 +5,9 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
 import type hotmSessionCommand from "./VotingSession";
+import { logToChannel } from "@/utils/Logger";
 
 export default class HOTMVotingCommand extends BaseCommand {
 	constructor() {
@@ -161,7 +161,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 			{ upsert: true },
 		);
 
-		await Logger.channel(
+		await logToChannel(
 			interaction.guild,
 			guildPreferences.hotmResultsChannelId,
 			{

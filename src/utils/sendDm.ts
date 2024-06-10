@@ -1,5 +1,6 @@
 import { ClosedDmThread } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
+import { Logger } from "@discordforge/logger";
 import {
 	ChannelType,
 	type GuildMember,
@@ -8,7 +9,6 @@ import {
 	TextChannel,
 	type ThreadChannel,
 } from "discord.js";
-import Logger from "./Logger";
 
 const sendDm = async (
 	member: GuildMember,

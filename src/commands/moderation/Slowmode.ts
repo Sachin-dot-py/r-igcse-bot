@@ -3,7 +3,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
@@ -88,30 +88,26 @@ export default class SlowmodeCommand extends BaseCommand {
 			return;
 		}
 
-		await Logger.channel(
-			interaction.guild,
-			guildPreferences.generalLogsChannelId,
-			{
-				embeds: [
-					new EmbedBuilder()
-						.setTitle("Slowmode added")
-						.setDescription(`Slowmode added in ${channel}`)
-						.setColor("Red")
-						.addFields(
-							{
-								name: "Moderator",
-								value: `${interaction.user.tag} (<@${interaction.user.id}>)`,
-							},
-							{
-								name: "Duration",
-								value: `${humanizeDuration(time * 1000)}`,
-							},
-						)
-						.setTimestamp(),
-				],
-				allowedMentions: { repliedUser: false },
-			},
-		).catch(() => {
+		logToChannel(interaction.guild, guildPreferences.generalLogsChannelId, {
+			embeds: [
+				new EmbedBuilder()
+					.setTitle("Slowmode added")
+					.setDescription(`Slowmode added in ${channel}`)
+					.setColor("Red")
+					.addFields(
+						{
+							name: "Moderator",
+							value: `${interaction.user.tag} (<@${interaction.user.id}>)`,
+						},
+						{
+							name: "Duration",
+							value: `${humanizeDuration(time * 1000)}`,
+						},
+					)
+					.setTimestamp(),
+			],
+			allowedMentions: { repliedUser: false },
+		}).catch(() => {
 			interaction.followUp({
 				content: "Invalid log channel, contact admins",
 				ephemeral: true,

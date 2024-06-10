@@ -9,7 +9,6 @@ import {
 	StickyMessageCache,
 } from "@/redis";
 import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
-import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
 	type APIEmbed,
@@ -27,6 +26,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { Logger } from "@discordforge/logger";
+import { logToChannel } from "@/utils/Logger";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -372,7 +373,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		}
 
 		if (guildPreferences.modmailLogsChannelId) {
-			Logger.channel(guild, guildPreferences.modmailLogsChannelId, {
+			logToChannel(guild, guildPreferences.modmailLogsChannelId, {
 				embeds: [
 					{
 						title: "New DM Recieved",

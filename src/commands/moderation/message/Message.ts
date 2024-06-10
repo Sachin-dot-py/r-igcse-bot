@@ -4,7 +4,8 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,
@@ -174,7 +175,7 @@ export default class KickCommand extends BaseCommand {
 							return;
 						}
 
-						await Logger.channel(
+						logToChannel(
 							interaction.guild,
 							guildPreferences.generalLogsChannelId,
 							{
@@ -242,7 +243,7 @@ export default class KickCommand extends BaseCommand {
 						return;
 					}
 
-					await Logger.channel(
+					logToChannel(
 						interaction.guild,
 						guildPreferences.generalLogsChannelId,
 						{
@@ -336,7 +337,7 @@ export default class KickCommand extends BaseCommand {
 						return;
 					}
 
-					await Logger.channel(
+					await logToChannel(
 						interaction.guild,
 						guildPreferences.generalLogsChannelId,
 						{

@@ -1,6 +1,6 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
-import Logger from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	ChannelSelectMenuBuilder,
 	ChannelType,

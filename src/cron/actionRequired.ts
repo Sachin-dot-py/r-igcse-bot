@@ -1,6 +1,6 @@
 import { GuildPreferences, type IGuildPreferences, Punishment } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
-import Logger from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import { type APIEmbedField, Colors, EmbedBuilder } from "discord.js";
 
 export default async function actionRequired(
