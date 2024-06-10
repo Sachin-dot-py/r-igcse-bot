@@ -106,7 +106,6 @@ export default class HelperMenu extends BaseCommand {
 		const pingMessage = await interaction.targetMessage.reply({
 			embeds: [embed],
 			components: [row],
-			allowedMentions: { repliedUser: false }
 		});
 
 		let canceled = false;
@@ -133,7 +132,7 @@ export default class HelperMenu extends BaseCommand {
 				canceled = true;
 
 				pingMessage.edit({
-					content: `Ping cancelled by <@${i.user.id}>`,
+					content: `Ping cancelled by ${i.user.tag}`,
 					components: [],
 					embeds: [],
 				});

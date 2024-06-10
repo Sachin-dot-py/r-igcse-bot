@@ -170,13 +170,13 @@ export default class BanCommand extends BaseCommand {
 				.addFields([
 					{
 						name: "User",
-						value: `<@${user.id}>`,
-						inline: false
+						value: `${user.tag} (${user.id})`,
+						inline: false,
 					},
 					{
 						name: "Moderator",
-						value: `<@${interaction.user.id}>`,
-						inline: false
+						value: `${interaction.user.tag} (${interaction.user.id})`,
+						inline: false,
 					},
 					{
 						name: "Reason",
@@ -188,10 +188,7 @@ export default class BanCommand extends BaseCommand {
 			Logger.channel(
 				interaction.guild,
 				guildPreferences.modlogChannelId,
-				{
-					embeds: [modEmbed],
-					allowedMentions: { repliedUser: false }
-				}
+				{ embeds: [modEmbed] },
 			);
 		}
 

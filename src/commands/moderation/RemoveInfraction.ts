@@ -48,10 +48,7 @@ export default class extends BaseCommand {
 
 		if (punishments.length < 1) {
 			await interaction.reply(
-				{
-					content: `<@${user.id}> does not have any previous offenses.`,
-					allowedMentions: { repliedUser: false }
-				}
+				`${user.tag} does not have any previous offenses.`,
 			);
 
 			return;
@@ -140,7 +137,7 @@ export default class extends BaseCommand {
 					new EmbedBuilder()
 						.setTitle("Punishment Removed")
 						.setDescription(
-							`Punishment removed for <@${user.id}> by <@${interaction.user.id}>`
+							`Punishment removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`,
 						)
 						.addFields(
 							{
@@ -153,11 +150,10 @@ export default class extends BaseCommand {
 							},
 						)
 						.setFooter({
-							text: `Case #${punishment.caseId ?? "Unknown"}`
-						})
+							text: `Case #${punishment.caseId ?? "Unknown"}`,
+						}),
 				],
-				allowedMentions: { repliedUser: false }
-			}
+			},
 		);
 	}
 }
