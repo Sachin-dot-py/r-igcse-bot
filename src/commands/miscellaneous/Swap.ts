@@ -3,13 +3,13 @@ import Buttons from "@/components/practice/views/Buttons";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
-	ButtonBuilder,
+	type ButtonBuilder,
 	SlashCommandBuilder,
-	StringSelectMenuOptionBuilder
+	StringSelectMenuOptionBuilder,
 } from "discord.js";
 import { v4 } from "uuid";
 
@@ -18,32 +18,32 @@ export default class PingCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("swap")
-				.setDescription("Switch Modmail DM Server (dms only)")
+				.setDescription("Switch Modmail DM Server (dms only)"),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		if (interaction.guild) {
 			interaction.reply({
 				content: "This command is intended for DMs",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
 		const guilds = client.guilds.cache.filter((guild) =>
-			guild.members.cache.has(interaction.user.id)
+			guild.members.cache.has(interaction.user.id),
 		);
 
 		if (!guilds.size) {
 			interaction.reply({
 				content:
 					"Please try sending a message in the server you're trying to contact.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -56,10 +56,10 @@ export default class PingCommand extends BaseCommand {
 			guilds.map((guild) =>
 				new StringSelectMenuOptionBuilder()
 					.setLabel(guild.name)
-					.setValue(guild.id)
+					.setValue(guild.id),
 			),
 			1,
-			`${selectCustomId}_0`
+			`${selectCustomId}_0`,
 		);
 
 		const row = new ActionRowBuilder<Select>().addComponents(guildSelect);
@@ -68,8 +68,8 @@ export default class PingCommand extends BaseCommand {
 			content: "Select a server to send a message to",
 			components: [
 				row,
-				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>
-			]
+				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
+			],
 		});
 
 		const message = await selectInteraction.fetch();
@@ -77,7 +77,7 @@ export default class PingCommand extends BaseCommand {
 			`${selectCustomId}_0`,
 			message,
 			message,
-			true
+			true,
 		);
 
 		if (!guildResponse || guildResponse === "Timed out") return;
@@ -86,7 +86,7 @@ export default class PingCommand extends BaseCommand {
 		if (!guild) {
 			selectInteraction.edit({
 				content: "Invalid Server",
-				components: []
+				components: [],
 			});
 
 			return;
@@ -94,13 +94,13 @@ export default class PingCommand extends BaseCommand {
 
 		selectInteraction.edit({
 			content: `Server ${guild.name} selected.`,
-			components: []
+			components: [],
 		});
 
 		await DmGuildPreference.updateOne(
 			{ userId: interaction.user.id },
 			{ guildId: guild.id },
-			{ upsert: true }
+			{ upsert: true },
 		);
 	}
 }

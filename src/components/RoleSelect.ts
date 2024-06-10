@@ -1,27 +1,27 @@
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import {
-	RoleSelectMenuBuilder,
 	ComponentType,
 	Message,
-	ModalSubmitInteraction
+	type ModalSubmitInteraction,
+	RoleSelectMenuBuilder,
 } from "discord.js";
 
 class RoleSelect extends RoleSelectMenuBuilder {
 	name: string;
-	isFirstComponent: boolean = true;
+	isFirstComponent = true;
 
 	constructor(
 		name: string,
 		placeholder: string,
-		max_values: number,
+		maxValues: number,
 		customId: string,
-		defaultRoles: string[]
+		defaultRoles: string[],
 	) {
 		super();
 		this.name = name;
 		this.isFirstComponent = customId.split("_")[1] === "0";
 		this.setPlaceholder(placeholder)
-			.setMaxValues(max_values)
+			.setMaxValues(maxValues)
 			.setCustomId(customId)
 			.setDefaultRoles(...defaultRoles);
 	}
@@ -33,7 +33,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 			| Message
 			| ModalSubmitInteraction
 			| DiscordChatInputCommandInteraction,
-		required: boolean
+		required: boolean,
 	): Promise<string[] | false | "Timed out"> {
 		const editMessage =
 			editableMessage instanceof Message
@@ -46,8 +46,8 @@ class RoleSelect extends RoleSelectMenuBuilder {
 				{
 					filter: (i) => i.customId === customId,
 					time: 300_000,
-					componentType: ComponentType.RoleSelect
-				}
+					componentType: ComponentType.RoleSelect,
+				},
 			);
 
 			selectCollector.on("collect", async (i) => {
@@ -65,7 +65,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 					);
 				},
 				time: 300_000,
-				componentType: ComponentType.Button
+				componentType: ComponentType.Button,
 			});
 
 			if (buttonResponse.customId === `confirm_${buttonCustomId}`) {
@@ -85,7 +85,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 								await editMessage({
 									content:
 										"You must select at least one option",
-									components: []
+									components: [],
 								});
 							}
 							return false;
@@ -99,7 +99,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 				if (this.isFirstComponent) {
 					await editMessage({
 						content: "Cancelled",
-						components: []
+						components: [],
 					});
 				}
 				return false;
@@ -108,7 +108,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 			if (this.isFirstComponent) {
 				await editMessage({
 					content: "Timed out",
-					components: []
+					components: [],
 				});
 			}
 			return "Timed out";

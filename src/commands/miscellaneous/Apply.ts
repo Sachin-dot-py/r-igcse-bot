@@ -1,3 +1,4 @@
+import { Application } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	ActionRowBuilder,
@@ -10,36 +11,35 @@ import {
 	StringSelectMenuOptionBuilder,
 	TextChannel,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
-import { Application } from "@/mongo";
 
 export default class ApplyCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
 				.setName("apply")
-				.setDescription("Apply for positions in the server")
+				.setDescription("Apply for positions in the server"),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const applications = await Application.find({
-			guildId: interaction.guildId
+			guildId: interaction.guildId,
 		});
 
 		if (applications.length === 0) {
 			await interaction.reply({
 				content:
 					"There are no applications in this server. Try again later.",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -48,7 +48,7 @@ export default class ApplyCommand extends BaseCommand {
 			.filter((app) => {
 				if (app.requiredRoles?.length) {
 					return app.requiredRoles.some((role) =>
-						interaction.member.roles.cache.has(role)
+						interaction.member.roles.cache.has(role),
 					);
 				} else {
 					return true;
@@ -66,7 +66,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"You do not have the required roles to apply for any positions!",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -82,19 +82,19 @@ export default class ApplyCommand extends BaseCommand {
 
 		const row =
 			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-				selectMenu
+				selectMenu,
 			);
 
 		const selectInteraction = await interaction.reply({
 			content: "Select a position to apply for",
 			components: [row],
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const selectResponse = await selectInteraction.awaitMessageComponent({
 			filter: (i) => i.customId === customId,
 			time: 300_000,
-			componentType: ComponentType.StringSelect
+			componentType: ComponentType.StringSelect,
 		});
 
 		const applicationId = selectResponse.values[0];
@@ -104,7 +104,7 @@ export default class ApplyCommand extends BaseCommand {
 		if (!application) {
 			await selectResponse.reply({
 				content: "This application does not exist",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -120,7 +120,7 @@ export default class ApplyCommand extends BaseCommand {
 				.setStyle(TextInputStyle.Paragraph);
 
 			inputRows.push(
-				new ActionRowBuilder<TextInputBuilder>().addComponents(input)
+				new ActionRowBuilder<TextInputBuilder>().addComponents(input),
 			);
 		}
 
@@ -133,24 +133,24 @@ export default class ApplyCommand extends BaseCommand {
 
 		const modalInteraction = await selectResponse.awaitModalSubmit({
 			time: 900_000, // 15 minutes
-			filter: (i) => i.customId === customId
+			filter: (i) => i.customId === customId,
 		});
 
 		if (!modalInteraction) return;
 
 		const answers = modalInteraction.fields.fields.map(
-			(field) => field.value
+			(field) => field.value,
 		);
 
 		const channel = interaction.guild.channels.cache.get(
-			application.submissionChannelId
+			application.submissionChannelId,
 		);
 
 		if (!channel || !(channel instanceof TextChannel)) {
 			await interaction.reply({
 				content:
 					"Invalid channel for submitting application. Please contact the server staff.",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -159,18 +159,18 @@ export default class ApplyCommand extends BaseCommand {
 			.setTitle(`New ${application.name} Application`)
 			.setAuthor({
 				name: interaction.user.tag,
-				iconURL: interaction.user.displayAvatarURL()
+				iconURL: interaction.user.displayAvatarURL(),
 			})
 			.setDescription(
-				`Submitted by ${interaction.user} (${interaction.user.id})`
+				`Submitted by ${interaction.user} (${interaction.user.id})`,
 			)
 			.addFields(
 				...answers.map((answer, i) => {
 					return {
 						name: application.questions[i],
-						value: answer
+						value: answer,
 					};
-				})
+				}),
 			)
 			.setColor(Colors.NotQuiteBlack);
 
@@ -178,7 +178,7 @@ export default class ApplyCommand extends BaseCommand {
 
 		await modalInteraction.reply({
 			content: "Application submitted successfully",
-			ephemeral: true
+			ephemeral: true,
 		});
 	}
 }

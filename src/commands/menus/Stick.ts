@@ -1,5 +1,10 @@
 import { StickyMessage } from "@/mongo";
+import { StickyMessageCache } from "@/redis";
+import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
+import BaseCommand, {
+	type DiscordMessageContextMenuCommandInteraction,
+} from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
 	ApplicationCommandType,
@@ -10,13 +15,8 @@ import {
 	ModalBuilder,
 	PermissionFlagsBits,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
 } from "discord.js";
-import { StickyMessageCache } from "@/redis";
-import BaseCommand, {
-	type DiscordMessageContextMenuCommandInteraction
-} from "@/registry/Structure/BaseCommand";
-import type { APIEmbedRedis } from "@/redis/schemas/StickyMessage";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
@@ -25,24 +25,15 @@ export default class StickMessageCommand extends BaseCommand {
 				.setName("Stick Message")
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false)
-				.setType(ApplicationCommandType.Message)
+				.setType(ApplicationCommandType.Message),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordMessageContextMenuCommandInteraction<"cached">
+		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel) return;
-
-		if (interaction.targetMessage.embeds.length < 1) {
-			interaction.reply({
-				content: "This message does not have any embeds.",
-				ephemeral: true
-			});
-
-			return;
-		}
 
 		const time = Date.now();
 		const stickTimeInput = new TextInputBuilder()
@@ -59,10 +50,10 @@ export default class StickMessageCommand extends BaseCommand {
 			.setRequired(false);
 
 		const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			stickTimeInput
+			stickTimeInput,
 		);
 		const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			unstickTimeInput
+			unstickTimeInput,
 		);
 
 		const modal = new ModalBuilder()
@@ -75,24 +66,25 @@ export default class StickMessageCommand extends BaseCommand {
 			filter: (i) =>
 				i.user.id === interaction.user.id &&
 				i.customId === "stick-message",
-			time: 90000
+			time: 90000,
 		});
 
 		await modalInteraction.deferUpdate();
 
 		const stickTime =
-			parseInt(modalInteraction.fields.getTextInputValue("stick-time")) ||
-			null;
+			Number.parseInt(
+				modalInteraction.fields.getTextInputValue("stick-time"),
+			) || null;
 		const unstickTime =
-			parseInt(
-				modalInteraction.fields.getTextInputValue("unstick-time")
+			Number.parseInt(
+				modalInteraction.fields.getTextInputValue("unstick-time"),
 			) || null;
 
 		if (stickTime && unstickTime) {
 			if (stickTime > unstickTime) {
 				await interaction.followUp({
 					content: "Stick time must be before unstick time.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -100,7 +92,7 @@ export default class StickMessageCommand extends BaseCommand {
 			if (unstickTime < time) {
 				await interaction.followUp({
 					content: "Unstick time must be after now.",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -116,17 +108,17 @@ export default class StickMessageCommand extends BaseCommand {
 				ChannelType.GuildText,
 				ChannelType.PublicThread,
 				ChannelType.PrivateThread,
-				ChannelType.GuildStageVoice
+				ChannelType.GuildStageVoice,
 			);
 
 		const channelRow =
 			new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
-				channelSelect
+				channelSelect,
 			);
 
 		const interactionRes = await interaction.followUp({
 			components: [channelRow],
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		const selectInteraction = await interactionRes.awaitMessageComponent({
@@ -134,7 +126,7 @@ export default class StickMessageCommand extends BaseCommand {
 			filter: (i) =>
 				i.user.id === interaction.user.id &&
 				i.customId === "stick-channel",
-			time: 60000
+			time: 60000,
 		});
 
 		await selectInteraction.deferUpdate();
@@ -144,7 +136,7 @@ export default class StickMessageCommand extends BaseCommand {
 		if (!channel || !channel.isTextBased()) {
 			await interaction.followUp({
 				content: "Channel not found / Invalid channel type",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -153,17 +145,20 @@ export default class StickMessageCommand extends BaseCommand {
 		const res = await StickyMessage.create({
 			channelId: channel.id,
 			messageId: null,
-			embeds: interaction.targetMessage.embeds.map((embed) =>
-				embed.toJSON()
-			),
+			message: {
+				content: interaction.targetMessage.content,
+				embeds: interaction.targetMessage.embeds.map((embed) =>
+					embed.toJSON(),
+				),
+			},
 			stickTime: stickTime?.toString(),
-			unstickTime: unstickTime?.toString()
+			unstickTime: unstickTime?.toString(),
 		});
 
 		if (!res) {
 			await interaction.followUp({
 				content: "Failed to create sticky message.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -173,9 +168,12 @@ export default class StickMessageCommand extends BaseCommand {
 			await StickyMessageCache.set(res.id, {
 				channelId: channel.id,
 				messageId: null,
-				embeds: interaction.targetMessage.embeds.map((embed) =>
-					embed.toJSON()
-				) as APIEmbedRedis[]
+				message: {
+					content: interaction.targetMessage.content,
+					embeds: interaction.targetMessage.embeds.map((embed) =>
+						embed.toJSON(),
+					) as APIEmbedRedis[],
+				},
 			});
 
 			client.stickyChannelIds.push(channel.id);
@@ -183,7 +181,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 		await interaction.followUp({
 			content: "Message scheduled to stick.",
-			ephemeral: true
+			ephemeral: true,
 		});
 	}
 }

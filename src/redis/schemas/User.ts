@@ -1,8 +1,8 @@
 import {
-	Schema,
 	type Entity,
+	type RedisConnection,
 	Repository,
-	type RedisConnection
+	Schema,
 } from "redis-om";
 
 export interface IUser extends Entity {
@@ -16,7 +16,7 @@ export const User = new Schema("User", {
 	userId: { type: "string" },
 	playing: { type: "boolean" },
 	subject: { type: "string" },
-	sessionId: { type: "string" }
+	sessionId: { type: "string" },
 });
 
 export class UserRepository extends Repository {

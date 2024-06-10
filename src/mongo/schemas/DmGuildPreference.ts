@@ -7,10 +7,10 @@ export interface IDmGuildPreference {
 
 const schema = new Schema<IDmGuildPreference>({
 	userId: { type: String, required: true, unique: true },
-	guildId: { type: String, required: true, unique: false }
+	guildId: { type: String, required: true, unique: false },
 });
 
 export const DmGuildPreference = createModel<IDmGuildPreference>(
 	"DmGuildPreferences",
-	schema
+	schema,
 );

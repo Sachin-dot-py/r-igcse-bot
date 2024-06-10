@@ -1,5 +1,5 @@
-import UserSelect from "../UserSelect";
 import { ActionRowBuilder } from "discord.js";
+import UserSelect from "../UserSelect";
 
 class UserSelectView {
 	rows: ActionRowBuilder<UserSelect>[];
@@ -8,11 +8,11 @@ class UserSelectView {
 			"users",
 			"Select a user",
 			25,
-			`${customId}_0`
+			`${customId}_0`,
 		);
 
 		const row = new ActionRowBuilder<UserSelect>().addComponents(
-			userSelect
+			userSelect,
 		);
 		this.rows = [row];
 	}

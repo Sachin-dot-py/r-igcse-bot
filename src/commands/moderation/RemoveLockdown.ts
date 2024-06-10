@@ -1,7 +1,7 @@
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ChannelType,
@@ -9,7 +9,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextChannel,
-	ThreadChannel
+	ThreadChannel,
 } from "discord.js";
 
 export default class RemoveLockdownCommand extends BaseCommand {
@@ -26,35 +26,37 @@ export default class RemoveLockdownCommand extends BaseCommand {
 							ChannelType.GuildText,
 							ChannelType.PublicThread,
 							ChannelType.GuildForum,
-							ChannelType.PrivateThread
+							ChannelType.PrivateThread,
 						)
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDMPermission(false)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+				.setDefaultMemberPermissions(
+					PermissionFlagsBits.ManageChannels,
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const channel = interaction.options.getChannel("channel", true, [
 			ChannelType.GuildText,
 			ChannelType.PublicThread,
 			ChannelType.GuildForum,
-			ChannelType.PrivateThread
+			ChannelType.PrivateThread,
 		]);
 
 		await ChannelLockdown.deleteOne({
-			channelId: channel.id
+			channelId: channel.id,
 		});
 
 		if (channel instanceof ThreadChannel) {
 			if (!channel.locked) {
 				await interaction.reply({
 					content: `<#${channel.id}> isn't locked.`,
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -66,7 +68,7 @@ export default class RemoveLockdownCommand extends BaseCommand {
 			channel instanceof ForumChannel
 		) {
 			const permissions = channel.permissionsFor(
-				interaction.guild.roles.everyone
+				interaction.guild.roles.everyone,
 			);
 
 			if (
@@ -75,7 +77,7 @@ export default class RemoveLockdownCommand extends BaseCommand {
 			) {
 				await interaction.reply({
 					content: `<#${channel.id}> isn't locked.`,
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -85,14 +87,14 @@ export default class RemoveLockdownCommand extends BaseCommand {
 				interaction.guild.roles.everyone,
 				{
 					SendMessages: true,
-					SendMessagesInThreads: true
-				}
+					SendMessagesInThreads: true,
+				},
 			);
 		}
 
 		await interaction.reply({
 			content: `<#${channel.id}> has been unlocked.`,
-			ephemeral: true
+			ephemeral: true,
 		});
 	}
 }

@@ -1,13 +1,13 @@
-import { HOTM, HOTMUser, GuildPreferences } from "@/mongo";
+import { GuildPreferences, HOTM, HOTMUser } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
-import HOTMSessionCommand from "./VotingSession";
+import type hotmSessionCommand from "./VotingSession";
 
 export default class HOTMVotingCommand extends BaseCommand {
 	constructor() {
@@ -19,24 +19,35 @@ export default class HOTMVotingCommand extends BaseCommand {
 					option
 						.setName("helper")
 						.setDescription("Choose the helper to vote for")
-						.setRequired(true)
+						.setRequired(true),
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
+		await interaction.deferReply({
+			ephemeral: true,
+		});
+
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
-			interaction.reply({
+			interaction.editReply({
 				content: "This feature hasn't been configured.",
-				ephemeral: true
+			});
+
+			return;
+		}
+		if (!guildPreferences.hotmSessionOngoing) {
+			await interaction.editReply({
+				content:
+					"The voting period has not started yet or has already ended.",
 			});
 
 			return;
@@ -45,7 +56,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The voting period has not started yet or has already ended.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -54,13 +65,12 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const helper = interaction.options.getUser("helper", true);
 
 		const studyChannels = await StudyChannel.find({
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		if (studyChannels.length < 1) {
-			interaction.reply({
+			interaction.editReply({
 				content: "This feature hasn't been configured.",
-				ephemeral: true
 			});
 
 			return;
@@ -69,35 +79,32 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const hotmUser =
 			(await HOTMUser.findOne({
 				guildId: interaction.guild.id,
-				userId: interaction.user.id
+				userId: interaction.user.id,
 			})) ??
 			(await HOTMUser.create({
 				guildId: interaction.guild.id,
-				userId: interaction.user.id
+				userId: interaction.user.id,
 			}));
 
 		if (interaction.user.id === helper.id) {
-			interaction.reply({
+			interaction.editReply({
 				content: "You cannot vote for yourself",
-				ephemeral: true
 			});
 
 			return;
 		}
 
 		if (hotmUser.voted.length >= 3) {
-			interaction.reply({
+			interaction.editReply({
 				content: "You don't have any votes left",
-				ephemeral: true
 			});
 
 			return;
 		}
 
 		if (hotmUser.voted.includes(helper.id)) {
-			interaction.reply({
+			interaction.editReply({
 				content: "You have already voted for this helper",
-				ephemeral: true
 			});
 
 			return;
@@ -106,35 +113,29 @@ export default class HOTMVotingCommand extends BaseCommand {
 		const helperRoles = interaction.guild.roles.cache.filter((role) =>
 			studyChannels
 				.map((studyChannel) => studyChannel.helperRoleId)
-				.some((helperRoleId) => helperRoleId === role.id)
+				.some((helperRoleId) => helperRoleId === role.id),
 		);
 
 		if (helperRoles.size < 1) {
-			interaction.reply({
+			interaction.editReply({
 				content: "Helper roles not found",
-				ephemeral: true
 			});
 
 			return;
 		}
 
 		if (!helperRoles.some((role) => role.members.has(helper.id))) {
-			interaction.reply({
+			interaction.editReply({
 				content: `<@${helper.id}> is not a helper`,
-				ephemeral: true,
 				allowedMentions: { repliedUser: false }
 			});
 
 			return;
 		}
 
-		await interaction.deferReply({
-			ephemeral: true
-		});
-
 		const helperDoc = await HOTM.findOne({
 			guildId: interaction.guildId,
-			helperId: helper.id
+			helperId: helper.id,
 		});
 
 		const helperVotes = (helperDoc?.votes ?? 0) + 1;
@@ -143,22 +144,22 @@ export default class HOTMVotingCommand extends BaseCommand {
 			{ guildId: interaction.guild.id, helperId: helper.id },
 			{
 				$set: {
-					votes: helperVotes
-				}
+					votes: helperVotes,
+				},
 			},
 			{
-				upsert: true
-			}
+				upsert: true,
+			},
 		);
 
 		await HOTMUser.updateOne(
 			{ guildId: interaction.guild.id, userId: interaction.user.id },
 			{
 				$push: {
-					voted: helper.id
-				}
+					voted: helper.id,
+				},
 			},
-			{ upsert: true }
+			{ upsert: true },
 		);
 
 		await Logger.channel(
@@ -170,17 +171,17 @@ export default class HOTMVotingCommand extends BaseCommand {
 		);
 
 		const newSessionCommand = client.commands.get("hotm_session") as
-			| HOTMSessionCommand
+			| hotmSessionCommand
 			| undefined;
 
 		const mongoGuildPreferences = await GuildPreferences.findOne({
-			guildId: interaction.guild.id
+			guildId: interaction.guild.id,
 		});
 
 		await newSessionCommand?.handleEmbed(
 			interaction.guild,
 			mongoGuildPreferences?.hotmResultsEmbedId,
-			guildPreferences.hotmResultsChannelId
+			guildPreferences.hotmResultsChannelId,
 		);
 
 		interaction.editReply({

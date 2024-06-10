@@ -1,13 +1,13 @@
+import { GuildPreferencesCache } from "@/redis";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
 	ComponentType,
-	Message
+	type Message,
 } from "discord.js";
 import SetBanAppealModal from "./SetBanAppealModal";
 import SetWelcomeModal from "./SetWelcomeModal";
-import { GuildPreferencesCache } from "@/redis";
 
 class SetupButtons extends ActionRowBuilder {
 	constructor(customId: string) {
@@ -28,42 +28,42 @@ class SetupButtons extends ActionRowBuilder {
 
 	async createCollector(
 		customId: string,
-		interaction: Message<true>
+		interaction: Message<true>,
 	): Promise<void> {
 		const buttonCollector = interaction.createMessageComponentCollector({
 			filter: (i) =>
 				i.customId === `setWelcome_${customId}` ||
 				i.customId === `setBanAppealLink_${customId}`,
 			time: 600_000, // 10 minutes
-			componentType: ComponentType.Button
+			componentType: ComponentType.Button,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 		buttonCollector.on("collect", async (i) => {
 			switch (i.customId) {
 				case `setWelcome_${customId}`: {
 					const setWelcomeModal = new SetWelcomeModal(
 						`welcomeModal_${customId}`,
-						guildPreferences
+						guildPreferences,
 					);
 					await i.showModal(setWelcomeModal);
 					await setWelcomeModal.waitForResponse(
 						`welcomeModal_${customId}`,
-						i
+						i,
 					);
 					break;
 				}
 				case `setBanAppealLink_${customId}`: {
 					const setBanAppealModal = new SetBanAppealModal(
 						`banAppealModal_${customId}`,
-						guildPreferences
+						guildPreferences,
 					);
 					await i.showModal(setBanAppealModal);
 					await setBanAppealModal.waitForResponse(
 						`banAppealModal_${customId}`,
-						i
+						i,
 					);
 					break;
 				}

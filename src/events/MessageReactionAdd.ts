@@ -1,8 +1,8 @@
-import { Events, MessageReaction, User } from "discord.js";
-import BaseEvent from "../registry/Structure/BaseEvent";
-import type { DiscordClient } from "../registry/DiscordClient";
-import { handleVote } from "./voteHandler";
 import { ReactionRole } from "@/mongo";
+import { Events, type MessageReaction, type User } from "discord.js";
+import type { DiscordClient } from "../registry/DiscordClient";
+import BaseEvent from "../registry/Structure/BaseEvent";
+import { handleVote } from "./voteHandler";
 
 export default class MessageReactionAddEvent extends BaseEvent {
 	constructor() {
@@ -12,7 +12,7 @@ export default class MessageReactionAddEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		reaction: MessageReaction,
-		user: User
+		user: User,
 	) {
 		handleVote(reaction, user);
 
@@ -20,7 +20,7 @@ export default class MessageReactionAddEvent extends BaseEvent {
 
 		const res = await ReactionRole.findOne({
 			messageId: reaction.message.id,
-			emoji: reaction.emoji.toString()
+			emoji: reaction.emoji.toString(),
 		});
 
 		if (!res) return;

@@ -1,17 +1,17 @@
+import { Punishment } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
+import Logger from "@/utils/Logger";
+import sendDm from "@/utils/sendDm";
 import {
 	AuditLogEvent,
 	Colors,
 	EmbedBuilder,
 	Events,
-	GuildMember
+	type GuildMember,
 } from "discord.js";
+import humanizeDuration from "humanize-duration";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
-import { Punishment } from "@/mongo";
-import humanizeDuration from "humanize-duration";
-import Logger from "@/utils/Logger";
-import sendDm from "@/utils/sendDm";
 
 export default class GuildMemberUpdateEvent extends BaseEvent {
 	constructor() {
@@ -21,7 +21,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		oldMember: GuildMember,
-		newMember: GuildMember
+		newMember: GuildMember,
 	) {
 		if (
 			oldMember.user.bot ||
@@ -33,30 +33,35 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 			return;
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			newMember.guild.id
+			newMember.guild.id,
 		);
 		if (!guildPreferences) return;
 
 		const auditLogs = await newMember.guild.fetchAuditLogs({
 			type: AuditLogEvent.MemberUpdate,
-			limit: 3
+			limit: 3,
 		});
 
 		const entry = auditLogs.entries.find(
-			(entry) => entry.targetId === newMember.id
+			(entry) => entry.targetId === newMember.id,
 		);
 
-		if (!entry || entry.executorId === client.user.id) return;
+		if (
+			!entry ||
+			entry.executorId === client.user.id ||
+			entry.executor?.bot
+		)
+			return;
 
 		const change = entry.changes.find(
-			(change) => change.key === "communication_disabled_until"
+			(change) => change.key === "communication_disabled_until",
 		);
 
 		if (!change) return;
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: newMember.guild.id
+				guildId: newMember.guild.id,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -84,7 +89,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 					reason: entry.reason ?? "No reason provided",
 					points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
 					when: new Date(),
-					duration
+					duration,
 				});
 
 				if (guildPreferences.modlogChannelId) {
@@ -104,12 +109,12 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 							},
 							{
 								name: "Reason",
-								value: entry.reason ?? "No reason provided"
+								value: entry.reason ?? "No reason provided",
 							},
 							{
 								name: "Duration",
-								value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
-							}
+								value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`,
+							},
 						]);
 
 					Logger.channel(
@@ -128,16 +133,16 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 							.setTitle("Timeout")
 							.setColor(Colors.Red)
 							.setDescription(
-								`You have been timed out in ${newMember.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${entry.reason ?? "No reason provided"}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
-							)
-					]
+								`You have been timed out in ${newMember.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${entry.reason ?? "No reason provided"}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`,
+							),
+					],
 				});
 			} else {
 				const latestTimeout = (
 					await Punishment.find({
 						guildId: newMember.guild.id,
 						actionAgainst: newMember.id,
-						action: "Timeout"
+						action: "Timeout",
 					}).sort({ when: -1 })
 				)?.[0];
 
@@ -152,7 +157,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				if (guildPreferences.modlogChannelId) {
 					const modEmbed = new EmbedBuilder()
 						.setTitle(
-							`Timeout Duration Modified | Case #${latestTimeout.caseId}`
+							`Timeout Duration Modified | Case #${latestTimeout.caseId}`,
 						)
 						.setColor(Colors.Red)
 						.addFields([
@@ -168,12 +173,12 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 							},
 							{
 								name: "Reason",
-								value: entry.reason ?? "No reason provided"
+								value: entry.reason ?? "No reason provided",
 							},
 							{
 								name: "Duration",
-								value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`
-							}
+								value: `${humanizeDuration(duration * 1000)} (<t:${Math.floor(Date.now() / 1000) + duration}:R>)`,
+							},
 						]);
 
 					Logger.channel(
@@ -192,9 +197,9 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 							.setTitle("Timeout Duration Modified")
 							.setColor(Colors.Red)
 							.setDescription(
-								`Your timeout duration in ${newMember.guild.name} has been modified by a moderator. It will now end at <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
-							)
-					]
+								`Your timeout duration in ${newMember.guild.name} has been modified by a moderator. It will now end at <t:${Math.floor(Date.now() / 1000) + duration}:R>.`,
+							),
+					],
 				});
 			}
 		} else {
@@ -202,7 +207,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				await Punishment.find({
 					guildId: newMember.guild.id,
 					actionAgainst: newMember.id,
-					action: "Timeout"
+					action: "Timeout",
 				}).sort({ when: -1 })
 			)[0];
 
@@ -214,7 +219,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				reason: entry.reason ?? "",
 				points: -(undoPunishment?.points ?? 2),
 				caseId: caseNumber,
-				when: new Date()
+				when: new Date(),
 			});
 
 			if (guildPreferences.modlogChannelId) {
@@ -234,8 +239,8 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						},
 						{
 							name: "Reason",
-							value: entry.reason ?? "No reason provided"
-						}
+							value: entry.reason ?? "No reason provided",
+						},
 					]);
 
 				Logger.channel(
@@ -254,9 +259,9 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 						.setTitle("Removed Timeout")
 						.setColor(Colors.Red)
 						.setDescription(
-							`Your timeout in ${newMember.guild.name} has been removed by a moderator. You can now chat again, make sure to follow the rules.`
-						)
-				]
+							`Your timeout in ${newMember.guild.name} has been removed by a moderator. You can now chat again, make sure to follow the rules.`,
+						),
+				],
 			});
 		}
 	}

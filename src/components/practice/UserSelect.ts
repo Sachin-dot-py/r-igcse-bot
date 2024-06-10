@@ -1,25 +1,25 @@
 import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import {
-	UserSelectMenuBuilder,
 	ComponentType,
-	Message,
-	ModalSubmitInteraction
+	type Message,
+	type ModalSubmitInteraction,
+	UserSelectMenuBuilder,
 } from "discord.js";
 
 class UserSelect extends UserSelectMenuBuilder {
 	name: string;
-	isFirstComponent: boolean = true;
+	isFirstComponent = true;
 	constructor(
 		name: string,
 		placeholder: string,
-		max_values: number,
-		customId: string
+		maxValues: number,
+		customId: string,
 	) {
 		super();
 		this.name = name;
 		this.isFirstComponent = customId.split("_")[1] === "0";
 		this.setPlaceholder(placeholder)
-			.setMaxValues(max_values)
+			.setMaxValues(maxValues)
 			.setCustomId(customId)
 			.setMinValues(0);
 	}
@@ -30,7 +30,7 @@ class UserSelect extends UserSelectMenuBuilder {
 		editableMessage:
 			| ModalSubmitInteraction
 			| DiscordChatInputCommandInteraction,
-		required: boolean
+		required: boolean,
 	): Promise<string[] | false> {
 		try {
 			let value: string[] = [];
@@ -38,8 +38,8 @@ class UserSelect extends UserSelectMenuBuilder {
 				{
 					filter: (i) => i.customId === customId,
 					time: 300_000,
-					componentType: ComponentType.UserSelect
-				}
+					componentType: ComponentType.UserSelect,
+				},
 			);
 
 			selectCollector.on("collect", async (i) => {
@@ -57,7 +57,7 @@ class UserSelect extends UserSelectMenuBuilder {
 					);
 				},
 				time: 300_000,
-				componentType: ComponentType.Button
+				componentType: ComponentType.Button,
 			});
 
 			if (buttonResponse.customId === `confirm_${buttonCustomId}`) {
@@ -68,7 +68,7 @@ class UserSelect extends UserSelectMenuBuilder {
 								editableMessage.editReply({
 									content:
 										"You must select at least one option",
-									components: []
+									components: [],
 								});
 							}
 							return false;
@@ -82,7 +82,7 @@ class UserSelect extends UserSelectMenuBuilder {
 				if (this.isFirstComponent) {
 					editableMessage.editReply({
 						content: "Cancelled",
-						components: []
+						components: [],
 					});
 				}
 				return false;
@@ -91,7 +91,7 @@ class UserSelect extends UserSelectMenuBuilder {
 			if (this.isFirstComponent) {
 				editableMessage.editReply({
 					content: "Timed out",
-					components: []
+					components: [],
 				});
 			}
 			return false;

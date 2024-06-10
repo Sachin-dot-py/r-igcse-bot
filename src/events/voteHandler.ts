@@ -1,4 +1,4 @@
-import { MessageReaction, User, EmbedBuilder } from "discord.js";
+import { EmbedBuilder, type MessageReaction, type User } from "discord.js";
 
 export const handleVote = (reaction: MessageReaction, user: User) => {
 	if (
@@ -35,7 +35,7 @@ export const handleVote = (reaction: MessageReaction, user: User) => {
 	const newEmbed = new EmbedBuilder({
 		title: embed.title || "Poll",
 		description,
-		footer: { text: embed.footer?.text || "" }
+		footer: { text: embed.footer?.text || "" },
 	});
 
 	message.edit({ embeds: [newEmbed] });

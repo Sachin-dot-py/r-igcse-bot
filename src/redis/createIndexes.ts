@@ -1,14 +1,14 @@
 import { createClient } from "redis";
 
-import { GuildPreferencesRepository } from "./schemas/GuildPreferences";
-import { StickyMessageRepository } from "./schemas/StickyMessage";
-import { PracticeQuestionRepository } from "./schemas/Question";
-import { UserRepository } from "./schemas/User";
 import { ButtonInteractionRepository } from "./schemas/ButtonInteraction";
+import { GuildPreferencesRepository } from "./schemas/GuildPreferences";
 import { KeywordRepository } from "./schemas/Keyword";
+import { PracticeQuestionRepository } from "./schemas/Question";
+import { StickyMessageRepository } from "./schemas/StickyMessage";
+import { UserRepository } from "./schemas/User";
 
 export const redis = createClient({
-	url: process.env.REDIS_URL
+	url: process.env.REDIS_URL,
 });
 
 await redis.connect();

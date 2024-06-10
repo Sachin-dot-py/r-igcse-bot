@@ -2,7 +2,7 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
@@ -10,7 +10,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 
 export default class UntimeoutCommand extends BaseCommand {
@@ -23,18 +23,18 @@ export default class UntimeoutCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to timeout")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ModerateMembers
+					PermissionFlagsBits.ModerateMembers,
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
@@ -42,25 +42,25 @@ export default class UntimeoutCommand extends BaseCommand {
 		const member = await interaction.guild.members.fetch(user.id);
 
 		await interaction.deferReply({
-			ephemeral: true
+			ephemeral: true,
 		});
 
 		if (!member.isCommunicationDisabled()) {
 			interaction.editReply({
-				content: "User is not timed out!"
+				content: "User is not timed out!",
 			});
 
 			return;
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (!guildPreferences) {
 			interaction.editReply({
 				content:
-					"Please setup the bot using the command `/setup` first."
+					"Please setup the bot using the command `/setup` first.",
 			});
 			return;
 		}
@@ -73,13 +73,13 @@ export default class UntimeoutCommand extends BaseCommand {
 						.setTitle("Removed Timeout")
 						.setColor(Colors.Red)
 						.setDescription(
-							`Your timeout in ${interaction.guild.name} has been removed by a moderator. You can now chat again, make sure to follow the rules.`
-						)
-				]
+							`Your timeout in ${interaction.guild.name} has been removed by a moderator. You can now chat again, make sure to follow the rules.`,
+						),
+				],
 			});
 		} catch (error) {
 			interaction.editReply({
-				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`
+				content: `Failed to untimeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 			});
 
 			client.log(
@@ -87,13 +87,13 @@ export default class UntimeoutCommand extends BaseCommand {
 				`${this.data.name} Command`,
 				`**Channel:** <#${interaction.channel?.id}>
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 		}
 
 		const latestPunishment = (
 			await Punishment.find({
-				guildId: interaction.guildId
+				guildId: interaction.guildId,
 			}).sort({ when: -1 })
 		)[0];
 
@@ -103,7 +103,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			await Punishment.find({
 				guildId: interaction.guild.id,
 				actionAgainst: user.id,
-				action: "Timeout"
+				action: "Timeout",
 			}).sort({ when: -1 })
 		)[0];
 
@@ -115,7 +115,7 @@ export default class UntimeoutCommand extends BaseCommand {
 			reason: "",
 			points: -(undoPunishment?.points ?? 2),
 			caseId: caseNumber,
-			when: new Date()
+			when: new Date(),
 		});
 
 		if (guildPreferences.modlogChannelId) {
@@ -147,7 +147,7 @@ export default class UntimeoutCommand extends BaseCommand {
 
 		interaction.editReply({ content: "there ya go good sir" });
 		interaction.channel.send(
-			`Timeout has been removed from ${user.username}`
+			`Timeout has been removed from ${user.username}`,
 		);
 	}
 }

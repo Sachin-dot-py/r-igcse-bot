@@ -9,7 +9,7 @@ export interface IReputation {
 const schema = new Schema<IReputation>({
 	userId: { type: String, required: true },
 	rep: { type: Number, required: true },
-	guildId: { type: String, required: true }
+	guildId: { type: String, required: true },
 });
 
 export const Reputation = createModel<IReputation>("Reputation", schema);

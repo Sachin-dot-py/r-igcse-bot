@@ -9,10 +9,10 @@ export interface IConfessionBan {
 const schema = new Schema<IConfessionBan>({
 	userHash: { type: String, required: true },
 	guildId: { type: String, required: true },
-	reason: { type: String, required: true }
+	reason: { type: String, required: true },
 });
 
 export const ConfessionBan = createModel<IConfessionBan>(
 	"ConfessionBan",
-	schema
+	schema,
 );
