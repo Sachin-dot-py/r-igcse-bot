@@ -7,8 +7,10 @@ import {
 	ModalBuilder,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
+	TextChannel,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
+	ThreadChannel
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
@@ -155,27 +157,43 @@ export default class FeedbackCommand extends BaseCommand {
 		}
 
 		try {
-			Logger.channel(messageGuild, team.channelId, {
-				embeds: [embed]
+			const channel = messageGuild.channels.cache.get(team.channelId);
+			if (!channel || !(channel instanceof TextChannel)) {
+				await interaction.followUp({
+					content: "An error occurred. Channel not found.",
+					ephemeral: true
+				});
+				return;
+			}
+
+			const message = await channel.send({ embeds: [embed] });
+
+			const thread = await message.startThread({
+				name: `Feedback from ${interaction.user.username}`,
+				autoArchiveDuration: 60,
 			});
 
-			modalInteraction.editReply({
+			const pollEmbed = new EmbedBuilder()
+			.setTitle("Feedback Poll")
+			.setDescription("Please cast your vote on the feedback submitted.")
+			.setColor(Colors.Blurple);
+
+			const pollMessage = await thread.send({ embeds: [pollEmbed] });
+
+			await pollMessage.react('✅');
+			await pollMessage.react('❌');
+
+			await modalInteraction.editReply({
 				content: "Feedback sent!",
 				components: []
 			});
 		} catch (error) {
-			interaction.editReply({
+			console.error(error);
+			await interaction.editReply({
 				content:
-					"Encountered error while trying to send feedback. Please try again later."
+					"Encountered error while trying to send feedback. Please try again later.",
+				components: []
 			});
-
-			// client.log(
-			// 	error,
-			// 	`${this.data.name} Command - Send Feedback`,
-			// 	`**Channel:** <#${interaction.channel?.id}>
-			// 				**User:** <@${interaction.user.id}>
-			// 				**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
-			// );
 		}
 	}
 }

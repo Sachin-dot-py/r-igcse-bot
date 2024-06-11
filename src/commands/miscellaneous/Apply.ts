@@ -10,7 +10,8 @@ import {
 	StringSelectMenuOptionBuilder,
 	TextChannel,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
+	ThreadChannel,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
@@ -174,7 +175,22 @@ export default class ApplyCommand extends BaseCommand {
 			)
 			.setColor(Colors.NotQuiteBlack);
 
-		await channel.send({ embeds: [embed] });
+		const message = await channel.send({ embeds: [embed] });
+
+		const thread = await message.startThread({
+			name: `${application.name} Application - ${interaction.user.username}`,
+			autoArchiveDuration: 60,
+		});
+
+		const pollEmbed = new EmbedBuilder()
+			.setTitle("Application Poll")
+			.setDescription("Please cast your vote on the application submitted.")
+			.setColor(Colors.Blurple);
+
+		const pollMessage = await thread.send({ embeds: [pollEmbed] });
+
+		await pollMessage.react('✅');
+		await pollMessage.react('❌');
 
 		await modalInteraction.reply({
 			content: "Application submitted successfully",
