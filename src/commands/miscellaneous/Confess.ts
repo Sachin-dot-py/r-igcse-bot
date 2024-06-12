@@ -66,7 +66,7 @@ export default class FunFactCommand extends BaseCommand {
 			return;
 		}
 
-		const feedbackInput = new TextInputBuilder()
+		const confessInput = new TextInputBuilder()
 			.setCustomId("confession-input")
 			.setLabel("Confession")
 			.setPlaceholder("The confession you would like to send")
@@ -74,7 +74,7 @@ export default class FunFactCommand extends BaseCommand {
 			.setStyle(TextInputStyle.Paragraph);
 
 		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			feedbackInput
+			confessInput
 		);
 
 		const modalCustomId = uuidv4();
