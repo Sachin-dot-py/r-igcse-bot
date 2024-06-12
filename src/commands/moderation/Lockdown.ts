@@ -144,7 +144,8 @@ export default class LockdownCommand extends BaseCommand {
 
 		await ChannelLockdown.updateOne(
 			{
-				channelId: channel.id,
+				guildId: interaction.guildId,
+				channelId: channel.id
 			},
 			{
 				startTimestamp: startTimestamp.toString(),
