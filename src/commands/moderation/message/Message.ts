@@ -16,6 +16,7 @@ import {
 	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
+	ThreadChannel,
 	VoiceChannel,
 } from "discord.js";
 
@@ -72,6 +73,7 @@ export default class KickCommand extends BaseCommand {
 
 			if (
 				!(channel instanceof TextChannel) &&
+				!(channel instanceof ThreadChannel) &&
 				!(channel instanceof VoiceChannel) &&
 				!(channel instanceof StageChannel)
 			) {
