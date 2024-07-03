@@ -6,11 +6,14 @@ import {
 	Colors,
 	EmbedBuilder,
 	Events,
+	TextChannel,
 	type GuildMember,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { StudyChannel } from "@/mongo/schemas/StudyChannel";
+import { Logger } from "@discordforge/logger";
 import { logToChannel } from "@/utils/Logger";
 
 export default class GuildMemberUpdateEvent extends BaseEvent {
@@ -23,12 +26,75 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 		oldMember: GuildMember,
 		newMember: GuildMember,
 	) {
+		if (oldMember.roles.cache.size != newMember.roles.cache.size) {
+			try {
+				const rolesUpdated = newMember.roles.cache.filter(x => !oldMember.roles.cache.has(x.id)).concat(oldMember.roles.cache.filter(x => !newMember.roles.cache.has(x.id)))
+				for (const role of rolesUpdated) {
+					const guildPreferences = await GuildPreferencesCache.get(newMember.guild.id);
+					const studyChannels = await StudyChannel.find({
+						guildId: newMember.guild.id,
+						helperRoleId: role[0]
+					});
+					const changed: string[] = [];
+
+					for (const studyChannel of studyChannels) {
+						const channel = newMember.guild.channels.cache.get(
+							studyChannel.channelId
+						);
+
+						if (!channel || !(channel instanceof TextChannel)) continue;
+
+						const role = newMember.guild.roles.cache.get(
+							studyChannel.helperRoleId
+						);
+
+						if (!role) continue;
+						let topic = channel.topic || "";
+						if (topic.includes("No. of helpers")) {
+							for (const line of topic.split("\n"))
+								if (line.includes("No. of helpers"))
+									topic = topic.replace(
+										line,
+										`No. of helpers: ${role.members.size}`
+									);
+						} else topic += `\nNo. of helpers: ${role.members.size}`;
+						await channel.edit({
+							topic
+						})
+						changed.push(channel.name);
+					}
+					if (studyChannels.length) {
+						const embed = new EmbedBuilder()
+							.setAuthor({
+								name: `Helpers Refreshed (automated) - ${newMember.user.tag}`,
+								iconURL: newMember.displayAvatarURL()
+							})
+							.addFields({
+								name: "Channels",
+								value: changed.join(", "),
+								inline: false
+							})
+							.setTimestamp();
+
+						if (guildPreferences?.generalLogsChannelId) {
+							await logToChannel(
+								newMember.guild,
+								guildPreferences.generalLogsChannelId,
+								{
+									embeds: [embed]
+								}
+							);
+						}
+					}
+				}
+			} catch (err) { Logger.error(err) }
+		}
 		if (
 			oldMember.user.bot ||
 			(oldMember.isCommunicationDisabled() ===
 				newMember.isCommunicationDisabled() &&
 				oldMember.communicationDisabledUntil ===
-					newMember.communicationDisabledUntil)
+				newMember.communicationDisabledUntil)
 		)
 			return;
 
@@ -36,7 +102,6 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 			newMember.guild.id,
 		);
 		if (!guildPreferences) return;
-
 		const auditLogs = await newMember.guild.fetchAuditLogs({
 			type: AuditLogEvent.MemberUpdate,
 			limit: 3,
@@ -73,7 +138,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 				Math.ceil(
 					(new Date(change.new as string).getTime() -
 						new Date().getTime()) /
-						10000,
+					10000,
 				) * 10;
 
 			if (
