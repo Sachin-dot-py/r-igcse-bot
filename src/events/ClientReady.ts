@@ -56,6 +56,24 @@ export default class ClientReadyEvent extends BaseEvent {
 			await logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [readyEmbed],
 			});
+			createTask(async ()=>{
+                const channel = await mainGuild.channels.fetch(process.env.RESULT_REMINDER_CHANNEL_ID);
+                if(channel && channel.isTextBased()) {
+                    const today = new Date();
+                    const targetDate = new Date(2024, 7, 13, 5, 0, 0);
+                    const diffInMs = targetDate.getTime() - today.getTime();
+                    const secondsLeft = Math.floor(diffInMs / 1000);
+                    const hoursLeft = Math.floor(diffInMs / (1000 * 60 * 60));
+                    const daysLeft = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+                    const embed = new EmbedBuilder()
+                        .setColor(Colors.Blurple)
+                        .setTitle('Time till result day!')
+                        .setDescription(
+                            `Result day <t:1723525200:R>\n\nThere are exactly **${daysLeft}** days left till result day.\nThere are exactly **${hoursLeft}** hours left till result time.\nThere are exactly **${secondsLeft}** seconds left till result day.    `
+                        );
+                    channel.send({embeds: [embed]});
+                };
+            }, 3600000);
 		}
 
 		const practiceCommand = client.commands.get("practice") as
