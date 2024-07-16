@@ -90,7 +90,6 @@ export default class TimeoutCommand extends BaseCommand {
 			interaction.editReply({
 				content: "Duration must be between 1 minute and 28 days",
 			});
-
 			return;
 		}
 
@@ -100,7 +99,6 @@ export default class TimeoutCommand extends BaseCommand {
 			interaction.editReply({
 				content: "User not found!",
 			});
-
 			return;
 		}
 
@@ -108,7 +106,6 @@ export default class TimeoutCommand extends BaseCommand {
 			interaction.editReply({
 				content: "You cannot timeout yourself.",
 			});
-
 			return;
 		}
 
@@ -123,104 +120,55 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		const latestTimeout = (
-			await Punishment.find({
-				guildId: interaction.guildId,
-				actionAgainst: guildMember.id,
-				action: "Timeout",
-			}).sort({ when: -1 })
-		)[0];
+		const userPunishments = await Punishment.find({
+			guildId: interaction.guildId,
+			actionAgainst: guildMember.id,
+		}).sort({ when: -1 });
 
-		if (
-			guildMember.isCommunicationDisabled() &&
-			latestTimeout.duration &&
-			latestTimeout.when.getTime() + latestTimeout.duration * 1000 >
-				Date.now()
-		) {
-			const newEndTime = Date.now() + duration * 1000;
+		const totalPoints = userPunishments.reduce(
+			(sum, punishment) => sum + punishment.points,
+			0,
+		) + (duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2); // Calculate points for this timeout
 
-			const time = Math.floor(newEndTime / 1000);
+		if (totalPoints > 10) {
+			const lastInfraction = userPunishments[0];
 
-			try {
-				await guildMember.timeout(duration * 1000, reason);
-				sendDm(guildMember, {
-					embeds: [
-						new EmbedBuilder()
-							.setTitle("Timeout Duration Modified")
-							.setColor(Colors.Red)
-							.setDescription(
-								`Your timeout in ${interaction.guild.name} has been modified to last ${humanizeDuration(duration * 1000)} from now due to *${reason}*. Your timeout will end <t:${time}:R>.`,
-							),
-					],
-				});
-			} catch (error) {
-				interaction.editReply({
-					content: `Failed to change user's timeout duration ${error instanceof Error ? `(${error.message})` : ""}`,
-				});
-
-				client.log(
-					error,
-					`${this.data.name} Command`,
-					`**Channel:** <#${interaction.channel?.id}>
-						**User:** <@${interaction.user.id}>
-						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
-				);
-
-				return;
-			}
-
-			const previousReason = latestTimeout.reason;
-
-			await latestTimeout.updateOne({
-				actionBy: interaction.user.id,
-				reason: `${previousReason}, ${reason}`,
-				duration: duration,
-				points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
-			});
-
-			const modEmbed = new EmbedBuilder()
-				.setTitle(
-					`Timeout Duration Modified | Case #${latestTimeout.caseId}`,
+			const previousBans = userPunishments
+				.filter(p => p.action === "Ban")
+				.map(ban => 
+					`<t:${Math.floor(new Date(ban.when).getTime() / 1000)}:F>`
 				)
-				.setColor(Colors.Red)
-				.addFields([
-					{
-						name: "User",
-						value: `${user.tag} (${user.id})`,
-						inline: false,
-					},
-					{
-						name: "Moderator",
-						value: `${interaction.user.tag} (${interaction.user.id})`,
-						inline: false,
-					},
-					{
-						name: "Reason",
-						value: reason,
-					},
-					{
-						name: "Duration",
-						value: `${humanizeDuration(duration * 1000)} (<t:${time}:R>)`,
-					},
-				]);
+				.join("\n");
 
-			if (guildPreferences.modlogChannelId) {
-				logToChannel(
-					interaction.guild,
-					guildPreferences.modlogChannelId,
-					{
-						embeds: [modEmbed],
-					},
-				);
+			if (guildPreferences.actionRequiredChannelId) {
+				const actionReqEmbed = new EmbedBuilder()
+					.setTitle(`User Action Required (${totalPoints})`)
+					.setColor(Colors.Red)
+					.setAuthor({ name: guildMember.user.tag, iconURL: guildMember.user.displayAvatarURL() })
+					.addFields([
+						{
+							name: "User",
+							value: `<@${guildMember.user.id}> (${guildMember.user.id})`,
+							inline: false,
+						},
+						{
+							name: "Last Infraction Details",
+							value: lastInfraction
+								? `→ Case ID: **#${lastInfraction.caseId}**\n → Action Taken: **${lastInfraction.action}**\n → Reason: **${lastInfraction.reason}**\n → When: <t:${Math.floor(new Date(lastInfraction.when).getTime() / 1000)}:F> (<t:${Math.floor(new Date(lastInfraction.when).getTime() / 1000)}:R>)`
+								: "No previous infractions",
+							inline: false,
+						},
+						{
+							name: "Previous Bans",
+							value: previousBans || "No previous bans",
+							inline: false,
+						},
+					]);
+
+				logToChannel(interaction.guild, guildPreferences.actionRequiredChannelId, {
+					embeds: [actionReqEmbed],
+				});
 			}
-
-			interaction.editReply({
-				content: "changed user's timeout duration rahhhhhh",
-			});
-			interaction.channel.send(
-				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`,
-			);
-			return;
 		}
 
 		try {
@@ -239,7 +187,6 @@ export default class TimeoutCommand extends BaseCommand {
 			interaction.editReply({
 				content: `Failed to timeout user ${error instanceof Error ? `(${error.message})` : ""}`,
 			});
-
 			client.log(
 				error,
 				`${this.data.name} Command`,
@@ -247,7 +194,6 @@ export default class TimeoutCommand extends BaseCommand {
 					**User:** <@${interaction.user.id}>
 					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
-
 			return;
 		}
 
