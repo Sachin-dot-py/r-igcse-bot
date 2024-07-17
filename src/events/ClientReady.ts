@@ -19,6 +19,7 @@ import {
 	ForumChannel,
 	TextChannel,
 	ThreadChannel,
+	ChannelType
 } from "discord.js";
 import { EntityId } from "redis-om";
 import { client } from "..";
@@ -58,7 +59,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			});
 			createTask(async ()=>{
                 const channel = await mainGuild.channels.fetch(process.env.RESULT_REMINDER_CHANNEL_ID);
-                if(channel && channel.isTextBased()) {
+                if(channel && channel.type === ChannelType.GuildText) {
                     const today = new Date();
                     const targetDate = new Date(2024, 7, 13, 5, 0, 0);
                     const diffInMs = targetDate.getTime() - today.getTime();
