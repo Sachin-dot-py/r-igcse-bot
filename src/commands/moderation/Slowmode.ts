@@ -8,6 +8,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	ChannelType,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
@@ -40,18 +41,27 @@ export default class SlowmodeCommand extends BaseCommand {
 	async execute(
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
-	) {
+	): Promise<void> {
 		const timeString = interaction.options.getString("time", true);
 		const channel =
 			interaction.options.getChannel("channel", false) ??
 			interaction.channel;
 
-		const time = /^\d+$/.test(timeString)
+		const isNumber = /^\d+$/.test(timeString);
+		const time = isNumber
 			? Number.parseInt(timeString)
 			: parse(timeString, "second") ?? 0;
 
-		if (!channel || !channel.isTextBased()) {
-			interaction.reply({
+		if (!isNumber && time === 0) {
+			await interaction.reply({
+				content: "Invalid slowmode duration. Please provide a valid numerical duration (e.g., '5s', '1m', '1h').",
+				ephemeral: true,
+			});
+			return;
+		}
+
+		if (!channel || channel.type !== ChannelType.GuildText) {
+			await interaction.reply({
 				content: "Channel must be text-based",
 				ephemeral: true,
 			});
@@ -59,7 +69,7 @@ export default class SlowmodeCommand extends BaseCommand {
 		}
 
 		if (time > 21600 || time < 0) {
-			interaction.reply({
+			await interaction.reply({
 				content: "Enter a valid time between 0 seconds and 6 hours.",
 				ephemeral: true,
 			});
@@ -71,7 +81,7 @@ export default class SlowmodeCommand extends BaseCommand {
 			`Slowmode set by ${interaction.user.tag}`,
 		);
 
-		interaction.reply({
+		await interaction.reply({
 			content: `Slowmode for ${channel} successfully set to ${timeString}.`,
 			ephemeral: true,
 		});
@@ -80,40 +90,39 @@ export default class SlowmodeCommand extends BaseCommand {
 		);
 
 		if (!guildPreferences || !guildPreferences.generalLogsChannelId) {
-			interaction.reply({
-				content:
-					"Please setup the bot using the command `/setup` first.",
+			await interaction.followUp({
+				content: "Please setup the bot using the command `/setup` first.",
 				ephemeral: true,
 			});
 			return;
 		}
 
-		logToChannel(interaction.guild, guildPreferences.generalLogsChannelId, {
-			embeds: [
-				new EmbedBuilder()
-					.setTitle("Slowmode added")
-					.setDescription(`Slowmode added in ${channel}`)
-					.setColor("Red")
-					.addFields(
-						{
-							name: "Moderator",
-							value: `${interaction.user.tag} (<@${interaction.user.id}>)`,
-						},
-						{
-							name: "Duration",
-							value: `${humanizeDuration(time * 1000)}`,
-						},
-					)
-					.setTimestamp(),
-			],
-			allowedMentions: { repliedUser: false },
-		}).catch(() => {
-			interaction.followUp({
+		try {
+			await logToChannel(interaction.guild, guildPreferences.generalLogsChannelId, {
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Slowmode added")
+						.setDescription(`Slowmode added in ${channel}`)
+						.setColor("Red")
+						.addFields(
+							{
+								name: "Moderator",
+								value: `${interaction.user.tag} (<@${interaction.user.id}>)`,
+							},
+							{
+								name: "Duration",
+								value: `${humanizeDuration(time * 1000)}`,
+							},
+						)
+						.setTimestamp(),
+				],
+				allowedMentions: { repliedUser: false },
+			});
+		} catch (error) {
+			await interaction.followUp({
 				content: "Invalid log channel, contact admins",
 				ephemeral: true,
 			});
-		});
-
-		return;
+		}
 	}
 }
