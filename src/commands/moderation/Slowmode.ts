@@ -7,8 +7,7 @@ import { logToChannel } from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
-	ChannelType,
+	SlashCommandBuilder
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
@@ -60,9 +59,9 @@ export default class SlowmodeCommand extends BaseCommand {
 			return;
 		}
 
-		if (!channel || channel.type !== ChannelType.GuildText) {
+		if (!channel || !channel.isTextBased()) {
 			interaction.reply({
-				content: "Channel must be text-based",
+				content: "Channel must be text-based.",
 				ephemeral: true,
 			});
 			return;
@@ -85,6 +84,7 @@ export default class SlowmodeCommand extends BaseCommand {
 			content: `Slowmode for ${channel} successfully set to ${timeString}.`,
 			ephemeral: true,
 		});
+
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
@@ -119,8 +119,9 @@ export default class SlowmodeCommand extends BaseCommand {
 				allowedMentions: { repliedUser: false },
 			});
 		} catch (error) {
+			console.error("Error logging to channel:", error);
 			interaction.followUp({
-				content: "Invalid log channel, contact admins",
+				content: "Invalid log channel, contact admins.",
 				ephemeral: true,
 			});
 		}
