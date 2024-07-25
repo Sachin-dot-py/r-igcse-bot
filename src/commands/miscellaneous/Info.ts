@@ -59,6 +59,7 @@ Created on: ${timeFormatter(client.user.createdAt)}
 Joined on: ${timeFormatter(interaction.guild.joinedAt)}
 Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
 No. of guilds: ${client.guilds.cache.size}
+Total member count: ${client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)}
 ID: ${client.user.id}\`\`\``,
 					inline: false,
 				},
