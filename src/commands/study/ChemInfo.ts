@@ -2,6 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import BaseCommand, { type DiscordChatInputCommandInteraction } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import type { ChemInfo, SynonymInfo, ExperimentalInfo } from "@/utils/apis/cheminfo";
+import { Logger } from "@discordforge/logger";
 
 const metals: string[] = [
     "Li", "Be", "Na", "Mg", "K", "Ca", "Rb", "Sr", "Cs", "Ba", "Fr", "Ra", "Sc", "Y",
@@ -45,43 +46,34 @@ export default class ChemInfoCommand extends BaseCommand {
         client: DiscordClient<true>,
         interaction: DiscordChatInputCommandInteraction
     ) {
-        // Defer the reply to handle potentially long operations
         await interaction.deferReply();
 
-        // Get the chemical formula or name from the options
         const formula = interaction.options.getString("formula", false) || '';
         const name = interaction.options.getString("name", false) || '';
 
-        // Validate that at least one input is provided
         if (!formula && !name) {
             await interaction.reply({ content: 'Please enter a formula or name', ephemeral: true });
             return;
         }
 
         try {
-            // Fetch chemical data based on the input
             const res = await fetchChemicalData(name || formula, formula ? 'fastformula' : 'name');
 
-            // Handle errors from the API response
             if ('Fault' in res) {
                 await interaction.editReply(`An error occurred: ${res.Fault.Message}`);
                 return;
             }
 
-            // Extract compound information from the response
             const compound = (res as ChemInfo.APIResponse).PC_Compounds[0];
             const isIon = compound.charge !== 0;
             const isElement = !isIon && compound.atoms.aid.length === 1;
 
-            // Determine the bonding type
             const bonding = await determineBonding(compound, isElement, isIon);
 
-            // Format the chemical formula for display
             const molecularformula =
                 compound.props.find(p => p.urn.label === "Molecular Formula")?.value.sval || '';
             const formulaLabel = await formatFormula(molecularformula);
 
-            // Fetch synonyms for the compound
             const cid = compound.id.id.cid;
             const synonymsResponse = await fetchChemicalSynonyms(cid);
             const synonyms =
@@ -92,16 +84,13 @@ export default class ChemInfoCommand extends BaseCommand {
             const synonymList =
                 filteredSynonyms.length > 0 ? filteredSynonyms.slice(0, 5).join(", ") : "";
 
-            // Fetch experimental properties of the compound
             const experimentalProperties = await getExperimentalProperties(cid);
 
-            // Extract and format necessary information for the embed
             const weight =
                 Math.round(Number(compound.props.find(p => p.urn.label === "Molecular Weight")?.value.sval || "N/A"));
             const atomicNumber = isElement ? compound.atoms.element[0] : "N/A";
             const iupacName = compound.props.find(p => p.urn.label === "IUPAC Name")?.value.sval || '';
 
-            // Create the embed message with chemical information
             const embed = new EmbedBuilder()
                 .setTitle(`${filteredSynonyms[0] || iupacName} (${formulaLabel})`)
                 .setDescription(`For more information, [click here](https://pubchem.ncbi.nlm.nih.gov/compound/${cid})`)
@@ -118,12 +107,10 @@ export default class ChemInfoCommand extends BaseCommand {
                 )
                 .setColor("#FF0000");
 
-            // Send the embed message as a reply
             await interaction.editReply({ embeds: [embed] });
 
         } catch (error) {
-            // Log and handle any errors that occur during processing
-            console.error("Error occurred while fetching chemical data:", error);
+            Logger.error("Error occurred while fetching chemical data:", error);
             await interaction.editReply("Invalid formula or name (an error occurred)");
         }
     }
@@ -142,7 +129,6 @@ async function fetchChemicalData(chemical: string, namespace: string):
 async function fetchChemicalSynonyms(
     cid: number
 ): Promise<SynonymInfo.APIResponse> {
-    // Fetch the synonyms data from PubChem using the compound's CID
     const res = (await fetch(
         `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`
         ).then((res) => res.json())) as SynonymInfo.APIResponse;
@@ -155,10 +141,8 @@ async function determineBonding(
     is_element: boolean, 
     is_ion: boolean
 ): Promise<string | null> {
-    // Map atomic numbers to their symbols
     const atoms = compound.atoms.element.map(atomicNumber => atomicNumberToSymbol[atomicNumber] || '');
 
-    // Determine bonding type based on ion status and presence of metals
     if (is_ion) return "Can form ionic bonds";
     if (!is_element && atoms.some(atom => metals.includes(atom))) return "Ionic bonds";
     if (atoms.some(atom => metals.includes(atom))) return "Metallic bonds (Metal)";
@@ -172,17 +156,13 @@ async function getExperimentalProperties(
     cid: number
 ): Promise<ExperimentalInfo.ExperimentalProperties> {
     try {
-        // Construct the URL to fetch experimental properties data
         const url = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON/`;
         
-        // Fetch the data from PubChem
         const response = await fetch(url);
         const data = await response.json() as ExperimentalInfo.ApiResponse;
 
-        // Initialize the mainSection to null
         let mainSection = null;
 
-        // Locate the "Chemical and Physical Properties" section in the fetched data
         for (const section of data.Record.Section) {
             if (section.TOCHeading === "Chemical and Physical Properties") {
                 mainSection = section;
@@ -190,15 +170,12 @@ async function getExperimentalProperties(
             }
         }
 
-        // Return default values if the main section is not found
         if (!mainSection) {
             return { description: null, color: null };
         }
 
-        // Initialize experimentalProperties to null
         let experimentalProperties = null;
 
-        // Locate the "Experimental Properties" subsection
         for (const subsection of mainSection.Section) {
             if (subsection.TOCHeading === "Experimental Properties") {
                 experimentalProperties = subsection;
@@ -206,22 +183,18 @@ async function getExperimentalProperties(
             }
         }
 
-        // Return default values if the experimental properties subsection is not found
         if (!experimentalProperties) {
             return { description: null, color: null };
         }
 
-        // Initialize description and color to null
         let description = null;
         let color = null;
 
-        // Extract the physical description and color information
         for (const property of experimentalProperties.Section) {
             if (property.TOCHeading === "Physical Description") {
                 description = property.Information[0].Value.StringWithMarkup[0].String;
                 color = property.Information[1].Value.StringWithMarkup[0].String;
                 
-                // Process the color information to split it if it contains multiple values
                 if (color) {
                     color = color.split(";")[0];
                 }
@@ -229,10 +202,8 @@ async function getExperimentalProperties(
             }
         }
 
-        // Return the description and color information
         return { description, color };
     } catch (error) {
-        // Return default values if an error occurs during the process
         return { description: null, color: null };
       }
 }
