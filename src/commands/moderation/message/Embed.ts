@@ -173,7 +173,7 @@ export default class EmbedCommand extends BaseCommand {
 					embed.setColor(embedColour as HexColorString);
 				} finally { }
 				else if (embedColour) {
-					await modalInteraction.reply({
+					modalInteraction.reply({
 						content: "The hex colour provided is invalid.\n-# Format: #FFFFFF",
 						ephemeral: true,
 					});
