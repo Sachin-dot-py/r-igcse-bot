@@ -165,12 +165,12 @@ export default class EmbedCommand extends BaseCommand {
 					return;
 				}
 
-				let embed = new EmbedBuilder()
+				const embed = new EmbedBuilder()
 					.setTitle(embedTitle)
 					.setDescription(embedDescription);
 
 				if (embedColour && /^#?[\da-f]{6}$/i.test(embedColour)) try {
-					embed = embed.setColor(embedColour as HexColorString);
+					embed.setColor(embedColour as HexColorString);
 				} finally { }
 				else if (embedColour) {
 					await modalInteraction.reply({
