@@ -166,6 +166,9 @@ export default class PinMenu extends BaseCommand {
 					}).catch(() => null);
 					try {
 						await interaction.targetMessage.unpin();
+						interaction.targetMessage.reply({
+							content: `Messaged unpinned by ${interaction.user}`,
+						});
 					} catch (error) {
 						await confirmation.update({
 							content: "Couldn't unpin message.",
