@@ -3,22 +3,7 @@ import BaseCommand, { type DiscordChatInputCommandInteraction } from "../../regi
 import type { DiscordClient } from "@/registry/DiscordClient";
 import type { ChemInfo, SynonymInfo, ExperimentalInfo } from "@/utils/apis/cheminfo";
 import { Logger } from "@discordforge/logger";
-
-const metals: string[] = [
-    "Li", "Be", "Na", "Mg", "K", "Ca", "Rb", "Sr", "Cs", "Ba", "Fr", "Ra", "Sc", "Y",
-    "Ti", "Zr", "Hf", "V", "Nb", "Ta", "Cr", "Mo", "W", "Mn", "Tc", "Re", "Fe", "Ru",
-    "Os", "Co", "Rh", "Ir", "Ni", "Pd", "Pt", "Cu", "Ag", "Au", "Zn", "Cd", "Hg",
-    "Al", "Ga", "In", "Sn", "Tl", "Pb", "Bi"
-];
-
-const atomicNumberToSymbol: { [key: number]: string } = {
-    3: "Li", 4: "Be", 11: "Na", 12: "Mg", 19: "K", 20: "Ca", 37: "Rb", 38: "Sr",
-    55: "Cs", 56: "Ba", 87: "Fr", 88: "Ra", 21: "Sc", 39: "Y", 22: "Ti", 40: "Zr",
-    72: "Hf", 23: "V", 41: "Nb", 73: "Ta", 24: "Cr", 42: "Mo", 74: "W", 25: "Mn",
-    43: "Tc", 75: "Re", 26: "Fe", 44: "Ru", 76: "Os", 27: "Co", 45: "Rh", 77: "Ir",
-    28: "Ni", 46: "Pd", 78: "Pt", 29: "Cu", 47: "Ag", 79: "Au", 30: "Zn", 48: "Cd",
-    80: "Hg", 13: "Al", 31: "Ga", 49: "In", 50: "Sn", 81: "Tl", 82: "Pb", 83: "Bi"
-};
+import { metals, atomicNumberToSymbol } from "@/data.ts";
 
 export default class ChemInfoCommand extends BaseCommand {
     constructor() {
