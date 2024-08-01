@@ -1,7 +1,6 @@
 import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
-
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
@@ -73,14 +72,15 @@ export default class WarnCommand extends BaseCommand {
 			return;
 		}
 
-		const userPunishments = await Punishment.find({
-			guildId: interaction.guildId,
-			actionAgainst: user.id,
-		}).sort({ when: -1 });
+		const latestPunishment = (
+			await Punishment.find({
+				guildId: interaction.guildId,
+			}).sort({ when: -1 })
+		)[0];
 
-		const caseNumber = (userPunishments[0]?.caseId ?? 0) + 1;
+		const caseNumber = (latestPunishment?.caseId ?? 0) + 1;
 
-		const newPunishment = await Punishment.create({
+		Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -90,63 +90,6 @@ export default class WarnCommand extends BaseCommand {
 			points: 1,
 			when: new Date(),
 		});
-
-		const totalPoints = userPunishments.reduce(
-			(sum, punishment) => sum + punishment.points,
-			0,
-		) + 1;
-
-		if (totalPoints > 10) {
-			const lastInfraction = userPunishments[0];
-			const previousBans = userPunishments.filter(
-				(punishment) => punishment.action === "Ban",
-			);
-			
-			if (guildPreferences.actionRequiredChannelId) {
-				const actionReqEmbed = new EmbedBuilder()
-					.setTitle(`User Action Required (${totalPoints})`)
-					.setColor(Colors.Red)
-					.setAuthor({ name: guildMember.user.tag, iconURL: guildMember.user.displayAvatarURL() })
-					.addFields([
-						{
-							name: "User",
-							value: `<@${guildMember.user.id}> (${guildMember.user.id})`,
-							inline: false,
-						},				
-						{
-							name: "Last Infraction Details",
-							value: lastInfraction
-								? `→ Case ID: **#${lastInfraction.caseId}**\n → Action Taken: **${lastInfraction.action}**\n → Reason: **${lastInfraction.reason}**\n → When: <t:${Math.floor(
-									new Date(lastInfraction.when).getTime() / 1000,
-								)}:F> (<t:${Math.floor(
-									new Date(lastInfraction.when).getTime() / 1000,
-								)}:R>)`
-								: "No previous infractions",
-							inline: false,
-						},
-						{
-							name: "Previous Bans",
-							value: previousBans.length
-								? previousBans
-										.map(
-											(ban) =>
-												`<t:${Math.floor(
-													new Date(ban.when).getTime() /
-														1000,
-												)}:F>`,
-										)
-										.join("\n")
-								: "None",
-							inline: false,
-						},
-					]);
-
-				
-				logToChannel(interaction.guild, guildPreferences.actionRequiredChannelId, {
-					embeds: [actionReqEmbed],
-					});
-				}
-			}
 
 		if (guildPreferences.modlogChannelId) {
 			const modEmbed = new EmbedBuilder()

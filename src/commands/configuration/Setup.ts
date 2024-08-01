@@ -91,7 +91,8 @@ export default class SetupCommand extends BaseCommand {
 								label: "Disable Reps",
 								value: "false",
 								default:
-									guildPreferences?.[preference.key] === false,
+									guildPreferences?.[preference.key] ===
+									false,
 							},
 						);
 					}
