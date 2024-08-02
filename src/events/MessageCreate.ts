@@ -351,7 +351,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		}
 
 		const embed = new EmbedBuilder()
-			.setTitle("New DM Recieved")
+			.setTitle("New DM Received")
 			.setAuthor({
 				name: message.author.username,
 				iconURL: message.author.displayAvatarURL(),
@@ -376,7 +376,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			logToChannel(guild, guildPreferences.modmailLogsChannelId, {
 				embeds: [
 					{
-						title: "New DM Recieved",
+						title: "New DM Received",
 						description: `**User:** ${message.author.tag} (${message.author.id})\n**Thread:** <#${thread.id}>`,
 						color: Colors.Purple,
 						timestamp: new Date().toISOString(),
