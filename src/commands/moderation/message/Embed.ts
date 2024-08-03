@@ -12,6 +12,7 @@ import {
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
+	type HexColorString,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -106,6 +107,13 @@ export default class EmbedCommand extends BaseCommand {
 					.setLabel("Embed Footer")
 					.setCustomId(`footer`);
 
+				const embedColourField = new TextInputBuilder()
+					.setPlaceholder("Hex Colour")
+					.setRequired(false)
+					.setStyle(TextInputStyle.Short)
+					.setLabel("Colour")
+					.setCustomId(`colour`);
+
 				const actionRows = [
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
 						embedTitleField,
@@ -115,6 +123,9 @@ export default class EmbedCommand extends BaseCommand {
 					),
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
 						embedFooterField,
+					),
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						embedColourField
 					),
 				];
 
@@ -139,6 +150,10 @@ export default class EmbedCommand extends BaseCommand {
 					null;
 				const embedFooter =
 					modalInteraction.fields.getTextInputValue("footer") || null;
+				const embedColour =
+					(await modalInteraction.fields.getTextInputValue(
+						"colour"
+					)).trim() || null;
 
 				if (!embedTitle && !embedDescription && !embedFooter) {
 					await modalInteraction.reply({
@@ -154,6 +169,17 @@ export default class EmbedCommand extends BaseCommand {
 					.setTitle(embedTitle)
 					.setDescription(embedDescription);
 
+				if (embedColour && /^#?[\da-f]{6}$/i.test(embedColour)) try {
+					embed.setColor(embedColour as HexColorString);
+				} finally { }
+				else if (embedColour) {
+					modalInteraction.reply({
+						content: "The hex colour provided is invalid.\n-# Format: #FFFFFF",
+						ephemeral: true,
+					});
+
+					return;
+				}
 				if (embedFooter) {
 					embed.setFooter({
 						text: embedFooter,
