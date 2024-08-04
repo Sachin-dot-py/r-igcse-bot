@@ -1,11 +1,11 @@
 import {
+	ActionRowBuilder,
+	type ButtonInteraction,
+	type ModalActionRowComponentBuilder,
 	ModalBuilder,
+	type ModalSubmitInteraction,
 	TextInputBuilder,
 	TextInputStyle,
-	ActionRowBuilder,
-	type ModalActionRowComponentBuilder,
-	ModalSubmitInteraction,
-	type ButtonInteraction
 } from "discord.js";
 
 interface ConfessionBanModalResponse {
@@ -17,7 +17,7 @@ class ConfessionBanModal extends ModalBuilder {
 	constructor(customId: string) {
 		super();
 		this.setTitle("Are you sure you want to ban this user?").setCustomId(
-			customId
+			customId,
 		);
 
 		const reason = new TextInputBuilder()
@@ -29,8 +29,8 @@ class ConfessionBanModal extends ModalBuilder {
 
 		const actionRows = [
 			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-				reason
-			)
+				reason,
+			),
 		];
 
 		this.addComponents(...actionRows);
@@ -38,12 +38,12 @@ class ConfessionBanModal extends ModalBuilder {
 
 	async waitForResponse(
 		customId: string,
-		interaction: ButtonInteraction
+		interaction: ButtonInteraction,
 	): Promise<ConfessionBanModalResponse | false> {
 		try {
 			const followUpInteraction = await interaction.awaitModalSubmit({
 				time: 300_000,
-				filter: (i) => i.customId === customId
+				filter: (i) => i.customId === customId,
 			});
 
 			const reason =
@@ -51,12 +51,12 @@ class ConfessionBanModal extends ModalBuilder {
 
 			return {
 				reason,
-				followUpInteraction
+				followUpInteraction,
 			};
 		} catch (error) {
 			interaction.followUp({
 				content: "You took too long to respond",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return false;
 		}

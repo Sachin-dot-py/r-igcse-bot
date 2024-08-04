@@ -1,3 +1,7 @@
+import type { DiscordClient } from "@/registry/DiscordClient";
+import BaseCommand, {
+	type DiscordChatInputCommandInteraction,
+} from "@/registry/Structure/BaseCommand";
 import {
 	CategoryChannel,
 	EmbedBuilder,
@@ -5,12 +9,8 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextChannel,
-	VoiceChannel
+	VoiceChannel,
 } from "discord.js";
-import BaseCommand, {
-	type DiscordChatInputCommandInteraction
-} from "@/registry/Structure/BaseCommand";
-import type { DiscordClient } from "@/registry/DiscordClient";
 
 export default class InfoCommand extends BaseCommand {
 	constructor() {
@@ -19,20 +19,20 @@ export default class InfoCommand extends BaseCommand {
 				.setName("info")
 				.setDescription("Bot information and statistics")
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-				.setDMPermission(true)
+				.setDMPermission(true),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
 
 		const { format: timeFormatter } = new Intl.DateTimeFormat("en-GB", {
 			year: "numeric",
 			month: "numeric",
-			day: "numeric"
+			day: "numeric",
 		});
 
 		const embed = new EmbedBuilder().setTitle("Bot Information");
@@ -41,7 +41,7 @@ export default class InfoCommand extends BaseCommand {
 				category: 0,
 				text: 0,
 				voice: 0,
-				forum: 0
+				forum: 0,
 			};
 
 			for (const channel of interaction.guild.channels.cache.values())
@@ -59,8 +59,9 @@ Created on: ${timeFormatter(client.user.createdAt)}
 Joined on: ${timeFormatter(interaction.guild.joinedAt)}
 Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
 No. of guilds: ${client.guilds.cache.size}
+Total member count: ${client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)}
 ID: ${client.user.id}\`\`\``,
-					inline: false
+					inline: false,
 				},
 				{
 					name: "Guild Information",
@@ -70,7 +71,7 @@ Created on: ${timeFormatter(interaction.guild.createdAt)}
 Members: ${interaction.guild.memberCount}
 Boosts: ${interaction.guild.premiumSubscriptionCount}
 ID: ${interaction.guild.id}\`\`\``,
-					inline: false
+					inline: false,
 				},
 				{
 					name: "Channels & Commands",
@@ -82,8 +83,8 @@ No. of text-channels: ${channelCount.text}
 No. of voice-channels: ${channelCount.voice}
 No. of forum-channels: ${channelCount.forum}
 No. of slash-commands: ${client.commands.size}\`\`\``,
-					inline: false
-				}
+					inline: false,
+				},
 			]);
 		} else {
 			embed.addFields([
@@ -94,13 +95,13 @@ Created on: ${timeFormatter(client.user.createdAt)}
 Verified: ${client.user.flags?.has("VerifiedBot") ?? "false"}
 No. of guilds: ${client.guilds.cache.size}
 ID: ${client.user.id}\`\`\``,
-					inline: false
-				}
+					inline: false,
+				},
 			]);
 		}
 
 		await interaction.followUp({
-			embeds: [embed]
+			embeds: [embed],
 		});
 	}
 }

@@ -1,9 +1,9 @@
+import { subreddits } from "@/data";
+import type { DiscordClient } from "@/registry/DiscordClient";
 import { SlashCommandBuilder } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
-import type { DiscordClient } from "@/registry/DiscordClient";
-import { subreddits } from "@/data";
 
 export default class MemeCommand extends BaseCommand {
 	constructor() {
@@ -11,7 +11,7 @@ export default class MemeCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("meme")
 				.setDescription(
-					"Get a random meme (random subreddit unless specified)"
+					"Get a random meme (random subreddit unless specified)",
 				)
 				.addStringOption((option) =>
 					option
@@ -21,16 +21,16 @@ export default class MemeCommand extends BaseCommand {
 						.addChoices(
 							...subreddits.map((x) => ({
 								name: `r/${x}`,
-								value: x
-							}))
-						)
-				)
+								value: x,
+							})),
+						),
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const subreddit =
 			interaction.options.getString("subreddit", false) ||

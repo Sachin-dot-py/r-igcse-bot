@@ -1,12 +1,12 @@
+import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import {
-	ModalBuilder,
-	TextInputBuilder,
-	TextInputStyle,
 	ActionRowBuilder,
 	type ModalActionRowComponentBuilder,
-	ModalSubmitInteraction
+	ModalBuilder,
+	type ModalSubmitInteraction,
+	TextInputBuilder,
+	TextInputStyle,
 } from "discord.js";
-import type { DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 
 interface SessionInfoModalResponse {
 	minimumYear: number;
@@ -41,11 +41,11 @@ class SessionInfoModal extends ModalBuilder {
 
 		const actionRows = [
 			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-				minimumYear
+				minimumYear,
 			),
 			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-				numberOfQuestions
-			)
+				numberOfQuestions,
+			),
 		];
 
 		this.addComponents(...actionRows);
@@ -53,29 +53,29 @@ class SessionInfoModal extends ModalBuilder {
 
 	async waitForResponse(
 		customId: string,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordChatInputCommandInteraction,
 	): Promise<SessionInfoModalResponse | false> {
 		try {
 			const sessionInfo = await interaction.awaitModalSubmit({
 				time: 300_000,
-				filter: (i) => i.customId === customId
+				filter: (i) => i.customId === customId,
 			});
 
 			const minimumYear =
 				sessionInfo.fields.getTextInputValue("minimum_year");
 			const numberOfQuestions = sessionInfo.fields.getTextInputValue(
-				"number_of_questions"
+				"number_of_questions",
 			);
 
 			return {
-				minimumYear: parseInt(minimumYear),
-				numberOfQuestions: parseInt(numberOfQuestions),
-				followUpInteraction: sessionInfo
+				minimumYear: Number.parseInt(minimumYear),
+				numberOfQuestions: Number.parseInt(numberOfQuestions),
+				followUpInteraction: sessionInfo,
 			};
 		} catch (error) {
 			interaction.followUp({
 				content: "You took too long to respond",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return false;
 		}

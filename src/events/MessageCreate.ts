@@ -6,27 +6,28 @@ import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
 	GuildPreferencesCache,
 	KeywordCache,
-	StickyMessageCache
+	StickyMessageCache,
 } from "@/redis";
 import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
-import Logger from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
+	type APIEmbed,
 	ActionRowBuilder,
-	ButtonBuilder,
+	type ButtonBuilder,
 	Colors,
 	EmbedBuilder,
 	Events,
 	ForumChannel,
-	Message,
+	type Message,
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
-	User,
-	type APIEmbed
+	type User,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { Logger } from "@discordforge/logger";
+import { logToChannel } from "@/utils/Logger";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -41,7 +42,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.inGuild()) {
 			KeywordCache.get(
 				message.guildId,
-				message.content.trim().toLowerCase()
+				message.content.trim().toLowerCase(),
 			)
 				.then((keywordReponse) => {
 					if (
@@ -52,7 +53,7 @@ export default class MessageCreateEvent extends BaseEvent {
 						const embed = new EmbedBuilder()
 							.setDescription(keywordReponse)
 							.setFooter({
-								text: `Requested by ${message.author.tag}`
+								text: `Requested by ${message.author.tag}`,
 							})
 							.setColor(Colors.Blue);
 						message.channel.send({ embeds: [embed] });
@@ -63,7 +64,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				.catch(Logger.error);
 
 			const guildPreferences = await GuildPreferencesCache.get(
-				message.guild.id
+				message.guild.id,
 			);
 
 			if (!guildPreferences) return;
@@ -73,7 +74,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				message.channel.id === guildPreferences.countingChannelId
 			) {
 				const countingChannel = message.guild.channels.cache.get(
-					guildPreferences.countingChannelId
+					guildPreferences.countingChannelId,
 				);
 
 				if (!countingChannel || !countingChannel.isTextBased()) return;
@@ -82,15 +83,15 @@ export default class MessageCreateEvent extends BaseEvent {
 					...(
 						await countingChannel.messages.fetch({
 							before: message.id,
-							limit: 1
+							limit: 1,
 						})
-					).values()
+					).values(),
 				][0];
 
 				if (
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
-							`${parseInt(lastMessage.content) + 1}` ===
+							`${Number.parseInt(lastMessage.content) + 1}` ===
 								message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
@@ -102,7 +103,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				this.handleRep(
 					client,
 					message,
-					guildPreferences.repDisabledChannelIds
+					guildPreferences.repDisabledChannelIds,
 				);
 
 			if (client.stickyChannelIds.includes(message.channelId)) {
@@ -110,12 +111,14 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyCounter[message.channelId] === 4 &&
 					stickyCounter[message.channelId] >= 4
 				) {
-					this.handleStickyMessages(message).catch(Logger.error);
+					this.handleStickyMessages(message).catch((e) =>
+						Logger.error(`Error at handleStickyMessages: ${e}`),
+					);
 					stickyCounter[message.channelId] = 0;
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
 						(isNaN(x) ? 0 : x) + 1)(
-						stickyCounter[message.channelId]
+						stickyCounter[message.channelId],
 					);
 				}
 			}
@@ -126,7 +129,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					!guildPreferences.modmailCreateChannelId
 				) {
 					await message.reply(
-						"Modmail is not set up in this server."
+						"Modmail is not set up in this server.",
 					);
 					return;
 				}
@@ -142,7 +145,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 				const res = await PrivateDmThread.findOne({
 					userId: member.id,
-					guildId: message.guild.id
+					guildId: message.guild.id,
 				});
 
 				if (res) {
@@ -151,17 +154,17 @@ export default class MessageCreateEvent extends BaseEvent {
 						.catch(async () => {
 							await PrivateDmThread.deleteMany({
 								userId: member.id,
-								guildId: message.guild.id
+								guildId: message.guild.id,
 							});
 							await message.reply(
-								"Thread not found (could've been manually deleted), please try again to create a new thread."
+								"Thread not found (could've been manually deleted), please try again to create a new thread.",
 							);
 							return;
 						});
 
 					if (thread) {
 						await message.reply(
-							`DM Thread with this user already exists: <#${thread.id}>`
+							`DM Thread with this user already exists: <#${thread.id}>`,
 						);
 
 						return;
@@ -169,7 +172,7 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 
 				const threadsChannel = message.guild.channels.cache.get(
-					guildPreferences.modmailThreadsChannelId
+					guildPreferences.modmailThreadsChannelId,
 				);
 
 				if (
@@ -177,7 +180,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					!(threadsChannel instanceof ForumChannel)
 				) {
 					await message.reply(
-						`Threads channel (${threadsChannel}) should be a forum channel.`
+						`Threads channel (${threadsChannel}) should be a forum channel.`,
 					);
 					return;
 				}
@@ -186,18 +189,18 @@ export default class MessageCreateEvent extends BaseEvent {
 					const newThread = await threadsChannel.threads.create({
 						name: `${member.user.tag} (${member.id})`,
 						message: {
-							content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``
-						}
+							content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``,
+						},
 					});
 
 					await PrivateDmThread.create({
 						userId: member.id,
 						threadId: newThread.id,
-						guildId: message.guild.id
+						guildId: message.guild.id,
 					});
 
 					await message.reply(
-						`Created dm thread for user at <#${newThread.id}>.`
+						`Created dm thread for user at <#${newThread.id}>.`,
 					);
 				} catch (error) {
 					await message.reply("Unable to create thread");
@@ -207,7 +210,7 @@ export default class MessageCreateEvent extends BaseEvent {
 						`Create DM Thread`,
 						`**Channel:** <#${message.channel?.id}>
 							**User:** <@${message.author.id}>
-							**Guild:** ${message.guild.name} (${message.guildId})\n`
+							**Guild:** ${message.guild.name} (${message.guildId})\n`,
 					);
 				}
 			}
@@ -223,22 +226,22 @@ export default class MessageCreateEvent extends BaseEvent {
 
 	private async handleModMail(
 		client: DiscordClient<true>,
-		message: Message<false>
+		message: Message<false>,
 	) {
 		let guildId = "";
 
 		const dmPreference = await DmGuildPreference.findOne({
-			userId: message.author.id
+			userId: message.author.id,
 		});
 
 		if (dmPreference) guildId = dmPreference.guildId;
 		else {
 			const guilds = client.guilds.cache.filter((guild) =>
-				guild.members.cache.has(message.author.id)
+				guild.members.cache.has(message.author.id),
 			);
 			if (guilds.size === 0) {
 				await message.author.send(
-					"Hey there, please send a message in the server you're trying to contact and then try again."
+					"Hey there, please send a message in the server you're trying to contact and then try again.",
 				);
 				return;
 			}
@@ -252,11 +255,11 @@ export default class MessageCreateEvent extends BaseEvent {
 						.setValue(guild.id);
 				}),
 				1,
-				`${selectCustomId}_0`
+				`${selectCustomId}_0`,
 			);
 
 			const row = new ActionRowBuilder<Select>().addComponents(
-				guildSelect
+				guildSelect,
 			);
 
 			const selectInteraction = await message.author.send({
@@ -267,16 +270,16 @@ To change the server you're contacting, use the \`/swap\` command`,
 				components: [
 					row,
 					new Buttons(
-						selectCustomId
-					) as ActionRowBuilder<ButtonBuilder>
-				]
+						selectCustomId,
+					) as ActionRowBuilder<ButtonBuilder>,
+				],
 			});
 
 			const guildResponse = await guildSelect.waitForResponse(
 				`${selectCustomId}_0`,
 				selectInteraction,
 				selectInteraction,
-				true
+				true,
 			);
 
 			if (!guildResponse || guildResponse === "Timed out") return;
@@ -285,21 +288,21 @@ To change the server you're contacting, use the \`/swap\` command`,
 			if (!guild) {
 				await selectInteraction.edit({
 					content: "Invalid Server",
-					components: []
+					components: [],
 				});
 				return;
 			}
 
 			await selectInteraction.edit({
 				content: `Server ${guild.name} selected.`,
-				components: []
+				components: [],
 			});
 
 			guildId = guildResponse[0];
 
 			await DmGuildPreference.create({
 				userId: message.author.id,
-				guildId: guildId
+				guildId: guildId,
 			});
 		}
 
@@ -310,47 +313,48 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 		if (!guildPreferences || !guildPreferences.modmailThreadsChannelId) {
 			await message.author.send(
-				`Modmail is not set up in **${guild.name}**`
+				`Modmail is not set up in **${guild.name}**`,
 			);
 			return;
 		}
 
 		const channel = guild.channels.cache.get(
-			guildPreferences.modmailThreadsChannelId
+			guildPreferences.modmailThreadsChannelId,
 		);
 
 		if (!channel || !(channel instanceof ForumChannel)) {
 			await message.author.send(
-				`Unable to find the modmail channel in **${guild.name}**. Please contact the server staff.`
+				`Unable to find the modmail channel in **${guild.name}**. Please contact the server staff.`,
 			);
 			return;
 		}
 		const res = await PrivateDmThread.findOne({
 			userId: message.author.id,
-			guildId
+			guildId,
 		});
 
 		let thread: ThreadChannel;
 
-		if (!res) {
+		if (res) thread = channel.threads.cache.get(res.threadId)!;
+		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
 				message: {
-					content: `Username: \`${message.author.tag}\`\nUser ID: \`${message.author.id}\``
-				}
+					content: `Username: \`${message.author.tag}\`\nUser ID: \`${message.author.id}\``,
+				},
 			});
 			await PrivateDmThread.create({
 				userId: message.author.id,
 				threadId: thread.id,
-				guildId
+				guildId,
 			});
-		} else thread = channel.threads.cache.get(res.threadId)!;
+		}
 
 		const embed = new EmbedBuilder()
-			.setTitle("New DM Recieved")
+			.setTitle("New DM Received")
 			.setAuthor({
 				name: message.author.username,
-				iconURL: message.author.displayAvatarURL()
+				iconURL: message.author.displayAvatarURL(),
 			})
 			.setDescription(message.content || "No content")
 			.setTimestamp(message.createdTimestamp)
@@ -362,27 +366,27 @@ To change the server you're contacting, use the \`/swap\` command`,
 				value: message.attachments
 					.map(
 						(attachment) =>
-							`[${attachment.name}](${attachment.url})`
+							`[${attachment.name}](${attachment.url})`,
 					)
-					.join("\n")
+					.join("\n"),
 			});
 		}
 
 		if (guildPreferences.modmailLogsChannelId) {
-			Logger.channel(guild, guildPreferences.modmailLogsChannelId, {
+			logToChannel(guild, guildPreferences.modmailLogsChannelId, {
 				embeds: [
 					{
-						title: "New DM Recieved",
+						title: "New DM Received",
 						description: `**User:** ${message.author.tag} (${message.author.id})\n**Thread:** <#${thread.id}>`,
 						color: Colors.Purple,
-						timestamp: new Date().toISOString()
-					}
-				]
+						timestamp: new Date().toISOString(),
+					},
+				],
 			});
 		}
 
 		thread.send({
-			embeds: [embed]
+			embeds: [embed],
 		});
 
 		await message.react("✅");
@@ -390,7 +394,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 	private async handleModMailReply(
 		client: DiscordClient<true>,
-		message: Message<true>
+		message: Message<true>,
 	) {
 		if (message.content.startsWith("//")) {
 			await message.react("👀");
@@ -398,7 +402,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		}
 
 		const dmThread = await PrivateDmThread.findOne({
-			threadId: message.channel.id
+			threadId: message.channel.id,
 		});
 
 		if (!dmThread) {
@@ -418,7 +422,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			.setTitle(`Message from ${message.guild.name} Staff`)
 			.setAuthor({
 				name: message.author.username,
-				iconURL: message.author.displayAvatarURL()
+				iconURL: message.author.displayAvatarURL(),
 			})
 			.setDescription(message.content || "No content")
 			.setTimestamp(message.createdTimestamp)
@@ -430,14 +434,14 @@ To change the server you're contacting, use the \`/swap\` command`,
 				value: message.attachments
 					.map(
 						(attachment) =>
-							`[${attachment.name}](${attachment.url})`
+							`[${attachment.name}](${attachment.url})`,
 					)
-					.join("\n")
+					.join("\n"),
 			});
 		}
 
 		await sendDm(member, {
-			embeds: [embed]
+			embeds: [embed],
 		});
 
 		await message.react("✅");
@@ -446,7 +450,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 	private async handleRep(
 		client: DiscordClient<true>,
 		message: Message<true>,
-		repDisabledChannels: string[]
+		repDisabledChannels: string[],
 	) {
 		const channelId =
 			(message.channel.isThread() && !message.channel.isThreadOnly()
@@ -460,7 +464,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				await message.reply(
 					botYwResponses[
 						Math.floor(Math.random() * botYwResponses.length)
-					]
+					],
 				);
 
 				continue;
@@ -475,13 +479,13 @@ To change the server you're contacting, use the \`/swap\` command`,
 			const res = await Reputation.findOneAndUpdate(
 				{
 					guildId: message.guildId,
-					userId: member.id
+					userId: member.id,
 				},
 				{
 					$inc: {
-						rep: 1
-					}
-				}
+						rep: 1,
+					},
+				},
 			);
 
 			if (res) rep = res.rep + 1;
@@ -489,14 +493,14 @@ To change the server you're contacting, use the \`/swap\` command`,
 				await Reputation.create({
 					guildId: message.guildId,
 					userId: member.id,
-					rep: 1
+					rep: 1,
 				});
 
 			let content = `Gave +1 Rep to <@${user.id}> (${rep})`;
 
 			if ([100, 500, 1000, 5000, 10000].some((amnt) => rep === amnt)) {
 				const role = message.guild.roles.cache.find(
-					(x) => x.name === `${rep}+ Rep Club`
+					(x) => x.name === `${rep}+ Rep Club`,
 				);
 
 				if (role) {
@@ -507,20 +511,20 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 			message.channel.send({
 				content,
-				allowedMentions: { repliedUser: false }
+				allowedMentions: { repliedUser: false },
 			});
 		}
 	}
 
 	private async getReppedUsers(
 		client: DiscordClient<true>,
-		message: Message
+		message: Message,
 	) {
 		const users = new Set<User>();
 
 		if (
 			tyAliases.some((alias) =>
-				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+				new RegExp(`\\b${alias}\\b`, "gi").test(message.content),
 			)
 		) {
 			for (const user of message.mentions.users.values())
@@ -541,7 +545,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		} else if (
 			message.reference &&
 			ywAliases.some((alias) =>
-				new RegExp(`\\b${alias}\\b`, "gi").test(message.content)
+				new RegExp(`\\b${alias}\\b`, "gi").test(message.content),
 			)
 		) {
 			const reference = await message.fetchReference();
@@ -555,7 +559,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			else {
 				const referenceRepped = await this.getReppedUsers(
 					client,
-					reference
+					reference,
 				);
 
 				if (!referenceRepped.has(message.author))
@@ -570,7 +574,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 		const stickyMessages = (await StickyMessageCache.search()
 			.where("channelId")
 			.equals(message.channelId)
-			.returnAll()) as ICachedStickyMessage[];
+			.returnAll()
+			.catch(() => [])) as ICachedStickyMessage[];
 
 		for (const stickyMessage of stickyMessages) {
 			if (stickyMessage.messageId) {
@@ -579,12 +584,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 					.catch(() => {});
 			}
 
-			const embeds = stickyMessage.embeds.map(
-				(embed) => new EmbedBuilder(embed as APIEmbed)
-			);
-
 			const newSticky = await message.channel.send({
-				embeds
+				content: ((x) => (x === "" ? undefined : x))(
+					stickyMessage.message.content,
+				),
+				embeds: stickyMessage.message.embeds as APIEmbed[],
 			});
 
 			stickyMessage.messageId = newSticky.id;

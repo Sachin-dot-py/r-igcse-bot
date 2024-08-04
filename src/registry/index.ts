@@ -1,17 +1,17 @@
+import { extname, join as joinPaths } from "path";
 import { Routes } from "discord.js";
 import { readdir } from "fs/promises";
-import { extname, join as joinPaths } from "path";
+import type { DiscordClient } from "./DiscordClient";
 import BaseCommand from "./Structure/BaseCommand";
 import type BaseEvent from "./Structure/BaseEvent";
-import { DiscordClient } from "./DiscordClient";
-import Logger from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 
 export async function registerCommands(client: DiscordClient, path = "") {
 	const commandsPath = joinPaths(
 		`${import.meta.dir}`,
 		"..",
 		"commands",
-		path
+		path,
 	);
 
 	const commandItems = await readdir(commandsPath, { withFileTypes: true });
@@ -19,14 +19,14 @@ export async function registerCommands(client: DiscordClient, path = "") {
 	commandItems
 		.filter((dirent) => dirent.isDirectory())
 		.forEach((dirent) =>
-			registerCommands(client, joinPaths(path, dirent.name))
+			registerCommands(client, joinPaths(path, dirent.name)),
 		);
 
 	const commandFiles = commandItems
 		.filter(
 			(dirent) =>
 				dirent.isFile() &&
-				((x: string) => x !== x.toLowerCase())(dirent.name[0])
+				((x: string) => x !== x.toLowerCase())(dirent.name[0]),
 		)
 		.map((dirent) => dirent.name);
 
@@ -43,7 +43,7 @@ export async function registerCommands(client: DiscordClient, path = "") {
 				client.commands.set(command.data.name, command);
 			else
 				Logger.warn(
-					`The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`
+					`The command at ${filePath} is missing a required "data", "execute" or "category" property. Ignoring.`,
 				);
 		} catch (error) {
 			Logger.error(error);
@@ -55,12 +55,12 @@ export async function registerEvents(client: DiscordClient) {
 	const eventsPath = joinPaths(`${import.meta.dir}`, "..", "events");
 	const eventFiles = (
 		await readdir(eventsPath, {
-			recursive: true
+			recursive: true,
 		})
 	).filter(
 		(file) =>
 			((x: string) => x !== x.toLowerCase())(file[0]) &&
-			(extname(file) == ".js" || extname(file) == ".ts")
+			(extname(file) == ".js" || extname(file) == ".ts"),
 	);
 
 	for (const file of eventFiles) {
@@ -71,7 +71,7 @@ export async function registerEvents(client: DiscordClient) {
 		const event = new BotEvent();
 
 		client.on(event.name, (...args) =>
-			event.execute(client as DiscordClient<true>, ...args)
+			event.execute(client as DiscordClient<true>, ...args),
 		);
 	}
 }
@@ -88,18 +88,18 @@ export async function syncCommands(client: DiscordClient<true>) {
 		await client.rest.put(
 			Routes.applicationCommands(client.application.id),
 			{
-				body: globalCommands
-			}
+				body: globalCommands,
+			},
 		);
 
 	if (mainGuildCommands.length > 0)
 		await client.rest.put(
 			Routes.applicationGuildCommands(
 				client.application.id,
-				process.env.MAIN_GUILD_ID
+				process.env.MAIN_GUILD_ID,
 			),
 			{
-				body: mainGuildCommands
-			}
+				body: mainGuildCommands,
+			},
 		);
 }

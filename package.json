@@ -1,38 +1,35 @@
 {
-	"name": "r-igcse-bot",
-	"module": "src/index.ts",
-	"type": "module",
-	"scripts": {
-		"start": "bun src/index.ts",
-		"cron:actionRequired": "bun src/cron/actionRequired.ts",
-		"start:watch": "bun --watch src/index.ts",
-		"lint": "eslint .",
-		"format": "prettier . --write"
-	},
-	"dependencies": {
-		"bufferutil": "^4",
-		"chucklejs": "^1",
-		"discord.js": "^14",
-		"humanize-duration": "^3",
-		"inquirer": "^9",
-		"mongoose": "^8",
-		"parse-duration": "^1",
-		"redis": "^4",
-		"redis-om": "^0.4",
-		"utf-8-validate": "^6",
-		"uuid": "^9",
-		"zlib-sync": "^0.1"
-	},
-	"devDependencies": {
-		"@eslint/js": "^9",
-		"@types/bun": "latest",
-		"@types/humanize-duration": "^3",
-		"@types/inquirer": "^9",
-		"@types/uuid": "^9",
-		"eslint": "^9",
-		"globals": "^15",
-		"prettier": "^3",
-		"typescript": "^5",
-		"typescript-eslint": "^7"
-	}
+  "name": "r-igcse-bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "start:watch": "bun --watch src/index.ts",
+    "check": "biome check .",
+    "check:fix": "biome check . --write"
+  },
+  "dependencies": {
+    "@discordforge/logger": "^1.0.0",
+    "@discordforge/pagination": "^1",
+    "bufferutil": "^4",
+    "chucklejs": "^1",
+    "discord.js": "^14",
+    "humanize-duration": "^3",
+    "inquirer": "^9",
+    "mongoose": "^8",
+    "parse-duration": "^1",
+    "redis": "^4",
+    "redis-om": "^0.4",
+    "utf-8-validate": "^6",
+    "uuid": "^9",
+    "zlib-sync": "^0.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1",
+    "@types/bun": "latest",
+    "@types/humanize-duration": "^3",
+    "@types/inquirer": "^9",
+    "@types/uuid": "^9",
+    "typescript": "^5"
+  }
 }

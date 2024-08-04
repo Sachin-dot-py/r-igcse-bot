@@ -1,4 +1,4 @@
-import { getJoke as fetchJoke, type Category as JokeCategory } from "chucklejs";
+import { type Category as JokeCategory, getJoke as fetchJoke } from "chucklejs";
 
 export const getJoke = async (categories: JokeCategory[], amount = 1) => {
 	const data = await fetchJoke(categories, {
@@ -8,12 +8,12 @@ export const getJoke = async (categories: JokeCategory[], amount = 1) => {
 			"political",
 			"racist",
 			"sexist",
-			"explicit"
+			"explicit",
 		],
-		amount
+		amount,
 	});
 
 	return data.map((joke) =>
-		joke.type === "single" ? joke.joke : `${joke.setup} ${joke.delivery}`
+		joke.type === "single" ? joke.joke : `${joke.setup} ${joke.delivery}`,
 	);
 };

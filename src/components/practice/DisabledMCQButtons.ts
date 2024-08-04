@@ -12,7 +12,7 @@ class DisabledMCQButtons extends ActionRowBuilder {
 				.setStyle(
 					label === correctAnswer
 						? ButtonStyle.Success
-						: ButtonStyle.Danger
+						: ButtonStyle.Danger,
 				)
 				.setDisabled(true);
 			this.addComponents(button);

@@ -1,8 +1,9 @@
 import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,
@@ -11,7 +12,7 @@ import {
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
-	type MessageCreateOptions
+	type HexColorString,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -29,27 +30,27 @@ export default class EmbedCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription(
-									"Channel to send the embed in (default is current channel)"
+									"Channel to send the embed in (default is current channel)",
 								)
-								.setRequired(false)
+								.setRequired(false),
 						)
 						.addNumberOption((option) =>
 							option
 								.setName("schedule_time")
 								.setDescription(
-									"When to send the embed. (Epoch) (Defaults to immediately)"
+									"When to send the embed. (Epoch) (Defaults to immediately)",
 								)
-								.setRequired(false)
-						)
+								.setRequired(false),
+						),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel) return;
 
@@ -63,19 +64,21 @@ export default class EmbedCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid channel type, must be a text channel.",
-						ephemeral: true
+						ephemeral: true,
 					});
 
 					return;
 				}
 
-				const scheduleTime = interaction.options.getNumber("schedule_time", false);
+				const scheduleTime = interaction.options.getNumber(
+					"schedule_time",
+					false,
+				);
 
-				if (scheduleTime && scheduleTime <= (Date.now() / 1000)) {
+				if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 					interaction.reply({
-						content:
-							"Scheduled time cannot be in the past",
-						ephemeral: true
+						content: "Scheduled time cannot be in the past",
+						ephemeral: true,
 					});
 
 					return;
@@ -104,16 +107,26 @@ export default class EmbedCommand extends BaseCommand {
 					.setLabel("Embed Footer")
 					.setCustomId(`footer`);
 
+				const embedColourField = new TextInputBuilder()
+					.setPlaceholder("Hex Colour")
+					.setRequired(false)
+					.setStyle(TextInputStyle.Short)
+					.setLabel("Colour")
+					.setCustomId(`colour`);
+
 				const actionRows = [
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
-						embedTitleField
+						embedTitleField,
 					),
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
-						embedDescriptionField
+						embedDescriptionField,
 					),
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
-						embedFooterField
-					)
+						embedFooterField,
+					),
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						embedColourField
+					),
 				];
 
 				const modal = new ModalBuilder()
@@ -127,27 +140,26 @@ export default class EmbedCommand extends BaseCommand {
 					time: 300_000,
 					filter: (i) =>
 						i.customId === customId &&
-						i.user.id === interaction.user.id
+						i.user.id === interaction.user.id,
 				});
 
 				const embedTitle =
-					(modalInteraction.fields.getTextInputValue(
-						"title"
-					)) || null;
+					modalInteraction.fields.getTextInputValue("title") || null;
 				const embedDescription =
-					(modalInteraction.fields.getTextInputValue(
-						"description"
-					)) || null;
+					modalInteraction.fields.getTextInputValue("description") ||
+					null;
 				const embedFooter =
-					(modalInteraction.fields.getTextInputValue(
-						"footer"
-					)) || null;
+					modalInteraction.fields.getTextInputValue("footer") || null;
+				const embedColour =
+					(await modalInteraction.fields.getTextInputValue(
+						"colour"
+					)).trim() || null;
 
 				if (!embedTitle && !embedDescription && !embedFooter) {
 					await modalInteraction.reply({
 						content:
 							"You must provide at least one field to send an embed!",
-						ephemeral: true
+						ephemeral: true,
 					});
 
 					return;
@@ -157,9 +169,20 @@ export default class EmbedCommand extends BaseCommand {
 					.setTitle(embedTitle)
 					.setDescription(embedDescription);
 
+				if (embedColour && /^#?[\da-f]{6}$/i.test(embedColour)) try {
+					embed.setColor(embedColour as HexColorString);
+				} finally { }
+				else if (embedColour) {
+					modalInteraction.reply({
+						content: "The hex colour provided is invalid.\n-# Format: #FFFFFF",
+						ephemeral: true,
+					});
+
+					return;
+				}
 				if (embedFooter) {
 					embed.setFooter({
-						text: embedFooter
+						text: embedFooter,
 					});
 				}
 
@@ -168,12 +191,12 @@ export default class EmbedCommand extends BaseCommand {
 						guildId: interaction.guildId,
 						channelId: channel.id,
 						message: { embeds: [embed.data] },
-						scheduleTime: scheduleTime.toString()
+						scheduleTime: scheduleTime.toString(),
 					});
 
 					await modalInteraction.reply({
 						content: `Embed scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-						ephemeral: true
+						ephemeral: true,
 					});
 
 					return;
@@ -183,9 +206,10 @@ export default class EmbedCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Embed sent in the channel ${channel}!`,
-					ephemeral: true
+					ephemeral: true,
 				});
 
+				Logger.info(`Embed sent by ${interaction.user.username}`);
 				break;
 			}
 

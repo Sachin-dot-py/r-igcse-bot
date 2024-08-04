@@ -1,23 +1,23 @@
+import { allSubjects } from "@/data";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
+	type APIEmbedField,
+	ChannelType,
 	EmbedBuilder,
 	SlashCommandBuilder,
-	type APIEmbedField,
-	ChannelType
 } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "../../../registry/Structure/BaseCommand";
-import { allSubjects } from "@/data";
 
 const variants = ["1", "2", "3"];
 const years = ["2018", "2019", "2020", "2021", "2022", "2023"];
 const session = ["m", "s", "w"];
 
 const sessionsMap = {
-	"m": "March",
-	"s": "June",
-	"w": "November"
+	m: "March",
+	s: "June",
+	w: "November",
 };
 
 export default class RandomPypCommand extends BaseCommand {
@@ -33,37 +33,37 @@ export default class RandomPypCommand extends BaseCommand {
 						.addChoices(
 							{
 								name: "IGCSE",
-								value: "IGCSE"
+								value: "IGCSE",
 							},
 							{
 								name: "O-Level",
-								value: "O-Level"
+								value: "O-Level",
 							},
 							{
 								name: "A-Level",
-								value: "A-Level"
-							}
+								value: "A-Level",
+							},
 						)
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addStringOption((option) =>
 					option
 						.setName("subject_code")
 						.setDescription("The code for the subject")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addIntegerOption((option) =>
 					option
 						.setName("paper_number")
 						.setDescription("The paper number")
-						.setRequired(true)
-				)
+						.setRequired(true),
+				),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction
+		interaction: DiscordChatInputCommandInteraction,
 	) {
 		const programme = interaction.options.getString("programme", true) as
 			| "IGCSE"
@@ -72,14 +72,14 @@ export default class RandomPypCommand extends BaseCommand {
 		const subjectCode = interaction.options.getString("subject_code", true);
 		const paperNumber = interaction.options.getInteger(
 			"paper_number",
-			true
+			true,
 		);
 
 		const subject = allSubjects.find((x) => x.code === subjectCode);
 		if (!subject) {
 			await interaction.reply({
 				content: "Invalid/Unsupported subject code",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -90,7 +90,7 @@ export default class RandomPypCommand extends BaseCommand {
 					(paperNumber > 9
 						? "Hint: Don't enter the variant number"
 						: "Hint: Paper numbers are between 1 and 6, inclusive."),
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -107,20 +107,20 @@ export default class RandomPypCommand extends BaseCommand {
 		const fields: APIEmbedField[] = [
 			{
 				name: "QP Link:",
-				value: `[${paperName}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName}.pdf)`
+				value: `[${paperName}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName}.pdf)`,
 				// inline: true
 			},
 			{
 				name: "MS Link:",
-				value: `[${paperName.replace("qp", "ms")}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`
+				value: `[${paperName.replace("qp", "ms")}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`,
 				// inline: true
-			}
+			},
 		];
 
 		if (subject.insert) {
 			fields.push({
 				name: "Insert/Supporting Files:",
-				value: `[${paperName.replace("qp", subject.insert)}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`
+				value: `[${paperName.replace("qp", subject.insert)}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`,
 				// inline: true
 			});
 		}
@@ -133,11 +133,11 @@ export default class RandomPypCommand extends BaseCommand {
 						`${paperName} has been chosen at random. Below are links to the question paper and marking scheme.\n\n` +
 							fields
 								.map((x) => `**${x.name}**: ${x.value}`)
-								.join("\n")
+								.join("\n"),
 					)
-					.setColor(0xf4b6c2)
+					.setColor(0xf4b6c2),
 			],
-			ephemeral: interaction.channel?.type != ChannelType.GuildVoice
+			ephemeral: interaction.channel?.type != ChannelType.GuildVoice,
 		});
 	}
 }

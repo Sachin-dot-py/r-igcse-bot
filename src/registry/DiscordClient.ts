@@ -1,14 +1,14 @@
-import Logger from "@/utils/Logger";
 import {
 	Client,
+	type ClientOptions,
 	Collection,
 	EmbedBuilder,
-	type ClientOptions
 } from "discord.js";
 import type BaseCommand from "./Structure/BaseCommand";
+import { Logger } from "@discordforge/logger";
 
 export class DiscordClient<
-	Ready extends boolean = boolean
+	Ready extends boolean = boolean,
 > extends Client<Ready> {
 	private _commands = new Collection<string, BaseCommand>();
 
@@ -32,7 +32,8 @@ export class DiscordClient<
 
 	get interactionData() {
 		return this._commands.map(
-			(command) => [command.data.toJSON(), command.mainGuildOnly] as const
+			(command) =>
+				[command.data.toJSON(), command.mainGuildOnly] as const,
 		);
 	}
 
@@ -48,15 +49,15 @@ export class DiscordClient<
 			.setTitle(`An Exception Occured - ${source}`)
 			.setDescription(
 				`${fields}\n` +
-					`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``
+					`Error: \`\`\`${message instanceof Error ? `Message: ${message.message}\n\nStacktrace: ${message.stack}` : message}\`\`\``,
 			);
 
 		const channel = mainGuild.channels.cache.get(
-			process.env.ERROR_LOGS_CHANNEL_ID
+			process.env.ERROR_LOGS_CHANNEL_ID,
 		);
 		if (!channel || !channel.isTextBased()) {
 			Logger.error(
-				"Bot Log channel not found or is not a text-based channel."
+				"Bot Log channel not found or is not a text-based channel.",
 			);
 
 			return;

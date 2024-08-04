@@ -1,13 +1,13 @@
 import { Punishment } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 
@@ -21,26 +21,26 @@ export default class HistoryCommand extends BaseCommand {
 					option
 						.setName("user")
 						.setDescription("User to view history of")
-						.setRequired(true)
+						.setRequired(true),
 				)
 				.addBooleanOption((option) =>
 					option
 						.setName("show_mod_username")
 						.setDescription(
-							"Show the usernames of the mod (default: false)."
+							"Show the usernames of the mod (default: false).",
 						)
-						.setRequired(false)
+						.setRequired(false),
 				)
 				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ModerateMembers
+					PermissionFlagsBits.ModerateMembers,
 				)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
 		const showUsername =
@@ -50,12 +50,12 @@ export default class HistoryCommand extends BaseCommand {
 
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
-			actionAgainst: user.id
+			actionAgainst: user.id,
 		}).sort({ when: 1 });
 
 		if (punishments.length < 1) {
 			await interaction.editReply({
-				content: `${user.tag} does not have any previous offenses.`
+				content: `${user.tag} does not have any previous offenses.`,
 			});
 			return;
 		}
@@ -64,7 +64,7 @@ export default class HistoryCommand extends BaseCommand {
 			Warn: 0,
 			Timeout: 0,
 			Kick: 0,
-			Ban: 0
+			Ban: 0,
 		};
 
 		let totalPoints = 0;
@@ -78,7 +78,7 @@ export default class HistoryCommand extends BaseCommand {
 			points,
 			action,
 			reason,
-			duration
+			duration,
 		} of punishments) {
 			if (points) totalPoints += points;
 
@@ -95,11 +95,11 @@ export default class HistoryCommand extends BaseCommand {
 			const time = when.toLocaleTimeString("en-GB", {
 				hour12: true,
 				hour: "2-digit",
-				minute: "2-digit"
+				minute: "2-digit",
 			});
 
 			punishmentsList.push(
-				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`
+				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`,
 			);
 		}
 
@@ -107,7 +107,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		description += Object.entries(counts)
 			.map(([action, count]) =>
-				count > 0 ? `- **${action}s:** ${count}` : ""
+				count > 0 ? `- **${action}s:** ${count}` : "",
 			)
 			.filter((x) => x !== "")
 			.join("\n");
@@ -119,17 +119,17 @@ export default class HistoryCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setTitle(
-				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`
+				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`,
 			)
 			.setAuthor({
 				name: `${user.username} (ID: ${user.id})`,
-				iconURL: user.displayAvatarURL()
+				iconURL: user.displayAvatarURL(),
 			})
 			.setColor(Colors.DarkOrange)
 			.setDescription(description);
 
 		await interaction.editReply({
-			embeds: [embed]
+			embeds: [embed],
 		});
 	}
 }

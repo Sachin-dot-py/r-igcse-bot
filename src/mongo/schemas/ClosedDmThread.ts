@@ -9,10 +9,10 @@ export interface IClosedDmThread {
 const schema = new Schema<IClosedDmThread>({
 	userId: { type: String, required: true },
 	threadId: { type: String, required: true },
-	guildId: { type: String, required: true }
+	guildId: { type: String, required: true },
 });
 
 export const ClosedDmThread = createModel<IClosedDmThread>(
 	"ClosedDmThread",
-	schema
+	schema,
 );

@@ -2,9 +2,10 @@ import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,
@@ -15,7 +16,8 @@ import {
 	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
-	VoiceChannel
+	ThreadChannel,
+	VoiceChannel,
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -32,16 +34,16 @@ export default class KickCommand extends BaseCommand {
 							option
 								.setName("channel")
 								.setDescription("Channel to send message")
-								.setRequired(false)
+								.setRequired(false),
 						)
 						.addNumberOption((option) =>
 							option
 								.setName("schedule_time")
 								.setDescription(
-									"When to send the message. (Epoch) (Defaults to immediately)"
+									"When to send the message. (Epoch) (Defaults to immediately)",
 								)
-								.setRequired(false)
-						)
+								.setRequired(false),
+						),
 				)
 				.addSubcommand((command) =>
 					command
@@ -50,17 +52,17 @@ export default class KickCommand extends BaseCommand {
 						.addStringOption((option) =>
 							option
 								.setName("message_id")
-								.setDescription("Id of message to edit")
-						)
+								.setDescription("Id of message to edit"),
+						),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-				.setDMPermission(false)
+				.setDMPermission(false),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel) return;
 
@@ -71,23 +73,26 @@ export default class KickCommand extends BaseCommand {
 
 			if (
 				!(channel instanceof TextChannel) &&
+				!(channel instanceof ThreadChannel) &&
 				!(channel instanceof VoiceChannel) &&
 				!(channel instanceof StageChannel)
 			) {
 				interaction.reply({
 					content: "This is not a text channel",
-					ephemeral: true
+					ephemeral: true,
 				});
 				return;
 			}
 
-			const scheduleTime = interaction.options.getNumber("schedule_time", false);
+			const scheduleTime = interaction.options.getNumber(
+				"schedule_time",
+				false,
+			);
 
-			if (scheduleTime && scheduleTime <= (Date.now() / 1000)) {
+			if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 				interaction.reply({
-					content:
-						"Scheduled time cannot be in the past",
-					ephemeral: true
+					content: "Scheduled time cannot be in the past",
+					ephemeral: true,
 				});
 
 				return;
@@ -108,11 +113,11 @@ export default class KickCommand extends BaseCommand {
 				.setStyle(TextInputStyle.Paragraph);
 
 			const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(
-				replyMessageId
+				replyMessageId,
 			);
 
 			const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(
-				messageContent
+				messageContent,
 			);
 
 			const modal = new ModalBuilder()
@@ -128,7 +133,7 @@ export default class KickCommand extends BaseCommand {
 						i.customId === "send_message" &&
 						i.user.id === interaction.user.id,
 
-					time: 300_000 // 5 minutes
+					time: 300_000, // 5 minutes
 				})
 				.then(async (i) => {
 					if (scheduleTime) {
@@ -136,22 +141,29 @@ export default class KickCommand extends BaseCommand {
 							guildId: interaction.guildId,
 							channelId: channel.id,
 							message: {
-								content: i.fields.getTextInputValue("message_content"),
+								content:
+									i.fields.getTextInputValue(
+										"message_content",
+									),
 								reply: {
-									messageReference: i.fields.getTextInputValue("reply_message_id")
-								}
+									messageReference:
+										i.fields.getTextInputValue(
+											"reply_message_id",
+										),
+								},
 							},
-							scheduleTime
-						})
+							scheduleTime,
+						});
 
 						await i.reply({
 							content: `Message scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-							ephemeral: true
+							ephemeral: true,
 						});
 
-						const guildPreferences = await GuildPreferencesCache.get(
-							interaction.guildId
-						);
+						const guildPreferences =
+							await GuildPreferencesCache.get(
+								interaction.guildId,
+							);
 
 						if (
 							!guildPreferences ||
@@ -160,12 +172,12 @@ export default class KickCommand extends BaseCommand {
 							interaction.reply({
 								content:
 									"Please setup the bot using the command `/setup` first.",
-								ephemeral: true
+								ephemeral: true,
 							});
 							return;
 						}
 
-						await Logger.channel(
+						logToChannel(
 							interaction.guild,
 							guildPreferences.generalLogsChannelId,
 							{
@@ -173,7 +185,7 @@ export default class KickCommand extends BaseCommand {
 									new EmbedBuilder()
 										.setTitle("Message Scheduled")
 										.setDescription(
-											`Message scheduled by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`
+											`Message scheduled by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`,
 										)
 										.setColor("Green")
 										.addFields(
@@ -181,46 +193,44 @@ export default class KickCommand extends BaseCommand {
 												name: "Message Content",
 												value:
 													i.fields.getTextInputValue(
-														"message_content"
+														"message_content",
 													) ?? "None",
-												inline: true
+												inline: true,
 											},
 											{
 												name: "Scheduled Time",
 												value: `<t:${scheduleTime}> (<t:${scheduleTime}:R>)`,
-												inline: true
-											}
+												inline: true,
+											},
 										)
-										.setTimestamp(scheduleTime * 1000)
-								]
-							}
+										.setTimestamp(scheduleTime * 1000),
+								],
+							},
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								ephemeral: true
+								ephemeral: true,
 							});
 						});
 
 						return;
 					}
 
-
-
 					await channel.send({
 						content: i.fields.getTextInputValue("message_content"),
 						reply: {
 							messageReference:
-								i.fields.getTextInputValue("reply_message_id")
-						}
+								i.fields.getTextInputValue("reply_message_id"),
+						},
 					});
 
 					await i.reply({
 						content: "Message sent!",
-						ephemeral: true
+						ephemeral: true,
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
-						interaction.guildId
+						interaction.guildId,
 					);
 
 					if (
@@ -230,12 +240,12 @@ export default class KickCommand extends BaseCommand {
 						interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true
+							ephemeral: true,
 						});
 						return;
 					}
 
-					await Logger.channel(
+					logToChannel(
 						interaction.guild,
 						guildPreferences.generalLogsChannelId,
 						{
@@ -243,23 +253,24 @@ export default class KickCommand extends BaseCommand {
 								new EmbedBuilder()
 									.setTitle("Message Sent")
 									.setDescription(
-										`Message sent by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`
+										`Message sent by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>`,
 									)
 									.setColor("Green")
 									.addFields({
 										name: "Message Content",
 										value:
 											i.fields.getTextInputValue(
-												"message_content"
+												"message_content",
 											) ?? "None",
-										inline: true
+										inline: true,
 									})
-									.setTimestamp()
-							]
-						}
+									.setTimestamp(),
+							],
+						},
 					);
 				})
 				.catch(Logger.error);
+			Logger.info(`Message sent by ${interaction.user.username}`);
 		} else if (interaction.options.getSubcommand() === "edit") {
 			const messageId = interaction.options.getString("message_id", true);
 
@@ -271,7 +282,7 @@ export default class KickCommand extends BaseCommand {
 				.setStyle(TextInputStyle.Paragraph);
 
 			const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-				messageContent
+				messageContent,
 			);
 
 			const message = await interaction.channel.messages.fetch(messageId);
@@ -280,7 +291,7 @@ export default class KickCommand extends BaseCommand {
 			if (!message) {
 				await interaction.reply({
 					content: "Message not found",
-					ephemeral: true
+					ephemeral: true,
 				});
 
 				return;
@@ -298,22 +309,22 @@ export default class KickCommand extends BaseCommand {
 					filter: (i) =>
 						i.customId === "edit_message" &&
 						i.user.id === interaction.user.id,
-					time: 300_000 // 5 minutes
+					time: 300_000, // 5 minutes
 				})
 				.then(async (i) => {
 					if (!interaction.channel) return;
 
 					await message.edit({
-						content: i.fields.getTextInputValue("message_content")
+						content: i.fields.getTextInputValue("message_content"),
 					});
 
 					await i.reply({
 						content: "Message edited!",
-						ephemeral: true
+						ephemeral: true,
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
-						interaction.guildId
+						interaction.guildId,
 					);
 
 					if (
@@ -323,12 +334,12 @@ export default class KickCommand extends BaseCommand {
 						interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true
+							ephemeral: true,
 						});
 						return;
 					}
 
-					await Logger.channel(
+					await logToChannel(
 						interaction.guild,
 						guildPreferences.generalLogsChannelId,
 						{
@@ -336,7 +347,7 @@ export default class KickCommand extends BaseCommand {
 								new EmbedBuilder()
 									.setTitle("Message Edited")
 									.setDescription(
-										`Message edited by ${interaction.user.tag} (${interaction.user.id}) in <#${interaction.channel.id}>`
+										`Message edited by ${interaction.user.tag} (${interaction.user.id}) in <#${interaction.channel.id}>`,
 									)
 									.setColor("Green")
 									.addFields(
@@ -344,22 +355,23 @@ export default class KickCommand extends BaseCommand {
 											name: "New Message Content",
 											value:
 												i.fields.getTextInputValue(
-													"message_content"
+													"message_content",
 												) ?? "None",
-											inline: true
+											inline: true,
 										},
 										{
 											name: "Old Message Content",
 											value: oldMessageContent,
-											inline: true
-										}
+											inline: true,
+										},
 									)
-									.setTimestamp()
-							]
-						}
+									.setTimestamp(),
+							],
+						},
 					);
 				})
 				.catch(Logger.error);
+			Logger.info(`Message edited by ${interaction.user.username}`);
 		}
 	}
 }

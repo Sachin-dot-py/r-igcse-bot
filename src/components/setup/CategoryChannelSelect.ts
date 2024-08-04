@@ -8,7 +8,7 @@ import {
 	type Message,
 } from "discord.js";
 
-class ChannelSelect extends ChannelSelectMenuBuilder {
+class CategoryChannelSelect extends ChannelSelectMenuBuilder {
 	name: string;
 	isFirstComponent = true;
 	maxValues: number;
@@ -29,12 +29,7 @@ class ChannelSelect extends ChannelSelectMenuBuilder {
 		this.setPlaceholder(placeholder)
 			.setMaxValues(maxValues)
 			.setCustomId(customId)
-			.addChannelTypes(
-				ChannelType.GuildText,
-				ChannelType.GuildForum,
-				ChannelType.GuildStageVoice,
-				ChannelType.GuildVoice,
-			);
+			.addChannelTypes(ChannelType.GuildCategory);
 	}
 
 	async createCollector(
@@ -82,14 +77,14 @@ class ChannelSelect extends ChannelSelectMenuBuilder {
 		});
 
 		/*selectCollector.on("end", async () => {
-			if (this.isFirstComponent) {
-				await editMessage({
-					components: [],
-					content: "Timed out"
-				});
-			}
-		});*/
+	    if (this.isFirstComponent) {
+		await editMessage({
+		    components: [],
+		    content: "Timed out"
+		});
+	    }
+	});*/
 	}
 }
 
-export default ChannelSelect;
+export default CategoryChannelSelect;

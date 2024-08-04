@@ -66,6 +66,36 @@ export default class FunFactCommand extends BaseCommand {
 			return;
 		}
 
+		const confessInput = new TextInputBuilder()
+			.setCustomId("confession-input")
+			.setLabel("Confession")
+			.setPlaceholder("The confession you would like to send")
+			.setRequired(true)
+			.setStyle(TextInputStyle.Paragraph);
+
+		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
+			confessInput
+		);
+
+		const modalCustomId = uuidv4();
+
+		const modal = new ModalBuilder()
+			.setCustomId(modalCustomId)
+			.addComponents(row)
+			.setTitle("Confession");
+
+		await interaction.showModal(modal);
+
+		const modalInteraction = await interaction.awaitModalSubmit({
+			time: 600_000,
+			filter: (i) => i.customId === modalCustomId
+		});
+
+		const confession =
+			modalInteraction.fields.getTextInputValue("confession-input");
+
+		await modalInteraction.deferReply({ ephemeral: true });
+
 		const bannedQuery: IBannedData[] | null =
 			(await ConfessionBan.aggregate([
 				{
@@ -87,51 +117,19 @@ export default class FunFactCommand extends BaseCommand {
 
 		for (const userHash of bannedUsers) {
 			if (await Bun.password.verify(interaction.user.id, userHash)) {
-				await interaction.reply({
+				await modalInteraction.editReply({
 					content:
-						"You have been banned from making confessions in this server.",
-					ephemeral: true
+						"You have been banned from making confessions in this server."
 				});
 
 				return;
 			}
 		}
 
-		//#region Modal
-		const feedbackInput = new TextInputBuilder()
-			.setCustomId("confession-input")
-			.setLabel("Confession")
-			.setPlaceholder("The confession you would like to send")
-			.setRequired(true)
-			.setStyle(TextInputStyle.Paragraph);
-
-		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			feedbackInput
-		);
-
-		const modalCustomId = uuidv4();
-
-		const modal = new ModalBuilder()
-			.setCustomId(modalCustomId)
-			.addComponents(row)
-			.setTitle("Confession");
-
-		await interaction.showModal(modal);
-
-		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 600_000,
-			filter: (i) => i.customId === modalCustomId
-		});
-
-		const confession =
-			modalInteraction.fields.getTextInputValue("confession-input");
-
-		await modalInteraction.reply({
+		await modalInteraction.editReply({
 			content:
-				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
-			ephemeral: true
+				"Your confession has been sent to the moderators.\nYou have to wait for their approval."
 		});
-		//#endregion
 
 		const embed = new EmbedBuilder()
 			.setDescription(confession)

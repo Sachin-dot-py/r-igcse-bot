@@ -4,7 +4,7 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction
 } from "@/registry/Structure/BaseCommand";
-import Logger from "@/utils/Logger";
+import { logToChannel } from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
@@ -67,7 +67,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			if (topic.includes("No. of helpers")) {
 				for (const line of topic.split("\n"))
 					if (line.includes("No. of helpers"))
-						topic.replace(
+						topic = topic.replace(
 							line,
 							`No. of helpers: ${role.members.size}`
 						);
@@ -93,7 +93,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 			.setTimestamp();
 
 		if (guildPreferences.generalLogsChannelId) {
-			await Logger.channel(
+			await logToChannel(
 				interaction.guild,
 				guildPreferences.generalLogsChannelId,
 				{

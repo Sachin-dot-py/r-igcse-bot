@@ -1,7 +1,7 @@
-import { Events, Message } from "discord.js";
+import { GuildPreferencesCache } from "@/redis";
+import { Events, type Message } from "discord.js";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { GuildPreferencesCache } from "@/redis";
 
 export default class MessageUpdateEvent extends BaseEvent {
 	constructor() {
@@ -11,7 +11,7 @@ export default class MessageUpdateEvent extends BaseEvent {
 	async execute(
 		client: DiscordClient<true>,
 		oldMessage: Message,
-		newMessage: Message
+		newMessage: Message,
 	) {
 		const before = oldMessage.partial
 			? await oldMessage.fetch()
