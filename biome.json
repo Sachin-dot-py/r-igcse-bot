@@ -14,7 +14,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"all": true
+			"all": true,
+			"style": {
+				"noDefaultExport": "off"
+			}
 		}
 	}
 }
