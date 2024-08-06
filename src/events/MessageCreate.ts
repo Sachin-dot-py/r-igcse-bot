@@ -1,7 +1,7 @@
 import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
 import { botYwResponses, tyAliases, ywAliases } from "@/data";
-import { PrivateDmThread, Reputation } from "@/mongo";
+import {type IPrivateDmThread, PrivateDmThread, Reputation} from "@/mongo";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
 	GuildPreferencesCache,
@@ -21,7 +21,7 @@ import {
 	type Message,
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
-	type User,
+	type User, type GuildMember,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -392,6 +392,21 @@ To change the server you're contacting, use the \`/swap\` command`,
 		await message.react("✅");
 	}
 
+	private async handleModMailDelete(
+		client: DiscordClient<true>,
+		member: GuildMember,
+		num_delete: number = 1,
+	) {
+		const channel = await member.createDM()
+		const messages = (await channel.messages.fetch({ limit: 100 }))
+			.filter(m => m.author.id == client.user.id)
+		for (let msg of messages) {
+			if (num_delete <= 0) break
+			num_delete--
+			await msg[1].delete()
+		}
+	}
+
 	private async handleModMailReply(
 		client: DiscordClient<true>,
 		message: Message<true>,
@@ -418,33 +433,50 @@ To change the server you're contacting, use the \`/swap\` command`,
 			});
 		if (!member) return;
 
-		const embed = new EmbedBuilder()
-			.setTitle(`Message from ${message.guild.name} Staff`)
-			.setAuthor({
-				name: message.author.username,
-				iconURL: message.author.displayAvatarURL(),
-			})
-			.setDescription(message.content || "No content")
-			.setTimestamp(message.createdTimestamp)
-			.setColor(Colors.Green);
+		if (message.content.startsWith('!!')) {
+			const full_command = message.content.split(" ")
+			const command = full_command[1]
+			const args = full_command.slice(2)
 
-		if (message.attachments.size > 0) {
-			embed.addFields({
-				name: "Attachments",
-				value: message.attachments
-					.map(
-						(attachment) =>
-							`[${attachment.name}](${attachment.url})`,
-					)
-					.join("\n"),
+			if (command == "delete") {
+				let num_delete: number;
+				if (args && args.length > 0) {
+					num_delete = Number(args[0])
+				}else {
+					num_delete = 1
+				}
+				this.handleModMailDelete(client, member, num_delete)
+				await message.react("☑");
+			}
+		}else {
+			const embed = new EmbedBuilder()
+				.setTitle(`Message from ${message.guild.name} Staff`)
+				.setAuthor({
+					name: message.author.username,
+					iconURL: message.author.displayAvatarURL(),
+				})
+				.setDescription(message.content || "No content")
+				.setTimestamp(message.createdTimestamp)
+				.setColor(Colors.Green);
+
+			if (message.attachments.size > 0) {
+				embed.addFields({
+					name: "Attachments",
+					value: message.attachments
+						.map(
+							(attachment) =>
+								`[${attachment.name}](${attachment.url})`,
+						)
+						.join("\n"),
+				});
+			}
+
+			await sendDm(member, {
+				embeds: [embed],
 			});
+
+			await message.react("✅");
 		}
-
-		await sendDm(member, {
-			embeds: [embed],
-		});
-
-		await message.react("✅");
 	}
 
 	private async handleRep(
