@@ -69,10 +69,10 @@ export default class ResourceTagCommand extends BaseCommand {
         switch (interaction.options.getSubcommand()) {
             case "search":
                 const query = interaction.options.getString("query", false);
-                const channel_id = interaction.options.getChannel("channel", false);
+                const channeId = interaction.options.getChannel("channel", false);
 
-                const tags_search = await ResourceTag.find({
-                    channelId: channel_id?.id ?? interaction.channelId,
+                const tagsSearch = await ResourceTag.find({
+                    channelId: channeId?.id ?? interaction.channelId,
                 });
 
                 const options = {
@@ -88,7 +88,7 @@ export default class ResourceTagCommand extends BaseCommand {
 
                 if (!query) {
                     await new PaginationBuilder(
-                        tags_search.map(({ title, description, messageUrl, authorId, _id }) => ({
+                        tagsSearch.map(({ title, description, messageUrl, authorId, _id }) => ({
                             name: title + ` | ||${_id}||`,
                             description: description + '\n\n' + messageUrl + `\nBy: <@${authorId}>`
                         })),
@@ -107,14 +107,14 @@ export default class ResourceTagCommand extends BaseCommand {
                         }, [interaction.user.id]);
                     return
                 }
-                const fuse = new Fuse(tags_search, options);
+                const fuse = new Fuse(tagsSearch, options);
 
                 const results = fuse.search(query);
 
-                let select_options: StringSelectMenuOptionBuilder[] = []
+                let selectOptions: StringSelectMenuOptionBuilder[] = []
 
                 results.forEach(({ item }) => {
-                    select_options.push(new StringSelectMenuOptionBuilder(
+                    selectOptions.push(new StringSelectMenuOptionBuilder(
                         {
                             label: item.title,
                             value: item._id + "_resource_tag",
@@ -124,10 +124,10 @@ export default class ResourceTagCommand extends BaseCommand {
 
                 const customid = uuidv4()
 
-                const select_send = new SelectButtonless("send_resource", "Send a resource to the chat", select_options, 1, `${customid}_send_resource`)
+                const selectSend = new SelectButtonless("send_resource", "Send a resource to the chat", selectOptions, 1, `${customid}_send_resource`)
 
-                const select_row = new ActionRowBuilder()
-                    .addComponents(select_send)
+                const selectRow = new ActionRowBuilder()
+                    .addComponents(selectSend)
 
                 let selectInteractionMsg: Promise<Message<true>>;
 
@@ -140,7 +140,7 @@ export default class ResourceTagCommand extends BaseCommand {
                         name: name,
                         value: description
                     }),
-                    results.length > 0 ? [select_row] : [],
+                    results.length > 0 ? [selectRow] : [],
                     true
                 )
                     .setTitle("Resource Tag Search Results")
@@ -152,7 +152,7 @@ export default class ResourceTagCommand extends BaseCommand {
 
                 const selectInteractionMsgObj: Message<true> = await selectInteractionMsg;
 
-                const response = await select_send.waitForResponse(
+                const response = await selectSend.waitForResponse(
                     `${customid}_send_resource`,
                     selectInteractionMsgObj,
                 )

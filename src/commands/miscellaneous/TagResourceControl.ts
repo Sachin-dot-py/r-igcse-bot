@@ -61,8 +61,8 @@ export default class TagResourceControlsCommand extends BaseCommand {
     ) {
         switch (interaction.options.getSubcommand(true)) {
             case "delete":
-                const tags_del = await ResourceTag.findById(interaction.options.getString("id", true));
-                if (!tags_del) {
+                const tagsDel = await ResourceTag.findById(interaction.options.getString("id", true));
+                if (!tagsDel) {
                     await interaction.reply({
                         content: "Resource Tag not found.",
                         ephemeral: true,

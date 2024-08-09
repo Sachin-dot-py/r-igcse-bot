@@ -226,7 +226,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 		const title = message.embeds[0].title;
 		const description = message.embeds[0].description;
-		const message_link = message.embeds[0].fields[1].value;
+		const messageLink = message.embeds[0].fields[1].value;
 		const channelId = channelRegex.exec(message.embeds[0].fields[2].value)[1];
 		const authorId = message.embeds[0].author?.name.split(" | ")[1];
 		const guild = client.guilds.cache.get(button.guildId);
@@ -258,11 +258,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 					return
 				}
 
-				const tag_search_res = await ResourceTag.findOne({
-					messageUrl: message_link,
+				const tagSearchRes = await ResourceTag.findOne({
+					messageUrl: messageLink,
 				});
 
-				if (tag_search_res) {
+				if (tagSearchRes) {
 					return;
 				}
 
@@ -272,11 +272,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 					description,
 					authorId: authorId,
 					channelId: channelId,
-					messageUrl: message_link,
+					messageUrl: messageLink,
 				});
 
 				await author?.send({
-					content: `Your resource tag request has been approved! ${message_link}`,
+					content: `Your resource tag request has been approved! ${messageLink}`,
 				});
 
 				break;
@@ -310,7 +310,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 
 				await author?.send({
-					content: `Your resource tag request has been rejected. ${message_link}`,
+					content: `Your resource tag request has been rejected. ${messageLink}`,
 				});
 
 				break;
