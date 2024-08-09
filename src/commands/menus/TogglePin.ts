@@ -1,4 +1,5 @@
 import { StickyPinnedMessage } from "@/mongo/schemas/StickyPinnedMessage";
+import { OldPinsThread } from "@/mongo/schemas/OldPinsThread";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction,
@@ -46,7 +47,7 @@ export default class PinMenu extends BaseCommand {
 			return;
 		}
 
-		if (interaction.targetMessage.pinned) {
+		if (interaction.targetMessage.pinned) { // Unpin Message
 			await interaction.deferReply({
 				ephemeral: true,
 			});
@@ -58,13 +59,13 @@ export default class PinMenu extends BaseCommand {
 				return;
 			}
 
-			let thread = interaction.guild.channels.cache
+			let thread = (await interaction.guild.channels.fetch())
 				.filter(
-					(x) =>
-						x.isThread() &&
-						x.parent?.id === interaction.channelId &&
-						x.name === "Old Pins" &&
-						x.ownerId === client.user.id,
+					(x: any) =>
+						x?.isThread() &&
+						x?.parent?.id === interaction.channelId &&
+						x?.name === "Old Pins" &&
+						x?.ownerId === client.user.id,
 				)
 				.first() as AnyThreadChannel<boolean> | undefined;
 			const yesButton = new ButtonBuilder()
@@ -196,7 +197,7 @@ export default class PinMenu extends BaseCommand {
 					components: [],
 				});
 			}
-		} else {
+		} else { // Pin Message
 			if (!interaction.targetMessage.pinnable) {
 				await interaction.reply({
 					content: "Message isn't pinnable.",
@@ -215,16 +216,33 @@ export default class PinMenu extends BaseCommand {
 				const pinNo = Array.from(
 					(await interaction.channel?.messages.fetchPinned()) || [],
 				).length;
-				if (pinNo >= 50) {
-					let thread = interaction.guild.channels.cache
-						.filter(
-							(x) =>
+				if (pinNo >= 50) { // Shift to Old Pins if possible
+					const channel = interaction.channel.isThread() ? interaction.channel.parent : interaction.channel
+					let thread = (await channel?.threads.fetch())
+						?.threads.filter(
+							(x: any) =>
 								x.isThread() &&
 								x.parent?.id === interaction.channelId &&
 								x.name === "Old Pins" &&
 								x.ownerId === client.user.id,
 						)
 						.first() as AnyThreadChannel<boolean> | undefined;
+					if (!thread) {
+						thread = (await channel?.threads.fetchArchived())
+							?.threads.filter(
+								(x: any) =>
+									x.isThread() &&
+									x.parent?.id === interaction.channelId &&
+									x.name === "Old Pins" &&
+									x.ownerId === client.user.id,
+							)
+							.first() as AnyThreadChannel<boolean> | undefined;
+					}
+					if (!thread) {
+						const threadId = (await OldPinsThread.find({ channelId: interaction.channelId }).exec())?.[0]?.oldPinsThreadId
+						console.log(threadId)
+						if (threadId) thread = (await channel?.threads.fetchArchived())?.threads.get(threadId) as AnyThreadChannel<boolean> | undefined;
+					}
 					if (!thread) {
 						const embed = new EmbedBuilder().setTitle(
 							"Old pins thread",
