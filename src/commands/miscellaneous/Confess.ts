@@ -21,7 +21,7 @@ interface IBannedData {
 	bannedUsers: string[];
 }
 
-export default class FunFactCommand extends BaseCommand {
+export default class ConfessionCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
