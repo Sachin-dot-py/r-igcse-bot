@@ -92,7 +92,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
 							`${Number.parseInt(lastMessage.content) + 1}` ===
-								message.content)) &&
+							message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
@@ -217,7 +217,7 @@ export default class MessageCreateEvent extends BaseEvent {
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-					guildPreferences.modmailThreadsChannelId
+				guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -496,7 +496,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				await message.reply(
 					botYwResponses[
 						Math.floor(Math.random() * botYwResponses.length)
-					],
+						],
 				);
 
 				continue;
