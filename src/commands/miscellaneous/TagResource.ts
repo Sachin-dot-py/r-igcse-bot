@@ -32,17 +32,6 @@ export default class ResourceTagCommand extends BaseCommand {
                 .setDescription("Group of commands for tagging resources")
                 .addSubcommand((subcommand) =>
                     subcommand
-                        .setName("request")
-                        .setDescription("Request a message to be tagged")
-                        .addStringOption((option) =>
-                            option
-                                .setName("message_id")
-                                .setDescription("The id of the message to be tagged")
-                                .setRequired(true),
-                        ),
-                )
-                .addSubcommand((subcommand) =>
-                    subcommand
                         .setName("search")
                         .setDescription("Search for a tagged resource in the database")
                         .addStringOption((option) =>
@@ -167,6 +156,10 @@ export default class ResourceTagCommand extends BaseCommand {
 
                 response.on("collect", async (i) => {
                     const resource = await ResourceTag.findById(i.values[0].split("_")[0])
+                    if (!resource) {
+                        await i.channel.send("Resource not found")
+                        return
+                    }
 
                     const resourceEmbed = new EmbedBuilder()
                         .setTitle(resource.title)
@@ -186,178 +179,6 @@ export default class ResourceTagCommand extends BaseCommand {
                 });
 
                 break;
-            case "request":
-                if (!interaction.channel) return;
-                const targetMessageId = interaction.options.getString("message_id", true);
-                let targetMessage: Message<true>;
-
-                try {
-                    targetMessage = await interaction.channel.messages.fetch(targetMessageId);
-                }catch {
-                    await interaction.reply({
-                        content: "Message not found.",
-                        ephemeral: true,
-                    });
-
-                    return;
-                }
-
-                const studyChannel = await StudyChannel.findOne({
-                    guildId: interaction.guildId,
-                    channelId: interaction.channelId,
-                });
-
-                if (!studyChannel) {
-                    interaction.reply({
-                        content: "This can only be used for a study channel!",
-                        ephemeral: true,
-                    });
-
-                    return;
-                }
-
-                const guildPreferences = await GuildPreferencesCache.get(
-                    interaction.guildId
-                );
-
-                if (
-                    !guildPreferences ||
-                    !guildPreferences.tagResourceApprovalChannelId
-                ) {
-                    await interaction.reply({
-                        content:
-                            "Please setup the bot using the command `/setup` first.",
-                        ephemeral: true
-                    });
-
-                    return;
-                }
-
-                const approvalChannel = interaction.guild.channels.cache.get(
-                    guildPreferences?.tagResourceApprovalChannelId
-                );
-
-                if (!approvalChannel || !approvalChannel.isTextBased()) {
-                    await interaction.reply({
-                        content:
-                            "Invalid configuration for resource tags. Please contact an admin.",
-                        ephemeral: true
-                    });
-
-                    return;
-                }
-
-                const tags = await ResourceTag.findOne({
-                    messageUrl: targetMessage.url,
-                });
-
-                if (tags) {
-                    await interaction.reply({
-                        content: "This message already has already been tagged as a resource.",
-                        ephemeral: true,
-                    });
-
-                    return;
-                }
-
-                const titleInput = new TextInputBuilder()
-                    .setCustomId("tag-title-input")
-                    .setLabel("Title")
-                    .setPlaceholder("Enter the title of the tag")
-                    .setRequired(true)
-                    .setStyle(TextInputStyle.Short);
-
-                const descriptionInput = new TextInputBuilder()
-                    .setCustomId("tag-description-input")
-                    .setLabel("Description")
-                    .setPlaceholder("Enter the description of the tag")
-                    .setRequired(true)
-                    .setStyle(TextInputStyle.Paragraph);
-
-                const row1 = new ActionRowBuilder<TextInputBuilder>()
-                    .addComponents(titleInput);
-
-                const row2 = new ActionRowBuilder<TextInputBuilder>()
-                    .addComponents(descriptionInput);
-
-                const modalCustomId = uuidv4();
-
-                const modal = new ModalBuilder()
-                    .setCustomId(modalCustomId)
-                    .setTitle("Request Resource Tag")
-                    .addComponents(row1, row2)
-
-                await interaction.showModal(modal);
-
-                const modalInteraction = await interaction.awaitModalSubmit({
-                    time: 600_000,
-                    filter: (i) => i.customId === modalCustomId
-                })
-
-                const title = modalInteraction.fields.getTextInputValue("tag-title-input");
-                const description = modalInteraction.fields.getTextInputValue("tag-description-input");
-
-                await modalInteraction.reply({
-                    content: "Your tag request has been sent to the helpers.\nYou have to wait for them to approve it.",
-                })
-
-                const embed = new EmbedBuilder()
-                    .setTitle(title)
-                    .setDescription(description)
-                    .setColor("Random")
-                    .addFields(
-                        {
-                            name: "Requested By",
-                            value: interaction.user.tag,
-                            inline: true
-                        },
-                        {
-                            name: "Message Link",
-                            value: targetMessage.url,
-                            inline: true
-                        },
-                        {
-                            name: "Channel",
-                            value: `<#${interaction.channel.id}>`,
-                            inline: true
-                        }
-                    )
-                    .setAuthor({
-                        name: interaction.user.tag + " | " + interaction.user.id,
-                        iconURL: interaction.user.displayAvatarURL(),
-                    })
-
-                const customId = uuidv4();
-
-                const approveButton = new ButtonBuilder()
-                    .setCustomId(`${customId}_tag_accept`)
-                    .setLabel("Approve")
-                    .setStyle(ButtonStyle.Success);
-
-                const rejectButton = new ButtonBuilder()
-                    .setCustomId(`${customId}_tag_reject`)
-                    .setLabel("Deny")
-                    .setStyle(ButtonStyle.Danger);
-
-                const row = new ActionRowBuilder<ButtonBuilder>()
-                    .addComponents(approveButton, rejectButton);
-
-                const message = await approvalChannel.send({
-                    embeds: [embed],
-                    components: [row],
-                });
-
-                await ButtonInteractionCache.set(`${customId}_tag`, {
-                    customId: `${customId}_tag`,
-                    messageId: message.id,
-                    guildId: interaction.guildId,
-                    userId: interaction.user.id,
-                })
-
-                await ButtonInteractionCache.expire(
-                    `${customId}_tag`,
-                    3*24*60*60
-                )
         }
     }
 }
