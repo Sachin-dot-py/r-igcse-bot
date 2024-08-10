@@ -1,6 +1,6 @@
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
-import { ConfessionBan, PracticeSession } from "@/mongo";
+import {ConfessionBan, PracticeSession, ResourceTag} from "@/mongo";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -43,6 +43,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
+				this.handleResourceTagRequestButton(client, interaction);
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -191,6 +192,132 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await PracticeQuestionCache.save(question);
+	}
+
+	async handleResourceTagRequestButton(
+		client: DiscordClient<true>,
+		interaction: ButtonInteraction
+	) {
+
+		const matchCustomIdRegex = /(.*_tag)_(accept|reject)/gi;
+		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
+		if (!regexMatches) return;
+
+		const tagId = regexMatches[1];
+		const action = regexMatches[2];
+		if (!tagId || !action) return;
+
+		const button = await ButtonInteractionCache.get(tagId);
+		if (!button || !button.guildId || !button.userId) return;
+
+		const guildPreferences = await GuildPreferencesCache.get(button.guildId);
+		// if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId) return;
+		const approvalChannel = interaction.guild.channels.cache.get(
+			guildPreferences?.tagResourceApprovalChannelId
+		);
+
+		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
+			return;
+
+		const message = await approvalChannel.messages.fetch(button.messageId);
+		if (!message) return;
+
+		const channelRegex = /<#(\d+)>/
+
+		const title = message.embeds[0].title;
+		const description = message.embeds[0].description;
+		const messageLink = message.embeds[0].fields[1].value;
+		const channelId = channelRegex.exec(message.embeds[0].fields[2].value)[1];
+		const authorId = message.embeds[0].author?.name.split(" | ")[1];
+		const guild = client.guilds.cache.get(button.guildId);
+		const author = guild?.members.cache.find((m) => m.id === authorId);
+
+		switch (action) {
+			case "accept": {
+				const embedEdited = new EmbedBuilder()
+					.setTitle(title+" - Accepted by " + interaction.user.tag)
+					.setDescription(description)
+					.setColor("Green")
+					.addFields(...message.embeds[0].fields)
+					.setAuthor({
+						name: interaction.user.tag + " | " + interaction.user.id,
+						iconURL: interaction.user.displayAvatarURL(),
+					})
+
+				await message.edit({
+					embeds: [embedEdited],
+					components: [],
+				})
+
+				try {
+					await interaction.reply({
+						content: "Resource tag approved",
+						ephemeral: true,
+					});
+				} catch (error) {
+					return
+				}
+
+				const tagSearchRes = await ResourceTag.findOne({
+					messageUrl: messageLink,
+				});
+
+				if (tagSearchRes) {
+					return;
+				}
+
+				await ResourceTag.create({
+					guildId: button.guildId,
+					title,
+					description,
+					authorId: authorId,
+					channelId: channelId,
+					messageUrl: messageLink,
+				});
+
+				await author?.send({
+					content: `Your resource tag request has been approved! ${messageLink}`,
+				});
+
+				break;
+			}
+			case "reject": {
+				const embedEdited = new EmbedBuilder()
+					.setTitle(title+" - Rejected by " + interaction.user.tag)
+					.setDescription(description)
+					.setColor("Red")
+					.addFields(...message.embeds[0].fields)
+					.setAuthor({
+						name: interaction.user.tag + " | " + interaction.user.id,
+						iconURL: interaction.user.displayAvatarURL(),
+					})
+
+				await message.edit({
+					embeds: [embedEdited],
+					components: [],
+				})
+
+				try {
+					await interaction.reply({
+						content: "Resource tag rejected",
+						ephemeral: true,
+					});
+				} catch (error) {
+					if (error.message === "Unknown Interaction") {
+						return
+					}
+				}
+
+
+				await author?.send({
+					content: `Your resource tag request has been rejected. ${messageLink}`,
+				});
+
+				break;
+			}
+		}
+
+		if (!author) return;
 	}
 
 	async handleConfessionButton(
