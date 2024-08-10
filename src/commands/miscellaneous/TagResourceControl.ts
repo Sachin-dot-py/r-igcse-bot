@@ -173,7 +173,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
                 const title = modalInteraction.fields.getTextInputValue("tag-title-input");
                 const description = modalInteraction.fields.getTextInputValue("tag-description-input");
 
-                await ResourceTag.create({
+                const newRes = await ResourceTag.create({
                     guildId: interaction.guildId,
                     title,
                     description,
@@ -183,7 +183,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
                 });
 
                 await modalInteraction.reply({
-                    content: "Resource Tag added.",
+                    content: `Resource tag added with ID \`${newRes._id}\``,
                     ephemeral: true,
                 });
                 break;
