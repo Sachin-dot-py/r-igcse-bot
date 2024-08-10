@@ -232,6 +232,17 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const guild = client.guilds.cache.get(button.guildId);
 		const author = guild?.members.cache.find((m) => m.id === authorId);
 
+    const helperRoleData = await StudyChannel.findOne({
+			channelId: channelId,
+		});
+		const helperRoleId = helperRoleData?.helperRoleId;
+		if (!helperRoleId) return;
+
+		if (!interaction.member || !interaction.member.roles.cache.has(helperRoleId)) {
+			await interaction.deferUpdate();
+			return;
+		}
+
 		switch (action) {
 			case "accept": {
 				const embedEdited = new EmbedBuilder()
@@ -249,15 +260,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 					components: [],
 				})
 
-				try {
-					await interaction.reply({
-						content: "Resource tag approved",
-						ephemeral: true,
-					});
-				} catch (error) {
-					return
-				}
-
 				const tagSearchRes = await ResourceTag.findOne({
 					messageUrl: messageLink,
 				});
@@ -266,7 +268,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 					return;
 				}
 
-				await ResourceTag.create({
+				const newRes = await ResourceTag.create({
+
 					guildId: button.guildId,
 					title,
 					description,
@@ -274,6 +277,16 @@ export default class InteractionCreateEvent extends BaseEvent {
 					channelId: channelId,
 					messageUrl: messageLink,
 				});
+
+  
+				try {
+					await interaction.reply({
+						content: `Resource tag approved with ID \`${newRes._id}\``,
+						ephemeral: true,
+					});
+				} catch (error) {
+					return
+				}
 
 				await author?.send({
 					content: `Your resource tag request has been approved! ${messageLink}`,
