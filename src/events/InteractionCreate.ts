@@ -239,7 +239,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!helperRoleId) return;
 
 		if (!interaction.member || !interaction.member.roles.cache.has(helperRoleId)) {
-			await interaction.deferUpdate();
+			await interaction.reply("You aren't a helper for this channel");
 			return;
 		}
 
@@ -250,10 +250,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					.setDescription(description)
 					.setColor("Green")
 					.addFields(...message.embeds[0].fields)
-					.setAuthor({
-						name: interaction.user.tag + " | " + interaction.user.id,
-						iconURL: interaction.user.displayAvatarURL(),
-					})
+					.setAuthor(message.embeds[0].author);
 
 				await message.edit({
 					embeds: [embedEdited],
@@ -303,10 +300,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					.setDescription(description)
 					.setColor("Red")
 					.addFields(...message.embeds[0].fields)
-					.setAuthor({
-						name: interaction.user.tag + " | " + interaction.user.id,
-						iconURL: interaction.user.displayAvatarURL(),
-					})
+					.setAuthor(message.embeds[0].author);
 
 				await message.edit({
 					embeds: [embedEdited],
