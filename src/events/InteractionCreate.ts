@@ -239,7 +239,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!helperRoleId) return;
 
 		if (!interaction.member || !interaction.member.roles.cache.has(helperRoleId)) {
-			await interaction.reply("You aren't a helper for this channel");
+			await interaction.reply({
+				content: "You aren't a helper for this channel",
+				ephemeral: true
+			});
 			return;
 		}
 
