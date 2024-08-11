@@ -135,6 +135,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 		await modalInteraction.reply({
 			content: "Your tag request has been sent to the helpers.\nYou have to wait for them to approve it.",
+			ephemeral: true
 		})
 
 		const embed = new EmbedBuilder()
@@ -172,7 +173,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 		const rejectButton = new ButtonBuilder()
 			.setCustomId(`${customId}_tag_reject`)
-			.setLabel("Deny")
+			.setLabel("Reject")
 			.setStyle(ButtonStyle.Danger);
 
 		const row = new ActionRowBuilder<ButtonBuilder>()
