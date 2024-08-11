@@ -265,7 +265,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 				});
 
 				if (tagSearchRes) {
-					return;
+					return await interaction.reply({
+						content: "This message has already been tagged as a resource",
+						ephemeral: true
+					})
 				}
 
 				const newRes = await ResourceTag.create({
