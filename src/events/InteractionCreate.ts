@@ -232,7 +232,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const guild = client.guilds.cache.get(button.guildId);
 		const author = guild?.members.cache.find((m) => m.id === authorId);
 
-		const helperRoleData = await StudyChannel.findOne({
+    const helperRoleData = await StudyChannel.findOne({
 			channelId: channelId,
 		});
 		const helperRoleId = helperRoleData?.helperRoleId;
@@ -272,6 +272,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				}
 
 				const newRes = await ResourceTag.create({
+
 					guildId: button.guildId,
 					title,
 					description,
@@ -280,6 +281,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					messageUrl: messageLink,
 				});
 
+  
 				try {
 					await interaction.reply({
 						content: `Resource tag approved with ID \`${newRes._id}\``,
