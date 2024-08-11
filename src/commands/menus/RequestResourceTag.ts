@@ -15,7 +15,7 @@ import {
 	ModalBuilder,
 	PermissionFlagsBits,
 	TextInputBuilder,
-	TextInputStyle,
+	TextInputStyle, ThreadChannel,
 } from "discord.js";
 import {EntityId} from "redis-om";
 import {StudyChannel} from "@/mongo/schemas/StudyChannel.ts";
@@ -38,9 +38,17 @@ export default class StickMessageCommand extends BaseCommand {
 		if (!interaction.channel) return;
 		let targetMessage: Message<true> = interaction.targetMessage;
 
+		let channelId: string;
+		
+		if (!interaction.channel.isThread()) {
+			channelId = interaction.channel.id
+		}else {
+			channelId = interaction.channel.parentId
+		}
+
 		const studyChannel = await StudyChannel.findOne({
 			guildId: interaction.guildId,
-			channelId: interaction.channelId,
+			channelId: channelId,
 		});
 
 		if (!studyChannel) {
@@ -155,7 +163,7 @@ export default class StickMessageCommand extends BaseCommand {
 				},
 				{
 					name: "Channel",
-					value: `<#${interaction.channel.id}>`,
+					value: `<#${channelId}>`,
 					inline: true
 				}
 			)
