@@ -79,7 +79,7 @@ export default class ResourceTagCommand extends BaseCommand {
                     await new PaginationBuilder(
                         tagsSearch.map(({ title, description, messageUrl, authorId, _id }) => ({
                             name: title + ` | ||${_id}||`,
-                            description: description + '\n\n' + messageUrl + `\nBy: <@${authorId}>`
+                            description: description + '\n\n' + messageUrl + `\nAdded By: <@${authorId}>`
                         })),
                         async ({ name, description }) => ({
                             name: name,
@@ -123,7 +123,7 @@ export default class ResourceTagCommand extends BaseCommand {
                 await new PaginationBuilder(
                     results.map(({ item }) => ({
                         name: item.title + ` | ||${item._id}||`,
-                        description: item.description + '\n\n' + item.messageUrl + `\nBy: <@${item.authorId}>`
+                        description: item.description + '\n\n' + item.messageUrl + `\nAdded By: <@${item.authorId}>`
                     })),
                     async ({ name, description }) => ({
                         name: name,
