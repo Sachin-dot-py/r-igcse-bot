@@ -1,6 +1,6 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
-    ForumChannel,
+    ForumChannel, PermissionFlagsBits,
     SlashCommandBuilder,
 } from "discord.js";
 import BaseCommand, {
@@ -21,6 +21,7 @@ export default class DMUserCommand extends BaseCommand {
                         .setDescription("User to DM")
                         .setRequired(true),
                 )
+                .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
         );
     }
 
