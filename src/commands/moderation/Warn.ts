@@ -51,6 +51,13 @@ export default class WarnCommand extends BaseCommand {
 
     const guildMember = await interaction.guild.members.fetch(user.id);
 
+    if (guildMember.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+        interaction.editReply({
+            content: "You cannot warn this user. (They are a moderator)",
+        });
+        return;
+    }
+
     if (!guildMember) {
       interaction.editReply({
         content: "User not found in server.",

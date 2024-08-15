@@ -108,6 +108,13 @@ export default class KickCommand extends BaseCommand {
       return;
     }
 
+    if (guildMember.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+      interaction.editReply({
+          content: "You cannot kick this user. (They are a moderator)",
+      });
+      return;
+    }
+
     sendDm(guildMember, {
       embeds: [dmEmbed],
     });

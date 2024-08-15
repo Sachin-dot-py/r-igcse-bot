@@ -119,6 +119,13 @@ export default class TimeoutCommand extends BaseCommand {
       return;
     }
 
+    if (guildMember.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+      interaction.editReply({
+          content: "You cannot timeout this user. (They are a moderator)",
+      });
+      return;
+    }
+
     const latestTimeout = (
       await Punishment.find({
         guildId: interaction.guildId,
