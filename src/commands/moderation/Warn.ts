@@ -51,11 +51,15 @@ export default class WarnCommand extends BaseCommand {
 
     const guildMember = await interaction.guild.members.fetch(user.id);
 
-    if (guildMember.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-        interaction.editReply({
-            content: "You cannot warn this user. (They are a moderator)",
-        });
-        return;
+    const memberHighestRole = guildMember.roles.highest;
+    const modHighestRole = interaction.member.roles.highest;
+
+    if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+      interaction.editReply({
+        content:
+          "You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
+      });
+      return;
     }
 
     if (!guildMember) {

@@ -123,13 +123,6 @@ export default class BanCommand extends BaseCommand {
         return;
       }
 
-      if (guildMember.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-        interaction.editReply({
-            content: "You cannot ban this user. (They are a moderator)",
-        });
-        return;
-      }
-
       sendDm(guildMember, {
         embeds: [dmEmbed],
       });
