@@ -37,6 +37,11 @@ export const ywAliases = [
 ];
 
 export const tyAliases = [
+	"thanku",
+	"tankyou",
+	"tank you",
+	"thankyou",
+	"thank",
 	"ty",
 	"tyty",
 	"tyy",
