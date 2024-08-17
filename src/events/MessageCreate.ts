@@ -38,6 +38,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
+		if (message.system) return;
 
 		if (message.inGuild()) {
 			KeywordCache.get(
