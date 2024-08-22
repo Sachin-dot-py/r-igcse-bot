@@ -43,7 +43,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.inGuild()) {
 			const keyword = message.content.trim().toLowerCase();
 			const entry = await KeywordCache.get(message.guildId, keyword);
-			if (entry) {
+			if (entry.response) {
 				let messageOptions = await formatMessage(message, entry.response, false, keyword, entry.imageLink);
 				delete messageOptions.ephemeral;
 				await message.channel.send(messageOptions);

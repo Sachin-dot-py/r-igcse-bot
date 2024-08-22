@@ -49,7 +49,7 @@ export default class KeywordCommand extends BaseCommand {
 			const keyword = interaction.options.getString("keyword", true).trim().toLowerCase();
 			const hidden = interaction.options.getBoolean("hidden", false);
 			const entry = await KeywordCache.get(guildId, keyword);
-			if (entry) {
+			if (entry.response) {
 				let messageOptions = await formatMessage(interaction, entry.response, Boolean(hidden), keyword, entry.imageLink);
 				if (hidden) {
 					const sendButton = new ButtonBuilder()
@@ -186,7 +186,7 @@ export default class KeywordCommand extends BaseCommand {
 				.setCustomId(`keyword_accept`);
 
 			const editedApproveButton = new ButtonBuilder()
-				.setLabel("Approve with an edit (do it first)")
+				.setLabel("Approve with an edit (add keyword before click)")
 				.setStyle(ButtonStyle.Primary)
 				.setCustomId(`keyword_edited`);
 
@@ -224,20 +224,13 @@ export async function formatMessage(interaction: DiscordChatInputCommandInteract
 	// message.user doesn't exist so using .member.user instead which supports both interaction and message
 	const text = `Requested by ${interaction.member.user.tag}${id ? ` (${interaction.member.user.id})` : ''}` // change regex in the other file if you are gonna change this
 	const footerOptions = iconURL ? { text, iconURL} : { text };
-	if (
-		!keywordResponse.startsWith("https://") &&
-		!keywordResponse.startsWith("http://")
-	) {
-		const embed = new EmbedBuilder()
-			.setDescription(keywordResponse)
-			.setFooter(footerOptions)
-			.setColor(Colors.White);
-		if (keywordName) { embed.setTitle(`${keywordName}`) }
-		if (imageLink) { embed.setImage(imageLink) }
-		return { embeds: [embed], ephemeral };
-	} else {
-		return { content: keywordResponse, ephemeral };
-	}
+	const embed = new EmbedBuilder()
+		.setDescription(keywordResponse)
+		.setFooter(footerOptions)
+		.setColor(Colors.White);
+	if (keywordName) { embed.setTitle(`${keywordName}`) }
+	if (imageLink) { embed.setImage(imageLink) }
+	return { embeds: [embed], ephemeral };
 }
 
 export async function performAutoComplete(interaction: AutocompleteInteraction) {
