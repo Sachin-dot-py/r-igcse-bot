@@ -48,7 +48,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
-				this.handleKeywordRequestButton(client, interaction);
+				this.handleKeywordButtons(client, interaction);
 			}
 			else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
@@ -491,11 +491,16 @@ export default class InteractionCreateEvent extends BaseEvent {
 		await ButtonInteractionCache.remove(confessionId);
 	}
 
-	async handleKeywordRequestButton(
+	async handleKeywordButtons(
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction<"cached">,
 	) {
 		if (!interaction.isButton()) return;
+		if (interaction.customId === "keyword_search_send") {
+			const message = interaction.message;
+			await interaction.reply({embeds: [message.embeds[0]], ephemeral: false});
+			return;
+		}
 		const matchCustomIdRegex = /keyword_(accept|edited|reject)/gi;
 		
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);

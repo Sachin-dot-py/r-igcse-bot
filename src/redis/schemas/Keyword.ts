@@ -12,6 +12,7 @@ const schema = new Schema("Keyword", {
 	guildId: { type: "string" },
 	keyword: { type: "string" },
 	response: { type: "string" },
+	imageLink: { type: "string" }
 });
 
 export class KeywordRepository extends Repository {
@@ -20,9 +21,7 @@ export class KeywordRepository extends Repository {
 	}
 
 	async get(guildId: string, keyword: string) {
-		return (
-			(await this.fetch(`${keyword}-${guildId}`)) as { response: string }
-		).response;
+		return (await this.fetch(`${keyword}-${guildId}`)) as ICachedKeyword;
 	}
 
 	async delete(guildId: string, keyword: string) {

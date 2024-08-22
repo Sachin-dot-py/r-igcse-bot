@@ -1,5 +1,5 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, DiscordjsErrorCodes, EmbedBuilder, ModalBuilder, ModalSubmitInteraction, SlashCommandBuilder, TextInputBuilder, TextInputStyle, type InteractionReplyOptions } from "discord.js";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, DiscordjsErrorCodes, EmbedBuilder, Message, ModalBuilder, ModalSubmitInteraction, SlashCommandBuilder, TextInputBuilder, TextInputStyle, type InteractionReplyOptions } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
@@ -24,6 +24,11 @@ export default class KeywordCommand extends BaseCommand {
 								.setDescription("The keyword's name")
 								.setAutocomplete(true)
 								.setRequired(true)
+						)
+						.addBooleanOption((option) => 
+							option
+								.setName("hidden")
+								.setDescription("Whether the keyword should be only shown to you")
 						),
 				)
 				.addSubcommand((command) =>
@@ -41,10 +46,19 @@ export default class KeywordCommand extends BaseCommand {
 	) {
 		const guildId = interaction.guildId;
 		if (interaction.options.getSubcommand() === "search") {
-			const keyword = interaction.options.getString("keyword", true);
-			const entry = await Keyword.findOne({guildId, keyword})
+			const keyword = interaction.options.getString("keyword", true).trim().toLowerCase();
+			const hidden = interaction.options.getBoolean("hidden", false);
+			const entry = await KeywordCache.get(guildId, keyword);
 			if (entry) {
-				await interaction.reply(await formatMessage(interaction, entry.response, false, keyword, entry.imageLink))
+				let messageOptions = await formatMessage(interaction, entry.response, Boolean(hidden), keyword, entry.imageLink);
+				if (hidden) {
+					const sendButton = new ButtonBuilder()
+					.setLabel("Send")
+					.setStyle(ButtonStyle.Success)
+					.setCustomId(`keyword_search_send`);
+					messageOptions.components = [new ActionRowBuilder().addComponents(sendButton)];
+				}
+				await interaction.reply(messageOptions);
 			} else {
 				await interaction.reply({content: "Keyword not found", ephemeral: true})
 			}
@@ -203,10 +217,12 @@ export default class KeywordCommand extends BaseCommand {
 	}
 }
 
-export async function formatMessage(interaction: DiscordChatInputCommandInteraction<"cached">, keywordResponse: string, ephemeral: boolean,
-	keywordName: string, imageLink?: string, id: boolean = false): Promise<InteractionReplyOptions> {
+export async function formatMessage(interaction: DiscordChatInputCommandInteraction<"cached"> | Message, keywordResponse: string, ephemeral: boolean,
+	keywordName: string, imageLink?: string, id: boolean = false) {
+	if (!interaction.member) return;
 	const iconURL = interaction.member.displayAvatarURL();
-	const text = `Requested by ${interaction.user.tag}${id ? ` (${interaction.user.id})` : ''}` // change regex in the other file if you are gonna change this
+	// message.user doesn't exist so using .member.user instead which supports both interaction and message
+	const text = `Requested by ${interaction.member.user.tag}${id ? ` (${interaction.member.user.id})` : ''}` // change regex in the other file if you are gonna change this
 	const footerOptions = iconURL ? { text, iconURL} : { text };
 	if (
 		!keywordResponse.startsWith("https://") &&
