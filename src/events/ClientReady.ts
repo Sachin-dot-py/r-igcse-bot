@@ -7,18 +7,19 @@ import { Keyword } from "@/mongo/schemas/Keyword";
 import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
 import { KeywordCache, StickyMessageCache } from "@/redis";
 import type {
-	APIEmbedRedis,
-	MessageCreateOptionsRedis,
+  APIEmbedRedis,
+  MessageCreateOptionsRedis,
 } from "@/redis/schemas/StickyMessage";
 import createTask from "@/utils/createTask";
 import {
-	ActivityType,
-	Colors,
-	EmbedBuilder,
-	Events,
-	ForumChannel,
-	TextChannel,
-	ThreadChannel,
+  ActivityType,
+  Colors,
+  EmbedBuilder,
+  Events,
+  ForumChannel,
+  GuildChannel,
+  TextChannel,
+  ThreadChannel,
 } from "discord.js";
 import { EntityId } from "redis-om";
 import { client } from "..";
@@ -28,238 +29,252 @@ import { Logger } from "@discordforge/logger";
 import { logToChannel } from "@/utils/Logger";
 
 export default class ClientReadyEvent extends BaseEvent {
-	constructor() {
-		super(Events.ClientReady);
-	}
+  constructor() {
+    super(Events.ClientReady);
+  }
 
-	async execute(client: DiscordClient<true>) {
-		if (!client.user) return;
+  async execute(client: DiscordClient<true>) {
+    if (!client.user) return;
 
-		Logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
+    Logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
 
-		client.user.setPresence({
-			activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
-			status: "online",
-		});
+    client.user.setPresence({
+      activities: [{ type: ActivityType.Watching, name: "r/IGCSE" }],
+      status: "online",
+    });
 
-		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
-		if (mainGuild) {
-			const readyEmbed = new EmbedBuilder()
-				.setTitle(`Restarted successfully!`)
-				.setColor(Colors.Green)
-				.setAuthor({
-					name: client.user.tag,
-					iconURL: client.user.displayAvatarURL(),
-				})
-				.setTimestamp();
+    const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
+    if (mainGuild) {
+      const readyEmbed = new EmbedBuilder()
+        .setTitle(`Restarted successfully!`)
+        .setColor(Colors.Green)
+        .setAuthor({
+          name: client.user.tag,
+          iconURL: client.user.displayAvatarURL(),
+        })
+        .setTimestamp();
 
-			await logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
-				embeds: [readyEmbed],
-			});
-		}
+      await logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
+        embeds: [readyEmbed],
+      });
+    }
 
-		const practiceCommand = client.commands.get("practice") as
-			| PracticeCommand
-			| undefined;
+    const practiceCommand = client.commands.get("practice") as
+      | PracticeCommand
+      | undefined;
 
-		if (practiceCommand) {
-			Logger.info("Starting practice questions loop");
-			createTask(
-				() =>
-					practiceCommand
-						.sendQuestions(client)
-						.catch((e) =>
-							Logger.error(
-								`Error at practiceCommand.sendQuestions: ${e}`,
-							),
-						),
-				3500,
-			);
-		}
+    if (practiceCommand) {
+      Logger.info("Starting practice questions loop");
+      createTask(
+        () =>
+          practiceCommand
+            .sendQuestions(client)
+            .catch((e) =>
+              Logger.error(`Error at practiceCommand.sendQuestions: ${e}`)
+            ),
+        3500
+      );
+    }
 
-		const goStudyCommand = client.commands.get("gostudy") as
-			| GoStudyCommand
-			| undefined;
+    const goStudyCommand = client.commands.get("gostudy") as
+      | GoStudyCommand
+      | undefined;
 
-		if (goStudyCommand) {
-			Logger.info("Starting go study loop");
-			createTask(
-				() =>
-					goStudyCommand
-						.expireForcedMute(client)
-						.catch((e) =>
-							Logger.error(
-								`Error at goStudyCommand.expireForcedMute: ${e}`,
-							),
-						),
-				60000,
-			);
-		}
+    if (goStudyCommand) {
+      Logger.info("Starting go study loop");
+      createTask(
+        () =>
+          goStudyCommand
+            .expireForcedMute(client)
+            .catch((e) =>
+              Logger.error(`Error at goStudyCommand.expireForcedMute: ${e}`)
+            ),
+        60000
+      );
+    }
 
-		await this.loadKeywordsCache().catch((e) =>
-			Logger.error(`Error at loadKeywordsCache: ${e}`),
-		);
+    await this.loadKeywordsCache().catch((e) =>
+      Logger.error(`Error at loadKeywordsCache: ${e}`)
+    );
 
-		Logger.info("Starting scheduled messages loop");
-		createTask(
-			() =>
-				this.sendScheduledMessage(client).catch((e) =>
-					Logger.error(`Error at sendScheduledMessage: ${e}`),
-				),
-			60000,
-		);
+    Logger.info("Starting scheduled messages loop");
+    createTask(
+      () =>
+        this.sendScheduledMessage(client).catch((e) =>
+          Logger.error(`Error at sendScheduledMessage: ${e}`)
+        ),
+      60000
+    );
 
-		const hostSessionCommand = client.commands.get("host_session") as
-			| HostSessionCommand
-			| undefined;
+    const hostSessionCommand = client.commands.get("host_session") as
+      | HostSessionCommand
+      | undefined;
 
-		if (hostSessionCommand) {
-			Logger.info("Starting hosted sessions loop");
-			setInterval(() => hostSessionCommand.startSession(client), 60_000);
-		}
+    if (hostSessionCommand) {
+      Logger.info("Starting hosted sessions loop");
+      setInterval(() => hostSessionCommand.startSession(client), 60_000);
+    }
 
-		createTask(
-			async () =>
-				await this.refreshStickyMessageCache().catch((e) =>
-					Logger.error(`Error at refreshStickyMessageCache: ${e}`),
-				),
-			60000,
-		);
+    createTask(
+      async () =>
+        await this.refreshStickyMessageCache().catch((e) =>
+          Logger.error(`Error at refreshStickyMessageCache: ${e}`)
+        ),
+      60000
+    );
 
-		createTask(
-			async () =>
-				await this.refreshChannelLockdowns().catch((e) =>
-					Logger.error(`Error at sendScheduledMessage: ${e}`),
-				),
-			120000,
-		);
-	}
+    createTask(
+      async () =>
+        await this.refreshChannelLockdowns().catch((e) =>
+          Logger.error(`Error at sendScheduledMessage: ${e}`)
+        ),
+      120000
+    );
+  }
 
-	private async loadKeywordsCache() {
-		(
-			await KeywordCache.search()
-				.returnAllIds()
-				.catch(() => [])
-		).forEach((id) => KeywordCache.remove(id));
+  private async loadKeywordsCache() {
+    (
+      await KeywordCache.search()
+        .returnAllIds()
+        .catch(() => [])
+    ).forEach((id) => KeywordCache.remove(id));
 
-		const keywords = await Keyword.find();
+    const keywords = await Keyword.find();
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		for (const { _id, ...rest } of keywords.map((keyword) =>
-			keyword.toObject(),
-		))
-			KeywordCache.append(rest);
-	}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const { _id, ...rest } of keywords.map((keyword) =>
+      keyword.toObject()
+    ))
+      KeywordCache.append(rest);
+  }
 
-	private async refreshStickyMessageCache() {
-		const time = Date.now();
+  private async refreshStickyMessageCache() {
+    const time = Date.now();
 
-		const stickyMessages = await StickyMessage.find();
-		const cachedStickyMessages = await StickyMessageCache.getAll().catch(
-			() => [],
-		);
+    const stickyMessages = await StickyMessage.find();
+    const cachedStickyMessages = await StickyMessageCache.getAll().catch(
+      () => []
+    );
 
-		for (const stickyMessage of stickyMessages) {
-			const stickTime = Number.parseInt(stickyMessage.stickTime || "");
-			const unstickTime = Number.parseInt(
-				stickyMessage.unstickTime || "",
-			);
-			const cachedSticky = cachedStickyMessages.find(
-				(x) => x[EntityId] === stickyMessage.id,
-			);
+    for (const stickyMessage of stickyMessages) {
+      const stickTime = Number.parseInt(stickyMessage.stickTime || "");
+      const unstickTime = Number.parseInt(stickyMessage.unstickTime || "");
+      const cachedSticky = cachedStickyMessages.find(
+        (x) => x[EntityId] === stickyMessage.id
+      );
 
-			if (cachedSticky) await StickyMessageCache.remove(stickyMessage.id);
+      if (cachedSticky) await StickyMessageCache.remove(stickyMessage.id);
 
-			if (Number.isNaN(stickTime) || Number.isNaN(unstickTime)) {
-				await StickyMessageCache.set(stickyMessage.id, {
-					channelId: stickyMessage.channelId,
-					messageId: cachedSticky
-						? cachedSticky.messageId
-						: stickyMessage.messageId,
-					message: stickyMessage.message as MessageCreateOptionsRedis,
-				});
-				if (!client.stickyChannelIds.includes(stickyMessage.channelId))
-					client.stickyChannelIds.push(stickyMessage.channelId);
-				continue;
-			}
+      if (Number.isNaN(stickTime) || Number.isNaN(unstickTime)) {
+        await StickyMessageCache.set(stickyMessage.id, {
+          channelId: stickyMessage.channelId,
+          messageId: cachedSticky
+            ? cachedSticky.messageId
+            : stickyMessage.messageId,
+          message: stickyMessage.message as MessageCreateOptionsRedis,
+        });
+        if (!client.stickyChannelIds.includes(stickyMessage.channelId))
+          client.stickyChannelIds.push(stickyMessage.channelId);
+        continue;
+      }
 
-			if (stickTime <= time && unstickTime >= time)
-				await StickyMessageCache.set(stickyMessage.id, {
-					channelId: stickyMessage.channelId,
-					messageId: cachedSticky
-						? cachedSticky.messageId
-						: stickyMessage.messageId,
-					message: {
-						content: stickyMessage.message.content,
-						embeds: stickyMessage.message.embeds as APIEmbedRedis[],
-					},
-				});
-			if (!client.stickyChannelIds.includes(stickyMessage.channelId))
-				client.stickyChannelIds.push(stickyMessage.channelId);
-			else if (unstickTime <= time) {
-				await stickyMessage.deleteOne();
-				await StickyMessageCache.remove(stickyMessage.id);
-			}
-		}
-	}
+      if (stickTime <= time && unstickTime >= time)
+        await StickyMessageCache.set(stickyMessage.id, {
+          channelId: stickyMessage.channelId,
+          messageId: cachedSticky
+            ? cachedSticky.messageId
+            : stickyMessage.messageId,
+          message: {
+            content: stickyMessage.message.content,
+            embeds: stickyMessage.message.embeds as APIEmbedRedis[],
+          },
+        });
+      if (!client.stickyChannelIds.includes(stickyMessage.channelId))
+        client.stickyChannelIds.push(stickyMessage.channelId);
+      else if (unstickTime <= time) {
+        await stickyMessage.deleteOne();
+        await StickyMessageCache.remove(stickyMessage.id);
+      }
+    }
+  }
 
-	private async refreshChannelLockdowns() {
-		const time = Date.now() / 1000;
+  private async refreshChannelLockdowns() {
+    const time = Date.now() / 1000;
 
-		for (const lockdown of await ChannelLockdown.find()) {
-			const startTime = Number.parseInt(lockdown.startTimestamp);
-			const endTime = Number.parseInt(lockdown.endTimestamp);
+    for (const lockdown of await ChannelLockdown.find()) {
+      if (lockdown.guildId === "") {
+        Logger.info(
+          `Channel Lockdown <#${lockdown.channelId}> has no guild id.`
+        );
+        const channel = await client.channels.fetch(lockdown.channelId);
 
-			if (startTime > time) continue;
+        if (channel instanceof GuildChannel) {
+          lockdown.guildId = channel.guildId;
+          lockdown.markModified("guildId");
+          lockdown
+            .save()
+            .then(() =>
+              Logger.info(
+                `Added guild id to Channel Lockdown <#${lockdown.channelId}>`
+              )
+            )
+            .catch(Logger.warn);
+        } else {
+          Logger.info(
+            `Channel Lockdown <#${lockdown.channelId}> wasn't a guild channel`
+          );
+        }
+      } else {
+        Logger.info(
+          `Channel Lockdown <#${lockdown.channelId}> has guild id: ${lockdown.guildId}`
+        );
+      }
 
-			const locked = time <= endTime;
+      const startTime = Number.parseInt(lockdown.startTimestamp);
+      const endTime = Number.parseInt(lockdown.endTimestamp);
 
-			const channel = await client.channels.fetch(lockdown.channelId);
+      if (startTime > time) continue;
 
-			if (channel instanceof ThreadChannel) channel.setLocked(locked);
-			else if (
-				channel instanceof TextChannel ||
-				channel instanceof ForumChannel
-			)
-				channel.permissionOverwrites.edit(
-					channel.guild.roles.everyone,
-					{
-						SendMessages: !locked,
-						SendMessagesInThreads: !locked,
-					},
-				);
+      const locked = time <= endTime;
 
-			if (endTime <= time)
-				ChannelLockdown.deleteOne({
-					channelId: lockdown.channelId,
-				});
-		}
-	}
+      const channel = await client.channels.fetch(lockdown.channelId);
 
-	private async sendScheduledMessage(client: DiscordClient) {
-		const scheduledMessages = await ScheduledMessage.find({
-			$expr: {
-				$lte: [
-					{ $toLong: "$scheduleTime" },
-					{ $divide: [Date.now(), 1000] },
-				],
-			},
-		});
+      if (channel instanceof ThreadChannel) channel.setLocked(locked);
+      else if (
+        channel instanceof TextChannel ||
+        channel instanceof ForumChannel
+      )
+        channel.permissionOverwrites.edit(channel.guild.roles.everyone, {
+          SendMessages: !locked,
+          SendMessagesInThreads: !locked,
+        });
 
-		for (const scheduledMessage of scheduledMessages) {
-			const messageGuild = client.guilds.cache.get(
-				scheduledMessage.guildId,
-			);
+      if (endTime <= time)
+        ChannelLockdown.deleteOne({
+          channelId: lockdown.channelId,
+        });
+    }
+  }
 
-			const messageChannel = messageGuild?.channels.cache.get(
-				scheduledMessage.channelId,
-			);
+  private async sendScheduledMessage(client: DiscordClient) {
+    const scheduledMessages = await ScheduledMessage.find({
+      $expr: {
+        $lte: [{ $toLong: "$scheduleTime" }, { $divide: [Date.now(), 1000] }],
+      },
+    });
 
-			if (!messageChannel || !messageChannel.isTextBased()) return;
+    for (const scheduledMessage of scheduledMessages) {
+      const messageGuild = client.guilds.cache.get(scheduledMessage.guildId);
 
-			await messageChannel.send(scheduledMessage.message);
+      const messageChannel = messageGuild?.channels.cache.get(
+        scheduledMessage.channelId
+      );
 
-			await scheduledMessage.deleteOne();
-		}
-	}
+      if (!messageChannel || !messageChannel.isTextBased()) return;
+
+      await messageChannel.send(scheduledMessage.message);
+
+      await scheduledMessage.deleteOne();
+    }
+  }
 }
