@@ -53,7 +53,7 @@ export default class FeedbackCommand extends BaseCommand {
         ];
 
         const feedbackInput = new TextInputBuilder()
-            .setCustomId("feedback-input")
+            .setCustomId("feedback_input")
             .setLabel("Feedback")
             .setPlaceholder("The feedback you would like to send")
             .setRequired(true)
@@ -77,7 +77,7 @@ export default class FeedbackCommand extends BaseCommand {
             filter: (i) => i.customId === modalCustomId
         });
 
-        const feedback = modalInteraction.fields.getTextInputValue("feedback-input");
+        const feedback = modalInteraction.fields.getTextInputValue("feedback_input");
 
         const selectCustomId = uuidv4();
 

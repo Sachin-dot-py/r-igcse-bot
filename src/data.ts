@@ -477,9 +477,9 @@ export const preferences: Preference[] = [
 		key: "archiveSessionCategoryId",
 	},
 	{
-		name: "Tag Approval Channel",
+		name: "Keyword approval channel",
 		type: "channel",
-		key: "tagResourceApprovalChannelId",
+		key: "keywordRequestChannelId",
 	}
 ];
 

@@ -28,6 +28,7 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { Logger } from "@discordforge/logger";
 import { logToChannel } from "@/utils/Logger";
+import { formatMessage } from "@/commands/study/Keyword";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -38,31 +39,15 @@ export default class MessageCreateEvent extends BaseEvent {
 
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
-		if (message.system) return;
 
 		if (message.inGuild()) {
-			KeywordCache.get(
-				message.guildId,
-				message.content.trim().toLowerCase(),
-			)
-				.then((keywordReponse) => {
-					if (
-						keywordReponse &&
-						!keywordReponse.startsWith("https://") &&
-						!keywordReponse.startsWith("http://")
-					) {
-						const embed = new EmbedBuilder()
-							.setDescription(keywordReponse)
-							.setFooter({
-								text: `Requested by ${message.author.tag}`,
-							})
-							.setColor(Colors.Blue);
-						message.channel.send({ embeds: [embed] });
-					} else if (keywordReponse) {
-						message.channel.send(keywordReponse);
-					}
-				})
-				.catch(Logger.error);
+			const keyword = message.content.trim().toLowerCase();
+			const entry = await KeywordCache.get(message.guildId, keyword);
+			if (entry.response) {
+				let messageOptions = await formatMessage(message, entry.response, false, keyword, entry.imageLink);
+				delete messageOptions.ephemeral;
+				await message.channel.send(messageOptions);
+			}
 
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id,
@@ -93,7 +78,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					((!lastMessage && message.content === "1") ||
 						(lastMessage &&
 							`${Number.parseInt(lastMessage.content) + 1}` ===
-							message.content)) &&
+								message.content)) &&
 					lastMessage.author.id !== message.author.id
 				)
 					message.react("✅");
@@ -124,10 +109,101 @@ export default class MessageCreateEvent extends BaseEvent {
 				}
 			}
 
+			if (message.channelId === guildPreferences.modmailCreateChannelId) {
+				if (
+					!guildPreferences.modmailThreadsChannelId ||
+					!guildPreferences.modmailCreateChannelId
+				) {
+					await message.reply(
+						"Modmail is not set up in this server.",
+					);
+					return;
+				}
+
+				const member = await message.guild.members
+					.fetch(message.content)
+					.catch(async () => {
+						await message.reply("Invalid User ID");
+						return;
+					});
+
+				if (!member) return;
+
+				const res = await PrivateDmThread.findOne({
+					userId: member.id,
+					guildId: message.guild.id,
+				});
+
+				if (res) {
+					const thread = await message.guild.channels
+						.fetch(res.threadId)
+						.catch(async () => {
+							await PrivateDmThread.deleteMany({
+								userId: member.id,
+								guildId: message.guild.id,
+							});
+							await message.reply(
+								"Thread not found (could've been manually deleted), please try again to create a new thread.",
+							);
+							return;
+						});
+
+					if (thread) {
+						await message.reply(
+							`DM Thread with this user already exists: <#${thread.id}>`,
+						);
+
+						return;
+					}
+				}
+
+				const threadsChannel = message.guild.channels.cache.get(
+					guildPreferences.modmailThreadsChannelId,
+				);
+
+				if (
+					!threadsChannel ||
+					!(threadsChannel instanceof ForumChannel)
+				) {
+					await message.reply(
+						`Threads channel (${threadsChannel}) should be a forum channel.`,
+					);
+					return;
+				}
+
+				try {
+					const newThread = await threadsChannel.threads.create({
+						name: `${member.user.tag} (${member.id})`,
+						message: {
+							content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``,
+						},
+					});
+
+					await PrivateDmThread.create({
+						userId: member.id,
+						threadId: newThread.id,
+						guildId: message.guild.id,
+					});
+
+					await message.reply(
+						`Created dm thread for user at <#${newThread.id}>.`,
+					);
+				} catch (error) {
+					await message.reply("Unable to create thread");
+
+					client.log(
+						error,
+						`Create DM Thread`,
+						`**Channel:** <#${message.channel?.id}>
+							**User:** <@${message.author.id}>
+							**Guild:** ${message.guild.name} (${message.guildId})\n`,
+					);
+				}
+			}
 			if (
 				message.channel instanceof ThreadChannel &&
 				message.channel.parentId ===
-				guildPreferences.modmailThreadsChannelId
+					guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
@@ -406,7 +482,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				await message.reply(
 					botYwResponses[
 						Math.floor(Math.random() * botYwResponses.length)
-						],
+					],
 				);
 
 				continue;

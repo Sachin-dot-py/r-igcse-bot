@@ -12,6 +12,7 @@ const schema = new Schema("Keyword", {
 	guildId: { type: "string" },
 	keyword: { type: "string" },
 	response: { type: "string" },
+	imageLink: { type: "string" }
 });
 
 export class KeywordRepository extends Repository {
@@ -20,9 +21,7 @@ export class KeywordRepository extends Repository {
 	}
 
 	async get(guildId: string, keyword: string) {
-		return (
-			(await this.fetch(`${keyword}-${guildId}`)) as { response: string }
-		).response;
+		return (await this.fetch(`${keyword}-${guildId}`)) as ICachedKeyword;
 	}
 
 	async delete(guildId: string, keyword: string) {
@@ -30,8 +29,19 @@ export class KeywordRepository extends Repository {
 	}
 
 	async append(keyword: ICachedKeyword) {
-		await this.save(`${keyword.keyword}-${keyword.guildId}`, {
-			response: keyword.response,
-		});
+		await this.save(`${keyword.keyword}-${keyword.guildId}`, keyword);
+	}
+	
+	async autoComplete(guildId: string, phrase: string) {
+		// redisearch wildcard full-text search is very inconsitent so filtering instead
+		phrase = phrase.trim().toLowerCase();
+
+		const keywords = (await this.search().where('guildId').equal(guildId).return.all())
+		.map(entry => entry.keyword as string);
+
+		return (phrase ? keywords
+		.filter(keyword => keyword.toLowerCase().includes(phrase))
+		: keywords)
+		.toSorted();
 	}
 }

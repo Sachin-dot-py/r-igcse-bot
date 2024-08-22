@@ -34,7 +34,7 @@ const schema = new Schema("GuildPreferences", {
 	welcomeChannelMessage: { type: "string" },
 	welcomeDMMessage: { type: "string" },
 	groupStudyChannelId: { type: "string" },
-	tagResourceApprovalChannelId: { type: "string" },
+	keywordRequestsChannelId: { type: "string" },
 });
 
 export class GuildPreferencesRepository extends Repository {
