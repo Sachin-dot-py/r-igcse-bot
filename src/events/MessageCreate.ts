@@ -40,28 +40,6 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.author.bot) return;
 
 		if (message.inGuild()) {
-			KeywordCache.get(
-				message.guildId,
-				message.content.trim().toLowerCase(),
-			)
-				.then((keywordReponse) => {
-					if (
-						keywordReponse &&
-						!keywordReponse.startsWith("https://") &&
-						!keywordReponse.startsWith("http://")
-					) {
-						const embed = new EmbedBuilder()
-							.setDescription(keywordReponse)
-							.setFooter({
-								text: `Requested by ${message.author.tag}`,
-							})
-							.setColor(Colors.Blue);
-						message.channel.send({ embeds: [embed] });
-					} else if (keywordReponse) {
-						message.channel.send(keywordReponse);
-					}
-				})
-				.catch(Logger.error);
 
 			const guildPreferences = await GuildPreferencesCache.get(
 				message.guild.id,

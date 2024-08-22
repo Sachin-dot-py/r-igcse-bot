@@ -469,6 +469,11 @@ export const preferences: Preference[] = [
 		type: "categoryChannel",
 		key: "archiveSessionCategoryId",
 	},
+	{
+		name: "Keyword approval channel",
+		type: "channel",
+		key: "keywordRequestChannelId",
+	}
 ];
 
 interface Subject {

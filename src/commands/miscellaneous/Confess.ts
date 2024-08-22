@@ -67,7 +67,7 @@ export default class FunFactCommand extends BaseCommand {
 		}
 
 		const confessInput = new TextInputBuilder()
-			.setCustomId("confession-input")
+			.setCustomId("confession_input")
 			.setLabel("Confession")
 			.setPlaceholder("The confession you would like to send")
 			.setRequired(true)
@@ -92,7 +92,7 @@ export default class FunFactCommand extends BaseCommand {
 		});
 
 		const confession =
-			modalInteraction.fields.getTextInputValue("confession-input");
+			modalInteraction.fields.getTextInputValue("confession_input");
 
 		await modalInteraction.deferReply({ ephemeral: true });
 
