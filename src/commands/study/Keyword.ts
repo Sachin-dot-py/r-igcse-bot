@@ -3,7 +3,7 @@ import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInterac
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
-import { ButtonInteractionCache, GuildPreferencesCache, KeywordCache } from "@/redis";
+import { GuildPreferencesCache, KeywordCache } from "@/redis";
 import { Logger } from "@discordforge/logger";
 import { v4 as uuidv4 } from "uuid";
 import { Keyword } from "@/mongo/schemas/Keyword";
@@ -228,6 +228,11 @@ export async function formatMessage(interaction: DiscordChatInputCommandInteract
 		.setDescription(keywordResponse)
 		.setFooter(footerOptions)
 		.setColor(Colors.White);
+	keywordName = keywordName // capitalize each intial of word
+		.toLowerCase()
+		.split(' ')
+		.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(' ');
 	if (keywordName) { embed.setTitle(`${keywordName}`) }
 	if (imageLink) { embed.setImage(imageLink) }
 	return { embeds: [embed], ephemeral };
@@ -238,10 +243,10 @@ export async function performAutoComplete(interaction: AutocompleteInteraction) 
 	if (!guildId) {
 		return;
 	}
-	const phrase = interaction.options.getFocused().trim();
+	const phrase = interaction.options.getFocused();
 	KeywordCache.autoComplete(guildId, phrase).then(async (keywords) => {
 		await interaction.respond(
-			keywords.map(keyword => ({ name: keyword, value: keyword })),
+			keywords.map(keyword => ({ name: keyword, value: keyword })).slice(0, 25),
 		)
 	}).catch(Logger.error)
 }
