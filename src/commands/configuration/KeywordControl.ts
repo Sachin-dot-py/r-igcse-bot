@@ -13,7 +13,6 @@ import {
     AutocompleteInteraction,
     ButtonBuilder,
     ButtonStyle,
-    type Interaction,
     ButtonInteraction,
 } from "discord.js";
 import { formatMessage, performAutoComplete } from "../study/Keyword";
@@ -200,6 +199,7 @@ export default class KeywordControlCommand extends BaseCommand {
 }
 
 export async function addKeyword(interaction: ButtonInteraction<"cached">, keyword: string, response: string, imageLink?: string) {
+    keyword = keyword.trim().toLowerCase();
     const res = await Keyword.updateOne(
         {
             guildId: interaction.guildId!,
