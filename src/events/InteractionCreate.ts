@@ -6,6 +6,7 @@ import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
 	ButtonInteractionCache,
 	GuildPreferencesCache,
+	KeywordCache,
 	PracticeQuestionCache,
 } from "@/redis";
 import {
@@ -14,6 +15,8 @@ import {
 	type ButtonInteraction,
 	ChannelType,
 	type ChatInputCommandInteraction,
+	type ColorResolvable,
+	Colors,
 	type ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
@@ -26,6 +29,8 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { Logger } from "@discordforge/logger";
 import { logToChannel } from "@/utils/Logger";
+import { Keyword } from "@/mongo/schemas/Keyword";
+import { addKeyword } from "@/commands/configuration/KeywordControl";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -43,7 +48,17 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
-				this.handleResourceTagRequestButton(client, interaction);
+				this.handleKeywordButtons(client, interaction);
+			}
+			else if (interaction.isAutocomplete()) {
+				const command = client.commands.get(interaction.commandName);
+				try {
+					/* refering to ESLint: both can't really happen as interaction.isAutocomplete() means it is an autocomplete command
+					(unless we didn't define the autocomplete function) */
+					await command.autoComplete(interaction);
+				} catch (e) {
+					Logger.error(e)
+				};
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -474,6 +489,63 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await ButtonInteractionCache.remove(confessionId);
+	}
+
+	async handleKeywordButtons(
+		client: DiscordClient<true>,
+		interaction: ButtonInteraction<"cached">,
+	) {
+		if (!interaction.isButton()) return;
+		if (interaction.customId === "keyword_search_send") {
+			const message = interaction.message;
+			await interaction.reply({embeds: [message.embeds[0]], ephemeral: false});
+			return;
+		}
+		const matchCustomIdRegex = /keyword_(accept|edited|reject)/gi;
+		
+		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
+		if (!regexMatches || !interaction.guildId) return;
+
+		let embed = interaction.message.embeds[0];
+		const matchUserIdRegex = /.*\ \((.*)\)/gi;
+		const userId = matchUserIdRegex.exec(embed.footer!.text!)![1]; // it's defo gonna match because of the footer is set
+		const user = await client.users.fetch(userId);
+		const keyword = embed.title;
+		const response = embed.description;
+		const imageLink = embed.image?.url;
+		if (!keyword || !response) return;
+		let newEmbedColor: ColorResolvable = Colors.White;
+		let moderatorAction = '';
+		const modPfp = interaction.user.displayAvatarURL();
+		switch (regexMatches[1]) {
+			case 'accept':
+				await addKeyword(interaction, keyword, response, imageLink);
+				await user.send(`Your keyword request, \`${keyword}\`, has been approved!`);
+				newEmbedColor = Colors.Green
+				moderatorAction = `Approved by ${interaction.user.tag}`
+				break;
+			case 'edited':
+				await user.send(`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`);
+				await interaction.reply({
+					content: `Sent dm message (you have to create the keyword yourself)`,
+					ephemeral: true
+				});
+				newEmbedColor = Colors.Blurple
+				moderatorAction = `Approved (edited) by ${interaction.user.tag}`
+				break;
+			case 'reject':
+				await user.send(`Your keyword request, \`${keyword}\`, has been rejected!`);
+				await interaction.reply({
+					content: 'Sent rejection message',
+					ephemeral: true
+				});
+				newEmbedColor = Colors.Red
+				moderatorAction = `Rejected by ${interaction.user.tag}`
+				break;
+		}
+		const modInfo = modPfp ? {name: moderatorAction, iconURL: modPfp} : {name: moderatorAction};
+		const newEmbed = new EmbedBuilder(embed.data).setColor(newEmbedColor).setAuthor(modInfo);
+		await interaction.message.edit({ embeds: [newEmbed], components: [] });
 	}
 
 	async handleHostSessionButton(
