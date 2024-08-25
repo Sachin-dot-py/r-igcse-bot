@@ -6,7 +6,6 @@ import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
 	ButtonInteractionCache,
 	GuildPreferencesCache,
-	KeywordCache,
 	PracticeQuestionCache,
 } from "@/redis";
 import {
@@ -49,6 +48,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
 				this.handleKeywordButtons(client, interaction);
+				this.handleResourceTagRequestButton(client, interaction);
 			}
 			else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
@@ -510,7 +510,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const matchUserIdRegex = /.*\ \((.*)\)/gi;
 		const userId = matchUserIdRegex.exec(embed.footer!.text!)![1]; // it's defo gonna match because of the footer is set
 		const user = await client.users.fetch(userId);
-		const keyword = embed.title;
+		const keyword = embed.title?.trim().toLowerCase();
 		const response = embed.description;
 		const imageLink = embed.image?.url;
 		if (!keyword || !response) return;
@@ -530,7 +530,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					content: `Sent dm message (you have to create the keyword yourself)`,
 					ephemeral: true
 				});
-				newEmbedColor = Colors.Blurple
+				newEmbedColor = Colors.Yellow
 				moderatorAction = `Approved (edited) by ${interaction.user.tag}`
 				break;
 			case 'reject':

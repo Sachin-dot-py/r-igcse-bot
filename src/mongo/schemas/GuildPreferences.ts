@@ -34,6 +34,7 @@ export type IGuildPreferences = {
 
 	groupStudyChannelId: string;
 	keywordRequestChannelId: string;
+	tagResourceApprovalChannelId: string;
 }>;
 
 const schema = new Schema<IGuildPreferences>({
@@ -63,6 +64,7 @@ const schema = new Schema<IGuildPreferences>({
 	welcomeDMMessage: { type: String, default: null },
 	groupStudyChannelId: { type: String, default: null },
 	keywordRequestChannelId: { type: String, default: null },
+	tagResourceApprovalChannelId: { type: String, default: null },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(
