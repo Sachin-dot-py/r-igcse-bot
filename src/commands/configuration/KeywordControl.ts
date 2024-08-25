@@ -123,7 +123,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				});
 				await currentInteraction.deferReply({ ephemeral: true })
 			
-				keywordName = currentInteraction.fields.getTextInputValue('keyword_add_name')
+				keywordName = currentInteraction.fields.getTextInputValue('keyword_add_name').trim().toLowerCase();
 				keywordReponse = currentInteraction.fields.getTextInputValue('keyword_add_value')
 				imageLink = currentInteraction.fields.getTextInputValue('keyword_add_image')
 

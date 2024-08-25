@@ -136,7 +136,7 @@ export default class KeywordCommand extends BaseCommand {
 				});
 				await currentInteraction.deferReply({ ephemeral: true })
 			
-				keywordName = currentInteraction.fields.getTextInputValue('keyword_request_name')
+				keywordName = currentInteraction.fields.getTextInputValue('keyword_request_name').trim().toLowerCase();
 				keywordReponse = currentInteraction.fields.getTextInputValue('keyword_request_value')
 				imageLink = currentInteraction.fields.getTextInputValue('keyword_request_image')
 
@@ -227,8 +227,9 @@ export async function formatMessage(interaction: DiscordChatInputCommandInteract
 	const embed = new EmbedBuilder()
 		.setDescription(keywordResponse)
 		.setFooter(footerOptions)
-		.setColor(Colors.White);
+		.setColor(Colors.Blurple);
 	keywordName = keywordName // capitalize each intial of word
+		.trim()
 		.toLowerCase()
 		.split(' ')
 		.map(word => word.charAt(0).toUpperCase() + word.slice(1))
