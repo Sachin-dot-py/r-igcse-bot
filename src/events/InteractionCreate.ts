@@ -6,7 +6,6 @@ import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
 	ButtonInteractionCache,
 	GuildPreferencesCache,
-	KeywordCache,
 	PracticeQuestionCache,
 } from "@/redis";
 import {
@@ -49,6 +48,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
 				this.handleKeywordButtons(client, interaction);
+				this.handleResourceTagRequestButton(client, interaction);
 			}
 			else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
