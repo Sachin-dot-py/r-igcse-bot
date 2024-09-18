@@ -25,7 +25,7 @@ export default class StickMessageCommand extends BaseCommand {
 	constructor() {
 		super(
 			new ContextMenuCommandBuilder()
-				.setName("Request Resource Tag")
+				.setName("Create Resource Tag")
 				.setDMPermission(false)
 				.setType(ApplicationCommandType.Message),
 		);
