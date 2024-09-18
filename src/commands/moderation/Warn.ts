@@ -57,7 +57,7 @@ export default class WarnCommand extends BaseCommand {
     if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
       interaction.editReply({
         content:
-          "You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
+          "You cannot warn this user due to role hierarchy! (Role is higher or equal to yours)",
       });
       return;
     }

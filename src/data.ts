@@ -49,9 +49,9 @@ export const tyAliases = [
 	"thank you",
 	"thx",
 	"tysm",
+	"tysmm",
 	"thank u",
 	"thnks",
-	"thanku",
 	"tyvm",
 	"tq",
 	"tanku",
@@ -81,6 +81,8 @@ export const tyAliases = [
 	"dhanyewaad", // Hindi
 	"dhanyevaad", // Hindi
 	"धन्येवात", // Hindi
+	"arigato", // Japanese
+	"gracias", // Spanish
 ];
 
 export const botYwResponses = [
