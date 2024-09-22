@@ -79,6 +79,7 @@ export default class HistoryCommand extends BaseCommand {
 			action,
 			reason,
 			duration,
+			caseId
 		} of punishments) {
 			if (points) totalPoints += points;
 
@@ -99,7 +100,7 @@ export default class HistoryCommand extends BaseCommand {
 			});
 
 			punishmentsList.push(
-				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""}${showUsername ? ` by ${moderator}` : ""}`,
+				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
 			);
 		}
 
