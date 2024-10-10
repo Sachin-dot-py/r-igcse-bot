@@ -82,13 +82,6 @@ export default class BanCommand extends BaseCommand {
       return;
     }
 
-    const caseNumber =
-      (
-        await Punishment.find({
-          guildId: interaction.guildId,
-        })
-      ).length + 1;
-
     const dmEmbed = new EmbedBuilder()
       .setTitle(`You have been banned from ${interaction.guild.name}!`)
       .setDescription(
@@ -155,6 +148,15 @@ export default class BanCommand extends BaseCommand {
       return;
     }
 
+    interaction.channel.send(`${user.username} has been banned.`);
+
+    const caseNumber =
+        (
+            await Punishment.find({
+              guildId: interaction.guildId,
+            })
+        ).length + 1;
+
     Punishment.create({
       guildId: interaction.guild.id,
       actionAgainst: user.id,
@@ -196,6 +198,5 @@ export default class BanCommand extends BaseCommand {
     interaction.editReply({
       content: "https://giphy.com/gifs/ban-banned-admin-fe4dDMD2cAU5RfEaCU",
     });
-    interaction.channel.send(`${user.username} has been banned.`);
   }
 }
