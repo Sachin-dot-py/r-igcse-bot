@@ -1,5 +1,5 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, DiscordjsErrorCodes, EmbedBuilder, Message, ModalBuilder, ModalSubmitInteraction, SlashCommandBuilder, TextInputBuilder, TextInputStyle, type InteractionReplyOptions } from "discord.js";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonInteraction, ButtonStyle, Colors, DiscordjsErrorCodes, EmbedBuilder, Message, ModalBuilder, ModalSubmitInteraction, SlashCommandBuilder, TextInputBuilder, TextInputStyle, type InteractionEditReplyOptions, type InteractionReplyOptions, type MessageCreateOptions } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
@@ -218,7 +218,7 @@ export default class KeywordCommand extends BaseCommand {
 }
 
 export async function formatMessage(interaction: DiscordChatInputCommandInteraction<"cached"> | Message, keywordResponse: string, ephemeral: boolean,
-	keywordName: string, imageLink?: string, id: boolean = false) {
+	keywordName: string, imageLink?: string, id: boolean = false): Promise<MessageCreateOptions | InteractionReplyOptions | InteractionEditReplyOptions> {
 	if (!interaction.member) return;
 	const iconURL = interaction.member.displayAvatarURL();
 	// message.user doesn't exist so using .member.user instead which supports both interaction and message
