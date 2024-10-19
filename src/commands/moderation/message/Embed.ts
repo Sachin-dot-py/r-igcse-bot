@@ -41,7 +41,15 @@ export default class EmbedCommand extends BaseCommand {
 									"When to send the embed. (Epoch) (Defaults to immediately)",
 								)
 								.setRequired(false),
-						),
+						)
+						.addRoleOption((option) =>
+							option
+								.setName("role_ping")
+								.setDescription(
+									"Select a role to ping"
+								)
+								.setRequired(false)
+						)
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false),
@@ -186,11 +194,14 @@ export default class EmbedCommand extends BaseCommand {
 					});
 				}
 
+				const role = interaction.options.getRole("role_ping", false)
+				const roleMention = role ? `<@&${role.id}>` : ""
+
 				if (scheduleTime) {
 					ScheduledMessage.create({
 						guildId: interaction.guildId,
 						channelId: channel.id,
-						message: { embeds: [embed.data] },
+						message: { content: roleMention, embeds: [embed.data] },
 						scheduleTime: scheduleTime.toString(),
 					});
 
@@ -202,7 +213,7 @@ export default class EmbedCommand extends BaseCommand {
 					return;
 				}
 
-				await channel.send({ embeds: [embed] });
+				await channel.send({ content: roleMention, embeds: [embed] });
 
 				await modalInteraction.reply({
 					content: `Embed sent in the channel ${channel}!`,

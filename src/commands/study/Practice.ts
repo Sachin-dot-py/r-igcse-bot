@@ -751,16 +751,31 @@ Session ID: ${sessionId}`,
 				Logger.error(
 					`Error fetching guild: ${error} for session: ${session.sessionId}`,
 				);
+				for (const user of session.users) {
+					await UserCache.remove(user);
+				}
+
+				PracticeSession.deleteOne({ sessionId: session.sessionId });
 			}
 		}
 		if (!guild) {
 			Logger.error(`Guild not found for session: ${session.sessionId}`);
+			for (const user of session.users) {
+				await UserCache.remove(user);
+			}
+
+			PracticeSession.deleteOne({ sessionId: session.sessionId });
 			return;
 		}
 
 		const thread = guild.channels.cache.get(session.threadId);
 		if (!thread?.isThread()) {
 			Logger.error(`Thread not found for session: ${session.sessionId}`);
+			for (const user of session.users) {
+				await UserCache.remove(user);
+			}
+
+			PracticeSession.deleteOne({ sessionId: session.sessionId });
 			return;
 		}
 
@@ -901,8 +916,10 @@ Session ID: ${sessionId}`,
 
 			const thread = await client?.channels.fetch(session.threadId);
 			if (!thread?.isThread()) {
-				Logger.error(
-					`Thread not found for session: ${session.sessionId}`,
+				this.endAndSendResults(
+					client,
+					session,
+					`Session ended.`,
 				);
 				continue;
 			}
