@@ -1,10 +1,11 @@
-FROM oven/bun:latest
+FROM oven/bun:debian
 
-COPY . /app
+RUN apt-get update && apt-get install -y python3 && apt-get install -y build-essential
 
 WORKDIR /app
 
-RUN bun install
+COPY . /app
+
+RUN bun install --production
 
 CMD ["bun", "run", "start"]
-
