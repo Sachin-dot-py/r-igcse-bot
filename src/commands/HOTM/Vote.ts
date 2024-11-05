@@ -76,19 +76,6 @@ export default class HOTMVotingCommand extends BaseCommand {
 			return;
 		}
 
-		const hotmBlacklist = await HOTMBlacklist.findOne({
-			guildId: interaction.guild.id,
-			helperId: helper.id,
-		});
-
-		if (hotmBlacklist) {
-			interaction.editReply({
-				content: `This helper has been blacklisted from the HOTM.`,
-			});
-
-			return
-		}
-
 		const hotmUser =
 			(await HOTMUser.findOne({
 				guildId: interaction.guild.id,
