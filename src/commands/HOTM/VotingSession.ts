@@ -11,6 +11,8 @@ import {
 	SlashCommandBuilder,
 	TextChannel,
 } from "discord.js";
+import type hotmSessionCommand from "./VotingSession";
+import {logToChannel} from "@/utils/Logger.ts";
 
 export default class HOTMSessionCommand extends BaseCommand {
 	constructor() {
@@ -118,15 +120,36 @@ export default class HOTMSessionCommand extends BaseCommand {
 
 				await HOTMUser.updateMany({
 					guildId: interaction.guild.id,
-					helperId: helper.id,
 				}, {
 					$pull: {
 						voted: helper.id,
 					}
 				})
 
+				await logToChannel(
+					interaction.guild,
+					guildPreferences.hotmResultsChannelId,
+					{
+						content: `${helper.tag} has been blacklisted ${permanent ? "permanently" : "for this session"} and now has 0 votes.`,
+					},
+				);
+
+				const newSessionCommand = client.commands.get("hotm_session") as
+					| hotmSessionCommand
+					| undefined;
+
+				const mongoGuildPreferences = await GuildPreferences.findOne({
+					guildId: interaction.guild.id,
+				});
+
+				await newSessionCommand?.handleEmbed(
+					interaction.guild,
+					mongoGuildPreferences?.hotmResultsEmbedId,
+					guildPreferences.hotmResultsChannelId,
+				);
+
 				interaction.editReply({
-					content: `User is now blacklisted ${permanent ? "permanently" : "for this session"}`,
+					content: `${helper.tag} is now blacklisted ${permanent ? "permanently" : "for this session"}`,
 				});
 
 				break;
@@ -150,10 +173,10 @@ export default class HOTMSessionCommand extends BaseCommand {
 					return;
 				}
 
-				await blacklistEntry.delete();
+				await blacklistEntry.deleteOne();
 
 				interaction.editReply({
-					content: "User is no longer blacklisted",
+					content: `${helper.tag} is no longer blacklisted`,
 				});
 
 				break;
@@ -178,6 +201,10 @@ export default class HOTMSessionCommand extends BaseCommand {
 				});
 				await HOTM.deleteMany({ guildId: interaction.guildId });
 				await HOTMUser.deleteMany({ guildId: interaction.guildId });
+				await HOTMBlacklist.deleteMany({
+					guildId: interaction.guildId,
+					permanent: false,
+				})
 
 				interaction.editReply({
 					content: `Started a new voting session`,
