@@ -17,6 +17,7 @@ export {
 	type IPracticeSession,
 } from "./schemas/PracticeSession";
 export { HOTMUser, type IHOTMUser } from "./schemas/HOTMUser";
+export { HOTMBlacklist, type IHOTMBlacklist } from "./schemas/HOTMBlacklist";
 export { ConfessionBan, type IConfessionBan } from "./schemas/ConfessionBan";
 export { ForcedMute, type IForcedMute } from "./schemas/ForcedMute";
 export { ClosedDmThread, type IClosedDmThread } from "./schemas/ClosedDmThread";

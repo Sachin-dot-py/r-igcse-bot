@@ -80,6 +80,10 @@ export default class WarnCommand extends BaseCommand {
       return;
     }
 
+    interaction.channel.send(
+        `${user.username} has been warned for ${reason}`
+    );
+
     const caseNumber =
       (
         await Punishment.find({
@@ -140,8 +144,5 @@ export default class WarnCommand extends BaseCommand {
       content:
         "https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639",
     });
-    interaction.channel.send(
-      `${user.username} has been warned for ${reason} (Case #${caseNumber})`
-    );
   }
 }
