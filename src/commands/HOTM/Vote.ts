@@ -1,4 +1,4 @@
-import { GuildPreferences, HOTM, HOTMUser } from "@/mongo";
+import { GuildPreferences, HOTM, HOTMUser, HOTMBlacklist } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
@@ -74,6 +74,19 @@ export default class HOTMVotingCommand extends BaseCommand {
 			});
 
 			return;
+		}
+
+		const hotmBlacklist = await HOTMBlacklist.findOne({
+			guildId: interaction.guild.id,
+			helperId: helper.id,
+		});
+
+		if (hotmBlacklist) {
+			interaction.editReply({
+				content: `This helper has been blacklisted from the HOTM.`,
+			});
+
+			return
 		}
 
 		const hotmUser =
