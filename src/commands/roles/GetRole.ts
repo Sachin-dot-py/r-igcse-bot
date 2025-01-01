@@ -8,10 +8,7 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	type GuildMemberRoleManager,
-	ModalBuilder,
 	SlashCommandBuilder,
-	TextInputBuilder,
-	TextInputStyle,
 	ButtonBuilder,
 	ButtonStyle,
 	EmbedBuilder,
