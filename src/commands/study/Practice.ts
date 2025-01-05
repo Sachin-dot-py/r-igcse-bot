@@ -972,7 +972,11 @@ Session ID: ${sessionId}`,
 
 			if (session.timeLimit) {
 				setTimeout(async () => {
-					if (session.currentlySolving !== question.questionName) return;
+					const updatedSession = await PracticeSession.findOne({
+						sessionId: session.sessionId,
+					});
+					if (!updatedSession) return;
+					if (updatedSession.currentlySolving !== question.questionName) return;
 					question.solved = true;
 					await PracticeQuestionCache.save(question);
 					ButtonInteractionCache.remove(question.questionName);
@@ -995,8 +999,8 @@ Session ID: ${sessionId}`,
 						],
 					});
 
-					session.currentlySolving = "none";
-					await session.save();
+					updatedSession.currentlySolving = "none";
+					await updatedSession.save();
 				}, session.timeLimit * 60 * 1000);
 			}
 
