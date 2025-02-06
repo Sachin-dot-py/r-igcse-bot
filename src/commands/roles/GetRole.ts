@@ -1,5 +1,6 @@
 import { GetRoleAttempt } from "@/mongo/schemas/GetRoleAttempt";
 import { GetRoleQnA } from "@/mongo/schemas/GetRoleQnA";
+import { ButtonInteractionCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -7,10 +8,10 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	type GuildMemberRoleManager,
-	ModalBuilder,
 	SlashCommandBuilder,
-	TextInputBuilder,
-	TextInputStyle,
+	ButtonBuilder,
+	ButtonStyle,
+	EmbedBuilder,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -37,13 +38,22 @@ export default class PingCommand extends BaseCommand {
 			return;
 		}
 
-		let attempts = await GetRoleAttempt.findOne({
+		const attempts = await GetRoleAttempt.findOne({
 			userId: interaction.user.id,
 		});
+
+		if (attempts && attempts.questions.length >= 3) {
+			interaction.reply({
+				content: "You have no more attempts left.",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const questions = await GetRoleQnA.find({
 			question: { $nin: attempts?.questions },
 		});
+
 		const question =
 			questions[Math.floor(Math.random() * questions.length)];
 
@@ -78,77 +88,38 @@ export default class PingCommand extends BaseCommand {
 			return;
 		}
 
-		const answerInput = new TextInputBuilder()
-			.setCustomId("answer_input")
-			.setLabel(question.question)
-			.setPlaceholder("Answer to the question")
-			.setRequired(true)
-			.setStyle(TextInputStyle.Paragraph);
+		const embed = new EmbedBuilder()
+			.setTitle("2024 Role")
+			.setDescription(question.question)
+			.setFooter({ text: "Answer the question to receive the role!" })
+			.setColor("Random");
 
-		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			answerInput,
+		const customId = uuidv4();
+
+		const answerButton = new ButtonBuilder()
+			.setLabel("Answer")
+			.setStyle(ButtonStyle.Primary)
+			.setCustomId(`${customId}_question_answer`);
+
+		const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+			answerButton,
 		);
 
-		const modalCustomId = uuidv4();
-
-		const modal = new ModalBuilder()
-			.setCustomId(modalCustomId)
-			.addComponents(row)
-			.setTitle("Question!");
-
-		await interaction.showModal(modal);
-
-		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 600_000,
-			filter: (i) => i.customId === modalCustomId,
+		const message = await interaction.reply({
+			embeds: [embed],
+			components: [buttonsRow],
+			ephemeral: true,
 		});
 
-		await modalInteraction.deferReply({ ephemeral: true });
-
-		await GetRoleAttempt.updateOne(
-			{
-				guildId: interaction.guildId,
-				userId: interaction.user.id,
-			},
-			{
-				$push: { questions: question.question },
-			},
-			{
-				upsert: true,
-			},
-		);
-
-		attempts = await GetRoleAttempt.findOne({
+		await ButtonInteractionCache.set(`${customId}_question`, {
+			customId: `${customId}_question`,
+			messageId: message.id,
+			guildId: interaction.guildId,
 			userId: interaction.user.id,
+			questionAndAnswers: [question.question, ...question.answers],
 		});
 
-		if (!attempts) {
-			modalInteraction.editReply({
-				content: "An error occurred.",
-			});
-			return;
-		}
-
-		if (attempts.questions.length > 3) {
-			modalInteraction.editReply({
-				content: "You have no more attempts left.",
-			});
-			return;
-		}
-
-		const answer =
-			modalInteraction.fields.getTextInputValue("answer_input");
-
-		if (question.answers.includes(answer.toLowerCase())) {
-			(member?.roles as GuildMemberRoleManager).add(role);
-
-			modalInteraction.editReply({
-				content: `Congratulations, you got the answer right! The <@&${process.env.GET_ROLE}> role has been given to you.`,
-			});
-		} else {
-			modalInteraction.editReply({
-				content: `Incorrect answer, you have ${3 - attempts.questions.length} attempt(s) left.`,
-			});
-		}
+		ButtonInteractionCache.expire(`${customId}_question`, 3 * 24 * 60 * 60); // 3 days
+		// Interaction will be handled in the InteractionCreate event and is stored in redis (@/events/InteractionCreate.ts)
 	}
 }

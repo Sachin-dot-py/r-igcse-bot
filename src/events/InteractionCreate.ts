@@ -1,6 +1,6 @@
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
-import {ConfessionBan, PracticeSession, ResourceTag} from "@/mongo";
+import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -9,7 +9,7 @@ import {
 	PracticeQuestionCache,
 } from "@/redis";
 import {
-	type ActionRowBuilder,
+	ActionRowBuilder,
 	type ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
@@ -22,6 +22,10 @@ import {
 	type Interaction,
 	PermissionFlagsBits,
 	TextChannel,
+	TextInputBuilder,
+	TextInputStyle,
+	ModalBuilder,
+	GuildMemberRoleManager,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -30,6 +34,8 @@ import { Logger } from "@discordforge/logger";
 import { logToChannel } from "@/utils/Logger";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { addKeyword } from "@/commands/configuration/KeywordControl";
+import { GetRoleAttempt } from "@/mongo/schemas/GetRoleAttempt";
+import { GetRoleQnA } from "@/mongo/schemas/GetRoleQnA";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -49,16 +55,16 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleHostSessionButton(client, interaction);
 				this.handleKeywordButtons(client, interaction);
 				this.handleResourceTagRequestButton(client, interaction);
-			}
-			else if (interaction.isAutocomplete()) {
+				this.handleGetRoleQuestion(client, interaction);
+			} else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
 				try {
 					/* refering to ESLint: both can't really happen as interaction.isAutocomplete() means it is an autocomplete command
 					(unless we didn't define the autocomplete function) */
 					await command.autoComplete(interaction);
 				} catch (e) {
-					Logger.error(e)
-				};
+					Logger.error(e);
+				}
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -211,9 +217,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async handleResourceTagRequestButton(
 		client: DiscordClient<true>,
-		interaction: ButtonInteraction
+		interaction: ButtonInteraction,
 	) {
-
 		const matchCustomIdRegex = /(.*_tag)_(accept|reject)/gi;
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches) return;
@@ -225,10 +230,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const button = await ButtonInteractionCache.get(tagId);
 		if (!button || !button.guildId || !button.userId) return;
 
-		const guildPreferences = await GuildPreferencesCache.get(button.guildId);
+		const guildPreferences = await GuildPreferencesCache.get(
+			button.guildId,
+		);
 		// if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId) return;
 		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences?.tagResourceApprovalChannelId
+			guildPreferences?.tagResourceApprovalChannelId,
 		);
 
 		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
@@ -237,26 +244,31 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const message = await approvalChannel.messages.fetch(button.messageId);
 		if (!message) return;
 
-		const channelRegex = /<#(\d+)>/
+		const channelRegex = /<#(\d+)>/;
 
 		const title = message.embeds[0].title;
 		const description = message.embeds[0].description;
 		const messageLink = message.embeds[0].fields[1].value;
-		const channelId = channelRegex.exec(message.embeds[0].fields[2].value)[1];
+		const channelId = channelRegex.exec(
+			message.embeds[0].fields[2].value,
+		)[1];
 		const authorId = message.embeds[0].author?.name.split(" | ")[1];
 		const guild = client.guilds.cache.get(button.guildId);
 		const author = guild?.members.cache.find((m) => m.id === authorId);
 
-    const helperRoleData = await StudyChannel.findOne({
+		const helperRoleData = await StudyChannel.findOne({
 			channelId: channelId,
 		});
 		const helperRoleId = helperRoleData?.helperRoleId;
 		if (!helperRoleId) return;
 
-		if (!interaction.member || !interaction.member.roles.cache.has(helperRoleId)) {
+		if (
+			!interaction.member ||
+			!interaction.member.roles.cache.has(helperRoleId)
+		) {
 			await interaction.reply({
 				content: "You aren't a helper for this channel",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -264,7 +276,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		switch (action) {
 			case "accept": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title+" - Accepted by " + interaction.user.tag)
+					.setTitle(title + " - Accepted by " + interaction.user.tag)
 					.setDescription(description)
 					.setColor("Green")
 					.addFields(...message.embeds[0].fields)
@@ -273,7 +285,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await message.edit({
 					embeds: [embedEdited],
 					components: [],
-				})
+				});
 
 				const tagSearchRes = await ResourceTag.findOne({
 					messageUrl: messageLink,
@@ -281,13 +293,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				if (tagSearchRes) {
 					return await interaction.reply({
-						content: "This message has already been tagged as a resource",
-						ephemeral: true
-					})
+						content:
+							"This message has already been tagged as a resource",
+						ephemeral: true,
+					});
 				}
 
 				const newRes = await ResourceTag.create({
-
 					guildId: button.guildId,
 					title,
 					description,
@@ -296,14 +308,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 					messageUrl: messageLink,
 				});
 
-  
 				try {
 					await interaction.reply({
 						content: `Resource tag approved with ID \`${newRes._id}\``,
 						ephemeral: true,
 					});
 				} catch (error) {
-					return
+					return;
 				}
 
 				await author?.send({
@@ -314,7 +325,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			}
 			case "reject": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title+" - Rejected by " + interaction.user.tag)
+					.setTitle(title + " - Rejected by " + interaction.user.tag)
 					.setDescription(description)
 					.setColor("Red")
 					.addFields(...message.embeds[0].fields)
@@ -323,7 +334,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await message.edit({
 					embeds: [embedEdited],
 					components: [],
-				})
+				});
 
 				try {
 					await interaction.reply({
@@ -332,10 +343,9 @@ export default class InteractionCreateEvent extends BaseEvent {
 					});
 				} catch (error) {
 					if (error.message === "Unknown Interaction") {
-						return
+						return;
 					}
 				}
-
 
 				await author?.send({
 					content: `Your resource tag request has been rejected. ${messageLink}`,
@@ -498,11 +508,14 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!interaction.isButton()) return;
 		if (interaction.customId === "keyword_search_send") {
 			const message = interaction.message;
-			await interaction.reply({embeds: [message.embeds[0]], ephemeral: false});
+			await interaction.reply({
+				embeds: [message.embeds[0]],
+				ephemeral: false,
+			});
 			return;
 		}
 		const matchCustomIdRegex = /keyword_(accept|edited|reject)/gi;
-		
+
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches || !interaction.guildId) return;
 
@@ -515,36 +528,46 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const imageLink = embed.image?.url;
 		if (!keyword || !response) return;
 		let newEmbedColor: ColorResolvable = Colors.White;
-		let moderatorAction = '';
+		let moderatorAction = "";
 		const modPfp = interaction.user.displayAvatarURL();
 		switch (regexMatches[1]) {
-			case 'accept':
+			case "accept":
 				await addKeyword(interaction, keyword, response, imageLink);
-				await user.send(`Your keyword request, \`${keyword}\`, has been approved!`);
-				newEmbedColor = Colors.Green
-				moderatorAction = `Approved by ${interaction.user.tag}`
+				await user.send(
+					`Your keyword request, \`${keyword}\`, has been approved!`,
+				);
+				newEmbedColor = Colors.Green;
+				moderatorAction = `Approved by ${interaction.user.tag}`;
 				break;
-			case 'edited':
-				await user.send(`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`);
+			case "edited":
+				await user.send(
+					`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`,
+				);
 				await interaction.reply({
 					content: `Sent dm message (you have to create the keyword yourself)`,
-					ephemeral: true
+					ephemeral: true,
 				});
-				newEmbedColor = Colors.Yellow
-				moderatorAction = `Approved (edited) by ${interaction.user.tag}`
+				newEmbedColor = Colors.Yellow;
+				moderatorAction = `Approved (edited) by ${interaction.user.tag}`;
 				break;
-			case 'reject':
-				await user.send(`Your keyword request, \`${keyword}\`, has been rejected!`);
+			case "reject":
+				await user.send(
+					`Your keyword request, \`${keyword}\`, has been rejected!`,
+				);
 				await interaction.reply({
-					content: 'Sent rejection message',
-					ephemeral: true
+					content: "Sent rejection message",
+					ephemeral: true,
 				});
-				newEmbedColor = Colors.Red
-				moderatorAction = `Rejected by ${interaction.user.tag}`
+				newEmbedColor = Colors.Red;
+				moderatorAction = `Rejected by ${interaction.user.tag}`;
 				break;
 		}
-		const modInfo = modPfp ? {name: moderatorAction, iconURL: modPfp} : {name: moderatorAction};
-		const newEmbed = new EmbedBuilder(embed.data).setColor(newEmbedColor).setAuthor(modInfo);
+		const modInfo = modPfp
+			? { name: moderatorAction, iconURL: modPfp }
+			: { name: moderatorAction };
+		const newEmbed = new EmbedBuilder(embed.data)
+			.setColor(newEmbedColor)
+			.setAuthor(modInfo);
 		await interaction.message.edit({ embeds: [newEmbed], components: [] });
 	}
 
@@ -695,7 +718,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				});
 
 				await interaction.editReply({
-					content: `Session accepted`,
+					content: "Session accepted",
 				});
 				break;
 			}
@@ -725,5 +748,105 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await ButtonInteractionCache.remove(regexMatches[1]);
+	}
+
+	async handleGetRoleQuestion(
+		client: DiscordClient<true>,
+		interaction: ButtonInteraction,
+	) {
+		const matchCustomIdRegex = /(.*_question)_(answer)/gi;
+		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
+		if (!regexMatches) {
+			return;
+		}
+
+		const questionId = regexMatches[1];
+		if (!questionId) {
+			return;
+		}
+
+		const button = await ButtonInteractionCache.get(questionId);
+		if (!button || !button.guildId) {
+			return;
+		}
+
+		const answers = button.questionAndAnswers;
+
+		if (!answers) {
+			return;
+		}
+
+		const question = answers[0];
+		answers.shift();
+
+		if (!interaction.guild) {
+			return;
+		}
+
+		const role = interaction.guild.roles.cache.get(process.env.GET_ROLE);
+		const member = interaction.member;
+
+		if (!role) {
+			return;
+		}
+
+		const answerInput = new TextInputBuilder()
+			.setCustomId("answer_input")
+			.setLabel("Answer the question")
+			.setPlaceholder("Enter the answer")
+			.setRequired(true)
+			.setStyle(TextInputStyle.Paragraph);
+
+		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
+			answerInput,
+		);
+
+		const modalCustomId = uuidv4();
+
+		const modal = new ModalBuilder()
+			.setCustomId(modalCustomId)
+			.addComponents(row)
+			.setTitle("Question!");
+
+		await interaction.showModal(modal);
+
+		const modalInteraction = await interaction.awaitModalSubmit({
+			time: 600_000,
+			filter: (i) => i.customId === modalCustomId,
+		});
+
+		await modalInteraction.deferReply({ ephemeral: true });
+
+		await GetRoleAttempt.updateOne(
+			{
+				guildId: button.guildId,
+				userId: interaction.user.id,
+			},
+			{
+				$push: { questions: question },
+			},
+			{
+				upsert: true,
+			},
+		);
+
+		const attempts = await GetRoleAttempt.findOne({
+			userId: interaction.user.id,
+		});
+
+		const answer =
+			modalInteraction.fields.getTextInputValue("answer_input");
+
+		if (answers.includes(answer.toLowerCase())) {
+			(member?.roles as GuildMemberRoleManager).add(role);
+
+			modalInteraction.editReply({
+				content: `Congratulations, you got the answer right! The <@&${process.env.GET_ROLE}> role has been given to you.`,
+			});
+		} else {
+			modalInteraction.editReply({
+				content: `Incorrect answer, you have ${3 - (attempts?.questions.length ?? 0)} attempt(s) left.`,
+			});
+		}
 	}
 }

@@ -11,6 +11,7 @@ import {
 interface SessionInfoModalResponse {
 	minimumYear: number;
 	numberOfQuestions: number;
+	timeLimit: number | null;
 	followUpInteraction: ModalSubmitInteraction;
 }
 
@@ -39,12 +40,24 @@ class SessionInfoModal extends ModalBuilder {
 			.setMaxLength(2)
 			.setValue("10");
 
+		const timeLimit = new TextInputBuilder()
+			.setCustomId("time_limit")
+			.setLabel("Time Limit per Question (in minutes)")
+			.setPlaceholder("Optional")
+			.setStyle(TextInputStyle.Short)
+			.setRequired(false)
+			.setMinLength(1)
+			.setMaxLength(5);
+
 		const actionRows = [
 			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
 				minimumYear,
 			),
 			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
 				numberOfQuestions,
+			),
+			new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
+				timeLimit,
 			),
 		];
 
@@ -66,10 +79,12 @@ class SessionInfoModal extends ModalBuilder {
 			const numberOfQuestions = sessionInfo.fields.getTextInputValue(
 				"number_of_questions",
 			);
+			const timeLimit = sessionInfo.fields.getTextInputValue("time_limit");
 
 			return {
 				minimumYear: Number.parseInt(minimumYear),
 				numberOfQuestions: Number.parseInt(numberOfQuestions),
+				timeLimit: Number.parseFloat(timeLimit) || null,
 				followUpInteraction: sessionInfo,
 			};
 		} catch (error) {
