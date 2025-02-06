@@ -18,9 +18,7 @@ export default class MessageReactionRemoveEvent extends BaseEvent {
 
 		if (!reaction.message.guild) return;
 
-		let message = reaction.message
-
-		if (message.partial) message = await message.fetch();
+		if (reaction.partial) reaction = await reaction.fetch();
 
 		const res = await ReactionRole.findOne({
 			messageId: reaction.message.id,
@@ -29,9 +27,9 @@ export default class MessageReactionRemoveEvent extends BaseEvent {
 
 		if (!res) return;
 
-		const member = await message.guild!.members.fetch(user.id);
+		const member = await reaction.message.guild!.members.fetch(user.id);
 
-		const role = await message.guild!.roles.fetch(res.roleId);
+		const role = await reaction.message.guild!.roles.fetch(res.roleId);
 
 		if (role) await member.roles.remove(role);
 	}
