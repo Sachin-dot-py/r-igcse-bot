@@ -18,6 +18,10 @@ export default class MessageReactionAddEvent extends BaseEvent {
 
 		if (!reaction.message.guild) return;
 
+		let message = reaction.message
+
+		if (message.partial) message = await message.fetch();
+
 		const res = await ReactionRole.findOne({
 			messageId: reaction.message.id,
 			emoji: reaction.emoji.toString(),
@@ -25,9 +29,9 @@ export default class MessageReactionAddEvent extends BaseEvent {
 
 		if (!res) return;
 
-		const member = await reaction.message.guild.members.fetch(user.id);
+		const member = await message.guild!.members.fetch(user.id);
 
-		const role = await reaction.message.guild.roles.fetch(res.roleId);
+		const role = await message.guild!.roles.fetch(res.roleId);
 
 		if (role) await member.roles.add(role);
 	}

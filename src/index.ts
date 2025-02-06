@@ -8,7 +8,7 @@ import {
 	registerCommands,
 	registerEvents,
 	syncCommands,
-} from "./registry/index";
+} from "@/registry";
 import { Logger } from "@discordforge/logger";
 
 redis.on("error", Logger.error);
@@ -35,7 +35,7 @@ export const client = new DiscordClient({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.MessageContent,
 	],
-	partials: [Partials.Message, Partials.Channel],
+	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 	allowedMentions: {
 		parse: ["users", "roles"],
 		repliedUser: true,
