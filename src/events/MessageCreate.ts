@@ -398,7 +398,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		client: DiscordClient<true>,
 		message: Message<true>,
 	) {
-		if (message.content.startsWith("//")) {
+		if (!message.content.startsWith("//") && !message.content.startsWith("!!")) {
 			await message.react("👀");
 			return;
 		}
@@ -442,7 +442,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 					name: message.author.username,
 					iconURL: message.author.displayAvatarURL(),
 				})
-				.setDescription(message.content || "No content")
+				.setDescription(message.content?.replace("//", "").trim() || "No content")
 				.setTimestamp(message.createdTimestamp)
 				.setColor(Colors.Green);
 
