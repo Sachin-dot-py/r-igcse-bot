@@ -148,7 +148,9 @@ export default class TimeoutCommand extends BaseCommand {
 			actionAgainst: user.id,
 		}).sort({ when: 1 });
 
-		let totalPoints = 0;
+		const points = duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2;
+
+		let totalPoints = points;
 
 		for (const { points } of punishments) {
 			if (points) totalPoints += points;
@@ -248,7 +250,7 @@ export default class TimeoutCommand extends BaseCommand {
 			caseId: caseNumber,
 			duration,
 			reason,
-			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+			points,
 			when: new Date(),
 		});
 
@@ -285,7 +287,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		interaction.editReply({
-			content: `${totalPoints >= 10 ? `# ACTION REQUIRED\n${user.username} has 10 or more points` : `${user.username} has ${totalPoints} points`} [.](https://tenor.com/view/timeout-ban-permanentban-be-npc-or-die-bnod-gif-666842245908687309)`,
+			content: `${totalPoints >= 10 ? `# ACTION REQUIRED\n${user.username} has 10 or more points` : `${user.username} has ${totalPoints} points`}[.](https://tenor.com/view/timeout-ban-permanentban-be-npc-or-die-bnod-gif-666842245908687309)`,
 		});
 		const time = Math.floor(Date.now() / 1000 + duration);
 		interaction.channel.send(
