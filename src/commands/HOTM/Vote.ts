@@ -1,13 +1,13 @@
-import { GuildPreferences, HOTM, HOTMUser, HOTMBlacklist } from "@/mongo";
+import { GuildPreferences, HOTM, HOTMBlacklist, HOTMUser } from "@/mongo";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger";
 import { SlashCommandBuilder } from "discord.js";
 import type hotmSessionCommand from "./VotingSession";
-import { logToChannel } from "@/utils/Logger";
 
 export default class HOTMVotingCommand extends BaseCommand {
 	constructor() {
@@ -142,7 +142,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 				content: `This helper has been blacklisted from HOTM.`,
 			});
 
-			return
+			return;
 		}
 
 		const helperDoc = await HOTM.findOne({

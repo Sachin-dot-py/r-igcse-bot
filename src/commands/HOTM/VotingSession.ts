@@ -1,8 +1,9 @@
-import {GuildPreferences, HOTM, HOTMBlacklist, HOTMUser} from "@/mongo";
+import { GuildPreferences, HOTM, HOTMBlacklist, HOTMUser } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger.ts";
 import {
 	type APIEmbedField,
 	EmbedBuilder,
@@ -12,7 +13,6 @@ import {
 	TextChannel,
 } from "discord.js";
 import type hotmSessionCommand from "./VotingSession";
-import {logToChannel} from "@/utils/Logger.ts";
 
 export default class HOTMSessionCommand extends BaseCommand {
 	constructor() {
@@ -43,8 +43,10 @@ export default class HOTMSessionCommand extends BaseCommand {
 						.addBooleanOption((option) =>
 							option
 								.setName("permanent")
-								.setDescription("Whether the blacklist is permanent (False by default)"),
-						)
+								.setDescription(
+									"Whether the blacklist is permanent (False by default)",
+								),
+						),
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -55,7 +57,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 								.setName("helper")
 								.setDescription("The helper to unblacklist")
 								.setRequired(true),
-						)
+						),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 				.setDMPermission(false),
@@ -82,7 +84,8 @@ export default class HOTMSessionCommand extends BaseCommand {
 		switch (interaction.options.getSubcommand()) {
 			case "blacklist": {
 				const helper = interaction.options.getUser("helper", true);
-				const permanent = interaction.options.getBoolean("permanent") ?? false;
+				const permanent =
+					interaction.options.getBoolean("permanent") ?? false;
 
 				await interaction.deferReply({
 					ephemeral: true,
@@ -118,13 +121,16 @@ export default class HOTMSessionCommand extends BaseCommand {
 					},
 				);
 
-				await HOTMUser.updateMany({
-					guildId: interaction.guild.id,
-				}, {
-					$pull: {
-						voted: helper.id,
-					}
-				})
+				await HOTMUser.updateMany(
+					{
+						guildId: interaction.guild.id,
+					},
+					{
+						$pull: {
+							voted: helper.id,
+						},
+					},
+				);
 
 				await logToChannel(
 					interaction.guild,
@@ -204,7 +210,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 				await HOTMBlacklist.deleteMany({
 					guildId: interaction.guildId,
 					permanent: false,
-				})
+				});
 
 				interaction.editReply({
 					content: `Started a new voting session`,

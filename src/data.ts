@@ -487,7 +487,7 @@ export const preferences: Preference[] = [
 		name: "Tag Approval Channel",
 		type: "channel",
 		key: "tagResourceApprovalChannelId",
-	}
+	},
 ];
 
 interface Subject {

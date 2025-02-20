@@ -7,12 +7,12 @@ import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	EmbedBuilder,
+	type HexColorString,
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
-	type HexColorString,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -45,11 +45,9 @@ export default class EmbedCommand extends BaseCommand {
 						.addRoleOption((option) =>
 							option
 								.setName("role_ping")
-								.setDescription(
-									"Select a role to ping"
-								)
-								.setRequired(false)
-						)
+								.setDescription("Select a role to ping")
+								.setRequired(false),
+						),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 				.setDMPermission(false),
@@ -133,7 +131,7 @@ export default class EmbedCommand extends BaseCommand {
 						embedFooterField,
 					),
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
-						embedColourField
+						embedColourField,
 					),
 				];
 
@@ -159,9 +157,11 @@ export default class EmbedCommand extends BaseCommand {
 				const embedFooter =
 					modalInteraction.fields.getTextInputValue("footer") || null;
 				const embedColour =
-					(await modalInteraction.fields.getTextInputValue(
-						"colour"
-					)).trim() || null;
+					(
+						await modalInteraction.fields.getTextInputValue(
+							"colour",
+						)
+					).trim() || null;
 
 				if (!embedTitle && !embedDescription && !embedFooter) {
 					await modalInteraction.reply({
@@ -177,12 +177,15 @@ export default class EmbedCommand extends BaseCommand {
 					.setTitle(embedTitle)
 					.setDescription(embedDescription);
 
-				if (embedColour && /^#?[\da-f]{6}$/i.test(embedColour)) try {
-					embed.setColor(embedColour as HexColorString);
-				} finally { }
+				if (embedColour && /^#?[\da-f]{6}$/i.test(embedColour))
+					try {
+						embed.setColor(embedColour as HexColorString);
+					} finally {
+					}
 				else if (embedColour) {
 					modalInteraction.reply({
-						content: "The hex colour provided is invalid.\n-# Format: #FFFFFF",
+						content:
+							"The hex colour provided is invalid.\n-# Format: #FFFFFF",
 						ephemeral: true,
 					});
 
@@ -194,8 +197,8 @@ export default class EmbedCommand extends BaseCommand {
 					});
 				}
 
-				const role = interaction.options.getRole("role_ping", false)
-				const roleMention = role ? `<@&${role.id}>` : ""
+				const role = interaction.options.getRole("role_ping", false);
+				const roleMention = role ? `<@&${role.id}>` : "";
 
 				if (scheduleTime) {
 					ScheduledMessage.create({

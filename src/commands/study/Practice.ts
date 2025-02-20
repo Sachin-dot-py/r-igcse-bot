@@ -1,4 +1,5 @@
 import Select from "@/components/Select";
+import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
 import mcqButtons from "@/components/practice/MCQButtons";
 import SessionInfoModal from "@/components/practice/SessionInfoModal";
 import UserSelect from "@/components/practice/UserSelect";
@@ -33,7 +34,6 @@ import {
 } from "discord.js";
 import type { Document } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
-import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
 
 type CommandOptions = {
 	[key: string]: (
@@ -139,8 +139,12 @@ export default class PracticeCommand extends BaseCommand {
 			interaction,
 		);
 		if (!modalResponse) return;
-		const { minimumYear, numberOfQuestions, timeLimit, followUpInteraction } =
-			modalResponse;
+		const {
+			minimumYear,
+			numberOfQuestions,
+			timeLimit,
+			followUpInteraction,
+		} = modalResponse;
 
 		collectedData.minimumYear = minimumYear;
 		collectedData.numberOfQuestions = numberOfQuestions;
@@ -148,11 +152,12 @@ export default class PracticeCommand extends BaseCommand {
 
 		if (timeLimit && timeLimit < 1) {
 			await followUpInteraction.reply({
-                content: "Boi you ain't solving these MCQs in less than a minute, give yourself some more time, at least 1 minute!",
-                ephemeral: true,
-            });
-            return;
-        }
+				content:
+					"Boi you ain't solving these MCQs in less than a minute, give yourself some more time, at least 1 minute!",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const dataInteractions = [
 			{
@@ -769,7 +774,9 @@ Session ID: ${sessionId}`,
 					await UserCache.remove(user);
 				}
 
-				PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(e => Logger.error(e));
+				PracticeSession.deleteOne({
+					sessionId: session.sessionId,
+				}).catch((e) => Logger.error(e));
 			}
 		}
 		if (!guild) {
@@ -778,7 +785,9 @@ Session ID: ${sessionId}`,
 				await UserCache.remove(user);
 			}
 
-			PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(e => Logger.error(e));
+			PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(
+				(e) => Logger.error(e),
+			);
 			return;
 		}
 
@@ -789,7 +798,9 @@ Session ID: ${sessionId}`,
 				await UserCache.remove(user);
 			}
 
-			PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(e => Logger.error(e));
+			PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(
+				(e) => Logger.error(e),
+			);
 			return;
 		}
 
@@ -867,7 +878,9 @@ Session ID: ${sessionId}`,
 			await UserCache.remove(user);
 		}
 
-		await PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(e => Logger.error(e));
+		await PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(
+			(e) => Logger.error(e),
+		);
 		await thread.setArchived(true);
 	}
 
@@ -930,11 +943,7 @@ Session ID: ${sessionId}`,
 
 			const thread = await client?.channels.fetch(session.threadId);
 			if (!thread?.isThread()) {
-				this.endAndSendResults(
-					client,
-					session,
-					`Session ended.`,
-				);
+				this.endAndSendResults(client, session, `Session ended.`);
 				continue;
 			}
 
@@ -971,37 +980,44 @@ Session ID: ${sessionId}`,
 			});
 
 			if (session.timeLimit) {
-				setTimeout(async () => {
-					const updatedSession = await PracticeSession.findOne({
-						sessionId: session.sessionId,
-					});
-					if (!updatedSession) return;
-					if (updatedSession.currentlySolving !== question.questionName) return;
-					question.solved = true;
-					await PracticeQuestionCache.save(question);
-					ButtonInteractionCache.remove(question.questionName);
+				setTimeout(
+					async () => {
+						const updatedSession = await PracticeSession.findOne({
+							sessionId: session.sessionId,
+						});
+						if (!updatedSession) return;
+						if (
+							updatedSession.currentlySolving !==
+							question.questionName
+						)
+							return;
+						question.solved = true;
+						await PracticeQuestionCache.save(question);
+						ButtonInteractionCache.remove(question.questionName);
 
-					await message.edit({
-						components: [
-							new disabledMcqButtons(
-								question.questionName,
-								question.answers,
-							) as ActionRowBuilder<ButtonBuilder>,
-						],
-					});
-					await thread.send({
-						embeds: [
-							new EmbedBuilder()
-								.setTitle(`Time ran out for question!`)
-								.setDescription(
-									`Correct answer: ${question.answers}\n\n${question.userAnswers.map((x) => `<@${x.user}>: ${x.answer}`).join("\n")}`,
-								),
-						],
-					});
+						await message.edit({
+							components: [
+								new disabledMcqButtons(
+									question.questionName,
+									question.answers,
+								) as ActionRowBuilder<ButtonBuilder>,
+							],
+						});
+						await thread.send({
+							embeds: [
+								new EmbedBuilder()
+									.setTitle(`Time ran out for question!`)
+									.setDescription(
+										`Correct answer: ${question.answers}\n\n${question.userAnswers.map((x) => `<@${x.user}>: ${x.answer}`).join("\n")}`,
+									),
+							],
+						});
 
-					updatedSession.currentlySolving = "none";
-					await updatedSession.save();
-				}, session.timeLimit * 60 * 1000);
+						updatedSession.currentlySolving = "none";
+						await updatedSession.save();
+					},
+					session.timeLimit * 60 * 1000,
+				);
 			}
 
 			ButtonInteractionCache.expire(question.questionName, 60 * 60 * 2);

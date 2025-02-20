@@ -79,7 +79,8 @@ class SessionInfoModal extends ModalBuilder {
 			const numberOfQuestions = sessionInfo.fields.getTextInputValue(
 				"number_of_questions",
 			);
-			const timeLimit = sessionInfo.fields.getTextInputValue("time_limit");
+			const timeLimit =
+				sessionInfo.fields.getTextInputValue("time_limit");
 
 			return {
 				minimumYear: Number.parseInt(minimumYear),

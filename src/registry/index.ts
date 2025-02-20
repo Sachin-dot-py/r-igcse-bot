@@ -1,10 +1,10 @@
 import { extname, join as joinPaths } from "path";
+import { Logger } from "@discordforge/logger";
 import { Routes } from "discord.js";
 import { readdir } from "fs/promises";
 import type { DiscordClient } from "./DiscordClient";
 import BaseCommand from "./Structure/BaseCommand";
 import type BaseEvent from "./Structure/BaseEvent";
-import { Logger } from "@discordforge/logger";
 
 export async function registerCommands(client: DiscordClient, path = "") {
 	const commandsPath = joinPaths(
