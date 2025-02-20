@@ -1,6 +1,9 @@
 import { StickyMessage } from "@/mongo";
 import { StickyMessageCache } from "@/redis";
-import type {APIEmbedRedis, ICachedStickyMessage} from "@/redis/schemas/StickyMessage";
+import type {
+	APIEmbedRedis,
+	ICachedStickyMessage,
+} from "@/redis/schemas/StickyMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction,
@@ -17,7 +20,7 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
-import {EntityId} from "redis-om";
+import { EntityId } from "redis-om";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
@@ -41,9 +44,13 @@ export default class StickMessageCommand extends BaseCommand {
 			.equals(interaction.targetId)
 			.returnAll()) as ICachedStickyMessage[];
 
-		console.log(stickyCheck)
+		console.log(stickyCheck);
 
-		if (!stickyCheck || stickyCheck.length < 1 || !stickyCheck[0][EntityId]) {
+		if (
+			!stickyCheck ||
+			stickyCheck.length < 1 ||
+			!stickyCheck[0][EntityId]
+		) {
 			const time = Date.now();
 			const stickTimeInput = new TextInputBuilder()
 				.setCustomId("stick-time")
@@ -130,13 +137,14 @@ export default class StickMessageCommand extends BaseCommand {
 				ephemeral: true,
 			});
 
-			const selectInteraction = await interactionRes.awaitMessageComponent({
-				componentType: ComponentType.ChannelSelect,
-				filter: (i) =>
-					i.user.id === interaction.user.id &&
-					i.customId === "stick-channel",
-				time: 60000,
-			});
+			const selectInteraction =
+				await interactionRes.awaitMessageComponent({
+					componentType: ComponentType.ChannelSelect,
+					filter: (i) =>
+						i.user.id === interaction.user.id &&
+						i.customId === "stick-channel",
+					time: 60000,
+				});
 
 			await selectInteraction.deferUpdate();
 
@@ -192,7 +200,7 @@ export default class StickMessageCommand extends BaseCommand {
 				content: "Message scheduled to stick.",
 				ephemeral: true,
 			});
-		}else {
+		} else {
 			await StickyMessageCache.remove(stickyCheck[0][EntityId]);
 			await StickyMessage.deleteOne({ _id: stickyCheck[0][EntityId] });
 

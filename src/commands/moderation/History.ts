@@ -79,7 +79,7 @@ export default class HistoryCommand extends BaseCommand {
 			action,
 			reason,
 			duration,
-			caseId
+			caseId,
 		} of punishments) {
 			if (points) totalPoints += points;
 

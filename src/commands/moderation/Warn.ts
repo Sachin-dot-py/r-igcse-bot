@@ -143,9 +143,19 @@ export default class WarnCommand extends BaseCommand {
 			],
 		});
 
+		const punishments = await Punishment.find({
+			guildId: interaction.guildId,
+			actionAgainst: user.id,
+		}).sort({ when: 1 });
+
+		let totalPoints = 0;
+
+		for (const { points } of punishments) {
+			if (points) totalPoints += points;
+		}
+
 		interaction.editReply({
-			content:
-				"https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639",
+			content: `${totalPoints >= 10 ? `# ACTION REQUIRED\n${user.username} has 10 or more points` : `${user.username} has ${totalPoints} points`} [.](https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639)`,
 		});
 	}
 }

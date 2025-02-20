@@ -1,6 +1,8 @@
+import { addKeyword } from "@/commands/configuration/KeywordControl";
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
 import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
+import { GetRoleAttempt } from "@/mongo/schemas/GetRoleAttempt";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -8,6 +10,8 @@ import {
 	GuildPreferencesCache,
 	PracticeQuestionCache,
 } from "@/redis";
+import { logToChannel } from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
@@ -19,23 +23,17 @@ import {
 	type ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
+	type GuildMemberRoleManager,
 	type Interaction,
+	ModalBuilder,
 	PermissionFlagsBits,
 	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
-	ModalBuilder,
-	GuildMemberRoleManager,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { Logger } from "@discordforge/logger";
-import { logToChannel } from "@/utils/Logger";
-import { Keyword } from "@/mongo/schemas/Keyword";
-import { addKeyword } from "@/commands/configuration/KeywordControl";
-import { GetRoleAttempt } from "@/mongo/schemas/GetRoleAttempt";
-import { GetRoleQnA } from "@/mongo/schemas/GetRoleQnA";
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -519,7 +517,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches || !interaction.guildId) return;
 
-		let embed = interaction.message.embeds[0];
+		const embed = interaction.message.embeds[0];
 		const matchUserIdRegex = /.*\ \((.*)\)/gi;
 		const userId = matchUserIdRegex.exec(embed.footer!.text!)![1]; // it's defo gonna match because of the footer is set
 		const user = await client.users.fetch(userId);

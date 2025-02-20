@@ -1,15 +1,11 @@
+import { registerCommands, registerEvents, syncCommands } from "@/registry";
+import { Logger } from "@discordforge/logger";
 import { GatewayIntentBits, Partials } from "discord.js";
 import inquirer from "inquirer";
 import mongo from "mongoose";
 import actionRequired from "./cron/actionRequired";
 import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
-import {
-	registerCommands,
-	registerEvents,
-	syncCommands,
-} from "@/registry";
-import { Logger } from "@discordforge/logger";
 
 redis.on("error", Logger.error);
 

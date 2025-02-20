@@ -1,3 +1,14 @@
+import Select from "@/components/Select";
+import Buttons from "@/components/practice/views/Buttons";
+import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
+import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
+import { GuildPreferencesCache } from "@/redis";
+import type { DiscordClient } from "@/registry/DiscordClient";
+import BaseCommand, {
+	type DiscordChatInputCommandInteraction,
+} from "@/registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger";
+import { PaginationBuilder } from "@discordforge/pagination";
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
@@ -7,19 +18,8 @@ import {
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
-import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
-} from "@/registry/Structure/BaseCommand";
-import type { DiscordClient } from "@/registry/DiscordClient";
-import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
-import { PaginationBuilder } from "@discordforge/pagination";
-import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
-import { logToChannel } from "@/utils/Logger";
-import { GuildPreferencesCache } from "@/redis";
-import { v4 as uuidv4 } from "uuid";
-import Select from "@/components/Select";
-import Buttons from "@/components/practice/views/Buttons";
 import humanizeDuration from "humanize-duration";
+import { v4 as uuidv4 } from "uuid";
 export default class ScheduledCommand extends BaseCommand {
 	constructor() {
 		super(

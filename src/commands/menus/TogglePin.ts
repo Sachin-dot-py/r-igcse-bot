@@ -1,5 +1,5 @@
-import { StickyPinnedMessage } from "@/mongo/schemas/StickyPinnedMessage";
 import { OldPinsThread } from "@/mongo/schemas/OldPinsThread";
+import { StickyPinnedMessage } from "@/mongo/schemas/StickyPinnedMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction,
@@ -47,7 +47,8 @@ export default class PinMenu extends BaseCommand {
 			return;
 		}
 
-		if (interaction.targetMessage.pinned) { // Unpin Message
+		if (interaction.targetMessage.pinned) {
+			// Unpin Message
 			await interaction.deferReply({
 				ephemeral: true,
 			});
@@ -197,7 +198,8 @@ export default class PinMenu extends BaseCommand {
 					components: [],
 				});
 			}
-		} else { // Pin Message
+		} else {
+			// Pin Message
 			if (!interaction.targetMessage.pinnable) {
 				await interaction.reply({
 					content: "Message isn't pinnable.",
@@ -216,10 +218,13 @@ export default class PinMenu extends BaseCommand {
 				const pinNo = Array.from(
 					(await interaction.channel?.messages.fetchPinned()) || [],
 				).length;
-				if (pinNo >= 50) { // Shift to Old Pins if possible
-					const channel = interaction.channel.isThread() ? interaction.channel.parent : interaction.channel
-					let thread = (await channel?.threads.fetch())
-						?.threads.filter(
+				if (pinNo >= 50) {
+					// Shift to Old Pins if possible
+					const channel = interaction.channel.isThread()
+						? interaction.channel.parent
+						: interaction.channel;
+					let thread = (await channel?.threads.fetch())?.threads
+						.filter(
 							(x: any) =>
 								x.isThread() &&
 								x.parent?.id === interaction.channelId &&
@@ -228,8 +233,10 @@ export default class PinMenu extends BaseCommand {
 						)
 						.first() as AnyThreadChannel<boolean> | undefined;
 					if (!thread) {
-						thread = (await channel?.threads.fetchArchived())
-							?.threads.filter(
+						thread = (
+							await channel?.threads.fetchArchived()
+						)?.threads
+							.filter(
 								(x: any) =>
 									x.isThread() &&
 									x.parent?.id === interaction.channelId &&
@@ -239,9 +246,18 @@ export default class PinMenu extends BaseCommand {
 							.first() as AnyThreadChannel<boolean> | undefined;
 					}
 					if (!thread) {
-						const threadId = (await OldPinsThread.find({ channelId: interaction.channelId }).exec())?.[0]?.oldPinsThreadId
-						console.log(threadId)
-						if (threadId) thread = (await channel?.threads.fetchArchived())?.threads.get(threadId) as AnyThreadChannel<boolean> | undefined;
+						const threadId = (
+							await OldPinsThread.find({
+								channelId: interaction.channelId,
+							}).exec()
+						)?.[0]?.oldPinsThreadId;
+						console.log(threadId);
+						if (threadId)
+							thread = (
+								await channel?.threads.fetchArchived()
+							)?.threads.get(threadId) as
+								| AnyThreadChannel<boolean>
+								| undefined;
 					}
 					if (!thread) {
 						const embed = new EmbedBuilder().setTitle(

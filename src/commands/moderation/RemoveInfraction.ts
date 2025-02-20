@@ -119,7 +119,7 @@ export default class extends BaseCommand {
 		}
 
 		await interaction.editReply({
-			content: `Punishment removed for ${user.username}`,
+			content: `Punishment removed for ${user.username} (Case ${punishment.caseId})`,
 			components: [],
 		});
 

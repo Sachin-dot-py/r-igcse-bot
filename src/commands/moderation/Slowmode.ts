@@ -7,7 +7,7 @@ import { logToChannel } from "@/utils/Logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
@@ -53,7 +53,8 @@ export default class SlowmodeCommand extends BaseCommand {
 
 		if (!isNumber && time === 0) {
 			interaction.reply({
-				content: "Invalid slowmode duration. Please provide a valid numerical duration (e.g., '5s', '1m', '1h').",
+				content:
+					"Invalid slowmode duration. Please provide a valid numerical duration (e.g., '5s', '1m', '1h').",
 				ephemeral: true,
 			});
 			return;
@@ -98,26 +99,30 @@ export default class SlowmodeCommand extends BaseCommand {
 		}
 
 		try {
-			logToChannel(interaction.guild, guildPreferences.generalLogsChannelId, {
-				embeds: [
-					new EmbedBuilder()
-						.setTitle("Slowmode added")
-						.setDescription(`Slowmode added in ${channel}`)
-						.setColor("Red")
-						.addFields(
-							{
-								name: "Moderator",
-								value: `${interaction.user.tag} (<@${interaction.user.id}>)`,
-							},
-							{
-								name: "Duration",
-								value: `${humanizeDuration(time * 1000)}`,
-							},
-						)
-						.setTimestamp(),
-				],
-				allowedMentions: { repliedUser: false },
-			});
+			logToChannel(
+				interaction.guild,
+				guildPreferences.generalLogsChannelId,
+				{
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Slowmode added")
+							.setDescription(`Slowmode added in ${channel}`)
+							.setColor("Red")
+							.addFields(
+								{
+									name: "Moderator",
+									value: `${interaction.user.tag} (<@${interaction.user.id}>)`,
+								},
+								{
+									name: "Duration",
+									value: `${humanizeDuration(time * 1000)}`,
+								},
+							)
+							.setTimestamp(),
+					],
+					allowedMentions: { repliedUser: false },
+				},
+			);
 		} catch (error) {
 			console.error("Error logging to channel:", error);
 			interaction.followUp({
