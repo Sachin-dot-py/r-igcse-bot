@@ -227,7 +227,7 @@ export default class TimeoutCommand extends BaseCommand {
 			}
 
 			interaction.editReply({
-				content: `changed user's timeout duration rahhhhhh \n they have ${totalPoints} points`,
+				content: `changed user's timeout duration rahhhhhh \nthey have ${totalPoints} points`,
 			});
 			interaction.channel.send(
 				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`,
@@ -287,7 +287,7 @@ export default class TimeoutCommand extends BaseCommand {
 		}
 
 		interaction.editReply({
-			content: `${totalPoints >= 10 ? `# ACTION REQUIRED\n${user.username} has 10 or more points` : `${user.username} has ${totalPoints} points`}[.](https://tenor.com/view/timeout-ban-permanentban-be-npc-or-die-bnod-gif-666842245908687309)`,
+			content: `${totalPoints >= 10 ? "# ACTION REQUIRED\n### " : ""}${user.username} has ${totalPoints} points[.](https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639)`,
 		});
 		const time = Math.floor(Date.now() / 1000 + duration);
 		interaction.channel.send(
