@@ -94,7 +94,7 @@ export default class WarnCommand extends BaseCommand {
 			`${user.username} has been warned for ${reason} (Case #${caseNumber})`,
 		);
 
-		Punishment.create({
+		await Punishment.create({
 			guildId: interaction.guild.id,
 			actionAgainst: user.id,
 			actionBy: interaction.user.id,
@@ -154,8 +154,28 @@ export default class WarnCommand extends BaseCommand {
 			if (points) totalPoints += points;
 		}
 
-		interaction.editReply({
-			content: `${totalPoints >= 10 ? "# ACTION REQUIRED\n### " : ""}${user.username} has ${totalPoints} points[.](https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639)`,
-		});
+		const warnReply =
+			totalPoints >= 10
+				? {
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("ACTION REQUIRED")
+								.setColor(Colors.Red)
+								.setDescription(
+									`**${user.username} has ${totalPoints} points**`,
+								),
+						],
+					}
+				: {
+						embeds: [
+							new EmbedBuilder()
+								.setColor(Colors.Blurple)
+								.setDescription(
+									`${user.username} has ${totalPoints} points`,
+								),
+						],
+					};
+
+		interaction.editReply(warnReply);
 	}
 }

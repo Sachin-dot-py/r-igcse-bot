@@ -45,7 +45,7 @@ export default class HelperMenu extends BaseCommand {
 			return;
 		}
 
-		const role = await interaction.guild.roles.cache.get(
+		const role = interaction.guild.roles.cache.get(
 			studyChannel.helperRoleId,
 		);
 
@@ -113,10 +113,10 @@ export default class HelperMenu extends BaseCommand {
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 			time: 890000,
-			filter: (i) => i.customId == "cancel_ping",
+			filter: (i) => i.customId === "cancel_ping",
 		});
 
-		collector.on("collect", async (i) => {
+		collector.on("collect", (i) => {
 			i.deferUpdate();
 
 			const member = interaction.guild.members.cache.get(i.user.id);
@@ -146,7 +146,7 @@ export default class HelperMenu extends BaseCommand {
 			});
 		});
 
-		collector.on("end", async () => {
+		collector.on("end", () => {
 			if (canceled || !interaction.channel) return;
 
 			pingMessage.delete();
