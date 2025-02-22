@@ -2,7 +2,6 @@ import { addKeyword } from "@/commands/configuration/KeywordControl";
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
 import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
-import { GetRoleAttempt } from "@/mongo/schemas/GetRoleAttempt";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -53,7 +52,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleHostSessionButton(client, interaction);
 				this.handleKeywordButtons(client, interaction);
 				this.handleResourceTagRequestButton(client, interaction);
-				this.handleGetRoleQuestion(client, interaction);
 			} else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
 				try {
@@ -746,105 +744,5 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await ButtonInteractionCache.remove(regexMatches[1]);
-	}
-
-	async handleGetRoleQuestion(
-		client: DiscordClient<true>,
-		interaction: ButtonInteraction,
-	) {
-		const matchCustomIdRegex = /(.*_question)_(answer)/gi;
-		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
-		if (!regexMatches) {
-			return;
-		}
-
-		const questionId = regexMatches[1];
-		if (!questionId) {
-			return;
-		}
-
-		const button = await ButtonInteractionCache.get(questionId);
-		if (!button || !button.guildId) {
-			return;
-		}
-
-		const answers = button.questionAndAnswers;
-
-		if (!answers) {
-			return;
-		}
-
-		const question = answers[0];
-		answers.shift();
-
-		if (!interaction.guild) {
-			return;
-		}
-
-		const role = interaction.guild.roles.cache.get(process.env.GET_ROLE);
-		const member = interaction.member;
-
-		if (!role) {
-			return;
-		}
-
-		const answerInput = new TextInputBuilder()
-			.setCustomId("answer_input")
-			.setLabel("Answer the question")
-			.setPlaceholder("Enter the answer")
-			.setRequired(true)
-			.setStyle(TextInputStyle.Paragraph);
-
-		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			answerInput,
-		);
-
-		const modalCustomId = uuidv4();
-
-		const modal = new ModalBuilder()
-			.setCustomId(modalCustomId)
-			.addComponents(row)
-			.setTitle("Question!");
-
-		await interaction.showModal(modal);
-
-		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 600_000,
-			filter: (i) => i.customId === modalCustomId,
-		});
-
-		await modalInteraction.deferReply({ ephemeral: true });
-
-		await GetRoleAttempt.updateOne(
-			{
-				guildId: button.guildId,
-				userId: interaction.user.id,
-			},
-			{
-				$push: { questions: question },
-			},
-			{
-				upsert: true,
-			},
-		);
-
-		const attempts = await GetRoleAttempt.findOne({
-			userId: interaction.user.id,
-		});
-
-		const answer =
-			modalInteraction.fields.getTextInputValue("answer_input");
-
-		if (answers.includes(answer.toLowerCase())) {
-			(member?.roles as GuildMemberRoleManager).add(role);
-
-			modalInteraction.editReply({
-				content: `Congratulations, you got the answer right! The <@&${process.env.GET_ROLE}> role has been given to you.`,
-			});
-		} else {
-			modalInteraction.editReply({
-				content: `Incorrect answer, you have ${3 - (attempts?.questions.length ?? 0)} attempt(s) left.`,
-			});
-		}
 	}
 }

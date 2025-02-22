@@ -68,7 +68,7 @@ export default class SetupCommand extends BaseCommand {
 
 		setupButtons.createCollector(customId, buttonMessage);
 
-		preferences.forEach(async (preference, index) => {
+		preferences.forEach((preference, index) => {
 			const Component = typeToComponent[preference.type];
 			const component = new Component(
 				preference.key,
