@@ -96,8 +96,8 @@ export default class ModPingCommand extends BaseCommand {
 		const collector = interaction.channel.createMessageComponentCollector({
 			componentType: ComponentType.Button,
 			time: 120000,
-			filter: (i) => i.user.id === interaction.user.id &&
-				(i.customId === `cancel_ping_${customId}` || i.customId === `confirm_ping_${customId}`),
+			filter: (i) =>
+				i.customId === `cancel_ping_${customId}` || i.customId === `confirm_ping_${customId}`,
 		});
 
 		collector.on("collect", async (i) => {
