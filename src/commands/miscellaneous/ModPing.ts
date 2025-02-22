@@ -105,7 +105,7 @@ export default class ModPingCommand extends BaseCommand {
 
 			i.deferUpdate();
 
-			if (i.customId === `cancel_ping_${customId}`) {
+			if (i.customId === `confirm_ping_${customId}`) {
 				ModPingCache.set(customId, {
 					userId: interaction.user.id,
 					guildId: interaction.guildId,
