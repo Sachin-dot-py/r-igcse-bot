@@ -22,13 +22,8 @@ export class ModPingRepository extends Repository {
 		super(ModPing, redis);
 	}
 
-	async get(guildId: string, userId: string): Promise<IModPing | null> {
-		const user = (await this.search()
-			.where("guildId")
-			.equals(guildId)
-			.and("userId")
-			.equals(userId)
-			.first()) as IModPing;
+	async get(id: string): Promise<IModPing | null> {
+		const user = (await this.fetch(id)) as IModPing;
 		if (!user || !user.userId) {
 			return null;
 		}
