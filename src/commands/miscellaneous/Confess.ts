@@ -6,10 +6,10 @@ import {
 	ModalBuilder,
 	SlashCommandBuilder,
 	TextInputBuilder,
-	TextInputStyle
+	TextInputStyle,
 } from "discord.js";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction
+	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import { ButtonInteractionCache, GuildPreferencesCache } from "@/redis";
@@ -26,16 +26,16 @@ export default class ConfessionCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("confess")
-				.setDescription("Make an anonymous confession")
+				.setDescription("Make an anonymous confession"),
 		);
 	}
 
 	async execute(
 		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">
+		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (
@@ -46,21 +46,21 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
 		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences.confessionApprovalChannelId
+			guildPreferences.confessionApprovalChannelId,
 		);
 
 		if (!approvalChannel || !approvalChannel.isTextBased()) {
 			await interaction.reply({
 				content:
 					"Invalid configuration for confessions. Please contact an admin.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -74,7 +74,7 @@ export default class ConfessionCommand extends BaseCommand {
 			.setStyle(TextInputStyle.Paragraph);
 
 		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			confessInput
+			confessInput,
 		);
 
 		const modalCustomId = uuidv4();
@@ -88,7 +88,7 @@ export default class ConfessionCommand extends BaseCommand {
 
 		const modalInteraction = await interaction.awaitModalSubmit({
 			time: 600_000,
-			filter: (i) => i.customId === modalCustomId
+			filter: (i) => i.customId === modalCustomId,
 		});
 
 		const confession =
@@ -100,17 +100,17 @@ export default class ConfessionCommand extends BaseCommand {
 			(await ConfessionBan.aggregate([
 				{
 					$match: {
-						guildId: interaction.guild.id
-					}
+						guildId: interaction.guild.id,
+					},
 				},
 				{
 					$group: {
 						_id: "$guildId",
 						bannedUsers: {
-							$push: "$userHash"
-						}
-					}
-				}
+							$push: "$userHash",
+						},
+					},
+				},
 			])) ?? null;
 
 		const bannedUsers = bannedQuery[0]?.bannedUsers || [];
@@ -119,7 +119,7 @@ export default class ConfessionCommand extends BaseCommand {
 			if (await Bun.password.verify(interaction.user.id, userHash)) {
 				await modalInteraction.editReply({
 					content:
-						"You have been banned from making confessions in this server."
+						"You have been banned from making confessions in this server.",
 				});
 
 				return;
@@ -128,7 +128,7 @@ export default class ConfessionCommand extends BaseCommand {
 
 		await modalInteraction.editReply({
 			content:
-				"Your confession has been sent to the moderators.\nYou have to wait for their approval."
+				"Your confession has been sent to the moderators.\nYou have to wait for their approval.",
 		});
 
 		const embed = new EmbedBuilder()
@@ -155,23 +155,23 @@ export default class ConfessionCommand extends BaseCommand {
 		const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			approveButton,
 			rejectButton,
-			banButton
+			banButton,
 		);
 
 		const message = await approvalChannel.send({
 			embeds: [embed],
-			components: [buttonsRow]
+			components: [buttonsRow],
 		});
 
 		await ButtonInteractionCache.set(`${customId}_confession`, {
 			customId: `${customId}_confession`,
 			messageId: message.id,
 			guildId: interaction.guild.id,
-			userHash: await Bun.password.hash(interaction.user.id)
+			userHash: await Bun.password.hash(interaction.user.id),
 		});
 		ButtonInteractionCache.expire(
 			`${customId}_confession`,
-			3 * 24 * 60 * 60
+			3 * 24 * 60 * 60,
 		); // 3 days
 		// Interaction will be handled in the InteractionCreate event and is stored in redis (@/events/InteractionCreate.ts)
 	}

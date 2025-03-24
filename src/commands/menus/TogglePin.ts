@@ -62,7 +62,7 @@ export default class PinMenu extends BaseCommand {
 
 			let thread = (await interaction.guild.channels.fetch())
 				.filter(
-					(x: any) =>
+					(x) =>
 						x?.isThread() &&
 						x?.parent?.id === interaction.channelId &&
 						x?.name === "Old Pins" &&
@@ -80,10 +80,7 @@ export default class PinMenu extends BaseCommand {
 			const response = await interaction.editReply({
 				content: `Shift to the ${thread?.url || "old pins"} thread?`,
 				components: [
-					new ActionRowBuilder().addComponents(
-						yesButton,
-						noButton,
-					) as any,
+					new ActionRowBuilder().addComponents(yesButton, noButton),
 				],
 			});
 			try {
@@ -225,7 +222,7 @@ export default class PinMenu extends BaseCommand {
 						: interaction.channel;
 					let thread = (await channel?.threads.fetch())?.threads
 						.filter(
-							(x: any) =>
+							(x) =>
 								x.isThread() &&
 								x.parent?.id === interaction.channelId &&
 								x.name === "Old Pins" &&
@@ -237,7 +234,7 @@ export default class PinMenu extends BaseCommand {
 							await channel?.threads.fetchArchived()
 						)?.threads
 							.filter(
-								(x: any) =>
+								(x) =>
 									x.isThread() &&
 									x.parent?.id === interaction.channelId &&
 									x.name === "Old Pins" &&

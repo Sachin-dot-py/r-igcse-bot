@@ -12,7 +12,7 @@ import {
 import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
-	ActionRowBuilder,
+	type ActionRowBuilder,
 	type ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
@@ -22,17 +22,16 @@ import {
 	type ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
-	type GuildMemberRoleManager,
 	type Interaction,
-	ModalBuilder,
 	PermissionFlagsBits,
 	TextChannel,
-	TextInputBuilder,
-	TextInputStyle,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+
+const channelRegex = /<#(\d+)>/;
+const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -44,9 +43,9 @@ export default class InteractionCreateEvent extends BaseEvent {
 			if (
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
-			)
+			) {
 				this.handleCommand(client, interaction);
-			else if (interaction.isButton()) {
+			} else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
@@ -103,8 +102,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction,
 	) {
-		const matchCustomIdRegex =
-			/[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 		if (!matchCustomIdRegex.test(interaction.customId)) return;
 
 		const customId = interaction.customId.split("_").slice(1).join("_");
@@ -182,7 +179,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				session.threadId,
 			);
 
-			if (thread && thread.isThread()) {
+			if (thread?.isThread()) {
 				const message = await thread.messages.fetch(button.messageId);
 
 				await message.edit({
@@ -240,8 +237,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const message = await approvalChannel.messages.fetch(button.messageId);
 		if (!message) return;
 
-		const channelRegex = /<#(\d+)>/;
-
 		const title = message.embeds[0].title;
 		const description = message.embeds[0].description;
 		const messageLink = message.embeds[0].fields[1].value;
@@ -272,7 +267,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		switch (action) {
 			case "accept": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title + " - Accepted by " + interaction.user.tag)
+					.setTitle(`${title} - Accepted by ${interaction.user.tag}`)
 					.setDescription(description)
 					.setColor("Green")
 					.addFields(...message.embeds[0].fields)
@@ -321,7 +316,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			}
 			case "reject": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title + " - Rejected by " + interaction.user.tag)
+					.setTitle(`${title} - Rejected by ${interaction.user.tag}`)
 					.setDescription(description)
 					.setColor("Red")
 					.addFields(...message.embeds[0].fields)
@@ -517,7 +512,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 		const embed = interaction.message.embeds[0];
 		const matchUserIdRegex = /.*\ \((.*)\)/gi;
-		const userId = matchUserIdRegex.exec(embed.footer!.text!)![1]; // it's defo gonna match because of the footer is set
+		const userId = matchUserIdRegex.exec(embed.footer?.text ?? "")?.[1]; // it's defo gonna match because of the footer is set
 		const user = await client.users.fetch(userId);
 		const keyword = embed.title?.trim().toLowerCase();
 		const response = embed.description;
@@ -540,7 +535,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 					`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`,
 				);
 				await interaction.reply({
-					content: `Sent dm message (you have to create the keyword yourself)`,
+					content:
+						"Sent dm message (you have to create the keyword yourself)",
 					ephemeral: true,
 				});
 				newEmbedColor = Colors.Yellow;

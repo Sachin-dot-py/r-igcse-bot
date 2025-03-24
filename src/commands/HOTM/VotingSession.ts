@@ -213,7 +213,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 				});
 
 				interaction.editReply({
-					content: `Started a new voting session`,
+					content: "Started a new voting session",
 				});
 				break;
 			}

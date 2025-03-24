@@ -173,7 +173,7 @@ export default class StickMessageCommand extends BaseCommand {
 				},
 			)
 			.setAuthor({
-				name: interaction.user.tag + " | " + interaction.user.id,
+				name: `${interaction.user.tag} | ${interaction.user.id}`,
 				iconURL: interaction.user.displayAvatarURL(),
 			});
 

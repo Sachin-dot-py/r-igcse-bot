@@ -46,7 +46,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
 			const readyEmbed = new EmbedBuilder()
-				.setTitle(`Restarted successfully!`)
+				.setTitle("Restarted successfully!")
 				.setColor(Colors.Green)
 				.setAuthor({
 					name: client.user.tag,
@@ -137,11 +137,11 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async loadKeywordsCache() {
-		(
-			await KeywordCache.search()
-				.returnAllIds()
-				.catch(() => [])
-		).forEach((id) => KeywordCache.remove(id));
+		for (const id of await KeywordCache.search()
+			.returnAllIds()
+			.catch(() => [])) {
+			KeywordCache.remove(id);
+		}
 
 		const keywords = await Keyword.find();
 

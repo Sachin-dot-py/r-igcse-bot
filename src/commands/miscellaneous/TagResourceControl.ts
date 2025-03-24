@@ -66,7 +66,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		switch (interaction.options.getSubcommand(true)) {
-			case "delete":
+			case "delete": {
 				const tagsDel = await ResourceTag.findById(
 					interaction.options.getString("id", true),
 				);
@@ -88,7 +88,8 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				});
 
 				break;
-			case "add":
+			}
+			case "add": {
 				if (!interaction.channel) return;
 				const targetMessageUrl = interaction.options.getString(
 					"message_url",
@@ -213,6 +214,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					ephemeral: true,
 				});
 				break;
+			}
 		}
 	}
 }

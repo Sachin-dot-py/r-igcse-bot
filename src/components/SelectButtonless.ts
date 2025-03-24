@@ -3,6 +3,7 @@ import {
 	ComponentType,
 	type InteractionCollector,
 	StringSelectMenuBuilder,
+	type StringSelectMenuInteraction,
 	type StringSelectMenuOptionBuilder,
 } from "discord.js";
 
@@ -28,10 +29,13 @@ class Select extends StringSelectMenuBuilder {
 	async waitForResponse(
 		customId: string,
 		interaction,
-	): Promise<InteractionCollector<any> | false | "Timed out"> {
+	): Promise<
+		InteractionCollector<StringSelectMenuInteraction> | false | "Timed out"
+	> {
 		try {
 			return interaction.createMessageComponentCollector({
-				filter: (i) => i.customId === customId,
+				filter: (i: StringSelectMenuInteraction) =>
+					i.customId === customId,
 				time: 300_000,
 				componentType: ComponentType.StringSelect,
 			});

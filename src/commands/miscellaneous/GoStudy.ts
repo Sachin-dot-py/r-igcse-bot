@@ -83,7 +83,7 @@ export default class GoStudyCommand extends BaseCommand {
 			durationString.includes(s),
 		)
 			? 2419200
-			: parse(durationString, "second") ?? 86400;
+			: (parse(durationString, "second") ?? 86400);
 
 		if (duration <= 0) {
 			await interaction.reply({

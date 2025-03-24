@@ -14,22 +14,24 @@ export default class MessageReactionRemoveEvent extends BaseEvent {
 		reaction: MessageReaction,
 		user: User,
 	) {
-		handleVote(reaction, user);
+		const fullReaction = reaction.partial
+			? await reaction.fetch()
+			: reaction;
 
-		if (!reaction.message.guild) return;
+		handleVote(fullReaction, user);
 
-		if (reaction.partial) reaction = await reaction.fetch();
+		if (!fullReaction.message.guild) return;
 
 		const res = await ReactionRole.findOne({
-			messageId: reaction.message.id,
-			emoji: reaction.emoji.toString(),
+			messageId: fullReaction.message.id,
+			emoji: fullReaction.emoji.toString(),
 		});
 
 		if (!res) return;
 
-		const member = await reaction.message.guild!.members.fetch(user.id);
+		const member = await fullReaction.message.guild?.members.fetch(user.id);
 
-		const role = await reaction.message.guild!.roles.fetch(res.roleId);
+		const role = await fullReaction.message.guild?.roles.fetch(res.roleId);
 
 		if (role) await member.roles.remove(role);
 	}

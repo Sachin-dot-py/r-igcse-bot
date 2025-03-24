@@ -61,7 +61,7 @@ for (;;)
 			},
 		])
 		.then((answers: { command: string }) => {
-			const command = answers["command"];
+			const command = answers.command;
 
 			switch (command) {
 				case "cron run actionRequired":

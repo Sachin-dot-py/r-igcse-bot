@@ -124,7 +124,7 @@ export default class DMUserCommand extends BaseCommand {
 
 			client.log(
 				error,
-				`Create DM Thread`,
+				"Create DM Thread",
 				`**Channel:** <#${interaction.channel?.id}>
 							**User:** <@${interaction.user.id}>
 							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,

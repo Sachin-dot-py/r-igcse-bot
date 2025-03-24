@@ -50,9 +50,8 @@ export default class ApplyCommand extends BaseCommand {
 					return app.requiredRoles.some((role) =>
 						interaction.member.roles.cache.has(role),
 					);
-				} else {
-					return true;
 				}
+				return true;
 			})
 			.map((app) => {
 				return new StringSelectMenuOptionBuilder()

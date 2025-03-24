@@ -194,7 +194,7 @@ export default class PracticeCommand extends BaseCommand {
 			const customId = uuidv4();
 			const viewInstance = new view(
 				customId,
-				collectedData["subject"]?.[0] || "",
+				collectedData.subject?.[0] || "",
 			);
 			let viewInteraction: Message;
 			if (interaction === "0") {
@@ -240,7 +240,7 @@ export default class PracticeCommand extends BaseCommand {
 			if (!data || data.every((x) => x === false)) {
 				if (required) return;
 				if (key === "topics")
-					data = subjectTopics[collectedData["subject"][0]];
+					data = subjectTopics[collectedData.subject[0]];
 			}
 			data = data.filter((x) => typeof x === "string");
 
@@ -270,7 +270,7 @@ export default class PracticeCommand extends BaseCommand {
 
 		const sessionId = uuidv4().split("-")[0];
 
-		await questions.forEach(async (question) => {
+		for (const question of questions) {
 			const { subject, year, season, paper, variant, questionNumber } =
 				question;
 
@@ -284,7 +284,7 @@ export default class PracticeCommand extends BaseCommand {
 				sessionId: sessionId,
 			});
 			PracticeQuestionCache.expire(questionName, 60 * 60 * 2);
-		});
+		}
 
 		const thread = await interaction.channel.threads.create({
 			name: `${interaction.user.username}'s Practice Session`,
@@ -933,7 +933,7 @@ Session ID: ${sessionId}`,
 				this.endAndSendResults(
 					client,
 					session,
-					`Session ended due to no questions left.`,
+					"Session ended due to no questions left.",
 				);
 				continue;
 			}
@@ -943,7 +943,7 @@ Session ID: ${sessionId}`,
 
 			const thread = await client?.channels.fetch(session.threadId);
 			if (!thread?.isThread()) {
-				this.endAndSendResults(client, session, `Session ended.`);
+				this.endAndSendResults(client, session, "Session ended.");
 				continue;
 			}
 
@@ -1006,7 +1006,7 @@ Session ID: ${sessionId}`,
 						await thread.send({
 							embeds: [
 								new EmbedBuilder()
-									.setTitle(`Time ran out for question!`)
+									.setTitle("Time ran out for question!")
 									.setDescription(
 										`Correct answer: ${question.answers}\n\n${question.userAnswers.map((x) => `<@${x.user}>: ${x.answer}`).join("\n")}`,
 									),

@@ -6,6 +6,7 @@ import type {
 	ContextMenuCommandInteraction,
 	MessageContextMenuCommandInteraction,
 	SlashCommandBuilder,
+	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 import type { DiscordClient } from "../DiscordClient";
@@ -28,7 +29,8 @@ export type DiscordMessageContextMenuCommandInteraction<
 export default abstract class BaseCommand {
 	constructor(
 		private _data:
-			| Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
+			| SlashCommandBuilder
+			| SlashCommandOptionsOnlyBuilder
 			| SlashCommandSubcommandsOnlyBuilder
 			| ContextMenuCommandBuilder,
 		private _mainGuildOnly = false,

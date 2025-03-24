@@ -1,4 +1,4 @@
-export const selectRandomItems = (array: any[], numItems: number) => {
+export const selectRandomItems = <T>(array: T[], numItems: number) => {
 	const selectedItems = [];
 
 	while (selectedItems.length < numItems && array.length > 0) {

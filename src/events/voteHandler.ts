@@ -19,8 +19,8 @@ export const handleVote = (reaction: MessageReaction, user: User) => {
 	if (!embed.description || !embed.description.startsWith("Total Votes:"))
 		return;
 
-	const yeses = message.reactions.cache.get("✅")!.count - 1;
-	const nos = message.reactions.cache.get("❌")!.count - 1;
+	const yeses = message.reactions.cache.get("✅")?.count - 1;
+	const nos = message.reactions.cache.get("❌")?.count - 1;
 
 	const total = yeses + nos;
 	let description = "Total Votes: 0\n\nNo one has voted";

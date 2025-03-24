@@ -53,7 +53,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					keyword,
 					entry.imageLink,
 				);
-				delete messageOptions.ephemeral;
+				messageOptions.ephemeral = undefined;
 				await message.channel.send(messageOptions);
 			}
 
@@ -111,7 +111,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyCounter[message.channelId] = 0;
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
-						(isNaN(x) ? 0 : x) + 1)(
+						(Number.isNaN(x) ? 0 : x) + 1)(
 						stickyCounter[message.channelId],
 					);
 				}
@@ -201,7 +201,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 					client.log(
 						error,
-						`Create DM Thread`,
+						"Create DM Thread",
 						`**Channel:** <#${message.channel?.id}>
 							**User:** <@${message.author.id}>
 							**Guild:** ${message.guild.name} (${message.guildId})\n`,
@@ -329,7 +329,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 		let thread: ThreadChannel;
 
-		if (res) thread = channel.threads.cache.get(res.threadId)!;
+		if (res)
+			thread = channel.threads.cache.get(res.threadId) as ThreadChannel;
 		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
@@ -393,10 +394,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 	) {
 		const channel = await member.createDM();
 		const messages = (await channel.messages.fetch({ limit: 100 })).filter(
-			(m) => m.author.id == client.user.id,
+			(m) => m.author.id === client.user.id,
 		);
 		for (const msg of messages) {
 			if (numDelete <= 0) break;
+			// biome-ignore lint/style/noParameterAssign: cuz
 			numDelete--;
 			await msg[1].delete();
 		}
@@ -436,7 +438,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			const command = fullCommand[1];
 			const args = fullCommand.slice(2);
 
-			if (command == "delete") {
+			if (command === "delete") {
 				let numDelete: number;
 				if (args && args.length > 0) {
 					numDelete = Number(args[0]);

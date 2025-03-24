@@ -51,7 +51,7 @@ export default class ResourceTagCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		switch (interaction.options.getSubcommand()) {
-			case "search":
+			case "search": {
 				const query = interaction.options.getString("query", false);
 				const channeId = interaction.options.getChannel(
 					"channel",
@@ -83,12 +83,8 @@ export default class ResourceTagCommand extends BaseCommand {
 								authorId,
 								_id,
 							}) => ({
-								name: title + ` | ||${_id}||`,
-								description:
-									description +
-									"\n\n" +
-									messageUrl +
-									`\nAdded By: <@${authorId}>`,
+								name: `${title} | ||${_id}||`,
+								description: `${description}\n\n${messageUrl}\nAdded By: <@${authorId}>`,
 							}),
 						),
 						async ({ name, description }) => ({
@@ -115,14 +111,14 @@ export default class ResourceTagCommand extends BaseCommand {
 
 				const selectOptions: StringSelectMenuOptionBuilder[] = [];
 
-				results.forEach(({ item }) => {
+				for (const { item } of results) {
 					selectOptions.push(
 						new StringSelectMenuOptionBuilder({
 							label: item.title,
-							value: item._id + "_resource_tag",
+							value: `${item._id}_resource_tag`,
 						}),
 					);
-				});
+				}
 
 				const customid = uuidv4();
 
@@ -142,12 +138,8 @@ export default class ResourceTagCommand extends BaseCommand {
 
 				await new PaginationBuilder(
 					results.map(({ item }) => ({
-						name: item.title + ` | ||${item._id}||`,
-						description:
-							item.description +
-							"\n\n" +
-							item.messageUrl +
-							`\nAdded By: <@${item.authorId}>`,
+						name: `${item.title} | ||${item._id}||`,
+						description: `${item.description}\n\n${item.messageUrl}\nAdded By: <@${item.authorId}>`,
 					})),
 					async ({ name, description }) => ({
 						name: name,
@@ -197,7 +189,7 @@ export default class ResourceTagCommand extends BaseCommand {
 					const resourceEmbed = new EmbedBuilder()
 						.setTitle(resource.title)
 						.setDescription(
-							resource.description + "\n\n" + resource.messageUrl,
+							`${resource.description}\n\n${resource.messageUrl}`,
 						)
 						.setAuthor({
 							name: `Requested by ${interaction.user.tag}`,
@@ -217,6 +209,7 @@ export default class ResourceTagCommand extends BaseCommand {
 				});
 
 				break;
+			}
 		}
 	}
 }

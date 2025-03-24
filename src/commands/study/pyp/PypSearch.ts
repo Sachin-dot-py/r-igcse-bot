@@ -85,8 +85,7 @@ export default class ResourcesCommand extends BaseCommand {
 			const fields = [];
 
 			for (const item of (list as PaperScResponseItem[]).slice(0, 6)) {
-				const { subject, time, type, paper, variant, _id } =
-					item["doc"];
+				const { subject, time, type, paper, variant, _id } = item.doc;
 				let value = `[${typeMap[type]}](https://paper.sc/doc/${_id})`;
 				if (item.related) {
 					for (const related of item.related) {

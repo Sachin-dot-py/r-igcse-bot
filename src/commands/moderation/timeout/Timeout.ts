@@ -76,7 +76,7 @@ export default class TimeoutCommand extends BaseCommand {
 			durationString.includes(s),
 		)
 			? 2419200
-			: parse(durationString, "second") ?? 86400;
+			: (parse(durationString, "second") ?? 86400);
 
 		if (duration < 60 || duration > 2419200) {
 			interaction.editReply({

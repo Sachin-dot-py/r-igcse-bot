@@ -33,16 +33,15 @@ export default class GuildMemberAddEvent extends BaseEvent {
 			);
 
 		if (guildPreferences.welcomeDMMessage) {
-			const welcomeDmMessage =
-				guildPreferences.welcomeDMMessage.replace(
-					/{\w+}/g,
-					(match) => placeholdersMap.get(match) || match,
-				) + `\n\n  \\- From **${member.guild.name}**`;
+			const welcomeDmMessage = `${guildPreferences.welcomeDMMessage.replace(
+				/{\w+}/g,
+				(match) => placeholdersMap.get(match) || match,
+			)}\n\n  \\- From **${member.guild.name}**`;
 
 			await member.send({ content: welcomeDmMessage });
 		}
 		if (
-			member.guild.id == process.env.MAIN_GUILD_ID &&
+			member.guild.id === process.env.MAIN_GUILD_ID &&
 			member.user.createdAt.getTime() >=
 				new Date().getTime() - 60 * 60 * 24 * 1000
 		) {

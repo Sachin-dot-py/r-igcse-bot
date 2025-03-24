@@ -82,7 +82,7 @@ export default class KeywordCommand extends BaseCommand {
 					const sendButton = new ButtonBuilder()
 						.setLabel("Send")
 						.setStyle(ButtonStyle.Success)
-						.setCustomId(`keyword_search_send`);
+						.setCustomId("keyword_search_send");
 					messageOptions.components = [
 						new ActionRowBuilder().addComponents(sendButton),
 					];
@@ -160,7 +160,7 @@ export default class KeywordCommand extends BaseCommand {
 			let action = "";
 			let keywordName = "";
 			let keywordReponse = "";
-			let imageLink: string | undefined = undefined;
+			let imageLink: string | undefined;
 			let currentInteraction:
 				| DiscordChatInputCommandInteraction<"cached">
 				| ModalSubmitInteraction<"cached">
@@ -225,7 +225,7 @@ export default class KeywordCommand extends BaseCommand {
 						await response.awaitMessageComponent({
 							time: 1_800_000,
 						}); // = 30 mins
-					action = buttonInteraction.customId.split("_").at(-1)!;
+					action = buttonInteraction.customId.split("_").at(-1) ?? "";
 					if (action === "cancel") {
 						await currentInteraction.editReply({
 							content: "Keyword request cancelled",
@@ -233,7 +233,8 @@ export default class KeywordCommand extends BaseCommand {
 							components: [],
 						});
 						return;
-					} else if (action === "edit") {
+					}
+					if (action === "edit") {
 						currentInteraction = buttonInteraction;
 					}
 				} catch (e) {
@@ -258,17 +259,17 @@ export default class KeywordCommand extends BaseCommand {
 			const approveButton = new ButtonBuilder()
 				.setLabel("Approve")
 				.setStyle(ButtonStyle.Success)
-				.setCustomId(`keyword_accept`);
+				.setCustomId("keyword_accept");
 
 			const editedApproveButton = new ButtonBuilder()
 				.setLabel("Approve with an edit (add keyword before click)")
 				.setStyle(ButtonStyle.Primary)
-				.setCustomId(`keyword_edited`);
+				.setCustomId("keyword_edited");
 
 			const rejectButton = new ButtonBuilder()
 				.setLabel("Reject")
 				.setStyle(ButtonStyle.Danger)
-				.setCustomId(`keyword_reject`);
+				.setCustomId("keyword_reject");
 
 			const buttonsRow =
 				new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -315,14 +316,14 @@ export async function formatMessage(
 		.setDescription(keywordResponse)
 		.setFooter(footerOptions)
 		.setColor(Colors.Blurple);
-	keywordName = keywordName // capitalize each intial of word
+	const formattedKeywordName = keywordName // capitalize each intial of word
 		.trim()
 		.toLowerCase()
 		.split(" ")
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(" ");
-	if (keywordName) {
-		embed.setTitle(`${keywordName}`);
+	if (formattedKeywordName) {
+		embed.setTitle(`${formattedKeywordName}`);
 	}
 	if (imageLink) {
 		embed.setImage(imageLink);

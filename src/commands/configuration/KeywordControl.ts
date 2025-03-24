@@ -117,7 +117,7 @@ export default class KeywordControlCommand extends BaseCommand {
 			let action = "";
 			let keywordName = "";
 			let keywordReponse = "";
-			let imageLink: string | undefined = undefined;
+			let imageLink: string | undefined;
 			let currentInteraction:
 				| DiscordChatInputCommandInteraction<"cached">
 				| ModalSubmitInteraction<"cached">
@@ -184,7 +184,7 @@ export default class KeywordControlCommand extends BaseCommand {
 						await response.awaitMessageComponent({
 							time: 1_800_000,
 						}); // = 30 mins
-					action = buttonInteraction.customId.split("_").at(-1)!;
+					action = buttonInteraction.customId.split("_").at(-1) ?? "";
 					if (action === "cancel") {
 						await currentInteraction.editReply({
 							content: "Keyword addition cancelled",
@@ -192,9 +192,8 @@ export default class KeywordControlCommand extends BaseCommand {
 							components: [],
 						});
 						return;
-					} else {
-						currentInteraction = buttonInteraction;
 					}
+					currentInteraction = buttonInteraction;
 				} catch (e) {
 					await currentInteraction.editReply({
 						content:
@@ -249,11 +248,11 @@ export async function addKeyword(
 	response: string,
 	imageLink?: string,
 ) {
-	keyword = keyword.trim().toLowerCase();
+	const trimmedKeyword = keyword.trim().toLowerCase();
 	const res = await Keyword.updateOne(
 		{
-			guildId: interaction.guildId!,
-			keyword,
+			guildId: interaction.guildId,
+			keyword: trimmedKeyword,
 		},
 		{
 			response,
@@ -278,7 +277,7 @@ export async function addKeyword(
 
 	await KeywordCache.append({
 		guildId: interaction.guildId,
-		keyword,
+		keyword: trimmedKeyword,
 		response,
 		imageLink,
 	});
