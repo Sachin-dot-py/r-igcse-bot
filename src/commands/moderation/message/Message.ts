@@ -67,6 +67,16 @@ export default class KickCommand extends BaseCommand {
 				interaction.options.getChannel("channel", false) ||
 				interaction.channel;
 
+			if (!channel.isTextBased()) {
+				await interaction.reply({
+					content:
+						"Invalid channel type, must be a text channel.",
+					ephemeral: true,
+				});
+
+				return;
+			}
+
 			const scheduleTime = interaction.options.getNumber(
 				"schedule_time",
 				false,
