@@ -53,9 +53,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 				this.handleResourceTagRequestButton(client, interaction);
 			} else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
+				if (!command) return;
 				try {
-					/* refering to ESLint: both can't really happen as interaction.isAutocomplete() means it is an autocomplete command
-					(unless we didn't define the autocomplete function) */
 					await command.autoComplete(interaction);
 				} catch (e) {
 					Logger.error(e);
@@ -226,9 +225,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const guildPreferences = await GuildPreferencesCache.get(
 			button.guildId,
 		);
-		// if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId) return;
-		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences?.tagResourceApprovalChannelId,
+		if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId)
+			return;
+		const approvalChannel = interaction.guild?.channels.cache.get(
+			guildPreferences.tagResourceApprovalChannelId,
 		);
 
 		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
@@ -241,8 +241,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const description = message.embeds[0].description;
 		const messageLink = message.embeds[0].fields[1].value;
 		const channelId = channelRegex.exec(
-			message.embeds[0].fields[2].value,
-		)[1];
+			message.embeds[0].fields[2].value || "",
+		)?.[1];
 		const authorId = message.embeds[0].author?.name.split(" | ")[1];
 		const guild = client.guilds.cache.get(button.guildId);
 		const author = guild?.members.cache.find((m) => m.id === authorId);
@@ -255,6 +255,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 		if (
 			!interaction.member ||
+			// discord.js sucks
 			!interaction.member.roles.cache.has(helperRoleId)
 		) {
 			await interaction.reply({
@@ -333,7 +334,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 						ephemeral: true,
 					});
 				} catch (error) {
-					if (error.message === "Unknown Interaction") {
+					if ((error as Error).message === "Unknown Interaction") {
 						return;
 					}
 				}
@@ -494,7 +495,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async handleKeywordButtons(
 		client: DiscordClient<true>,
-		interaction: ButtonInteraction<"cached">,
+		interaction: ButtonInteraction,
 	) {
 		if (!interaction.isButton()) return;
 		if (interaction.customId === "keyword_search_send") {
@@ -513,6 +514,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const embed = interaction.message.embeds[0];
 		const matchUserIdRegex = /.*\ \((.*)\)/gi;
 		const userId = matchUserIdRegex.exec(embed.footer?.text ?? "")?.[1]; // it's defo gonna match because of the footer is set
+		if (!userId) return;
 		const user = await client.users.fetch(userId);
 		const keyword = embed.title?.trim().toLowerCase();
 		const response = embed.description;

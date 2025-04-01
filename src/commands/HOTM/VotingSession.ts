@@ -72,7 +72,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 			guildId: interaction.guildId,
 		});
 
-		if (!guildPreferences) {
+		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
 			interaction.reply({
 				content:
 					"Configure the bot using `/setup` before starting sessions",

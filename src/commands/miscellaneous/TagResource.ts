@@ -1,6 +1,6 @@
 // import {PaginationBuilder} from "@discordforge/pagination";
-import { PaginationBuilder } from "@/components/InteractionPagination.ts";
-import SelectButtonless from "@/components/SelectButtonless.ts";
+import { PaginationBuilder } from "@/components/InteractionPagination";
+import SelectButtonless from "@/components/SelectButtonless";
 import { ResourceTag } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -10,6 +10,7 @@ import {
 	ActionRowBuilder,
 	Colors,
 	EmbedBuilder,
+	type InteractionReplyOptions,
 	type Message,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
@@ -87,7 +88,10 @@ export default class ResourceTagCommand extends BaseCommand {
 								description: `${description}\n\n${messageUrl}\nAdded By: <@${authorId}>`,
 							}),
 						),
-						async ({ name, description }) => ({
+						async ({
+							name,
+							description,
+						}: { name: string; description: string }) => ({
 							name: name,
 							value: description,
 						}),
@@ -97,7 +101,7 @@ export default class ResourceTagCommand extends BaseCommand {
 						.setTitle("Resource Tag Search Results")
 						.setColor(Colors.Blurple)
 						.build(
-							(page) => {
+							(page: InteractionReplyOptions) => {
 								const imsg = interaction.reply(page);
 								return { interaction, message: imsg };
 							},
@@ -141,7 +145,10 @@ export default class ResourceTagCommand extends BaseCommand {
 						name: `${item.title} | ||${item._id}||`,
 						description: `${item.description}\n\n${item.messageUrl}\nAdded By: <@${item.authorId}>`,
 					})),
-					async ({ name, description }) => ({
+					async ({
+						name,
+						description,
+					}: { name: string; description: string }) => ({
 						name: name,
 						value: description,
 					}),
@@ -151,7 +158,7 @@ export default class ResourceTagCommand extends BaseCommand {
 					.setTitle("Resource Tag Search Results")
 					.setColor(Colors.Blurple)
 					.build(
-						(page) => {
+						(page: InteractionReplyOptions) => {
 							selectInteractionMsg = interaction.reply(page);
 							return {
 								interaction,

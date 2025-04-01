@@ -23,6 +23,7 @@ import {
 	ForumChannel,
 	type GuildMember,
 	type Message,
+	type MessageCreateOptions,
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
 	type User,
@@ -46,14 +47,14 @@ export default class MessageCreateEvent extends BaseEvent {
 			const keyword = message.content.trim().toLowerCase();
 			const entry = await KeywordCache.get(message.guildId, keyword);
 			if (entry.response) {
-				const messageOptions = await formatMessage(
+				const messageOptions = (await formatMessage(
 					message,
 					entry.response,
 					false,
 					keyword,
 					entry.imageLink,
-				);
-				messageOptions.ephemeral = undefined;
+				)) as MessageCreateOptions;
+				messageOptions.flags = undefined;
 				await message.channel.send(messageOptions);
 			}
 
