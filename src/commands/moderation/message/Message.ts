@@ -12,13 +12,8 @@ import {
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	StageChannel,
-	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
-	ThreadChannel,
-	VoiceChannel,
-	NewsChannel,
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -71,20 +66,6 @@ export default class KickCommand extends BaseCommand {
 			const channel =
 				interaction.options.getChannel("channel", false) ||
 				interaction.channel;
-
-			if (
-				!(channel instanceof TextChannel) &&
-				!(channel instanceof ThreadChannel) &&
-				!(channel instanceof VoiceChannel) &&
-				!(channel instanceof StageChannel) &&
-				!(channel instanceof NewsChannel)
-			) {
-				interaction.reply({
-					content: "This is not a text channel",
-					ephemeral: true,
-				});
-				return;
-			}
 
 			const scheduleTime = interaction.options.getNumber(
 				"schedule_time",
