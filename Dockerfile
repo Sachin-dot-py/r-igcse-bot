@@ -2,10 +2,10 @@ FROM oven/bun:debian
 
 RUN apt-get update && apt-get install -y python3 && apt-get install -y build-essential
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY . /app
+COPY . .
 
-RUN bun install --production
+RUN bun install --frozen-lockfile
 
-CMD ["bun", "run", "start"]
+CMD [ "bun", "run", "start" ]
