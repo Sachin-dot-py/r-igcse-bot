@@ -14,6 +14,7 @@ import {
 	EmbedBuilder,
 	type Message,
 	ModalBuilder,
+	type PublicThreadChannel,
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
@@ -34,15 +35,11 @@ export default class StickMessageCommand extends BaseCommand {
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel) return;
-		const targetMessage: Message<true> = interaction.targetMessage;
+		const targetMessage = interaction.targetMessage;
 
-		let channelId: string;
-
-		if (interaction.channel.isThread()) {
-			channelId = interaction.channel.parentId;
-		} else {
-			channelId = interaction.channel.id;
-		}
+		const channelId = interaction.channel.isThread()
+			? (interaction.channel.parentId ?? "")
+			: interaction.channel.id;
 
 		const studyChannel = await StudyChannel.findOne({
 			guildId: interaction.guildId,

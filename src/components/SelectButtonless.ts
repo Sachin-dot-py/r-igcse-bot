@@ -2,6 +2,7 @@ import {
 	type APISelectMenuOption,
 	ComponentType,
 	type InteractionCollector,
+	type Message,
 	StringSelectMenuBuilder,
 	type StringSelectMenuInteraction,
 	type StringSelectMenuOptionBuilder,
@@ -28,12 +29,12 @@ class Select extends StringSelectMenuBuilder {
 
 	async waitForResponse(
 		customId: string,
-		interaction,
+		message: Message,
 	): Promise<
 		InteractionCollector<StringSelectMenuInteraction> | false | "Timed out"
 	> {
 		try {
-			return interaction.createMessageComponentCollector({
+			return message.createMessageComponentCollector({
 				filter: (i: StringSelectMenuInteraction) =>
 					i.customId === customId,
 				time: 300_000,
@@ -41,7 +42,7 @@ class Select extends StringSelectMenuBuilder {
 			});
 		} catch (error) {
 			if (this.isFirstComponent) {
-				await interaction.followUp({
+				await message.edit({
 					content: "Timed out",
 					components: [],
 				});

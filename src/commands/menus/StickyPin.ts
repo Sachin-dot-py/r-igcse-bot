@@ -79,7 +79,7 @@ export default class StickMessageCommand extends BaseCommand {
 							x.name === "Old Pins" &&
 							x.ownerId === client.user.id,
 					)
-					.first() as AnyThreadChannel<boolean> | undefined;
+					.first() as AnyThreadChannel | undefined;
 				if (!thread) {
 					const embed = new EmbedBuilder().setTitle(
 						"Old pins thread",

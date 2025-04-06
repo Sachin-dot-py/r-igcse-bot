@@ -1,4 +1,5 @@
 import type {
+	AutocompleteInteraction,
 	CacheType,
 	ChatInputCommandInteraction,
 	CommandInteraction,
@@ -48,4 +49,6 @@ export default abstract class BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordCommandInteraction,
 	): Promise<void>;
+
+	autoComplete?(interaction: AutocompleteInteraction): Promise<void>;
 }

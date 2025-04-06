@@ -11,12 +11,18 @@ export default class ReputationCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("rep")
 				.setDescription("View someone's current rep")
-				.addUserOption((option) =>
-					option
-						.setName("user")
-						.setDescription("The user to view the rep of")
-						.setRequired(false),
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("view")
+						.setDescription("View someone's current rep")
+						.addUserOption((option) =>
+							option
+								.setName("user")
+								.setDescription("The user to view the rep of")
+								.setRequired(false),
+						),
 				)
+
 				.setDMPermission(false),
 		);
 	}
