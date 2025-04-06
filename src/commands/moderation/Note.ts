@@ -88,15 +88,6 @@ export default class NoteCommand extends BaseCommand {
 					ephemeral: true,
 				});
 
-				const guildMember = await interaction.guild.members.fetch(user.id);
-
-				if (!guildMember) {
-					interaction.editReply({
-						content: "User not found in server.",
-					});
-					return;
-				}
-
 				const guildPreferences = await GuildPreferencesCache.get(
 					interaction.guildId,
 				);
@@ -135,6 +126,7 @@ export default class NoteCommand extends BaseCommand {
 							{
 								name: "Note",
 								value: note,
+								inline: false,
 							},
 						])
 						.setTimestamp();
@@ -153,6 +145,18 @@ export default class NoteCommand extends BaseCommand {
 
 			case "delete": {
 				const user = interaction.options.getUser("user", true);
+
+				const guildPreferences = await GuildPreferencesCache.get(
+					interaction.guildId,
+				);
+
+				if (!guildPreferences) {
+					interaction.editReply({
+						content:
+							"Please setup the bot using the command `/setup` first.",
+					});
+					return
+				}
 
 				const notes = await ModNote.find({
 					guildId: interaction.guildId,
@@ -222,9 +226,7 @@ export default class NoteCommand extends BaseCommand {
 						error,
 						`${this.data.name} Command`,
 						`
-			* * Channel:** <#${interaction.channel?.id} >
-
-						
+							* * Channel:** <#${interaction.channel?.id} >
 
 							**User:** <@${interaction.user.id}>
 							**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
@@ -236,32 +238,33 @@ export default class NoteCommand extends BaseCommand {
 					components: [],
 				});
 
-				const guildPreferences = await GuildPreferencesCache.get(
-					interaction.guildId,
-				);
+				if (guildPreferences.modlogChannelId) {
+					const modEmbed = new EmbedBuilder()
+						.setTitle(`Note removed`)
+						.setColor(Colors.Blurple)
+						.addFields([
+							{
+								name: "User",
+								value: `${user.tag} (${user.id})`,
+								inline: false,
+							},
+							{
+								name: "Moderator",
+								value: `${interaction.user.tag} (${interaction.user.id})`,
+								inline: false,
+							},
+							{
+								name: "Note",
+								value: note.note,
+								inline: false,
+							},
+						])
+						.setTimestamp();
 
-				if (!guildPreferences || !guildPreferences.modlogChannelId) return;
-
-				logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
-					embeds: [
-						new EmbedBuilder()
-							.setTitle("Note Removed")
-							.setDescription(
-								`Note removed for ${user.tag} (${user.id}) by ${interaction.user.tag} (${interaction.user.id})`,
-							)
-							.addFields(
-								{
-									name: "Note",
-									value: note.note,
-								},
-								{
-									name: "Moderator",
-									value: interaction.user.tag,
-								},
-							)
-							.setTimestamp(),
-					],
-				});
+					logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+						embeds: [modEmbed],
+					});
+				}
 
 				return;
 			}
