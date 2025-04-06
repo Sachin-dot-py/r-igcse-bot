@@ -60,7 +60,7 @@ export default class PinMenu extends BaseCommand {
 				return;
 			}
 
-			let thread = (await interaction.guild.channels.fetch())
+			let thread = interaction.guild.channels.cache
 				.filter(
 					(x) =>
 						x?.isThread() &&
@@ -68,7 +68,7 @@ export default class PinMenu extends BaseCommand {
 						x?.name === "Old Pins" &&
 						x?.ownerId === client.user.id,
 				)
-				.first() as AnyThreadChannel<boolean> | undefined;
+				.first() as AnyThreadChannel | undefined;
 			const yesButton = new ButtonBuilder()
 				.setCustomId("yes")
 				.setLabel("Yes")
@@ -80,7 +80,10 @@ export default class PinMenu extends BaseCommand {
 			const response = await interaction.editReply({
 				content: `Shift to the ${thread?.url || "old pins"} thread?`,
 				components: [
-					new ActionRowBuilder().addComponents(yesButton, noButton),
+					new ActionRowBuilder<ButtonBuilder>().addComponents(
+						yesButton,
+						noButton,
+					),
 				],
 			});
 			try {
@@ -228,7 +231,7 @@ export default class PinMenu extends BaseCommand {
 								x.name === "Old Pins" &&
 								x.ownerId === client.user.id,
 						)
-						.first() as AnyThreadChannel<boolean> | undefined;
+						.first() as AnyThreadChannel | undefined;
 					if (!thread) {
 						thread = (
 							await channel?.threads.fetchArchived()
@@ -240,7 +243,7 @@ export default class PinMenu extends BaseCommand {
 									x.name === "Old Pins" &&
 									x.ownerId === client.user.id,
 							)
-							.first() as AnyThreadChannel<boolean> | undefined;
+							.first() as AnyThreadChannel | undefined;
 					}
 					if (!thread) {
 						const threadId = (
@@ -253,7 +256,7 @@ export default class PinMenu extends BaseCommand {
 							thread = (
 								await channel?.threads.fetchArchived()
 							)?.threads.get(threadId) as
-								| AnyThreadChannel<boolean>
+								| AnyThreadChannel
 								| undefined;
 					}
 					if (!thread) {

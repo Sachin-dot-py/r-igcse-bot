@@ -1,7 +1,5 @@
 // code from https://www.npmjs.com/package/@discordforge/pagination?activeTab=readme and edited by scripted_mari0 to work with interactions
 
-import type { ActionRowBuilder } from "discord.js";
-
 const __defProp = Object.defineProperty;
 const __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 const __getOwnPropNames = Object.getOwnPropertyNames;
@@ -46,7 +44,7 @@ const PaginationBuilder = class {
 	constructor(
 		data,
 		map,
-		customComponents: ActionRowBuilder[],
+		customComponents,
 		ephemeral = false,
 		options = { itemsPerChunk: 9 },
 	) {

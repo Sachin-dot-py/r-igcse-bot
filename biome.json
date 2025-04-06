@@ -12,7 +12,7 @@
 		"lineWidth": 80
 	},
 	"linter": {
-		"ignore": ["src/components/InteractionPagination.ts"],
+		"ignore": ["src/components/InteractionPagination.js"],
 		"enabled": true,
 		"rules": {
 			"complexity": {

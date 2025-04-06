@@ -318,7 +318,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.guild.roles.fetch(response[0])
 		)?.members.filter((helper) => helper.id !== interaction.user.id);
 
-		let userResponse: string[] | false;
+		let userResponse: string[] | false | null = null;
 		let userSelectInteraction: Message;
 
 		if (subjectHelpers && subjectHelpers?.size > 0) {
