@@ -49,7 +49,3 @@ await mongo.connect(process.env.MONGO_URL, {
 
 await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
-
-syncCommands(client as DiscordClient<true>)
-	.then(() => Logger.info("Synced application commands globally"))
-	.catch(Logger.error);

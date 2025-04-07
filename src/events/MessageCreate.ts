@@ -31,6 +31,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { syncCommands } from "@/registry";
+import { isBotDev } from "@/utils/isBotDev";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -42,6 +44,28 @@ export default class MessageCreateEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
 		if (message.system) return;
+
+		if (message.content === "!sync_commands") {
+			if (!(await isBotDev(client, message.author.id))) {
+				return;
+			}
+
+			await syncCommands(client)
+				.then(() => {
+					Logger.info(
+						`Synced application commands globally (by ${message.author.displayName})`,
+					);
+					message.reply("Succesfully synced commands.");
+				})
+				.catch((e) => {
+					Logger.error(
+						`Error syncing application commands globally (by ${message.author.displayName}): ${e}`,
+					);
+					message.reply("Error syncing commands.");
+				});
+
+			return;
+		}
 
 		if (message.inGuild()) {
 			const keyword = message.content.trim().toLowerCase();
