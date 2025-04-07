@@ -44,6 +44,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
 			) {
+				if (interaction.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(interaction.guildId)) {
+					await interaction.reply("This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.")
+					return;
+				}
 				this.handleCommand(client, interaction);
 			} else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
