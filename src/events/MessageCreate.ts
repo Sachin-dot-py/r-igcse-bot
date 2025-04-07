@@ -44,7 +44,6 @@ export default class MessageCreateEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
 		if (message.system) return;
-		if (message.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(message.guildId)) return;
 
 		if (message.content === "!sync_commands") {
 			if (!(await isBotDev(client, message.author.id))) {
