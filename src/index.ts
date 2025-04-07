@@ -49,3 +49,7 @@ await mongo.connect(process.env.MONGO_URL, {
 
 await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
+
+process.on("uncaughtException", (error) => {
+	Logger.error(error);
+});
