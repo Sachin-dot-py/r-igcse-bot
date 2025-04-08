@@ -52,12 +52,6 @@ export default class NoteCommand extends BaseCommand {
 								.setDescription("User to delete a note from")
 								.setRequired(true)
 							)
-						.addStringOption((option) =>
-							option
-								.setName("note")
-								.setDescription("The note you want to delete")
-								.setRequired(true)
-							)
 					)
 				.addSubcommand((subcommand) =>
 					subcommand
