@@ -50,9 +50,11 @@ await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
 
 process.on("uncaughtException", (error) => {
-	Logger.error(error);
+	Logger.error(`Uncaught Exception: ${error} | Stack: ${error.stack}`);
 });
 
 process.on("unhandledRejection", (error) => {
-	Logger.error(error);
+	Logger.error(
+		`Unhandled Rejection: ${error} | Stack: ${error instanceof Error ? error.stack : "Unknown"}`,
+	);
 });

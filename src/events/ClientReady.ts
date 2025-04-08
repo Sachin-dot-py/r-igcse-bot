@@ -130,7 +130,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		createTask(
 			async () =>
 				await this.refreshChannelLockdowns().catch((e) =>
-					Logger.error(`Error at sendScheduledMessage: ${e}`),
+					Logger.error(`Error at refreshChannelLockdowns: ${e}`),
 				),
 			120000,
 		);
