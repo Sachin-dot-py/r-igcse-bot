@@ -2,7 +2,6 @@ import { registerCommands, registerEvents, syncCommands } from "@/registry";
 import { Logger } from "@discordforge/logger";
 import { GatewayIntentBits, Partials } from "discord.js";
 import mongo from "mongoose";
-import actionRequired from "./cron/actionRequired";
 import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
 
@@ -51,5 +50,9 @@ await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
 
 process.on("uncaughtException", (error) => {
+	Logger.error(error);
+});
+
+process.on("unhandledRejection", (error) => {
 	Logger.error(error);
 });
