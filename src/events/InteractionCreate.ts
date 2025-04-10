@@ -1,6 +1,7 @@
+import { addKeyword } from "@/commands/configuration/KeywordControl";
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
-import {ConfessionBan, PracticeSession, ResourceTag} from "@/mongo";
+import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -8,6 +9,8 @@ import {
 	GuildPreferencesCache,
 	PracticeQuestionCache,
 } from "@/redis";
+import { logToChannel } from "@/utils/Logger";
+import { Logger } from "@discordforge/logger";
 import {
 	type ActionRowBuilder,
 	type ButtonBuilder,
@@ -26,10 +29,9 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { Logger } from "@discordforge/logger";
-import { logToChannel } from "@/utils/Logger";
-import { Keyword } from "@/mongo/schemas/Keyword";
-import { addKeyword } from "@/commands/configuration/KeywordControl";
+
+const channelRegex = /<#(\d+)>/;
+const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -41,24 +43,26 @@ export default class InteractionCreateEvent extends BaseEvent {
 			if (
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
-			)
+			) {
+				if (interaction.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(interaction.guildId)) {
+					await interaction.reply("This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.")
+					return;
+				}
 				this.handleCommand(client, interaction);
-			else if (interaction.isButton()) {
+			} else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
 				this.handleKeywordButtons(client, interaction);
 				this.handleResourceTagRequestButton(client, interaction);
-			}
-			else if (interaction.isAutocomplete()) {
+			} else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
+				if (!command) return;
 				try {
-					/* refering to ESLint: both can't really happen as interaction.isAutocomplete() means it is an autocomplete command
-					(unless we didn't define the autocomplete function) */
 					await command.autoComplete(interaction);
 				} catch (e) {
-					Logger.error(e)
-				};
+					Logger.error(e);
+				}
 			}
 		} catch (error) {
 			Logger.error(error);
@@ -101,8 +105,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction,
 	) {
-		const matchCustomIdRegex =
-			/[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 		if (!matchCustomIdRegex.test(interaction.customId)) return;
 
 		const customId = interaction.customId.split("_").slice(1).join("_");
@@ -180,7 +182,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				session.threadId,
 			);
 
-			if (thread && thread.isThread()) {
+			if (thread?.isThread()) {
 				const message = await thread.messages.fetch(button.messageId);
 
 				await message.edit({
@@ -211,9 +213,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async handleResourceTagRequestButton(
 		client: DiscordClient<true>,
-		interaction: ButtonInteraction
+		interaction: ButtonInteraction,
 	) {
-
 		const matchCustomIdRegex = /(.*_tag)_(accept|reject)/gi;
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches) return;
@@ -225,10 +226,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const button = await ButtonInteractionCache.get(tagId);
 		if (!button || !button.guildId || !button.userId) return;
 
-		const guildPreferences = await GuildPreferencesCache.get(button.guildId);
-		// if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId) return;
-		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences?.tagResourceApprovalChannelId
+		const guildPreferences = await GuildPreferencesCache.get(
+			button.guildId,
+		);
+		if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId)
+			return;
+		const approvalChannel = interaction.guild?.channels.cache.get(
+			guildPreferences.tagResourceApprovalChannelId,
 		);
 
 		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
@@ -237,26 +241,30 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const message = await approvalChannel.messages.fetch(button.messageId);
 		if (!message) return;
 
-		const channelRegex = /<#(\d+)>/
-
 		const title = message.embeds[0].title;
 		const description = message.embeds[0].description;
 		const messageLink = message.embeds[0].fields[1].value;
-		const channelId = channelRegex.exec(message.embeds[0].fields[2].value)[1];
+		const channelId = channelRegex.exec(
+			message.embeds[0].fields[2].value || "",
+		)?.[1];
 		const authorId = message.embeds[0].author?.name.split(" | ")[1];
 		const guild = client.guilds.cache.get(button.guildId);
 		const author = guild?.members.cache.find((m) => m.id === authorId);
 
-    const helperRoleData = await StudyChannel.findOne({
+		const helperRoleData = await StudyChannel.findOne({
 			channelId: channelId,
 		});
 		const helperRoleId = helperRoleData?.helperRoleId;
 		if (!helperRoleId) return;
 
-		if (!interaction.member || !interaction.member.roles.cache.has(helperRoleId)) {
+		if (
+			!interaction.member ||
+			// discord.js sucks
+			!interaction.member.roles.cache.has(helperRoleId)
+		) {
 			await interaction.reply({
 				content: "You aren't a helper for this channel",
-				ephemeral: true
+				ephemeral: true,
 			});
 			return;
 		}
@@ -264,7 +272,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		switch (action) {
 			case "accept": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title+" - Accepted by " + interaction.user.tag)
+					.setTitle(`${title} - Accepted by ${interaction.user.tag}`)
 					.setDescription(description)
 					.setColor("Green")
 					.addFields(...message.embeds[0].fields)
@@ -273,7 +281,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await message.edit({
 					embeds: [embedEdited],
 					components: [],
-				})
+				});
 
 				const tagSearchRes = await ResourceTag.findOne({
 					messageUrl: messageLink,
@@ -281,13 +289,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				if (tagSearchRes) {
 					return await interaction.reply({
-						content: "This message has already been tagged as a resource",
-						ephemeral: true
-					})
+						content:
+							"This message has already been tagged as a resource",
+						ephemeral: true,
+					});
 				}
 
 				const newRes = await ResourceTag.create({
-
 					guildId: button.guildId,
 					title,
 					description,
@@ -296,14 +304,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 					messageUrl: messageLink,
 				});
 
-  
 				try {
 					await interaction.reply({
 						content: `Resource tag approved with ID \`${newRes._id}\``,
 						ephemeral: true,
 					});
 				} catch (error) {
-					return
+					return;
 				}
 
 				await author?.send({
@@ -314,7 +321,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			}
 			case "reject": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title+" - Rejected by " + interaction.user.tag)
+					.setTitle(`${title} - Rejected by ${interaction.user.tag}`)
 					.setDescription(description)
 					.setColor("Red")
 					.addFields(...message.embeds[0].fields)
@@ -323,7 +330,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await message.edit({
 					embeds: [embedEdited],
 					components: [],
-				})
+				});
 
 				try {
 					await interaction.reply({
@@ -331,11 +338,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 						ephemeral: true,
 					});
 				} catch (error) {
-					if (error.message === "Unknown Interaction") {
-						return
+					if ((error as Error).message === "Unknown Interaction") {
+						return;
 					}
 				}
-
 
 				await author?.send({
 					content: `Your resource tag request has been rejected. ${messageLink}`,
@@ -493,58 +499,73 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async handleKeywordButtons(
 		client: DiscordClient<true>,
-		interaction: ButtonInteraction<"cached">,
+		interaction: ButtonInteraction,
 	) {
 		if (!interaction.isButton()) return;
 		if (interaction.customId === "keyword_search_send") {
 			const message = interaction.message;
-			await interaction.reply({embeds: [message.embeds[0]], ephemeral: false});
+			await interaction.reply({
+				embeds: [message.embeds[0]],
+				ephemeral: false,
+			});
 			return;
 		}
 		const matchCustomIdRegex = /keyword_(accept|edited|reject)/gi;
-		
+
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches || !interaction.guildId) return;
 
-		let embed = interaction.message.embeds[0];
+		const embed = interaction.message.embeds[0];
 		const matchUserIdRegex = /.*\ \((.*)\)/gi;
-		const userId = matchUserIdRegex.exec(embed.footer!.text!)![1]; // it's defo gonna match because of the footer is set
+		const userId = matchUserIdRegex.exec(embed.footer?.text ?? "")?.[1]; // it's defo gonna match because of the footer is set
+		if (!userId) return;
 		const user = await client.users.fetch(userId);
 		const keyword = embed.title?.trim().toLowerCase();
 		const response = embed.description;
 		const imageLink = embed.image?.url;
 		if (!keyword || !response) return;
 		let newEmbedColor: ColorResolvable = Colors.White;
-		let moderatorAction = '';
+		let moderatorAction = "";
 		const modPfp = interaction.user.displayAvatarURL();
 		switch (regexMatches[1]) {
-			case 'accept':
+			case "accept":
 				await addKeyword(interaction, keyword, response, imageLink);
-				await user.send(`Your keyword request, \`${keyword}\`, has been approved!`);
-				newEmbedColor = Colors.Green
-				moderatorAction = `Approved by ${interaction.user.tag}`
+				await user.send(
+					`Your keyword request, \`${keyword}\`, has been approved!`,
+				);
+				newEmbedColor = Colors.Green;
+				moderatorAction = `Approved by ${interaction.user.tag}`;
 				break;
-			case 'edited':
-				await user.send(`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`);
+			case "edited":
+				await user.send(
+					`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`,
+				);
 				await interaction.reply({
-					content: `Sent dm message (you have to create the keyword yourself)`,
-					ephemeral: true
+					content:
+						"Sent dm message (you have to create the keyword yourself)",
+					ephemeral: true,
 				});
-				newEmbedColor = Colors.Yellow
-				moderatorAction = `Approved (edited) by ${interaction.user.tag}`
+				newEmbedColor = Colors.Yellow;
+				moderatorAction = `Approved (edited) by ${interaction.user.tag}`;
 				break;
-			case 'reject':
-				await user.send(`Your keyword request, \`${keyword}\`, has been rejected!`);
+			case "reject":
+				await user.send(
+					`Your keyword request, \`${keyword}\`, has been rejected!`,
+				);
 				await interaction.reply({
-					content: 'Sent rejection message',
-					ephemeral: true
+					content: "Sent rejection message",
+					ephemeral: true,
 				});
-				newEmbedColor = Colors.Red
-				moderatorAction = `Rejected by ${interaction.user.tag}`
+				newEmbedColor = Colors.Red;
+				moderatorAction = `Rejected by ${interaction.user.tag}`;
 				break;
 		}
-		const modInfo = modPfp ? {name: moderatorAction, iconURL: modPfp} : {name: moderatorAction};
-		const newEmbed = new EmbedBuilder(embed.data).setColor(newEmbedColor).setAuthor(modInfo);
+		const modInfo = modPfp
+			? { name: moderatorAction, iconURL: modPfp }
+			: { name: moderatorAction };
+		const newEmbed = new EmbedBuilder(embed.data)
+			.setColor(newEmbedColor)
+			.setAuthor(modInfo);
 		await interaction.message.edit({ embeds: [newEmbed], components: [] });
 	}
 
@@ -695,7 +716,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				});
 
 				await interaction.editReply({
-					content: `Session accepted`,
+					content: "Session accepted",
 				});
 				break;
 			}

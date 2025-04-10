@@ -1,25 +1,24 @@
-import {ResourceTag, StickyMessage} from "@/mongo";
-import {ButtonInteractionCache, GuildPreferencesCache, StickyMessageCache} from "@/redis";
-import type {APIEmbedRedis, ICachedStickyMessage} from "@/redis/schemas/StickyMessage";
+import { ResourceTag } from "@/mongo";
+import { StudyChannel } from "@/mongo/schemas/StudyChannel.ts";
+import { ButtonInteractionCache, GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordMessageContextMenuCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
 	ActionRowBuilder,
-	ApplicationCommandType, ButtonBuilder, ButtonStyle,
-	ChannelSelectMenuBuilder,
-	ChannelType,
-	ComponentType,
-	ContextMenuCommandBuilder, EmbedBuilder, type Message,
+	ApplicationCommandType,
+	ButtonBuilder,
+	ButtonStyle,
+	ContextMenuCommandBuilder,
+	EmbedBuilder,
+	type Message,
 	ModalBuilder,
-	PermissionFlagsBits,
+	type PublicThreadChannel,
 	TextInputBuilder,
-	TextInputStyle, ThreadChannel,
+	TextInputStyle,
 } from "discord.js";
-import {EntityId} from "redis-om";
-import {StudyChannel} from "@/mongo/schemas/StudyChannel.ts";
-import {v4 as uuidv4} from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 export default class StickMessageCommand extends BaseCommand {
 	constructor() {
@@ -36,15 +35,11 @@ export default class StickMessageCommand extends BaseCommand {
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
 	) {
 		if (!interaction.channel) return;
-		let targetMessage: Message<true> = interaction.targetMessage;
+		const targetMessage = interaction.targetMessage;
 
-		let channelId: string;
-		
-		if (!interaction.channel.isThread()) {
-			channelId = interaction.channel.id
-		}else {
-			channelId = interaction.channel.parentId
-		}
+		const channelId = interaction.channel.isThread()
+			? (interaction.channel.parentId ?? "")
+			: interaction.channel.id;
 
 		const studyChannel = await StudyChannel.findOne({
 			guildId: interaction.guildId,
@@ -61,7 +56,7 @@ export default class StickMessageCommand extends BaseCommand {
 		}
 
 		const guildPreferences = await GuildPreferencesCache.get(
-			interaction.guildId
+			interaction.guildId,
 		);
 
 		if (
@@ -71,21 +66,21 @@ export default class StickMessageCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
 		}
 
 		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences?.tagResourceApprovalChannelId
+			guildPreferences?.tagResourceApprovalChannelId,
 		);
 
 		if (!approvalChannel || !approvalChannel.isTextBased()) {
 			await interaction.reply({
 				content:
 					"Invalid configuration for resource tags. Please contact an admin.",
-				ephemeral: true
+				ephemeral: true,
 			});
 
 			return;
@@ -97,7 +92,8 @@ export default class StickMessageCommand extends BaseCommand {
 
 		if (tags) {
 			await interaction.reply({
-				content: "This message already has already been tagged as a resource.",
+				content:
+					"This message already has already been tagged as a resource.",
 				ephemeral: true,
 			});
 
@@ -118,33 +114,39 @@ export default class StickMessageCommand extends BaseCommand {
 			.setRequired(true)
 			.setStyle(TextInputStyle.Paragraph);
 
-		const row1 = new ActionRowBuilder<TextInputBuilder>()
-			.addComponents(titleInput);
+		const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(
+			titleInput,
+		);
 
-		const row2 = new ActionRowBuilder<TextInputBuilder>()
-			.addComponents(descriptionInput);
+		const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(
+			descriptionInput,
+		);
 
 		const modalCustomId = uuidv4();
 
 		const modal = new ModalBuilder()
 			.setCustomId(modalCustomId)
 			.setTitle("Request Resource Tag")
-			.addComponents(row1, row2)
+			.addComponents(row1, row2);
 
 		await interaction.showModal(modal);
 
 		const modalInteraction = await interaction.awaitModalSubmit({
 			time: 600_000,
-			filter: (i) => i.customId === modalCustomId
-		})
+			filter: (i) => i.customId === modalCustomId,
+		});
 
-		const title = modalInteraction.fields.getTextInputValue("tag-title-input");
-		const description = modalInteraction.fields.getTextInputValue("tag-description-input");
+		const title =
+			modalInteraction.fields.getTextInputValue("tag-title-input");
+		const description = modalInteraction.fields.getTextInputValue(
+			"tag-description-input",
+		);
 
 		await modalInteraction.reply({
-			content: "Your tag request has been sent to the helpers.\nYou have to wait for them to approve it.",
-			ephemeral: true
-		})
+			content:
+				"Your tag request has been sent to the helpers.\nYou have to wait for them to approve it.",
+			ephemeral: true,
+		});
 
 		const embed = new EmbedBuilder()
 			.setTitle(title)
@@ -154,23 +156,23 @@ export default class StickMessageCommand extends BaseCommand {
 				{
 					name: "Requested By",
 					value: interaction.user.tag,
-					inline: true
+					inline: true,
 				},
 				{
 					name: "Message Link",
 					value: targetMessage.url,
-					inline: true
+					inline: true,
 				},
 				{
 					name: "Channel",
 					value: `<#${channelId}>`,
-					inline: true
-				}
+					inline: true,
+				},
 			)
 			.setAuthor({
-				name: interaction.user.tag + " | " + interaction.user.id,
+				name: `${interaction.user.tag} | ${interaction.user.id}`,
 				iconURL: interaction.user.displayAvatarURL(),
-			})
+			});
 
 		const customId = uuidv4();
 
@@ -184,8 +186,10 @@ export default class StickMessageCommand extends BaseCommand {
 			.setLabel("Reject")
 			.setStyle(ButtonStyle.Danger);
 
-		const row = new ActionRowBuilder<ButtonBuilder>()
-			.addComponents(approveButton, rejectButton);
+		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+			approveButton,
+			rejectButton,
+		);
 
 		const message = await approvalChannel.send({
 			embeds: [embed],
@@ -197,11 +201,11 @@ export default class StickMessageCommand extends BaseCommand {
 			messageId: message.id,
 			guildId: interaction.guildId,
 			userId: interaction.user.id,
-		})
+		});
 
 		await ButtonInteractionCache.expire(
 			`${customId}_tag`,
-			3*24*60*60
-		)
+			3 * 24 * 60 * 60,
+		);
 	}
 }

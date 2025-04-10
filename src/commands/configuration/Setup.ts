@@ -68,7 +68,7 @@ export default class SetupCommand extends BaseCommand {
 
 		setupButtons.createCollector(customId, buttonMessage);
 
-		preferences.forEach(async (preference, index) => {
+		preferences.forEach((preference, index) => {
 			const Component = typeToComponent[preference.type];
 			const component = new Component(
 				preference.key,
@@ -166,9 +166,9 @@ export default class SetupCommand extends BaseCommand {
 				fetchReply: true,
 			});
 
-			toSendComponents.forEach((c) => {
+			for (const c of toSendComponents) {
 				c.createCollector(c.customId, selectInteraction, c.maxValues);
-			});
+			}
 		}
 	}
 }

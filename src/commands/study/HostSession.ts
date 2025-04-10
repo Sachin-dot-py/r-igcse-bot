@@ -16,6 +16,7 @@ import {
 	StringSelectMenuOptionBuilder,
 	TextInputBuilder,
 	TextInputStyle,
+	type Message,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
@@ -23,6 +24,8 @@ import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
+
+const digitsOnlyRegex = /^\d+$/;
 
 export default class HostSessionCommand extends BaseCommand {
 	constructor() {
@@ -191,7 +194,7 @@ export default class HostSessionCommand extends BaseCommand {
 		const startDate =
 			Math.round(Number.parseInt(startTimeString) / 1800) * 1800; // Rounded off to 30 mins
 
-		if (isNaN(startDate)) {
+		if (Number.isNaN(startDate)) {
 			modalInteraction.reply({
 				content: "Ensure you entered a valid epoch timestamp",
 				ephemeral: true,
@@ -221,11 +224,15 @@ export default class HostSessionCommand extends BaseCommand {
 
 		const durationString =
 			modalInteraction.fields.getTextInputValue("duration");
-		const duration = /^\d+$/.test(durationString)
+		const duration = digitsOnlyRegex.test(durationString)
 			? Number.parseInt(durationString) * 60 * 1000
-			: parse(durationString, "ms") ?? 0;
+			: (parse(durationString, "ms") ?? 0);
 
-		if (duration > 43_200_000 || duration < 900_000 || isNaN(duration)) {
+		if (
+			duration > 43_200_000 ||
+			duration < 900_000 ||
+			Number.isNaN(duration)
+		) {
 			modalInteraction.reply({
 				content: "Ensure you enter a valid duration",
 				ephemeral: true,
@@ -311,8 +318,8 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.guild.roles.fetch(response[0])
 		)?.members.filter((helper) => helper.id !== interaction.user.id);
 
-		let userResponse;
-		let userSelectInteraction;
+		let userResponse: string[] | false | null = null;
+		let userSelectInteraction: Message;
 
 		if (subjectHelpers && subjectHelpers?.size > 0) {
 			await modalInteraction.editReply({
@@ -386,7 +393,7 @@ export default class HostSessionCommand extends BaseCommand {
 		embedDescription += `\n\nThey will cover the following topics: ${contents}\n\nStart: <t:${startDate}:R> at <t:${startDate}:t>\nEnd: <t:${endDate}:R> at <t:${endDate}:t>\nTotal Duration: ${humanizeDuration(duration)}`;
 
 		const embed = new EmbedBuilder()
-			.setTitle(`Session Requested To Be Hosted`)
+			.setTitle("Session Requested To Be Hosted")
 			.setDescription(embedDescription)
 			.setColor("Random")
 			.setAuthor({

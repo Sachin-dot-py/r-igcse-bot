@@ -1,4 +1,5 @@
 import Select from "@/components/Select";
+import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
 import mcqButtons from "@/components/practice/MCQButtons";
 import SessionInfoModal from "@/components/practice/SessionInfoModal";
 import UserSelect from "@/components/practice/UserSelect";
@@ -43,6 +44,7 @@ type CommandOptions = {
 type CollectedData = {
 	minimumYear: number;
 	numberOfQuestions: number;
+	timeLimit: number | null;
 	subject: string[];
 	topics: string[];
 	visibility: string[];
@@ -124,6 +126,7 @@ export default class PracticeCommand extends BaseCommand {
 		const collectedData: CollectedData = {
 			minimumYear: 0,
 			numberOfQuestions: 0,
+			timeLimit: 0,
 			subject: [],
 			topics: [],
 			visibility: [],
@@ -136,11 +139,25 @@ export default class PracticeCommand extends BaseCommand {
 			interaction,
 		);
 		if (!modalResponse) return;
-		const { minimumYear, numberOfQuestions, followUpInteraction } =
-			modalResponse;
+		const {
+			minimumYear,
+			numberOfQuestions,
+			timeLimit,
+			followUpInteraction,
+		} = modalResponse;
 
 		collectedData.minimumYear = minimumYear;
 		collectedData.numberOfQuestions = numberOfQuestions;
+		collectedData.timeLimit = timeLimit;
+
+		if (timeLimit && timeLimit < 1) {
+			await followUpInteraction.reply({
+				content:
+					"Boi you ain't solving these MCQs in less than a minute, give yourself some more time, at least 1 minute!",
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const dataInteractions = [
 			{
@@ -177,7 +194,7 @@ export default class PracticeCommand extends BaseCommand {
 			const customId = uuidv4();
 			const viewInstance = new view(
 				customId,
-				collectedData["subject"]?.[0] || "",
+				collectedData.subject?.[0] || "",
 			);
 			let viewInteraction: Message;
 			if (interaction === "0") {
@@ -223,7 +240,7 @@ export default class PracticeCommand extends BaseCommand {
 			if (!data || data.every((x) => x === false)) {
 				if (required) return;
 				if (key === "topics")
-					data = subjectTopics[collectedData["subject"][0]];
+					data = subjectTopics[collectedData.subject[0]];
 			}
 			data = data.filter((x) => typeof x === "string");
 
@@ -253,7 +270,7 @@ export default class PracticeCommand extends BaseCommand {
 
 		const sessionId = uuidv4().split("-")[0];
 
-		await questions.forEach(async (question) => {
+		for (const question of questions) {
 			const { subject, year, season, paper, variant, questionNumber } =
 				question;
 
@@ -267,7 +284,7 @@ export default class PracticeCommand extends BaseCommand {
 				sessionId: sessionId,
 			});
 			PracticeQuestionCache.expire(questionName, 60 * 60 * 2);
-		});
+		}
 
 		const thread = await interaction.channel.threads.create({
 			name: `${interaction.user.username}'s Practice Session`,
@@ -302,6 +319,7 @@ export default class PracticeCommand extends BaseCommand {
 			paused: false,
 			currentlySolving: "none",
 			expireTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
+			timeLimit: collectedData.timeLimit,
 		});
 
 		await session.save();
@@ -313,6 +331,7 @@ Subject: ${practiceSubjects[collectedData.subject[0]]}
 Questions: ${collectedData.numberOfQuestions}
 Visibility: ${collectedData.visibility[0]}
 Users: ${collectedData.users.map((x) => `<@${x}>`).join(", ")}
+Time limit per question: ${collectedData.timeLimit} minute${collectedData.timeLimit === 1 ? "" : "s"}
 
 Session ID: ${sessionId}`,
 		);
@@ -755,7 +774,9 @@ Session ID: ${sessionId}`,
 					await UserCache.remove(user);
 				}
 
-				PracticeSession.deleteOne({ sessionId: session.sessionId });
+				PracticeSession.deleteOne({
+					sessionId: session.sessionId,
+				}).catch((e) => Logger.error(e));
 			}
 		}
 		if (!guild) {
@@ -764,7 +785,9 @@ Session ID: ${sessionId}`,
 				await UserCache.remove(user);
 			}
 
-			PracticeSession.deleteOne({ sessionId: session.sessionId });
+			PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(
+				(e) => Logger.error(e),
+			);
 			return;
 		}
 
@@ -775,7 +798,9 @@ Session ID: ${sessionId}`,
 				await UserCache.remove(user);
 			}
 
-			PracticeSession.deleteOne({ sessionId: session.sessionId });
+			PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(
+				(e) => Logger.error(e),
+			);
 			return;
 		}
 
@@ -853,7 +878,9 @@ Session ID: ${sessionId}`,
 			await UserCache.remove(user);
 		}
 
-		await PracticeSession.deleteOne({ sessionId: session.sessionId });
+		await PracticeSession.deleteOne({ sessionId: session.sessionId }).catch(
+			(e) => Logger.error(e),
+		);
 		await thread.setArchived(true);
 	}
 
@@ -906,7 +933,7 @@ Session ID: ${sessionId}`,
 				this.endAndSendResults(
 					client,
 					session,
-					`Session ended due to no questions left.`,
+					"Session ended due to no questions left.",
 				);
 				continue;
 			}
@@ -916,11 +943,7 @@ Session ID: ${sessionId}`,
 
 			const thread = await client?.channels.fetch(session.threadId);
 			if (!thread?.isThread()) {
-				this.endAndSendResults(
-					client,
-					session,
-					`Session ended.`,
-				);
+				this.endAndSendResults(client, session, "Session ended.");
 				continue;
 			}
 
@@ -955,6 +978,47 @@ Session ID: ${sessionId}`,
 				customId: question.questionName,
 				messageId: message.id,
 			});
+
+			if (session.timeLimit) {
+				setTimeout(
+					async () => {
+						const updatedSession = await PracticeSession.findOne({
+							sessionId: session.sessionId,
+						});
+						if (!updatedSession) return;
+						if (
+							updatedSession.currentlySolving !==
+							question.questionName
+						)
+							return;
+						question.solved = true;
+						await PracticeQuestionCache.save(question);
+						ButtonInteractionCache.remove(question.questionName);
+
+						await message.edit({
+							components: [
+								new disabledMcqButtons(
+									question.questionName,
+									question.answers,
+								) as ActionRowBuilder<ButtonBuilder>,
+							],
+						});
+						await thread.send({
+							embeds: [
+								new EmbedBuilder()
+									.setTitle("Time ran out for question!")
+									.setDescription(
+										`Correct answer: ${question.answers}\n\n${question.userAnswers.map((x) => `<@${x.user}>: ${x.answer}`).join("\n")}`,
+									),
+							],
+						});
+
+						updatedSession.currentlySolving = "none";
+						await updatedSession.save();
+					},
+					session.timeLimit * 60 * 1000,
+				);
+			}
 
 			ButtonInteractionCache.expire(question.questionName, 60 * 60 * 2);
 			// Interactions are stored in redis and will be handled using the InteractionCreate event.

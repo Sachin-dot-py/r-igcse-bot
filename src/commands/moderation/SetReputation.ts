@@ -53,7 +53,7 @@ export default class extends BaseCommand {
 
 		if (res.modifiedCount + res.upsertedCount === 0) {
 			if (
-				newRep ==
+				newRep ===
 				(
 					await Reputation.findOne({
 						guildId: interaction.guild.id,

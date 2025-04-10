@@ -1,99 +1,99 @@
 import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
+import { logToChannel } from "@/utils/Logger";
 import {
-  type AutoModerationActionExecution,
-  AutoModerationActionType,
-  Colors,
-  EmbedBuilder,
-  Events,
+	type AutoModerationActionExecution,
+	AutoModerationActionType,
+	Colors,
+	EmbedBuilder,
+	Events,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { logToChannel } from "@/utils/Logger";
 
 export default class ErrorEvent extends BaseEvent {
-  constructor() {
-    super(Events.AutoModerationActionExecution);
-  }
+	constructor() {
+		super(Events.AutoModerationActionExecution);
+	}
 
-  async execute(
-    client: DiscordClient<true>,
-    autoModerationActionExecution: AutoModerationActionExecution
-  ) {
-    if (
-      !(
-        autoModerationActionExecution.action.type ===
-        AutoModerationActionType.Timeout
-      ) ||
-      !autoModerationActionExecution.user
-    )
-      return;
+	async execute(
+		client: DiscordClient<true>,
+		autoModerationActionExecution: AutoModerationActionExecution,
+	) {
+		if (
+			!(
+				autoModerationActionExecution.action.type ===
+				AutoModerationActionType.Timeout
+			) ||
+			!autoModerationActionExecution.user
+		)
+			return;
 
-    const duration =
-      autoModerationActionExecution.action.metadata.durationSeconds ?? 0;
+		const duration =
+			autoModerationActionExecution.action.metadata.durationSeconds ?? 0;
 
-    const reason =
-      autoModerationActionExecution.action.metadata.customMessage || null;
+		const reason =
+			autoModerationActionExecution.action.metadata.customMessage || null;
 
-    const durationString = humanizeDuration(duration * 1000);
+		const durationString = humanizeDuration(duration * 1000);
 
-    const caseNumber =
-      (
-        await Punishment.find({
-          guildId: autoModerationActionExecution.guild.id,
-        })
-      ).length + 1;
+		const caseNumber =
+			(
+				await Punishment.find({
+					guildId: autoModerationActionExecution.guild.id,
+				})
+			).length + 1;
 
-    await Punishment.create({
-      guildId: autoModerationActionExecution.guild.id,
-      actionAgainst: autoModerationActionExecution.userId,
-      actionBy: "Auto Mod",
-      action: "Timeout",
-      caseId: caseNumber,
-      duration,
-      reason,
-      points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
-      when: new Date(),
-    });
+		await Punishment.create({
+			guildId: autoModerationActionExecution.guild.id,
+			actionAgainst: autoModerationActionExecution.userId,
+			actionBy: "Auto Mod",
+			action: "Timeout",
+			caseId: caseNumber,
+			duration,
+			reason,
+			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
+			when: new Date(),
+		});
 
-    const modEmbed = new EmbedBuilder()
-      .setTitle(`Timeout | Case #${caseNumber}`)
-      .setDescription(reason)
-      .setColor(Colors.Red)
-      .addFields([
-        {
-          name: "Username",
-          value: `${autoModerationActionExecution.user.tag} (${autoModerationActionExecution.user.id})`,
-        },
-        {
-          name: "Moderator",
-          value: "AutoMod",
-        },
-        {
-          name: "Reason",
-          value: "Derogatory Language",
-        },
-        {
-          name: "Duration",
-          value: `${durationString} (<t:${
-            Math.floor(Date.now() / 1000) + duration
-          }:R>)`,
-        },
-      ]);
+		const modEmbed = new EmbedBuilder()
+			.setTitle(`Timeout | Case #${caseNumber}`)
+			.setDescription(reason)
+			.setColor(Colors.Red)
+			.addFields([
+				{
+					name: "Username",
+					value: `${autoModerationActionExecution.user.tag} (${autoModerationActionExecution.user.id})`,
+				},
+				{
+					name: "Moderator",
+					value: "AutoMod",
+				},
+				{
+					name: "Reason",
+					value: "Derogatory Language",
+				},
+				{
+					name: "Duration",
+					value: `${durationString} (<t:${
+						Math.floor(Date.now() / 1000) + duration
+					}:R>)`,
+				},
+			]);
 
-    const guildPreferences = await GuildPreferencesCache.get(
-      autoModerationActionExecution.guild.id
-    );
+		const guildPreferences = await GuildPreferencesCache.get(
+			autoModerationActionExecution.guild.id,
+		);
 
-    if (!guildPreferences || !guildPreferences.modlogChannelId) return;
+		if (!guildPreferences || !guildPreferences.modlogChannelId) return;
 
-    logToChannel(
-      autoModerationActionExecution.guild,
-      guildPreferences.modlogChannelId,
-      {
-        embeds: [modEmbed],
-      }
-    );
-  }
+		logToChannel(
+			autoModerationActionExecution.guild,
+			guildPreferences.modlogChannelId,
+			{
+				embeds: [modEmbed],
+			},
+		);
+	}
 }

@@ -2,200 +2,208 @@ import { Punishment } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-  type DiscordChatInputCommandInteraction,
+	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { logToChannel } from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
 import {
-  Colors,
-  EmbedBuilder,
-  PermissionFlagsBits,
-  SlashCommandBuilder,
+	Colors,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
 } from "discord.js";
 
 export default class BanCommand extends BaseCommand {
-  constructor() {
-    super(
-      new SlashCommandBuilder()
-        .setName("ban")
-        .setDescription("Ban a user from the server (for mods)")
-        .addUserOption((option) =>
-          option.setName("user").setDescription("User to ban").setRequired(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("reason")
-            .setDescription("Reason for ban")
-            .setRequired(true)
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("delete_messages")
-            .setDescription("Days to delete messages for")
-            .setMaxValue(7)
-            .setMinValue(0)
-            .setRequired(false)
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-        .setDMPermission(false)
-    );
-  }
+	constructor() {
+		super(
+			new SlashCommandBuilder()
+				.setName("ban")
+				.setDescription("Ban a user from the server (for mods)")
+				.addUserOption((option) =>
+					option
+						.setName("user")
+						.setDescription("User to ban")
+						.setRequired(true),
+				)
+				.addStringOption((option) =>
+					option
+						.setName("reason")
+						.setDescription("Reason for ban")
+						.setRequired(true),
+				)
+				.addIntegerOption((option) =>
+					option
+						.setName("delete_messages")
+						.setDescription("Days to delete messages for")
+						.setMaxValue(7)
+						.setMinValue(0)
+						.setRequired(false),
+				)
+				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+				.setDMPermission(false),
+		);
+	}
 
-  async execute(
-    client: DiscordClient<true>,
-    interaction: DiscordChatInputCommandInteraction<"cached">
-  ) {
-    if (!interaction.channel || !interaction.channel.isTextBased()) return;
+	async execute(
+		client: DiscordClient<true>,
+		interaction: DiscordChatInputCommandInteraction<"cached">,
+	) {
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
-    const user = interaction.options.getUser("user", true);
-    const reason = interaction.options.getString("reason", true);
-    const deleteMessagesDays =
-      interaction.options.getInteger("delete_messages", false) ?? 0;
+		const user = interaction.options.getUser("user", true);
+		const reason = interaction.options.getString("reason", true);
+		const deleteMessagesDays =
+			interaction.options.getInteger("delete_messages", false) ?? 0;
 
-    await interaction.deferReply({
-      ephemeral: true,
-    });
+		await interaction.deferReply({
+			ephemeral: true,
+		});
 
-    if (user.id === interaction.user.id) {
-      interaction.editReply({
-        content:
-          "Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
-      });
-      return;
-    }
+		if (user.id === interaction.user.id) {
+			interaction.editReply({
+				content:
+					"Well hey, you can't ban yourself ||but **please** ask someone else to do it||!",
+			});
+			return;
+		}
 
-    if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
-      interaction.editReply({
-        content: "I cannot ban a user that's already banned.",
-      });
-      return;
-    }
+		if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
+			interaction.editReply({
+				content: "I cannot ban a user that's already banned.",
+			});
+			return;
+		}
 
-    const guildPreferences = await GuildPreferencesCache.get(
-      interaction.guildId
-    );
+		const guildPreferences = await GuildPreferencesCache.get(
+			interaction.guildId,
+		);
 
-    if (!guildPreferences) {
-      await interaction.editReply({
-        content: "Please configure the bot using `/setup` command first.",
-      });
-      return;
-    }
+		if (!guildPreferences) {
+			await interaction.editReply({
+				content:
+					"Please configure the bot using `/setup` command first.",
+			});
+			return;
+		}
 
-    const caseNumber =
-      (
-        await Punishment.find({
-          guildId: interaction.guildId,
-        })
-      ).length + 1;
+		const dmEmbed = new EmbedBuilder()
+			.setTitle(`You have been banned from ${interaction.guild.name}!`)
+			.setDescription(
+				`You have been banned from **${
+					interaction.guild.name
+				}** due to \`${reason}\`. ${
+					guildPreferences.banAppealFormLink
+						? `Please fill the appeal form [here](${guildPreferences.banAppealFormLink}) to appeal your ban.`
+						: ""
+				}`,
+			)
+			.setColor(Colors.Red);
 
-    const dmEmbed = new EmbedBuilder()
-      .setTitle(`You have been banned from ${interaction.guild.name}!`)
-      .setDescription(
-        `You have been banned from **${
-          interaction.guild.name
-        }** due to \`${reason}\`. ${
-          guildPreferences.banAppealFormLink
-            ? `Please fill the appeal form [here](${guildPreferences.banAppealFormLink}) to appeal your ban.`
-            : ""
-        }`
-      )
-      .setColor(Colors.Red);
+		const guildMember = await interaction.guild.members.fetch(user.id);
 
-    const guildMember = await interaction.guild.members.fetch(user.id);
+		if (guildMember) {
+			if (!guildMember.bannable) {
+				await interaction.editReply({
+					content: "I cannot ban this user. (Missing permissions)",
+				});
+				return;
+			}
 
-    if (guildMember) {
-      if (!guildMember.bannable) {
-        await interaction.editReply({
-          content: "I cannot ban this user. (Missing permissions)",
-        });
-        return;
-      }
+			const memberHighestRole = guildMember.roles.highest;
+			const modHighestRole = interaction.member.roles.highest;
 
-      const memberHighestRole = guildMember.roles.highest;
-      const modHighestRole = interaction.member.roles.highest;
+			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+				interaction.editReply({
+					content:
+						"You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
+				});
+				return;
+			}
 
-      if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
-        interaction.editReply({
-          content:
-            "You cannot ban this user due to role hierarchy! (Role is higher or equal to yours)",
-        });
-        return;
-      }
+			sendDm(guildMember, {
+				embeds: [dmEmbed],
+			});
+		}
 
-      sendDm(guildMember, {
-        embeds: [dmEmbed],
-      });
-    }
+		try {
+			await interaction.guild.bans.create(user, {
+				reason: `${reason} | By: ${interaction.user.tag} `,
+				deleteMessageSeconds: deleteMessagesDays * 86400,
+			});
+		} catch (error) {
+			interaction.editReply({
+				content: `Failed to ban user ${
+					error instanceof Error ? `(${error.message})` : ""
+				}`,
+			});
 
-    try {
-      await interaction.guild.bans.create(user, {
-        reason: `${reason} | By: ${interaction.user.tag} `,
-        deleteMessageSeconds: deleteMessagesDays * 86400,
-      });
-    } catch (error) {
-      interaction.editReply({
-        content: `Failed to ban user ${
-          error instanceof Error ? `(${error.message})` : ""
-        }`,
-      });
-
-      client.log(
-        error,
-        `${this.data.name} Command`,
-        `
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`
 	* * Channel:** <#${interaction.channel?.id} >
 
 			  	
 
 					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`
-      );
+					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+			);
 
-      return;
-    }
+			return;
+		}
 
-    Punishment.create({
-      guildId: interaction.guild.id,
-      actionAgainst: user.id,
-      actionBy: interaction.user.id,
-      action: "Ban",
-      caseId: caseNumber,
-      reason,
-      points: 0,
-      when: new Date(),
-    });
+		const caseNumber =
+			(
+				await Punishment.find({
+					guildId: interaction.guildId,
+				})
+			).length + 1;
 
-    if (guildPreferences.modlogChannelId) {
-      const modEmbed = new EmbedBuilder()
-        .setTitle(`Ban | Case #${caseNumber}`)
-        .setColor(Colors.Red)
-        .addFields([
-          {
-            name: "User",
-            value: `${user.tag} (${user.id})`,
-            inline: false,
-          },
-          {
-            name: "Moderator",
-            value: `${interaction.user.tag} (${interaction.user.id})`,
-            inline: false,
-          },
-          {
-            name: "Reason",
-            value: reason,
-          },
-        ])
-        .setTimestamp();
+		Punishment.create({
+			guildId: interaction.guild.id,
+			actionAgainst: user.id,
+			actionBy: interaction.user.id,
+			action: "Ban",
+			caseId: caseNumber,
+			reason,
+			points: 0,
+			when: new Date(),
+		});
 
-      logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
-        embeds: [modEmbed],
-      });
-    }
+		interaction.channel.send(
+			`${user.username} has been banned. (Case #${caseNumber})`,
+		);
 
-    interaction.editReply({
-      content: "https://giphy.com/gifs/ban-banned-admin-fe4dDMD2cAU5RfEaCU",
-    });
-    interaction.channel.send(`${user.username} has been banned.`);
-  }
+		if (guildPreferences.modlogChannelId) {
+			const modEmbed = new EmbedBuilder()
+				.setTitle(`Ban | Case #${caseNumber}`)
+				.setColor(Colors.Red)
+				.addFields([
+					{
+						name: "User",
+						value: `${user.tag} (${user.id})`,
+						inline: false,
+					},
+					{
+						name: "Moderator",
+						value: `${interaction.user.tag} (${interaction.user.id})`,
+						inline: false,
+					},
+					{
+						name: "Reason",
+						value: reason,
+					},
+				])
+				.setTimestamp();
+
+			logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+				embeds: [modEmbed],
+			});
+		}
+
+		interaction.editReply({
+			content:
+				"https://giphy.com/gifs/ban-banned-admin-fe4dDMD2cAU5RfEaCU",
+		});
+	}
 }

@@ -1,7 +1,8 @@
+import { formatMessage } from "@/commands/study/Keyword";
 import Select from "@/components/Select";
 import Buttons from "@/components/practice/views/Buttons";
 import { botYwResponses, tyAliases, ywAliases } from "@/data";
-import {PrivateDmThread, Reputation} from "@/mongo";
+import { PrivateDmThread, Reputation } from "@/mongo";
 import { DmGuildPreference } from "@/mongo/schemas/DmGuildPreference";
 import {
 	GuildPreferencesCache,
@@ -9,7 +10,9 @@ import {
 	StickyMessageCache,
 } from "@/redis";
 import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
+import { logToChannel } from "@/utils/Logger";
 import sendDm from "@/utils/sendDm";
+import { Logger } from "@discordforge/logger";
 import {
 	type APIEmbed,
 	ActionRowBuilder,
@@ -18,17 +21,18 @@ import {
 	EmbedBuilder,
 	Events,
 	ForumChannel,
+	type GuildMember,
 	type Message,
+	type MessageCreateOptions,
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
-	type User, type GuildMember,
+	type User,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
-import { Logger } from "@discordforge/logger";
-import { logToChannel } from "@/utils/Logger";
-import { formatMessage } from "@/commands/study/Keyword";
+import { syncCommands } from "@/registry";
+import { isBotDev } from "@/utils/isBotDev";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -40,13 +44,42 @@ export default class MessageCreateEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
 		if (message.system) return;
+		if (message.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(message.guildId)) return;
+
+		if (message.content === "!sync_commands") {
+			if (!(await isBotDev(client, message.author.id))) {
+				return;
+			}
+
+			await syncCommands(client)
+				.then(() => {
+					Logger.info(
+						`Synced application commands globally (by ${message.author.displayName})`,
+					);
+					message.reply("Succesfully synced commands.");
+				})
+				.catch((e) => {
+					Logger.error(
+						`Error syncing application commands globally (by ${message.author.displayName}): ${e}`,
+					);
+					message.reply("Error syncing commands.");
+				});
+
+			return;
+		}
 
 		if (message.inGuild()) {
 			const keyword = message.content.trim().toLowerCase();
 			const entry = await KeywordCache.get(message.guildId, keyword);
 			if (entry.response) {
-				let messageOptions = await formatMessage(message, entry.response, false, keyword, entry.imageLink);
-				delete messageOptions.ephemeral;
+				const messageOptions = (await formatMessage(
+					message,
+					entry.response,
+					false,
+					keyword,
+					entry.imageLink,
+				)) as MessageCreateOptions;
+				messageOptions.flags = undefined;
 				await message.channel.send(messageOptions);
 			}
 
@@ -104,7 +137,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyCounter[message.channelId] = 0;
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
-						(isNaN(x) ? 0 : x) + 1)(
+						(Number.isNaN(x) ? 0 : x) + 1)(
 						stickyCounter[message.channelId],
 					);
 				}
@@ -194,7 +227,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 					client.log(
 						error,
-						`Create DM Thread`,
+						"Create DM Thread",
 						`**Channel:** <#${message.channel?.id}>
 							**User:** <@${message.author.id}>
 							**Guild:** ${message.guild.name} (${message.guildId})\n`,
@@ -322,7 +355,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 		let thread: ThreadChannel;
 
-		if (res) thread = channel.threads.cache.get(res.threadId)!;
+		if (res)
+			thread = channel.threads.cache.get(res.threadId) as ThreadChannel;
 		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
@@ -382,15 +416,17 @@ To change the server you're contacting, use the \`/swap\` command`,
 	private async handleModMailDelete(
 		client: DiscordClient<true>,
 		member: GuildMember,
-		num_delete: number = 1,
+		numDelete = 1,
 	) {
-		const channel = await member.createDM()
-		const messages = (await channel.messages.fetch({ limit: 100 }))
-			.filter(m => m.author.id == client.user.id)
-		for (let msg of messages) {
-			if (num_delete <= 0) break
-			num_delete--
-			await msg[1].delete()
+		const channel = await member.createDM();
+		const messages = (await channel.messages.fetch({ limit: 100 })).filter(
+			(m) => m.author.id === client.user.id,
+		);
+		for (const msg of messages) {
+			if (numDelete <= 0) break;
+			// biome-ignore lint/style/noParameterAssign: cuz
+			numDelete--;
+			await msg[1].delete();
 		}
 	}
 
@@ -398,7 +434,10 @@ To change the server you're contacting, use the \`/swap\` command`,
 		client: DiscordClient<true>,
 		message: Message<true>,
 	) {
-		if (message.content.startsWith("//")) {
+		if (
+			!message.content.startsWith("//") &&
+			!message.content.startsWith("!!")
+		) {
 			await message.react("👀");
 			return;
 		}
@@ -420,29 +459,31 @@ To change the server you're contacting, use the \`/swap\` command`,
 			});
 		if (!member) return;
 
-		if (message.content.startsWith('!!')) {
-			const full_command = message.content.split(" ")
-			const command = full_command[1]
-			const args = full_command.slice(2)
+		if (message.content.startsWith("!!")) {
+			const fullCommand = message.content.split(" ");
+			const command = fullCommand[1];
+			const args = fullCommand.slice(2);
 
-			if (command == "delete") {
-				let num_delete: number;
+			if (command === "delete") {
+				let numDelete: number;
 				if (args && args.length > 0) {
-					num_delete = Number(args[0])
-				}else {
-					num_delete = 1
+					numDelete = Number(args[0]);
+				} else {
+					numDelete = 1;
 				}
-				this.handleModMailDelete(client, member, num_delete)
+				this.handleModMailDelete(client, member, numDelete);
 				await message.react("☑");
 			}
-		}else {
+		} else {
 			const embed = new EmbedBuilder()
 				.setTitle(`Message from ${message.guild.name} Staff`)
 				.setAuthor({
 					name: message.author.username,
 					iconURL: message.author.displayAvatarURL(),
 				})
-				.setDescription(message.content || "No content")
+				.setDescription(
+					message.content?.replace("//", "").trim() || "No content",
+				)
 				.setTimestamp(message.createdTimestamp)
 				.setColor(Colors.Green);
 

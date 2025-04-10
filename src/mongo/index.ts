@@ -1,4 +1,5 @@
 export { Punishment, type IPunishment } from "./schemas/Punishment";
+export { ModNote, type IModNote } from "./schemas/ModNote";
 export { ReactionRole, type IReactionRole } from "./schemas/ReactionRole";
 export {
 	PrivateDmThread,
@@ -17,6 +18,7 @@ export {
 	type IPracticeSession,
 } from "./schemas/PracticeSession";
 export { HOTMUser, type IHOTMUser } from "./schemas/HOTMUser";
+export { HOTMBlacklist, type IHOTMBlacklist } from "./schemas/HOTMBlacklist";
 export { ConfessionBan, type IConfessionBan } from "./schemas/ConfessionBan";
 export { ForcedMute, type IForcedMute } from "./schemas/ForcedMute";
 export { ClosedDmThread, type IClosedDmThread } from "./schemas/ClosedDmThread";

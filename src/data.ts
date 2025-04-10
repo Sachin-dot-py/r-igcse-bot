@@ -469,6 +469,11 @@ export const preferences: Preference[] = [
 		key: "closedDmChannelId",
 	},
 	{
+		name: "Moderator Role (Pinged in /mod_ping)",
+		type: "role",
+		key: "moderatorRoleId",
+	},
+	{
 		name: "Forced Mute Role",
 		type: "role",
 		key: "forcedMuteRoleId",
@@ -487,7 +492,7 @@ export const preferences: Preference[] = [
 		name: "Tag Approval Channel",
 		type: "channel",
 		key: "tagResourceApprovalChannelId",
-	}
+	},
 ];
 
 interface Subject {

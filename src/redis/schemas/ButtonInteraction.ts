@@ -11,6 +11,7 @@ export interface IButtonInteraction extends Entity {
 	guildId?: string;
 	userHash?: string;
 	userId?: string;
+	questionAndAnswers?: string[];
 }
 
 export const ButtonInteraction = new Schema("ButtonInteraction", {
@@ -19,6 +20,7 @@ export const ButtonInteraction = new Schema("ButtonInteraction", {
 	guildId: { type: "string" },
 	userHash: { type: "string" },
 	userId: { type: "string" },
+	questionAndAnswers: { type: "string[]" },
 });
 
 export class ButtonInteractionRepository extends Repository {

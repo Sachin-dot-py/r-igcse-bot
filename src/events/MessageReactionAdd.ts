@@ -16,18 +16,24 @@ export default class MessageReactionAddEvent extends BaseEvent {
 	) {
 		handleVote(reaction, user);
 
-		if (!reaction.message.guild) return;
+		// Use a new variable instead of reassigning the parameter
+		const fullReaction = reaction.partial
+			? await reaction.fetch()
+			: reaction;
+
+		if (!fullReaction.message.guild) return;
 
 		const res = await ReactionRole.findOne({
-			messageId: reaction.message.id,
-			emoji: reaction.emoji.toString(),
+			messageId: fullReaction.message.id,
+			emoji: fullReaction.emoji.toString(),
 		});
 
 		if (!res) return;
+		if (user.bot) return;
 
-		const member = await reaction.message.guild.members.fetch(user.id);
+		const member = await fullReaction.message.guild?.members.fetch(user.id);
 
-		const role = await reaction.message.guild.roles.fetch(res.roleId);
+		const role = await fullReaction.message.guild?.roles.fetch(res.roleId);
 
 		if (role) await member.roles.add(role);
 	}

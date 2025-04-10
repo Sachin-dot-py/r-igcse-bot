@@ -1,8 +1,9 @@
-import { GuildPreferences, HOTM, HOTMUser } from "@/mongo";
+import { GuildPreferences, HOTM, HOTMBlacklist, HOTMUser } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger.ts";
 import {
 	type APIEmbedField,
 	EmbedBuilder,
@@ -11,6 +12,7 @@ import {
 	SlashCommandBuilder,
 	TextChannel,
 } from "discord.js";
+import type hotmSessionCommand from "./VotingSession";
 
 export default class HOTMSessionCommand extends BaseCommand {
 	constructor() {
@@ -28,6 +30,35 @@ export default class HOTMSessionCommand extends BaseCommand {
 						.setName("end")
 						.setDescription("End the current voting session"),
 				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("blacklist")
+						.setDescription("Add a user to the HOTM blacklist")
+						.addUserOption((option) =>
+							option
+								.setName("helper")
+								.setDescription("The helper to blacklist")
+								.setRequired(true),
+						)
+						.addBooleanOption((option) =>
+							option
+								.setName("permanent")
+								.setDescription(
+									"Whether the blacklist is permanent (False by default)",
+								),
+						),
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("unblacklist")
+						.setDescription("Remove a user from the HOTM blacklist")
+						.addUserOption((option) =>
+							option
+								.setName("helper")
+								.setDescription("The helper to unblacklist")
+								.setRequired(true),
+						),
+				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 				.setDMPermission(false),
 		);
@@ -41,7 +72,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 			guildId: interaction.guildId,
 		});
 
-		if (!guildPreferences) {
+		if (!guildPreferences || !guildPreferences.hotmResultsChannelId) {
 			interaction.reply({
 				content:
 					"Configure the bot using `/setup` before starting sessions",
@@ -51,6 +82,111 @@ export default class HOTMSessionCommand extends BaseCommand {
 		}
 
 		switch (interaction.options.getSubcommand()) {
+			case "blacklist": {
+				const helper = interaction.options.getUser("helper", true);
+				const permanent =
+					interaction.options.getBoolean("permanent") ?? false;
+
+				await interaction.deferReply({
+					ephemeral: true,
+				});
+
+				const blacklistEntry = await HOTMBlacklist.findOne({
+					guildId: interaction.guildId,
+					helperId: helper.id,
+				});
+
+				if (blacklistEntry) {
+					interaction.editReply({
+						content: "This user is already blacklisted",
+					});
+					return;
+				}
+
+				await HOTMBlacklist.create({
+					guildId: interaction.guildId,
+					helperId: helper.id,
+					permanent,
+				});
+
+				await HOTM.updateOne(
+					{ guildId: interaction.guild.id, helperId: helper.id },
+					{
+						$set: {
+							votes: 0,
+						},
+					},
+					{
+						upsert: true,
+					},
+				);
+
+				await HOTMUser.updateMany(
+					{
+						guildId: interaction.guild.id,
+					},
+					{
+						$pull: {
+							voted: helper.id,
+						},
+					},
+				);
+
+				await logToChannel(
+					interaction.guild,
+					guildPreferences.hotmResultsChannelId,
+					{
+						content: `${helper.tag} has been blacklisted ${permanent ? "permanently" : "for this session"} and now has 0 votes.`,
+					},
+				);
+
+				const newSessionCommand = client.commands.get("hotm_session") as
+					| hotmSessionCommand
+					| undefined;
+
+				const mongoGuildPreferences = await GuildPreferences.findOne({
+					guildId: interaction.guild.id,
+				});
+
+				await newSessionCommand?.handleEmbed(
+					interaction.guild,
+					mongoGuildPreferences?.hotmResultsEmbedId,
+					guildPreferences.hotmResultsChannelId,
+				);
+
+				interaction.editReply({
+					content: `${helper.tag} is now blacklisted ${permanent ? "permanently" : "for this session"}`,
+				});
+
+				break;
+			}
+			case "unblacklist": {
+				const helper = interaction.options.getUser("helper", true);
+
+				await interaction.deferReply({
+					ephemeral: true,
+				});
+
+				const blacklistEntry = await HOTMBlacklist.findOne({
+					guildId: interaction.guildId,
+					helperId: helper.id,
+				});
+
+				if (!blacklistEntry) {
+					interaction.editReply({
+						content: "This user is not blacklisted",
+					});
+					return;
+				}
+
+				await blacklistEntry.deleteOne();
+
+				interaction.editReply({
+					content: `${helper.tag} is no longer blacklisted`,
+				});
+
+				break;
+			}
 			case "start": {
 				if (guildPreferences.hotmSessionOngoing) {
 					interaction.reply({
@@ -71,9 +207,13 @@ export default class HOTMSessionCommand extends BaseCommand {
 				});
 				await HOTM.deleteMany({ guildId: interaction.guildId });
 				await HOTMUser.deleteMany({ guildId: interaction.guildId });
+				await HOTMBlacklist.deleteMany({
+					guildId: interaction.guildId,
+					permanent: false,
+				});
 
 				interaction.editReply({
-					content: `Started a new voting session`,
+					content: "Started a new voting session",
 				});
 				break;
 			}

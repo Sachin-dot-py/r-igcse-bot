@@ -10,4 +10,7 @@ const schema = new Schema<IOldPinsThread>({
 	oldPinsThreadId: { type: String, required: true, unique: false },
 });
 
-export const OldPinsThread = createModel<IOldPinsThread>("OldPinsThread", schema);
+export const OldPinsThread = createModel<IOldPinsThread>(
+	"OldPinsThread",
+	schema,
+);

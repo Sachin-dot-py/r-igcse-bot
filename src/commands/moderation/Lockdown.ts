@@ -100,7 +100,7 @@ export default class LockdownCommand extends BaseCommand {
 
 		if (endTimestamp <= startTimestamp) {
 			await interaction.editReply({
-				content: `Invalid timestamps provided.`,
+				content: "Invalid timestamps provided.",
 			});
 
 			return;

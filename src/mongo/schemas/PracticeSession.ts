@@ -14,6 +14,7 @@ export interface IPracticeSession {
 	private: boolean;
 	currentlySolving: string;
 	expireTime: Date;
+	timeLimit: number;
 }
 
 const schema = new Schema<IPracticeSession>({
@@ -30,6 +31,7 @@ const schema = new Schema<IPracticeSession>({
 	private: { type: Boolean, required: true },
 	currentlySolving: { type: String, required: true },
 	expireTime: { type: Date, required: true },
+	timeLimit: { type: Number, required: false },
 });
 
 export const PracticeSession = createModel<IPracticeSession>(
