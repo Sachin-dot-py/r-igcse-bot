@@ -29,6 +29,53 @@ export default class PinMenu extends BaseCommand {
 		);
 	}
 
+	async handleStickyAndRespond(
+		toggleInteraction: DiscordMessageContextMenuCommandInteraction<"cached">
+	) {
+		if (!toggleInteraction.channel) {
+			return;
+		};
+		const stickyPinData = await StickyPinnedMessage.findOne({
+			channelId: toggleInteraction.channelId,
+		});
+
+		if (stickyPinData) {
+			const stickyPin = await toggleInteraction.channel.messages.fetch(stickyPinData.messageId);
+			try {
+				await stickyPin.unpin();
+			} catch {
+				await toggleInteraction.targetMessage.reply({
+					content: `Messaged pinned by ${toggleInteraction.user}`,
+				});
+				await toggleInteraction.followUp({
+					content: `Couldn't bring sticky pin to the top. Sticky pin: ${stickyPin.url}`,
+					ephemeral: true,
+				});
+				return;
+			}
+
+			try {
+				await stickyPin.pin();
+			} catch {
+				await toggleInteraction.targetMessage.reply({
+					content: `Messaged pinned by ${toggleInteraction.user}`,
+				});
+				await toggleInteraction.followUp({
+					content: `Couldn't re-pin the sticky pin. Sticky pin: ${stickyPin.url}`,
+					ephemeral: true,
+				});
+				return;
+			}
+			await toggleInteraction.targetMessage.reply({
+				content: `Messaged pinned by ${toggleInteraction.user} ||(& sticky pin moved to top)||`,
+			});
+		} else {
+			await toggleInteraction.targetMessage.reply({
+				content: `Messaged pinned by ${toggleInteraction.user}`,
+			});
+		}
+	}
+
 	async execute(
 		client: DiscordClient<true>,
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
@@ -52,13 +99,6 @@ export default class PinMenu extends BaseCommand {
 			await interaction.deferReply({
 				ephemeral: true,
 			});
-			if (!interaction.targetMessage.pinned) {
-				await interaction.editReply({
-					content: "Message isn't pinned.",
-				});
-
-				return;
-			}
 
 			let thread = interaction.guild.channels.cache
 				.filter(
@@ -211,9 +251,7 @@ export default class PinMenu extends BaseCommand {
 
 			try {
 				await interaction.targetMessage.pin();
-				await interaction.targetMessage.reply({
-					content: `Messaged pinned by ${interaction.user}`,
-				});
+				await this.handleStickyAndRespond(interaction);
 			} catch (error) {
 				const pinNo = Array.from(
 					(await interaction.channel?.messages.fetchPinned()) || [],
@@ -311,9 +349,7 @@ export default class PinMenu extends BaseCommand {
 						if (interaction.targetMessage.pinned)
 							await interaction.targetMessage.unpin();
 						await interaction.targetMessage.pin();
-						interaction.targetMessage.reply({
-							content: `Messaged pinned by ${interaction.user}`,
-						});
+						await this.handleStickyAndRespond(interaction);
 						interaction.editReply({
 							content: "Successfully pinned message.",
 						});
