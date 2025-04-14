@@ -611,11 +611,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 			const reference = await message.fetchReference();
 
 			if (reference.author.id === message.author.id)
-				message.reply("You can't rep yourself dummy!");
+				message.reply(Math.random() > 0.5 ? "Gave +1 Rep to-wait what you can't just rep yourself" : "You can't rep yourself dummy!");
 			else if (reference.author.id === client.user.id)
-				message.reply("I never said thanks");
+				message.reply(Math.random() > 0.5 ? "Gave +1 Rep to-yeah no you don't get to do that" : "I never said thanks");
 			else if (reference.author.bot)
-				message.reply("Uh-oh, you can't get rep from a bot");
+				message.reply(Math.random() > 0.5 ? "Gave +1 Rep to-oh wait you can't rep my kind" : "Uh-oh, you can't get rep from a bot");
 			else {
 				const referenceRepped = await this.getReppedUsers(
 					client,
