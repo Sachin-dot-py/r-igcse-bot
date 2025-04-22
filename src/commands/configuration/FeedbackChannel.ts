@@ -123,7 +123,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
 					guildId: interaction.guildId,
 				});
 
-				if (feedbackTeams.length == 0) {
+				if (feedbackTeams.length === 0) {
 					interaction.reply({
 						content: "There are no feedback channels to be removed",
 						ephemeral: true,

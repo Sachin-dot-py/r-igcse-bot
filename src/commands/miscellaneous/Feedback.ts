@@ -129,11 +129,11 @@ export default class FeedbackCommand extends BaseCommand {
 
 		if (!messageGuild) return;
 
-		let embed;
+		let embed: EmbedBuilder;
 
 		if (team?.label === "Bot Developers") {
 			embed = new EmbedBuilder()
-				.setTitle(`Bot Feedback Received`)
+				.setTitle("Bot Feedback Received")
 				.setDescription(feedback)
 				.setFooter({
 					text: `from ${feedbackGuild.name} (${feedbackGuild.id})`,

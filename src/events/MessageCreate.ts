@@ -23,6 +23,7 @@ import {
 	ForumChannel,
 	type GuildMember,
 	type Message,
+	type MessageCreateOptions,
 	StringSelectMenuOptionBuilder,
 	ThreadChannel,
 	type User,
@@ -30,6 +31,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { syncCommands } from "@/registry";
+import { isBotDev } from "@/utils/isBotDev";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -41,19 +44,42 @@ export default class MessageCreateEvent extends BaseEvent {
 	async execute(client: DiscordClient<true>, message: Message) {
 		if (message.author.bot) return;
 		if (message.system) return;
+		if (message.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(message.guildId)) return;
+
+		if (message.content === "!sync_commands") {
+			if (!(await isBotDev(client, message.author.id))) {
+				return;
+			}
+
+			await syncCommands(client)
+				.then(() => {
+					Logger.info(
+						`Synced application commands globally (by ${message.author.displayName})`,
+					);
+					message.reply("Succesfully synced commands.");
+				})
+				.catch((e) => {
+					Logger.error(
+						`Error syncing application commands globally (by ${message.author.displayName}): ${e}`,
+					);
+					message.reply("Error syncing commands.");
+				});
+
+			return;
+		}
 
 		if (message.inGuild()) {
 			const keyword = message.content.trim().toLowerCase();
 			const entry = await KeywordCache.get(message.guildId, keyword);
 			if (entry.response) {
-				const messageOptions = await formatMessage(
+				const messageOptions = (await formatMessage(
 					message,
 					entry.response,
 					false,
 					keyword,
 					entry.imageLink,
-				);
-				delete messageOptions.ephemeral;
+				)) as MessageCreateOptions;
+				messageOptions.flags = undefined;
 				await message.channel.send(messageOptions);
 			}
 
@@ -111,7 +137,7 @@ export default class MessageCreateEvent extends BaseEvent {
 					stickyCounter[message.channelId] = 0;
 				} else {
 					stickyCounter[message.channelId] = ((x: number) =>
-						(isNaN(x) ? 0 : x) + 1)(
+						(Number.isNaN(x) ? 0 : x) + 1)(
 						stickyCounter[message.channelId],
 					);
 				}
@@ -201,7 +227,7 @@ export default class MessageCreateEvent extends BaseEvent {
 
 					client.log(
 						error,
-						`Create DM Thread`,
+						"Create DM Thread",
 						`**Channel:** <#${message.channel?.id}>
 							**User:** <@${message.author.id}>
 							**Guild:** ${message.guild.name} (${message.guildId})\n`,
@@ -329,7 +355,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 		let thread: ThreadChannel;
 
-		if (res) thread = channel.threads.cache.get(res.threadId)!;
+		if (res)
+			thread = channel.threads.cache.get(res.threadId) as ThreadChannel;
 		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
@@ -393,10 +420,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 	) {
 		const channel = await member.createDM();
 		const messages = (await channel.messages.fetch({ limit: 100 })).filter(
-			(m) => m.author.id == client.user.id,
+			(m) => m.author.id === client.user.id,
 		);
 		for (const msg of messages) {
 			if (numDelete <= 0) break;
+			// biome-ignore lint/style/noParameterAssign: cuz
 			numDelete--;
 			await msg[1].delete();
 		}
@@ -436,7 +464,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			const command = fullCommand[1];
 			const args = fullCommand.slice(2);
 
-			if (command == "delete") {
+			if (command === "delete") {
 				let numDelete: number;
 				if (args && args.length > 0) {
 					numDelete = Number(args[0]);
@@ -583,11 +611,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 			const reference = await message.fetchReference();
 
 			if (reference.author.id === message.author.id)
-				message.reply("You can't rep yourself dummy!");
+				message.reply(Math.random() > 0.5 ? "Gave +1 Rep to-wait what you can't just rep yourself" : "You can't rep yourself dummy!");
 			else if (reference.author.id === client.user.id)
-				message.reply("I never said thanks");
+				message.reply(Math.random() > 0.5 ? "Gave +1 Rep to-yeah no you don't get to do that" : "I never said thanks");
 			else if (reference.author.bot)
-				message.reply("Uh-oh, you can't get rep from a bot");
+				message.reply(Math.random() > 0.5 ? "Gave +1 Rep to-oh wait you can't rep my kind" : "Uh-oh, you can't get rep from a bot");
 			else {
 				const referenceRepped = await this.getReppedUsers(
 					client,

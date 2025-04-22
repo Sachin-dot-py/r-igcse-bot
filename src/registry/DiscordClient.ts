@@ -14,10 +14,6 @@ export class DiscordClient<
 
 	private _stickyChannelIds: string[] = [];
 
-	constructor(options: ClientOptions) {
-		super(options);
-	}
-
 	get stickyChannelIds() {
 		return this._stickyChannelIds;
 	}

@@ -6,7 +6,7 @@ export interface IHOTMBlacklist {
 	permanent: boolean;
 }
 
-const schema = new Schema<IHOTM>({
+const schema = new Schema<IHOTMBlacklist>({
 	helperId: { type: String, required: true },
 	guildId: { type: String, required: true },
 	permanent: { type: Boolean, default: false },

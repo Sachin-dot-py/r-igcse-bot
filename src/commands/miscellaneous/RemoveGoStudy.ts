@@ -78,7 +78,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 				role,
 			);
 			await interaction.followUp({
-				content: "Forced mute removed from " + user.username,
+				content: `Forced mute removed from ${user.username}`,
 				ephemeral: true,
 			});
 		} catch (error) {

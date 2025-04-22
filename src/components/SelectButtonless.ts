@@ -2,7 +2,9 @@ import {
 	type APISelectMenuOption,
 	ComponentType,
 	type InteractionCollector,
+	type Message,
 	StringSelectMenuBuilder,
+	type StringSelectMenuInteraction,
 	type StringSelectMenuOptionBuilder,
 } from "discord.js";
 
@@ -27,17 +29,20 @@ class Select extends StringSelectMenuBuilder {
 
 	async waitForResponse(
 		customId: string,
-		interaction,
-	): Promise<InteractionCollector<any> | false | "Timed out"> {
+		message: Message,
+	): Promise<
+		InteractionCollector<StringSelectMenuInteraction> | false | "Timed out"
+	> {
 		try {
-			return interaction.createMessageComponentCollector({
-				filter: (i) => i.customId === customId,
+			return message.createMessageComponentCollector({
+				filter: (i: StringSelectMenuInteraction) =>
+					i.customId === customId,
 				time: 300_000,
 				componentType: ComponentType.StringSelect,
 			});
 		} catch (error) {
 			if (this.isFirstComponent) {
-				await interaction.followUp({
+				await message.edit({
 					content: "Timed out",
 					components: [],
 				});

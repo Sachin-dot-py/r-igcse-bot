@@ -26,7 +26,7 @@ export default class GuildMemberUpdateEvent extends BaseEvent {
 		oldMember: GuildMember,
 		newMember: GuildMember,
 	) {
-		if (oldMember.roles.cache.size != newMember.roles.cache.size) {
+		if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
 			try {
 				const rolesUpdated = newMember.roles.cache
 					.filter((x) => !oldMember.roles.cache.has(x.id))

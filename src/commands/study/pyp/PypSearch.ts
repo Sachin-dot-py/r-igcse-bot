@@ -40,30 +40,20 @@ export default class ResourcesCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("search_pyp")
-				.setDescription(
-					"Search for IGCSE past papers with subject code/question text",
-				)
+				.setDescription("Search for IGCSE past papers with subject code/question text")
 				.addStringOption((option) =>
-					option
-						.setName("query")
-						.setDescription("Search Query")
-						.setRequired(true),
+					option.setName("query").setDescription("Search Query").setRequired(true),
 				),
 		);
 	}
 
-	async execute(
-		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction,
-	) {
+	async execute(client: DiscordClient<true>, interaction: DiscordChatInputCommandInteraction) {
 		const query = interaction.options.getString("query", true);
 
 		await interaction.deferReply();
 
 		try {
-			const res = await fetch(
-				`https://paper.sc/search/?as=json&query=${query}`,
-			);
+			const res = await fetch(`https://paper.sc/search/?as=json&query=${query}`);
 
 			if (!res.ok) throw Error(res.statusText);
 
@@ -74,19 +64,16 @@ export default class ResourcesCommand extends BaseCommand {
 
 			if (list?.length === 0) {
 				interaction.followUp({
-					content:
-						"No results found in past papers. Try changing your query for better results.",
+					content: "No results found in past papers. Try changing your query for better results.",
 					ephemeral: true,
 				});
-
 				return;
 			}
 
 			const fields = [];
 
 			for (const item of (list as PaperScResponseItem[]).slice(0, 6)) {
-				const { subject, time, type, paper, variant, _id } =
-					item["doc"];
+				const { subject, time, type, paper, variant, _id } = item.doc;
 				let value = `[${typeMap[type]}](https://paper.sc/doc/${_id})`;
 				if (item.related) {
 					for (const related of item.related) {
@@ -117,8 +104,8 @@ export default class ResourcesCommand extends BaseCommand {
 				error,
 				`${this.data.name} Command`,
 				`**Channel:** <#${interaction.channel?.id}>
-					**User:** <@${interaction.user.id}>
-					**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+				**User:** <@${interaction.user.id}>
+				**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
 			);
 		}
 	}

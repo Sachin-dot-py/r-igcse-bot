@@ -10,6 +10,8 @@ import {
 	ButtonBuilder,
 	type ButtonInteraction,
 	ButtonStyle,
+	type MessageEditAttachmentData,
+	type MessageEditOptions,
 	ModalBuilder,
 	type ModalSubmitInteraction,
 	PermissionFlagsBits,
@@ -109,21 +111,29 @@ export default class KeywordControlCommand extends BaseCommand {
 				.setRequired(false);
 
 			modal.addComponents(
-				new ActionRowBuilder().addComponents(keywordNameInput),
-				new ActionRowBuilder().addComponents(keywordValueInput),
-				new ActionRowBuilder().addComponents(imageLinkInput),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					keywordNameInput,
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					keywordValueInput,
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					imageLinkInput,
+				),
 			);
 
 			let action = "";
 			let keywordName = "";
 			let keywordReponse = "";
-			let imageLink: string | undefined = undefined;
+			let imageLink: string | undefined;
 			let currentInteraction:
 				| DiscordChatInputCommandInteraction<"cached">
 				| ModalSubmitInteraction<"cached">
 				| ButtonInteraction<"cached"> = interaction;
 			while (action !== "add") {
-				await currentInteraction.showModal(modal);
+				await (
+					currentInteraction as DiscordChatInputCommandInteraction<"cached">
+				).showModal(modal);
 
 				currentInteraction = await interaction.awaitModalSubmit({
 					time: 600_000,
@@ -144,13 +154,13 @@ export default class KeywordControlCommand extends BaseCommand {
 						"keyword_add_image",
 					);
 
-				const messagePreview = await formatMessage(
+				const messagePreview = (await formatMessage(
 					interaction,
 					keywordReponse,
 					true,
 					keywordName,
 					imageLink,
-				);
+				)) as MessageEditOptions;
 
 				const addButton = new ButtonBuilder()
 					.setLabel("Add")
@@ -184,7 +194,7 @@ export default class KeywordControlCommand extends BaseCommand {
 						await response.awaitMessageComponent({
 							time: 1_800_000,
 						}); // = 30 mins
-					action = buttonInteraction.customId.split("_").at(-1)!;
+					action = buttonInteraction.customId.split("_").at(-1) ?? "";
 					if (action === "cancel") {
 						await currentInteraction.editReply({
 							content: "Keyword addition cancelled",
@@ -192,9 +202,9 @@ export default class KeywordControlCommand extends BaseCommand {
 							components: [],
 						});
 						return;
-					} else {
-						currentInteraction = buttonInteraction;
 					}
+					currentInteraction =
+						buttonInteraction as ButtonInteraction<"cached">;
 				} catch (e) {
 					await currentInteraction.editReply({
 						content:
@@ -207,7 +217,7 @@ export default class KeywordControlCommand extends BaseCommand {
 			}
 
 			await addKeyword(
-				currentInteraction,
+				currentInteraction as ButtonInteraction<"cached">,
 				keywordName,
 				keywordReponse,
 				imageLink,
@@ -244,16 +254,16 @@ export default class KeywordControlCommand extends BaseCommand {
 }
 
 export async function addKeyword(
-	interaction: ButtonInteraction<"cached">,
+	interaction: ButtonInteraction,
 	keyword: string,
 	response: string,
 	imageLink?: string,
 ) {
-	keyword = keyword.trim().toLowerCase();
+	const trimmedKeyword = keyword.trim().toLowerCase();
 	const res = await Keyword.updateOne(
 		{
-			guildId: interaction.guildId!,
-			keyword,
+			guildId: interaction.guildId,
+			keyword: trimmedKeyword,
 		},
 		{
 			response,
@@ -276,9 +286,14 @@ export async function addKeyword(
 		return;
 	}
 
+	if (!interaction.guildId) {
+		console.error("Failed to add keyword: No guild ID found");
+		return;
+	}
+
 	await KeywordCache.append({
 		guildId: interaction.guildId,
-		keyword,
+		keyword: trimmedKeyword,
 		response,
 		imageLink,
 	});

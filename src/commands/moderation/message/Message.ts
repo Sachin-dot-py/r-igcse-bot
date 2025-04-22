@@ -12,12 +12,8 @@ import {
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	StageChannel,
-	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
-	ThreadChannel,
-	VoiceChannel,
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -71,16 +67,13 @@ export default class KickCommand extends BaseCommand {
 				interaction.options.getChannel("channel", false) ||
 				interaction.channel;
 
-			if (
-				!(channel instanceof TextChannel) &&
-				!(channel instanceof ThreadChannel) &&
-				!(channel instanceof VoiceChannel) &&
-				!(channel instanceof StageChannel)
-			) {
-				interaction.reply({
-					content: "This is not a text channel",
+			if (!channel.isTextBased()) {
+				await interaction.reply({
+					content:
+						"Invalid channel type, must be a text channel.",
 					ephemeral: true,
 				});
+
 				return;
 			}
 

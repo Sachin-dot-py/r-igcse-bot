@@ -12,6 +12,8 @@ import {
 import humanizeDuration from "humanize-duration";
 import parse from "parse-duration";
 
+const digitsRegex = /^\d+$/;
+
 export default class SlowmodeCommand extends BaseCommand {
 	constructor() {
 		super(
@@ -46,10 +48,10 @@ export default class SlowmodeCommand extends BaseCommand {
 			interaction.options.getChannel("channel", false) ??
 			interaction.channel;
 
-		const isNumber = /^\d+$/.test(timeString);
+		const isNumber = digitsRegex.test(timeString);
 		const time = isNumber
 			? Number.parseInt(timeString)
-			: parse(timeString, "second") ?? 0;
+			: (parse(timeString, "second") ?? 0);
 
 		if (!isNumber && time === 0) {
 			interaction.reply({

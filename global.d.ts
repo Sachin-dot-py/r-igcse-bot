@@ -6,7 +6,8 @@ declare module "bun" {
 		MAIN_GUILD_ID: string;
 		ERROR_LOGS_CHANNEL_ID: string;
 		DEV_FEEDBACK_CHANNEL_ID: string;
-		RESULT_REMINDER_CHANNEL_ID: string;
+		BOT_DEV_ROLE_ID: string;
+		BLACKLISTED_GUILDS: string;
 		[key: string]: string | undefined;
 	}
 }

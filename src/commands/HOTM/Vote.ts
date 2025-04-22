@@ -139,7 +139,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 
 		if (hotmBlacklist) {
 			interaction.editReply({
-				content: `This helper has been blacklisted from HOTM.`,
+				content: "This helper has been blacklisted from HOTM.",
 			});
 
 			return;

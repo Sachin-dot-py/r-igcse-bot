@@ -1,9 +1,7 @@
 import { registerCommands, registerEvents, syncCommands } from "@/registry";
 import { Logger } from "@discordforge/logger";
 import { GatewayIntentBits, Partials } from "discord.js";
-import inquirer from "inquirer";
 import mongo from "mongoose";
-import actionRequired from "./cron/actionRequired";
 import { redis } from "./redis";
 import { DiscordClient } from "./registry/DiscordClient";
 
@@ -51,30 +49,12 @@ await mongo.connect(process.env.MONGO_URL, {
 await registerEvents(client);
 await client.login(process.env.BOT_TOKEN);
 
-for (;;)
-	await inquirer
-		.prompt([
-			{
-				type: "input",
-				name: "command",
-				message: "$",
-			},
-		])
-		.then((answers: { command: string }) => {
-			const command = answers["command"];
+process.on("uncaughtException", (error) => {
+	Logger.error(`Uncaught Exception: ${error} | Stack: ${error.stack}`);
+});
 
-			switch (command) {
-				case "cron run actionRequired":
-					actionRequired(client as DiscordClient<true>);
-					break;
-				case "refreshCommandData":
-					syncCommands(client as DiscordClient<true>)
-						.then(() =>
-							Logger.info("Synced application commands globally"),
-						)
-						.catch(Logger.error);
-					break;
-				default:
-					break;
-			}
-		});
+process.on("unhandledRejection", (error) => {
+	Logger.error(
+		`Unhandled Rejection: ${error} | Stack: ${error instanceof Error ? error.stack : "Unknown"}`,
+	);
+});

@@ -1,6 +1,6 @@
 // import {PaginationBuilder} from "@discordforge/pagination";
-import { PaginationBuilder } from "@/components/InteractionPagination.ts";
-import SelectButtonless from "@/components/SelectButtonless.ts";
+import { PaginationBuilder } from "@/components/InteractionPagination";
+import SelectButtonless from "@/components/SelectButtonless";
 import { ResourceTag } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -10,6 +10,7 @@ import {
 	ActionRowBuilder,
 	Colors,
 	EmbedBuilder,
+	type InteractionReplyOptions,
 	type Message,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
@@ -51,7 +52,7 @@ export default class ResourceTagCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		switch (interaction.options.getSubcommand()) {
-			case "search":
+			case "search": {
 				const query = interaction.options.getString("query", false);
 				const channeId = interaction.options.getChannel(
 					"channel",
@@ -83,15 +84,14 @@ export default class ResourceTagCommand extends BaseCommand {
 								authorId,
 								_id,
 							}) => ({
-								name: title + ` | ||${_id}||`,
-								description:
-									description +
-									"\n\n" +
-									messageUrl +
-									`\nAdded By: <@${authorId}>`,
+								name: `${title} | ||${_id}||`,
+								description: `${description}\n\n${messageUrl}\nAdded By: <@${authorId}>`,
 							}),
 						),
-						async ({ name, description }) => ({
+						async ({
+							name,
+							description,
+						}: { name: string; description: string }) => ({
 							name: name,
 							value: description,
 						}),
@@ -101,7 +101,7 @@ export default class ResourceTagCommand extends BaseCommand {
 						.setTitle("Resource Tag Search Results")
 						.setColor(Colors.Blurple)
 						.build(
-							(page) => {
+							(page: InteractionReplyOptions) => {
 								const imsg = interaction.reply(page);
 								return { interaction, message: imsg };
 							},
@@ -115,14 +115,14 @@ export default class ResourceTagCommand extends BaseCommand {
 
 				const selectOptions: StringSelectMenuOptionBuilder[] = [];
 
-				results.forEach(({ item }) => {
+				for (const { item } of results) {
 					selectOptions.push(
 						new StringSelectMenuOptionBuilder({
 							label: item.title,
-							value: item._id + "_resource_tag",
+							value: `${item._id}_resource_tag`,
 						}),
 					);
-				});
+				}
 
 				const customid = uuidv4();
 
@@ -142,14 +142,13 @@ export default class ResourceTagCommand extends BaseCommand {
 
 				await new PaginationBuilder(
 					results.map(({ item }) => ({
-						name: item.title + ` | ||${item._id}||`,
-						description:
-							item.description +
-							"\n\n" +
-							item.messageUrl +
-							`\nAdded By: <@${item.authorId}>`,
+						name: `${item.title} | ||${item._id}||`,
+						description: `${item.description}\n\n${item.messageUrl}\nAdded By: <@${item.authorId}>`,
 					})),
-					async ({ name, description }) => ({
+					async ({
+						name,
+						description,
+					}: { name: string; description: string }) => ({
 						name: name,
 						value: description,
 					}),
@@ -159,7 +158,7 @@ export default class ResourceTagCommand extends BaseCommand {
 					.setTitle("Resource Tag Search Results")
 					.setColor(Colors.Blurple)
 					.build(
-						(page) => {
+						(page: InteractionReplyOptions) => {
 							selectInteractionMsg = interaction.reply(page);
 							return {
 								interaction,
@@ -197,7 +196,7 @@ export default class ResourceTagCommand extends BaseCommand {
 					const resourceEmbed = new EmbedBuilder()
 						.setTitle(resource.title)
 						.setDescription(
-							resource.description + "\n\n" + resource.messageUrl,
+							`${resource.description}\n\n${resource.messageUrl}`,
 						)
 						.setAuthor({
 							name: `Requested by ${interaction.user.tag}`,
@@ -217,6 +216,7 @@ export default class ResourceTagCommand extends BaseCommand {
 				});
 
 				break;
+			}
 		}
 	}
 }

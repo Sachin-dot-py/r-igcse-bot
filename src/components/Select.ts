@@ -87,15 +87,14 @@ class Select extends StringSelectMenuBuilder {
 					}
 				}
 				return value;
-			} else {
-				if (this.isFirstComponent) {
-					await editMessage({
-						content: "Cancelled",
-						components: [],
-					});
-				}
-				return false;
 			}
+			if (this.isFirstComponent) {
+				await editMessage({
+					content: "Cancelled",
+					components: [],
+				});
+			}
+			return false;
 		} catch (error) {
 			if (this.isFirstComponent) {
 				await editMessage({

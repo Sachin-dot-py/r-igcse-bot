@@ -13,6 +13,7 @@ import {
 	type InteractionReplyOptions,
 	type Message,
 	type MessageCreateOptions,
+	type MessageEditOptions,
 	ModalBuilder,
 	type ModalSubmitInteraction,
 	SlashCommandBuilder,
@@ -71,20 +72,22 @@ export default class KeywordCommand extends BaseCommand {
 			const hidden = interaction.options.getBoolean("hidden", false);
 			const entry = await KeywordCache.get(guildId, keyword);
 			if (entry.response) {
-				const messageOptions = await formatMessage(
+				const messageOptions = (await formatMessage(
 					interaction,
 					entry.response,
 					Boolean(hidden),
 					keyword,
 					entry.imageLink,
-				);
+				)) as InteractionReplyOptions;
 				if (hidden) {
 					const sendButton = new ButtonBuilder()
 						.setLabel("Send")
 						.setStyle(ButtonStyle.Success)
-						.setCustomId(`keyword_search_send`);
+						.setCustomId("keyword_search_send");
 					messageOptions.components = [
-						new ActionRowBuilder().addComponents(sendButton),
+						new ActionRowBuilder<ButtonBuilder>().addComponents(
+							sendButton,
+						),
 					];
 				}
 				await interaction.reply(messageOptions);
@@ -152,21 +155,29 @@ export default class KeywordCommand extends BaseCommand {
 				.setRequired(false);
 
 			modal.addComponents(
-				new ActionRowBuilder().addComponents(keywordNameInput),
-				new ActionRowBuilder().addComponents(keywordValueInput),
-				new ActionRowBuilder().addComponents(imageLinkInput),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					keywordNameInput,
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					keywordValueInput,
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					imageLinkInput,
+				),
 			);
 
 			let action = "";
 			let keywordName = "";
 			let keywordReponse = "";
-			let imageLink: string | undefined = undefined;
+			let imageLink: string | undefined;
 			let currentInteraction:
 				| DiscordChatInputCommandInteraction<"cached">
 				| ModalSubmitInteraction<"cached">
 				| ButtonInteraction<"cached"> = interaction;
 			while (action !== "send") {
-				await currentInteraction.showModal(modal);
+				await (
+					currentInteraction as DiscordChatInputCommandInteraction<"cached">
+				).showModal(modal);
 
 				currentInteraction = await interaction.awaitModalSubmit({
 					time: 600_000,
@@ -185,13 +196,13 @@ export default class KeywordCommand extends BaseCommand {
 					"keyword_request_image",
 				);
 
-				const messagePreview = await formatMessage(
+				const messagePreview = (await formatMessage(
 					interaction,
 					keywordReponse,
 					true,
 					keywordName,
 					imageLink,
-				);
+				)) as MessageEditOptions;
 
 				const sendButton = new ButtonBuilder()
 					.setLabel("Send")
@@ -222,10 +233,10 @@ export default class KeywordCommand extends BaseCommand {
 
 				try {
 					const buttonInteraction =
-						await response.awaitMessageComponent({
+						(await response.awaitMessageComponent({
 							time: 1_800_000,
-						}); // = 30 mins
-					action = buttonInteraction.customId.split("_").at(-1)!;
+						})) as ButtonInteraction<"cached">; // = 30 mins
+					action = buttonInteraction.customId.split("_").at(-1) ?? "";
 					if (action === "cancel") {
 						await currentInteraction.editReply({
 							content: "Keyword request cancelled",
@@ -233,7 +244,8 @@ export default class KeywordCommand extends BaseCommand {
 							components: [],
 						});
 						return;
-					} else if (action === "edit") {
+					}
+					if (action === "edit") {
 						currentInteraction = buttonInteraction;
 					}
 				} catch (e) {
@@ -247,28 +259,28 @@ export default class KeywordCommand extends BaseCommand {
 				}
 			}
 
-			const approvalMessage = await formatMessage(
+			const approvalMessage = (await formatMessage(
 				interaction,
 				keywordReponse,
 				false,
 				keywordName,
 				imageLink,
 				true,
-			);
+			)) as MessageCreateOptions;
 			const approveButton = new ButtonBuilder()
 				.setLabel("Approve")
 				.setStyle(ButtonStyle.Success)
-				.setCustomId(`keyword_accept`);
+				.setCustomId("keyword_accept");
 
 			const editedApproveButton = new ButtonBuilder()
 				.setLabel("Approve with an edit (add keyword before click)")
 				.setStyle(ButtonStyle.Primary)
-				.setCustomId(`keyword_edited`);
+				.setCustomId("keyword_edited");
 
 			const rejectButton = new ButtonBuilder()
 				.setLabel("Reject")
 				.setStyle(ButtonStyle.Danger)
-				.setCustomId(`keyword_reject`);
+				.setCustomId("keyword_reject");
 
 			const buttonsRow =
 				new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -306,23 +318,22 @@ export async function formatMessage(
 ): Promise<
 	MessageCreateOptions | InteractionReplyOptions | InteractionEditReplyOptions
 > {
-	if (!interaction.member) return;
-	const iconUrl = interaction.member.displayAvatarURL();
+	const iconUrl = interaction.member?.displayAvatarURL();
 	// message.user doesn't exist so using .member.user instead which supports both interaction and message
-	const text = `Requested by ${interaction.member.user.tag}${id ? ` (${interaction.member.user.id})` : ""}`; // change regex in the other file if you are gonna change this
+	const text = `Requested by ${interaction.member?.user.tag}${id ? ` (${interaction.member?.user.id})` : ""}`; // change regex in the other file if you are gonna change this
 	const footerOptions = iconUrl ? { text, iconUrl } : { text };
 	const embed = new EmbedBuilder()
 		.setDescription(keywordResponse)
 		.setFooter(footerOptions)
 		.setColor(Colors.Blurple);
-	keywordName = keywordName // capitalize each intial of word
+	const formattedKeywordName = keywordName // capitalize each intial of word
 		.trim()
 		.toLowerCase()
 		.split(" ")
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(" ");
-	if (keywordName) {
-		embed.setTitle(`${keywordName}`);
+	if (formattedKeywordName) {
+		embed.setTitle(`${formattedKeywordName}`);
 	}
 	if (imageLink) {
 		embed.setImage(imageLink);

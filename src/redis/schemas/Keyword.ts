@@ -34,16 +34,16 @@ export class KeywordRepository extends Repository {
 
 	async autoComplete(guildId: string, phrase: string) {
 		// redisearch wildcard full-text search is very inconsitent so filtering instead
-		phrase = phrase.trim().toLowerCase();
+		const phraseTrimmed = phrase.trim().toLowerCase();
 
 		const keywords = (
 			await this.search().where("guildId").equal(guildId).return.all()
 		).map((entry) => entry.keyword as string);
 
 		return (
-			phrase
+			phraseTrimmed
 				? keywords.filter((keyword) =>
-						keyword.toLowerCase().includes(phrase),
+						keyword.toLowerCase().includes(phraseTrimmed),
 					)
 				: keywords
 		).toSorted();

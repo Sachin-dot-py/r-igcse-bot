@@ -29,6 +29,53 @@ export default class PinMenu extends BaseCommand {
 		);
 	}
 
+	async handleStickyAndRespond(
+		toggleInteraction: DiscordMessageContextMenuCommandInteraction<"cached">
+	) {
+		if (!toggleInteraction.channel) {
+			return;
+		};
+		const stickyPinData = await StickyPinnedMessage.findOne({
+			channelId: toggleInteraction.channelId,
+		});
+
+		if (stickyPinData) {
+			const stickyPin = await toggleInteraction.channel.messages.fetch(stickyPinData.messageId);
+			try {
+				await stickyPin.unpin();
+			} catch {
+				await toggleInteraction.targetMessage.reply({
+					content: `Messaged pinned by ${toggleInteraction.user}`,
+				});
+				await toggleInteraction.followUp({
+					content: `Couldn't bring sticky pin to the top. Sticky pin: ${stickyPin.url}`,
+					ephemeral: true,
+				});
+				return;
+			}
+
+			try {
+				await stickyPin.pin();
+			} catch {
+				await toggleInteraction.targetMessage.reply({
+					content: `Messaged pinned by ${toggleInteraction.user}`,
+				});
+				await toggleInteraction.followUp({
+					content: `Couldn't re-pin the sticky pin. Sticky pin: ${stickyPin.url}`,
+					ephemeral: true,
+				});
+				return;
+			}
+			await toggleInteraction.targetMessage.reply({
+				content: `Messaged pinned by ${toggleInteraction.user} ||(& sticky pin moved to top)||`,
+			});
+		} else {
+			await toggleInteraction.targetMessage.reply({
+				content: `Messaged pinned by ${toggleInteraction.user}`,
+			});
+		}
+	}
+
 	async execute(
 		client: DiscordClient<true>,
 		interaction: DiscordMessageContextMenuCommandInteraction<"cached">,
@@ -52,23 +99,16 @@ export default class PinMenu extends BaseCommand {
 			await interaction.deferReply({
 				ephemeral: true,
 			});
-			if (!interaction.targetMessage.pinned) {
-				await interaction.editReply({
-					content: "Message isn't pinned.",
-				});
 
-				return;
-			}
-
-			let thread = (await interaction.guild.channels.fetch())
+			let thread = interaction.guild.channels.cache
 				.filter(
-					(x: any) =>
+					(x) =>
 						x?.isThread() &&
 						x?.parent?.id === interaction.channelId &&
 						x?.name === "Old Pins" &&
 						x?.ownerId === client.user.id,
 				)
-				.first() as AnyThreadChannel<boolean> | undefined;
+				.first() as AnyThreadChannel | undefined;
 			const yesButton = new ButtonBuilder()
 				.setCustomId("yes")
 				.setLabel("Yes")
@@ -80,10 +120,10 @@ export default class PinMenu extends BaseCommand {
 			const response = await interaction.editReply({
 				content: `Shift to the ${thread?.url || "old pins"} thread?`,
 				components: [
-					new ActionRowBuilder().addComponents(
+					new ActionRowBuilder<ButtonBuilder>().addComponents(
 						yesButton,
 						noButton,
-					) as any,
+					),
 				],
 			});
 			try {
@@ -211,9 +251,7 @@ export default class PinMenu extends BaseCommand {
 
 			try {
 				await interaction.targetMessage.pin();
-				await interaction.targetMessage.reply({
-					content: `Messaged pinned by ${interaction.user}`,
-				});
+				await this.handleStickyAndRespond(interaction);
 			} catch (error) {
 				const pinNo = Array.from(
 					(await interaction.channel?.messages.fetchPinned()) || [],
@@ -225,25 +263,25 @@ export default class PinMenu extends BaseCommand {
 						: interaction.channel;
 					let thread = (await channel?.threads.fetch())?.threads
 						.filter(
-							(x: any) =>
+							(x) =>
 								x.isThread() &&
 								x.parent?.id === interaction.channelId &&
 								x.name === "Old Pins" &&
 								x.ownerId === client.user.id,
 						)
-						.first() as AnyThreadChannel<boolean> | undefined;
+						.first() as AnyThreadChannel | undefined;
 					if (!thread) {
 						thread = (
 							await channel?.threads.fetchArchived()
 						)?.threads
 							.filter(
-								(x: any) =>
+								(x) =>
 									x.isThread() &&
 									x.parent?.id === interaction.channelId &&
 									x.name === "Old Pins" &&
 									x.ownerId === client.user.id,
 							)
-							.first() as AnyThreadChannel<boolean> | undefined;
+							.first() as AnyThreadChannel | undefined;
 					}
 					if (!thread) {
 						const threadId = (
@@ -256,7 +294,7 @@ export default class PinMenu extends BaseCommand {
 							thread = (
 								await channel?.threads.fetchArchived()
 							)?.threads.get(threadId) as
-								| AnyThreadChannel<boolean>
+								| AnyThreadChannel
 								| undefined;
 					}
 					if (!thread) {
@@ -311,9 +349,7 @@ export default class PinMenu extends BaseCommand {
 						if (interaction.targetMessage.pinned)
 							await interaction.targetMessage.unpin();
 						await interaction.targetMessage.pin();
-						interaction.targetMessage.reply({
-							content: `Messaged pinned by ${interaction.user}`,
-						});
+						await this.handleStickyAndRespond(interaction);
 						interaction.editReply({
 							content: "Successfully pinned message.",
 						});

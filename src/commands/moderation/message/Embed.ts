@@ -16,6 +16,8 @@ import {
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
+const hexRegex = /^#?[\da-f]{6}$/i;
+
 export default class EmbedCommand extends BaseCommand {
 	constructor() {
 		super(
@@ -97,28 +99,28 @@ export default class EmbedCommand extends BaseCommand {
 					.setRequired(false)
 					.setStyle(TextInputStyle.Short)
 					.setLabel("Embed Title")
-					.setCustomId(`title`);
+					.setCustomId("title");
 
 				const embedDescriptionField = new TextInputBuilder()
 					.setPlaceholder("Description")
 					.setRequired(false)
 					.setStyle(TextInputStyle.Paragraph)
 					.setLabel("Embed Description")
-					.setCustomId(`description`);
+					.setCustomId("description");
 
 				const embedFooterField = new TextInputBuilder()
 					.setPlaceholder("Footer")
 					.setRequired(false)
 					.setStyle(TextInputStyle.Short)
 					.setLabel("Embed Footer")
-					.setCustomId(`footer`);
+					.setCustomId("footer");
 
 				const embedColourField = new TextInputBuilder()
 					.setPlaceholder("Hex Colour")
 					.setRequired(false)
 					.setStyle(TextInputStyle.Short)
 					.setLabel("Colour")
-					.setCustomId(`colour`);
+					.setCustomId("colour");
 
 				const actionRows = [
 					new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -177,7 +179,7 @@ export default class EmbedCommand extends BaseCommand {
 					.setTitle(embedTitle)
 					.setDescription(embedDescription);
 
-				if (embedColour && /^#?[\da-f]{6}$/i.test(embedColour))
+				if (embedColour && hexRegex.test(embedColour))
 					try {
 						embed.setColor(embedColour as HexColorString);
 					} finally {

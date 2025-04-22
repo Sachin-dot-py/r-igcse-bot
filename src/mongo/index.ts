@@ -1,4 +1,5 @@
 export { Punishment, type IPunishment } from "./schemas/Punishment";
+export { ModNote, type IModNote } from "./schemas/ModNote";
 export { ReactionRole, type IReactionRole } from "./schemas/ReactionRole";
 export {
 	PrivateDmThread,

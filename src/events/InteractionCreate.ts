@@ -2,7 +2,6 @@ import { addKeyword } from "@/commands/configuration/KeywordControl";
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
 import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
-import { GetRoleAttempt } from "@/mongo/schemas/GetRoleAttempt";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -13,7 +12,7 @@ import {
 import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
-	ActionRowBuilder,
+	type ActionRowBuilder,
 	type ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
@@ -23,17 +22,16 @@ import {
 	type ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Events,
-	type GuildMemberRoleManager,
 	type Interaction,
-	ModalBuilder,
 	PermissionFlagsBits,
 	TextChannel,
-	TextInputBuilder,
-	TextInputStyle,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+
+const channelRegex = /<#(\d+)>/;
+const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -45,20 +43,22 @@ export default class InteractionCreateEvent extends BaseEvent {
 			if (
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
-			)
+			) {
+				if (interaction.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(interaction.guildId)) {
+					await interaction.reply("This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.")
+					return;
+				}
 				this.handleCommand(client, interaction);
-			else if (interaction.isButton()) {
+			} else if (interaction.isButton()) {
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
 				this.handleKeywordButtons(client, interaction);
 				this.handleResourceTagRequestButton(client, interaction);
-				this.handleGetRoleQuestion(client, interaction);
 			} else if (interaction.isAutocomplete()) {
 				const command = client.commands.get(interaction.commandName);
+				if (!command) return;
 				try {
-					/* refering to ESLint: both can't really happen as interaction.isAutocomplete() means it is an autocomplete command
-					(unless we didn't define the autocomplete function) */
 					await command.autoComplete(interaction);
 				} catch (e) {
 					Logger.error(e);
@@ -105,8 +105,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction,
 	) {
-		const matchCustomIdRegex =
-			/[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 		if (!matchCustomIdRegex.test(interaction.customId)) return;
 
 		const customId = interaction.customId.split("_").slice(1).join("_");
@@ -184,7 +182,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				session.threadId,
 			);
 
-			if (thread && thread.isThread()) {
+			if (thread?.isThread()) {
 				const message = await thread.messages.fetch(button.messageId);
 
 				await message.edit({
@@ -231,9 +229,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const guildPreferences = await GuildPreferencesCache.get(
 			button.guildId,
 		);
-		// if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId) return;
-		const approvalChannel = interaction.guild.channels.cache.get(
-			guildPreferences?.tagResourceApprovalChannelId,
+		if (!guildPreferences || !guildPreferences.tagResourceApprovalChannelId)
+			return;
+		const approvalChannel = interaction.guild?.channels.cache.get(
+			guildPreferences.tagResourceApprovalChannelId,
 		);
 
 		if (!approvalChannel || !(approvalChannel instanceof TextChannel))
@@ -242,14 +241,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		const message = await approvalChannel.messages.fetch(button.messageId);
 		if (!message) return;
 
-		const channelRegex = /<#(\d+)>/;
-
 		const title = message.embeds[0].title;
 		const description = message.embeds[0].description;
 		const messageLink = message.embeds[0].fields[1].value;
 		const channelId = channelRegex.exec(
-			message.embeds[0].fields[2].value,
-		)[1];
+			message.embeds[0].fields[2].value || "",
+		)?.[1];
 		const authorId = message.embeds[0].author?.name.split(" | ")[1];
 		const guild = client.guilds.cache.get(button.guildId);
 		const author = guild?.members.cache.find((m) => m.id === authorId);
@@ -262,6 +259,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 		if (
 			!interaction.member ||
+			// discord.js sucks
 			!interaction.member.roles.cache.has(helperRoleId)
 		) {
 			await interaction.reply({
@@ -274,7 +272,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		switch (action) {
 			case "accept": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title + " - Accepted by " + interaction.user.tag)
+					.setTitle(`${title} - Accepted by ${interaction.user.tag}`)
 					.setDescription(description)
 					.setColor("Green")
 					.addFields(...message.embeds[0].fields)
@@ -323,7 +321,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			}
 			case "reject": {
 				const embedEdited = new EmbedBuilder()
-					.setTitle(title + " - Rejected by " + interaction.user.tag)
+					.setTitle(`${title} - Rejected by ${interaction.user.tag}`)
 					.setDescription(description)
 					.setColor("Red")
 					.addFields(...message.embeds[0].fields)
@@ -340,7 +338,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 						ephemeral: true,
 					});
 				} catch (error) {
-					if (error.message === "Unknown Interaction") {
+					if ((error as Error).message === "Unknown Interaction") {
 						return;
 					}
 				}
@@ -501,7 +499,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async handleKeywordButtons(
 		client: DiscordClient<true>,
-		interaction: ButtonInteraction<"cached">,
+		interaction: ButtonInteraction,
 	) {
 		if (!interaction.isButton()) return;
 		if (interaction.customId === "keyword_search_send") {
@@ -519,7 +517,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 		const embed = interaction.message.embeds[0];
 		const matchUserIdRegex = /.*\ \((.*)\)/gi;
-		const userId = matchUserIdRegex.exec(embed.footer!.text!)![1]; // it's defo gonna match because of the footer is set
+		const userId = matchUserIdRegex.exec(embed.footer?.text ?? "")?.[1]; // it's defo gonna match because of the footer is set
+		if (!userId) return;
 		const user = await client.users.fetch(userId);
 		const keyword = embed.title?.trim().toLowerCase();
 		const response = embed.description;
@@ -542,7 +541,8 @@ export default class InteractionCreateEvent extends BaseEvent {
 					`Your keyword request, \`${keyword}\`, has been approved (slightly edited)!`,
 				);
 				await interaction.reply({
-					content: `Sent dm message (you have to create the keyword yourself)`,
+					content:
+						"Sent dm message (you have to create the keyword yourself)",
 					ephemeral: true,
 				});
 				newEmbedColor = Colors.Yellow;
@@ -746,105 +746,5 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		await ButtonInteractionCache.remove(regexMatches[1]);
-	}
-
-	async handleGetRoleQuestion(
-		client: DiscordClient<true>,
-		interaction: ButtonInteraction,
-	) {
-		const matchCustomIdRegex = /(.*_question)_(answer)/gi;
-		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
-		if (!regexMatches) {
-			return;
-		}
-
-		const questionId = regexMatches[1];
-		if (!questionId) {
-			return;
-		}
-
-		const button = await ButtonInteractionCache.get(questionId);
-		if (!button || !button.guildId) {
-			return;
-		}
-
-		const answers = button.questionAndAnswers;
-
-		if (!answers) {
-			return;
-		}
-
-		const question = answers[0];
-		answers.shift();
-
-		if (!interaction.guild) {
-			return;
-		}
-
-		const role = interaction.guild.roles.cache.get(process.env.GET_ROLE);
-		const member = interaction.member;
-
-		if (!role) {
-			return;
-		}
-
-		const answerInput = new TextInputBuilder()
-			.setCustomId("answer_input")
-			.setLabel("Answer the question")
-			.setPlaceholder("Enter the answer")
-			.setRequired(true)
-			.setStyle(TextInputStyle.Paragraph);
-
-		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			answerInput,
-		);
-
-		const modalCustomId = uuidv4();
-
-		const modal = new ModalBuilder()
-			.setCustomId(modalCustomId)
-			.addComponents(row)
-			.setTitle("Question!");
-
-		await interaction.showModal(modal);
-
-		const modalInteraction = await interaction.awaitModalSubmit({
-			time: 600_000,
-			filter: (i) => i.customId === modalCustomId,
-		});
-
-		await modalInteraction.deferReply({ ephemeral: true });
-
-		await GetRoleAttempt.updateOne(
-			{
-				guildId: button.guildId,
-				userId: interaction.user.id,
-			},
-			{
-				$push: { questions: question },
-			},
-			{
-				upsert: true,
-			},
-		);
-
-		const attempts = await GetRoleAttempt.findOne({
-			userId: interaction.user.id,
-		});
-
-		const answer =
-			modalInteraction.fields.getTextInputValue("answer_input");
-
-		if (answers.includes(answer.toLowerCase())) {
-			(member?.roles as GuildMemberRoleManager).add(role);
-
-			modalInteraction.editReply({
-				content: `Congratulations, you got the answer right! The <@&${process.env.GET_ROLE}> role has been given to you.`,
-			});
-		} else {
-			modalInteraction.editReply({
-				content: `Incorrect answer, you have ${3 - (attempts?.questions.length ?? 0)} attempt(s) left.`,
-			});
-		}
 	}
 }

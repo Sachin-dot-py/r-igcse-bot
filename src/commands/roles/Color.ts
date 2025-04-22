@@ -101,16 +101,13 @@ export default class ColorRolesCommand extends BaseCommand {
 						ephemeral: true,
 					});
 					return;
-				} else {
-					await i.member.roles
-						.remove(
-							guildColorRoles.map(
-								(colorRole) => colorRole.roleId,
-							),
-						)
-						.catch(() => {});
-					await i.member.roles.add(role);
 				}
+				await i.member.roles
+					.remove(
+						guildColorRoles.map((colorRole) => colorRole.roleId),
+					)
+					.catch(() => {});
+				await i.member.roles.add(role);
 
 				interaction.followUp({
 					content: `Added role ${role.name}`,

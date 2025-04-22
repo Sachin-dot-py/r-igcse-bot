@@ -30,6 +30,7 @@ const schema = new Schema("GuildPreferences", {
 	modmailLogsChannelId: { type: "string" },
 	closedDmChannelId: { type: "string" },
 	banAppealFormLink: { type: "string" },
+	moderatorRoleId: { type: "string" },
 	forcedMuteRoleId: { type: "string" },
 	welcomeChannelMessage: { type: "string" },
 	welcomeDMMessage: { type: "string" },

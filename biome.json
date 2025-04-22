@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.8.0/schema.json",
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
 	"organizeImports": {
 		"enabled": true
 	},
@@ -12,11 +12,27 @@
 		"lineWidth": 80
 	},
 	"linter": {
+		"ignore": ["src/components/InteractionPagination.js"],
 		"enabled": true,
 		"rules": {
-			"all": true,
+			"complexity": {
+				"recommended": true
+			},
+			"correctness": {
+				"recommended": true
+			},
+			"performance": {
+				"all": true,
+				"noBarrelFile": "off"
+			},
+			"security": {
+				"all": true
+			},
+			"suspicious": {
+				"recommended": true
+			},
 			"style": {
-				"noDefaultExport": "off"
+				"recommended": true
 			}
 		}
 	}

@@ -85,11 +85,11 @@ export default class RandomPypCommand extends BaseCommand {
 		}
 		if (paperNumber > 6 || paperNumber < 1) {
 			await interaction.reply({
-				content:
-					"Invalid paper number\n" +
-					(paperNumber > 9
+				content: `Invalid paper number\n${
+					paperNumber > 9
 						? "Hint: Don't enter the variant number"
-						: "Hint: Paper numbers are between 1 and 6, inclusive."),
+						: "Hint: Paper numbers are between 1 and 6, inclusive."
+				}`,
 				ephemeral: true,
 			});
 			return;
@@ -130,14 +130,13 @@ export default class RandomPypCommand extends BaseCommand {
 				new EmbedBuilder()
 					.setTitle(`Random Paper for ${subject.name}`)
 					.setDescription(
-						`${paperName} has been chosen at random. Below are links to the question paper and marking scheme.\n\n` +
-							fields
-								.map((x) => `**${x.name}**: ${x.value}`)
-								.join("\n"),
+						`${paperName} has been chosen at random. Below are links to the question paper and marking scheme.\n\n${fields
+							.map((x) => `**${x.name}**: ${x.value}`)
+							.join("\n")}`,
 					)
 					.setColor(0xf4b6c2),
 			],
-			ephemeral: interaction.channel?.type != ChannelType.GuildVoice,
+			ephemeral: interaction.channel?.type !== ChannelType.GuildVoice,
 		});
 	}
 }

@@ -13,6 +13,9 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
 
+// Define regex at the module level for better performance
+const CONTAINS_DIGIT_REGEX = /\d/;
+
 export default class ChemInfoCommand extends BaseCommand {
 	constructor() {
 		super(
@@ -83,7 +86,8 @@ export default class ChemInfoCommand extends BaseCommand {
 			const filteredSynonyms = synonyms
 				? synonyms.filter(
 						(synonym) =>
-							synonym !== molecularformula && !/\d/.test(synonym),
+							synonym !== molecularformula &&
+							!CONTAINS_DIGIT_REGEX.test(synonym),
 					)
 				: [];
 			const synonymList =

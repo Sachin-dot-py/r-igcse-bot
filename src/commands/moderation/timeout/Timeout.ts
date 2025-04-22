@@ -76,7 +76,7 @@ export default class TimeoutCommand extends BaseCommand {
 			durationString.includes(s),
 		)
 			? 2419200
-			: parse(durationString, "second") ?? 86400;
+			: (parse(durationString, "second") ?? 86400);
 
 		if (duration < 60 || duration > 2419200) {
 			interaction.editReply({
@@ -286,9 +286,30 @@ export default class TimeoutCommand extends BaseCommand {
 			});
 		}
 
-		interaction.editReply({
-			content: `${totalPoints >= 10 ? "# ACTION REQUIRED\n### " : ""}${user.username} has ${totalPoints} points[.](https://tenor.com/view/judges-warn-judge-judy-pointing-gif-15838639)`,
-		});
+		const timeoutReply =
+			totalPoints >= 10
+				? {
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("ACTION REQUIRED")
+								.setColor(Colors.Red)
+								.setDescription(
+									`**${user.username} has ${totalPoints} points**`,
+								),
+						],
+					}
+				: {
+						embeds: [
+							new EmbedBuilder()
+								.setColor(Colors.Blurple)
+								.setDescription(
+									`${user.username} has ${totalPoints} points`,
+								),
+						],
+					};
+
+		interaction.editReply(timeoutReply);
+
 		const time = Math.floor(Date.now() / 1000 + duration);
 		interaction.channel.send(
 			`${user.username} has been timed out for *${reason}* until <t:${time}:f>. (<t:${time}:R>) (Case #${caseNumber})`,

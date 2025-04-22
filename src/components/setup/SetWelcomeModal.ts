@@ -93,7 +93,7 @@ class SetWelcomeModal extends ModalBuilder {
 			}
 
 			await followUpInteraction.reply({
-				content: `Welcome message(s) have been set`,
+				content: "Welcome message(s) have been set",
 				ephemeral: true,
 			});
 		} catch (error) {

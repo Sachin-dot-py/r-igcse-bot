@@ -78,15 +78,14 @@ class UserSelect extends UserSelectMenuBuilder {
 					}
 				}
 				return value;
-			} else {
-				if (this.isFirstComponent) {
-					editableMessage.editReply({
-						content: "Cancelled",
-						components: [],
-					});
-				}
-				return false;
 			}
+			if (this.isFirstComponent) {
+				editableMessage.editReply({
+					content: "Cancelled",
+					components: [],
+				});
+			}
+			return false;
 		} catch (error) {
 			if (this.isFirstComponent) {
 				editableMessage.editReply({

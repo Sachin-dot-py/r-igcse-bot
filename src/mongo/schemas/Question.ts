@@ -63,7 +63,7 @@ schema.statics.getQuestions = async function getQuestions(
 	];
 	if (type === "mcq") {
 		// @ts-expect-error chirag big dummy
-		query[0]["$match"]["$expr"] = {
+		query[0].$match.$expr = {
 			$eq: [{ $type: "$answers" }, "string"],
 		};
 	}
