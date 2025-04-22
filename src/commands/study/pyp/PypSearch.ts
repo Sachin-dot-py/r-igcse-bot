@@ -72,7 +72,7 @@ export default class ResourcesCommand extends BaseCommand {
 				list: unknown[];
 			};
 
-			if (list.length === 0) {
+			if (list?.length === 0) {
 				interaction.followUp({
 					content:
 						"No results found in past papers. Try changing your query for better results.",
