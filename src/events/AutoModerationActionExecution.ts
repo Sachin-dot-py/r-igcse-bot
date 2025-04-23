@@ -52,7 +52,7 @@ export default class ErrorEvent extends BaseEvent {
 			action: "Timeout",
 			caseId: caseNumber,
 			duration,
-			reason,
+			reason: reason || autoModerationActionExecution.autoModerationRule?.name,
 			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
 			when: new Date(),
 		});
@@ -72,7 +72,7 @@ export default class ErrorEvent extends BaseEvent {
 				},
 				{
 					name: "Reason",
-					value: "Derogatory Language",
+					value: autoModerationActionExecution.autoModerationRule?.name || "No reason provided",
 				},
 				{
 					name: "Duration",
