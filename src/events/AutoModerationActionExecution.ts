@@ -52,7 +52,7 @@ export default class ErrorEvent extends BaseEvent {
 			action: "Timeout",
 			caseId: caseNumber,
 			duration,
-			reason,
+			reason: reason || "Derogatory Language",
 			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
 			when: new Date(),
 		});
