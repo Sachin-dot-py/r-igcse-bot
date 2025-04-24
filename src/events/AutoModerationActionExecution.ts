@@ -33,8 +33,7 @@ export default class ErrorEvent extends BaseEvent {
 		const duration =
 			autoModerationActionExecution.action.metadata.durationSeconds ?? 0;
 
-		const reason =
-			autoModerationActionExecution.action.metadata.customMessage || null;
+		const reason = autoModerationActionExecution.action.metadata.customMessage || autoModerationActionExecution.autoModerationRule?.name;
 
 		const durationString = humanizeDuration(duration * 1000);
 
@@ -52,14 +51,14 @@ export default class ErrorEvent extends BaseEvent {
 			action: "Timeout",
 			caseId: caseNumber,
 			duration,
-			reason,
+			reason: reason,
 			points: duration >= 604800 ? 4 : duration >= 21600 ? 3 : 2,
 			when: new Date(),
 		});
 
 		const modEmbed = new EmbedBuilder()
 			.setTitle(`Timeout | Case #${caseNumber}`)
-			.setDescription(reason)
+			.setDescription(reason ?? null)
 			.setColor(Colors.Red)
 			.addFields([
 				{
@@ -72,7 +71,7 @@ export default class ErrorEvent extends BaseEvent {
 				},
 				{
 					name: "Reason",
-					value: "Derogatory Language",
+					value: autoModerationActionExecution.autoModerationRule?.name || "No reason provided",
 				},
 				{
 					name: "Duration",
