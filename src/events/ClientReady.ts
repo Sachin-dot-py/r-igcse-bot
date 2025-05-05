@@ -232,7 +232,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			const startTime = Number.parseInt(lockdown.startTimestamp);
 			const endTime = Number.parseInt(lockdown.endTimestamp);
 
-			if (startTime < time) continue;
+			if (time < startTime) continue;
 
 			const locked = time <= endTime;
 
