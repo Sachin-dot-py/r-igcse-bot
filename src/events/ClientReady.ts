@@ -208,10 +208,7 @@ export default class ClientReadyEvent extends BaseEvent {
 		const time = Date.now() / 1000;
 
 		for (const lockdown of await ChannelLockdown.find()) {
-			if (lockdown.guildId === "") {
-				Logger.info(
-					`Channel Lockdown <#${lockdown.channelId}> has no guild id.`,
-				);
+			if (!lockdown.guildId || lockdown.guildId === "") {
 				const channel = await client.channels.fetch(lockdown.channelId);
 
 				if (channel instanceof GuildChannel) {
@@ -230,10 +227,6 @@ export default class ClientReadyEvent extends BaseEvent {
 						`Channel Lockdown <#${lockdown.channelId}> wasn't a guild channel`,
 					);
 				}
-			} else {
-				Logger.info(
-					`Channel Lockdown <#${lockdown.channelId}> has guild id: ${lockdown.guildId}`,
-				);
 			}
 
 			const startTime = Number.parseInt(lockdown.startTimestamp);
@@ -243,7 +236,17 @@ export default class ClientReadyEvent extends BaseEvent {
 
 			const locked = time <= endTime;
 
-			const channel = await client.channels.fetch(lockdown.channelId);
+			const guild = await client.guilds.fetch(lockdown.guildId);
+			const channel = await guild?.channels.fetch(lockdown.channelId);
+
+			if (!channel) {
+				Logger.info(
+					`Channel Lockdown <#${lockdown.channelId}> doesn't exist`,
+				);
+				await lockdown.deleteOne();
+				continue;
+			}
+
 
 			if (channel instanceof ThreadChannel) channel.setLocked(locked);
 			else if (
@@ -258,10 +261,18 @@ export default class ClientReadyEvent extends BaseEvent {
 					},
 				);
 
-			if (endTime <= time)
-				ChannelLockdown.deleteOne({
-					channelId: lockdown.channelId,
-				});
+			if (endTime <= time) {
+				await lockdown.deleteOne();
+				if (channel instanceof ThreadChannel) channel.setLocked(false);
+				else if (channel instanceof TextChannel)
+					channel.permissionOverwrites.edit(
+						channel.guild.roles.everyone,
+						{
+							SendMessages: true,
+							SendMessagesInThreads: true,
+						},
+					);
+			}
 		}
 	}
 
