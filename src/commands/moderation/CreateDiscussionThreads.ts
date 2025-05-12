@@ -20,7 +20,6 @@ import { caieDiscussionForums, edexcelDiscussionForums } from "@/data";
 import { v4 as uuidv4 } from "uuid";
 import { GuildPreferencesCache } from "@/redis";
 import { logToChannel } from "@/utils/Logger";
-import { stringify } from "csv";
 
 export default class CreateDiscussionForumCommand extends BaseCommand {
 	constructor() {
