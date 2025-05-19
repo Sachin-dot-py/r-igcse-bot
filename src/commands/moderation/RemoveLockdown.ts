@@ -56,7 +56,7 @@ export default class RemoveLockdownCommand extends BaseCommand {
 			if (!channel.locked) {
 				await interaction.reply({
 					content: `<#${channel.id}> isn't locked.`,
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -77,7 +77,7 @@ export default class RemoveLockdownCommand extends BaseCommand {
 			) {
 				await interaction.reply({
 					content: `<#${channel.id}> isn't locked.`,
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -94,7 +94,7 @@ export default class RemoveLockdownCommand extends BaseCommand {
 
 		await interaction.reply({
 			content: `<#${channel.id}> has been unlocked.`,
-			ephemeral: true,
+			flags: 64,
 		});
 	}
 }

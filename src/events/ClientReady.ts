@@ -22,6 +22,7 @@ import {
 	GuildChannel,
 	TextChannel,
 	ThreadChannel,
+	ChannelType,
 } from "discord.js";
 import { EntityId } from "redis-om";
 import { client } from "..";
@@ -127,12 +128,13 @@ export default class ClientReadyEvent extends BaseEvent {
 			60000,
 		);
 
+		Logger.info("Starting channel lockdowns refresh loop");
 		createTask(
 			async () =>
 				await this.refreshChannelLockdowns().catch((e) =>
 					Logger.error(`Error at refreshChannelLockdowns: ${e}`),
 				),
-			120000,
+			60000,
 		);
 	}
 
@@ -205,74 +207,125 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async refreshChannelLockdowns() {
-		const time = Date.now() / 1000;
+		const now = Math.floor(Date.now() / 1000);
 
-		for (const lockdown of await ChannelLockdown.find()) {
-			if (!lockdown.guildId || lockdown.guildId === "") {
-				const channel = await client.channels.fetch(lockdown.channelId);
+		const toLock = await ChannelLockdown.find({
+			locked: false,
+			startTimestamp: { $lte: now.toString() },
+			endTimestamp: { $gt: now.toString() },
+		});
 
-				if (channel instanceof GuildChannel) {
-					lockdown.guildId = channel.guildId;
-					lockdown.markModified("guildId");
-					lockdown
-						.save()
-						.then(() =>
-							Logger.info(
-								`Added guild id to Channel Lockdown <#${lockdown.channelId}>`,
-							),
-						)
-						.catch(Logger.warn);
-				} else {
-					Logger.info(
-						`Channel Lockdown <#${lockdown.channelId}> wasn't a guild channel`,
-					);
-				}
-			}
-
-			const startTime = Number.parseInt(lockdown.startTimestamp);
-			const endTime = Number.parseInt(lockdown.endTimestamp);
-
-			if (time < startTime) continue;
-
-			const locked = time <= endTime;
-
-			const guild = await client.guilds.fetch(lockdown.guildId);
-			const channel = await guild?.channels.fetch(lockdown.channelId);
-
+		for (const lockdown of toLock) {
+			const guild = await client.guilds.fetch(lockdown.guildId).catch(
+				() => null,
+			);
+			if (!guild) continue;
+			const channel = await guild.channels.fetch(lockdown.channelId).catch(
+				() => null,
+			);
 			if (!channel) {
-				Logger.info(
-					`Channel Lockdown <#${lockdown.channelId}> doesn't exist`,
-				);
 				await lockdown.deleteOne();
 				continue;
 			}
 
-
-			if (channel instanceof ThreadChannel) channel.setLocked(locked);
-			else if (
-				channel instanceof TextChannel ||
-				channel instanceof ForumChannel
-			)
-				channel.permissionOverwrites.edit(
-					channel.guild.roles.everyone,
+			if (
+				channel.type === ChannelType.GuildText ||
+				channel.type === ChannelType.GuildForum
+			) {
+				await channel.permissionOverwrites.edit(
+					guild.roles.everyone,
 					{
-						SendMessages: !locked,
-						SendMessagesInThreads: !locked,
+						SendMessages: false,
+						SendMessagesInThreads: false,
+						CreatePrivateThreads: false,
+						CreatePublicThreads: false,
+					}
+				);
+				await channel.permissionOverwrites.edit(
+					"1092974042572660839",
+					{
+						SendMessages: true,
+						SendMessagesInThreads: true,
+						CreatePrivateThreads: true,
+						CreatePublicThreads: true,
+					}
+				);
+				if (channel.type === ChannelType.GuildText) {
+					await channel.send(
+						"https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif",
+					);
+				}
+			} else if (
+				channel.type === ChannelType.PublicThread ||
+				channel.type === ChannelType.PrivateThread
+			) {
+				if (!channel.locked) {
+					await channel.setLocked(true);
+					await channel.send(
+						"https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif",
+					);
+				}
+			}
+
+			await ChannelLockdown.updateOne(
+				{ _id: lockdown._id },
+				{ $set: { locked: true } },
+			);
+		}
+
+		const toUnlock = await ChannelLockdown.find({
+			locked: true,
+			endTimestamp: { $lte: now.toString() },
+		});
+
+		for (const lockdown of toUnlock) {
+			const guild = await client.guilds.fetch(lockdown.guildId).catch(
+				() => null,
+			);
+			if (!guild) continue;
+			const channel = await guild.channels.fetch(lockdown.channelId).catch(
+				() => null,
+			);
+			if (!channel) {
+				await lockdown.deleteOne();
+				continue;
+			}
+
+			if (
+				channel.type === ChannelType.GuildText ||
+				channel.type === ChannelType.GuildForum
+			) {
+				await channel.permissionOverwrites.edit(
+					guild.roles.everyone,
+					{
+						SendMessages: null,
+						SendMessagesInThreads: null,
+						CreatePrivateThreads: null,
+						CreatePublicThreads: null,
 					},
 				);
-
-			if (endTime <= time) {
-				await lockdown.deleteOne();
-				if (channel instanceof ThreadChannel) channel.setLocked(false);
-				else if (channel instanceof TextChannel)
-					channel.permissionOverwrites.edit(
-						channel.guild.roles.everyone,
-						{
-							SendMessages: true,
-							SendMessagesInThreads: true,
-						},
-					);
+			} else if (
+				channel.type === ChannelType.PublicThread ||
+				channel.type === ChannelType.PrivateThread
+			) {
+				if (channel.locked) {
+					await channel.setLocked(false);
+				}
 			}
+			if (channel.isTextBased && channel.isTextBased()) {
+				await channel.send({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Channel is Unlocked!")
+							.setDescription(
+								"Discussing papers must only be done in the paper discussion channels. Discussion before all variants are over is strictly prohibited. Not following these rules will result in a timeout.\n\nTo gain access to the M/J 2025 discussion channels, head to <⁠#1372053567988301824> to get the verified role"
+							)
+							.setColor(Colors.Red)
+							.setTimestamp()
+					]
+				});
+			}
+			await lockdown.deleteOne();
 		}
 	}
 

@@ -94,7 +94,7 @@ export default class KeywordCommand extends BaseCommand {
 			} else {
 				await interaction.reply({
 					content: "Keyword not found",
-					ephemeral: true,
+					flags: 64,
 				});
 			}
 		} else if (interaction.options.getSubcommand() === "request") {
@@ -107,7 +107,7 @@ export default class KeywordCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Please setup the bot using the command `/setup` first.",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -124,7 +124,7 @@ export default class KeywordCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Invalid configuration for keyword requests. Please contact an admin.",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;

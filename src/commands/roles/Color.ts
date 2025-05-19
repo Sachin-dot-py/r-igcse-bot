@@ -32,7 +32,7 @@ export default class ColorRolesCommand extends BaseCommand {
 		if (guildColorRoles.length < 1) {
 			await interaction.reply({
 				content: "Color roles not configured for this server",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;
@@ -49,7 +49,7 @@ export default class ColorRolesCommand extends BaseCommand {
 		if (colorRoles.length < 1) {
 			await interaction.reply({
 				content: "No color roles are available for you ¯\\_(ツ)_/¯",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;
@@ -77,7 +77,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 		const component = await interaction.reply({
 			components: [row],
-			ephemeral: true,
+			flags: 64,
 		});
 
 		const collector = component.createMessageComponentCollector({
@@ -98,7 +98,7 @@ export default class ColorRolesCommand extends BaseCommand {
 					await i.member.roles.remove(role);
 					interaction.followUp({
 						content: `Removed role ${role.name}`,
-						ephemeral: true,
+						flags: 64,
 					});
 					return;
 				}
@@ -111,7 +111,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				interaction.followUp({
 					content: `Added role ${role.name}`,
-					ephemeral: true,
+					flags: 64,
 				});
 			} else {
 				await i.member.roles
@@ -121,7 +121,7 @@ export default class ColorRolesCommand extends BaseCommand {
 					.catch(() => {});
 				interaction.followUp({
 					content: "All color roles have been removed from you.",
-					ephemeral: true,
+					flags: 64,
 				});
 			}
 		});

@@ -63,7 +63,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Please setup the bot using the command `/setup` first.",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -80,7 +80,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Invalid configuration for keyword requests. Please contact an admin.",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -234,7 +234,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Error occurred while deleting keyword. Please try again later.",
-					ephemeral: true,
+					flags: 64,
 				});
 				return;
 			}
@@ -243,7 +243,7 @@ export default class KeywordControlCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully deleted \`${keyword}\`.`,
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 	}
@@ -281,7 +281,7 @@ export async function addKeyword(
 		await interaction.reply({
 			content:
 				"Error occurred while creating keyword. Please try again later.",
-			ephemeral: true,
+			flags: 64,
 		});
 		return;
 	}
@@ -300,6 +300,6 @@ export async function addKeyword(
 
 	await interaction.reply({
 		content: `Successfully created keyword \`${keyword}\`.`,
-		ephemeral: true,
+		flags: 64,
 	});
 }

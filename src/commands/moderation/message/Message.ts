@@ -71,7 +71,7 @@ export default class KickCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Invalid channel type, must be a text channel.",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -85,7 +85,7 @@ export default class KickCommand extends BaseCommand {
 			if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 				interaction.reply({
 					content: "Scheduled time cannot be in the past",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -150,7 +150,7 @@ export default class KickCommand extends BaseCommand {
 
 						await i.reply({
 							content: `Message scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-							ephemeral: true,
+							flags: 64,
 						});
 
 						const guildPreferences =
@@ -165,7 +165,7 @@ export default class KickCommand extends BaseCommand {
 							interaction.reply({
 								content:
 									"Please setup the bot using the command `/setup` first.",
-								ephemeral: true,
+								flags: 64,
 							});
 							return;
 						}
@@ -202,7 +202,7 @@ export default class KickCommand extends BaseCommand {
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								ephemeral: true,
+								flags: 64,
 							});
 						});
 
@@ -219,7 +219,7 @@ export default class KickCommand extends BaseCommand {
 
 					await i.reply({
 						content: "Message sent!",
-						ephemeral: true,
+						flags: 64,
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
@@ -233,7 +233,7 @@ export default class KickCommand extends BaseCommand {
 						interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true,
+							flags: 64,
 						});
 						return;
 					}
@@ -284,7 +284,7 @@ export default class KickCommand extends BaseCommand {
 			if (!message) {
 				await interaction.reply({
 					content: "Message not found",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -313,7 +313,7 @@ export default class KickCommand extends BaseCommand {
 
 					await i.reply({
 						content: "Message edited!",
-						ephemeral: true,
+						flags: 64,
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
@@ -327,7 +327,7 @@ export default class KickCommand extends BaseCommand {
 						interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true,
+							flags: 64,
 						});
 						return;
 					}

@@ -124,7 +124,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!session) {
 			await interaction.reply({
 				content: "Invalid question! (Session no longer exists)",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -132,7 +132,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!session.users.includes(interaction.user.id)) {
 			await interaction.reply({
 				content: "You are not in this session",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -144,7 +144,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		) {
 			await interaction.reply({
 				content: "You have already answered this question!",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -157,12 +157,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (interaction.component.label === question.answers) {
 			await interaction.reply({
 				content: "Correct!",
-				ephemeral: true,
+				flags: 64,
 			});
 		} else {
 			await interaction.reply({
 				content: "Incorrect!",
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 
@@ -264,7 +264,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		) {
 			await interaction.reply({
 				content: "You aren't a helper for this channel",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -291,7 +291,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					return await interaction.reply({
 						content:
 							"This message has already been tagged as a resource",
-						ephemeral: true,
+						flags: 64,
 					});
 				}
 
@@ -307,7 +307,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				try {
 					await interaction.reply({
 						content: `Resource tag approved with ID \`${newRes._id}\``,
-						ephemeral: true,
+						flags: 64,
 					});
 				} catch (error) {
 					return;
@@ -335,7 +335,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				try {
 					await interaction.reply({
 						content: "Resource tag rejected",
-						ephemeral: true,
+						flags: 64,
 					});
 				} catch (error) {
 					if ((error as Error).message === "Unknown Interaction") {
@@ -425,7 +425,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: `Confession accepted, ${confessionMsg.url}`,
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}
@@ -444,7 +444,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: "Confession rejected",
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}
@@ -486,7 +486,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await modalResponse.followUpInteraction.reply({
 					content: "Confession rejected and user banned",
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}
@@ -543,7 +543,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await interaction.reply({
 					content:
 						"Sent dm message (you have to create the keyword yourself)",
-					ephemeral: true,
+					flags: 64,
 				});
 				newEmbedColor = Colors.Yellow;
 				moderatorAction = `Approved (edited) by ${interaction.user.tag}`;
@@ -554,7 +554,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				);
 				await interaction.reply({
 					content: "Sent rejection message",
-					ephemeral: true,
+					flags: 64,
 				});
 				newEmbedColor = Colors.Red;
 				moderatorAction = `Rejected by ${interaction.user.tag}`;
@@ -737,7 +737,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: "Session rejected",
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}

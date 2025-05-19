@@ -43,7 +43,7 @@ export default class ConfessionUnban extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: 64,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(

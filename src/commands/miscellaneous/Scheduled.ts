@@ -87,7 +87,7 @@ export default class ScheduledCommand extends BaseCommand {
 							interaction.reply({
 								content:
 									"There are no scheduled messages or embeds",
-								ephemeral: true,
+								flags: 64,
 							});
 
 							return;
@@ -96,14 +96,14 @@ export default class ScheduledCommand extends BaseCommand {
 						await interaction.reply({
 							content:
 								"The following messages and embeds were found",
-							ephemeral: true,
+							flags: 64,
 						});
 
 						for (const doc of messages) {
 							await interaction.followUp({
 								content: `Message to be sent <t:${doc.scheduleTime}:R>:\n\`\`\`${doc.message.content}\n\`\`\``,
 								embeds: doc.message.embeds,
-								ephemeral: true,
+								flags: 64,
 							});
 						}
 
@@ -151,7 +151,7 @@ export default class ScheduledCommand extends BaseCommand {
 			case "delete": {
 				await interaction.deferReply({
 					fetchReply: true,
-					ephemeral: true,
+					flags: 64,
 				});
 
 				switch (interaction.options.getSubcommand()) {
@@ -279,7 +279,7 @@ export default class ScheduledCommand extends BaseCommand {
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								ephemeral: true,
+								flags: 64,
 							});
 						});
 
@@ -407,7 +407,7 @@ export default class ScheduledCommand extends BaseCommand {
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								ephemeral: true,
+								flags: 64,
 							});
 						});
 

@@ -46,7 +46,7 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;
@@ -60,7 +60,7 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Invalid configuration for confessions. Please contact an admin.",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;

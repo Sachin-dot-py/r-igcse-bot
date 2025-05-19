@@ -39,7 +39,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"There are no applications in this server. Try again later.",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -65,7 +65,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"You do not have the required roles to apply for any positions!",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -87,7 +87,7 @@ export default class ApplyCommand extends BaseCommand {
 		const selectInteraction = await interaction.reply({
 			content: "Select a position to apply for",
 			components: [row],
-			ephemeral: true,
+			flags: 64,
 		});
 
 		const selectResponse = await selectInteraction.awaitMessageComponent({
@@ -103,7 +103,7 @@ export default class ApplyCommand extends BaseCommand {
 		if (!application) {
 			await selectResponse.reply({
 				content: "This application does not exist",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -149,7 +149,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Invalid channel for submitting application. Please contact the server staff.",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -192,7 +192,7 @@ export default class ApplyCommand extends BaseCommand {
 
 		await modalInteraction.reply({
 			content: "Application submitted successfully",
-			ephemeral: true,
+			flags: 64,
 		});
 	}
 }

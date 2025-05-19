@@ -79,7 +79,7 @@ export default class RandomPypCommand extends BaseCommand {
 		if (!subject) {
 			await interaction.reply({
 				content: "Invalid/Unsupported subject code",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -90,7 +90,7 @@ export default class RandomPypCommand extends BaseCommand {
 						? "Hint: Don't enter the variant number"
 						: "Hint: Paper numbers are between 1 and 6, inclusive."
 				}`,
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}

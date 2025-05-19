@@ -119,7 +119,7 @@ export default class StudyChannelCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"That channel is already a study channel. To edit a study channel, use `/study_channel edit`.",
-						ephemeral: true,
+						flags: 64,
 					});
 					return;
 				}
@@ -133,7 +133,7 @@ export default class StudyChannelCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: `Study channel created: ${channel}`,
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}
@@ -157,7 +157,7 @@ export default class StudyChannelCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"That channel is not a study channel. To create a study channel, use `/study_channel create`.",
-						ephemeral: true,
+						flags: 64,
 					});
 					return;
 				}
@@ -174,7 +174,7 @@ export default class StudyChannelCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: `Study channel updated: ${channel}`,
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}
@@ -189,7 +189,7 @@ export default class StudyChannelCommand extends BaseCommand {
 				if (!studyChannel) {
 					await interaction.reply({
 						content: "That channel is not a study channel.",
-						ephemeral: true,
+						flags: 64,
 					});
 					return;
 				}
@@ -198,7 +198,7 @@ export default class StudyChannelCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: `Study channel deleted: ${channel}`,
-					ephemeral: true,
+					flags: 64,
 				});
 				break;
 			}
@@ -213,7 +213,7 @@ export default class StudyChannelCommand extends BaseCommand {
 					);
 					await interaction.reply({
 						embeds: [embed],
-						ephemeral: true,
+						flags: 64,
 					});
 					return;
 				}
@@ -232,7 +232,7 @@ export default class StudyChannelCommand extends BaseCommand {
 					.setDescription(description.join("\n"));
 				await interaction.reply({
 					embeds: [embed],
-					ephemeral: true,
+					flags: 64,
 				});
 				return;
 			}

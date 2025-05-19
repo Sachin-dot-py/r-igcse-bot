@@ -1,161 +1,242 @@
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
-	type DiscordChatInputCommandInteraction,
+    type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import {
-	ChannelType,
-	ForumChannel,
-	PermissionFlagsBits,
-	SlashCommandBuilder,
-	TextChannel,
-	ThreadChannel,
+    ChannelType,
+    PermissionFlagsBits,
+    SlashCommandBuilder,
+    ButtonBuilder,
+    ButtonStyle,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
-import parse from "parse-duration";
-
 export default class LockdownCommand extends BaseCommand {
-	constructor() {
-		super(
-			new SlashCommandBuilder()
-				.setName("lockdown")
-				.setDescription("Lockdown a text channel")
-				.addChannelOption((option) =>
-					option
-						.setName("channel")
-						.setDescription("The channel to lock")
-						.addChannelTypes(
-							ChannelType.GuildText,
-							ChannelType.PublicThread,
-							ChannelType.GuildForum,
-							ChannelType.PrivateThread,
-						)
-						.setRequired(true),
-				)
-				.addStringOption((option) =>
-					option
-						.setName("begin")
-						.setDescription(
-							"When to start the lockdown. (Defaults to immediately)",
-						)
-						.setRequired(false),
-				)
-				.addStringOption((option) =>
-					option
-						.setName("duration")
-						.setDescription(
-							"When to end the lockdown. (Defaults to 1 day)",
-						)
-						.setRequired(false),
-				)
-				.addIntegerOption((option) =>
-					option
-						.setName("start")
-						.setDescription(
-							"When to start the lockdown. (Epoch) (Defaults to immediately)",
-						)
-						.setRequired(false),
-				)
-				.addIntegerOption((option) =>
-					option
-						.setName("end")
-						.setDescription(
-							"When to end the lockdown. (Epoch) (Defaults to 1 day)",
-						)
-						.setRequired(false),
-				)
-				.setDMPermission(false)
-				.setDefaultMemberPermissions(
-					PermissionFlagsBits.ManageChannels,
-				),
-		);
-	}
+    constructor() {
+        super(
+            new SlashCommandBuilder()
+                .setName("lockdown")
+                .setDescription("Lockdown related commands")
+                .addSubcommand(sub =>
+                    sub
+                        .setName("create")
+                        .setDescription("Lockdown a channel")
+                        .addChannelOption(option =>
+                            option
+                                .setName("channel")
+                                .setDescription("Channel to lockdown")
+                                .setRequired(true)
+                                .addChannelTypes(
+                                    ChannelType.GuildText,
+                                    ChannelType.PublicThread,
+                                    ChannelType.GuildForum,
+                                    ChannelType.PrivateThread,
+                                )
+                        )
+                        .addIntegerOption(option =>
+                            option
+                                .setName("lock")
+                                .setDescription("Epoch time to lock the channel (defaults to now)")
+                        )
+                        .addIntegerOption(option =>
+                            option
+                                .setName("unlock")
+                                .setDescription("Epoch time to unlock the channel (defaults to 1 day)")
+                        )
+                )
+                .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+                .setDMPermission(false)
+        );
+    }
 
-	async execute(
-		client: DiscordClient<true>,
-		interaction: DiscordChatInputCommandInteraction<"cached">,
-	) {
-		const channel = interaction.options.getChannel("channel", true, [
-			ChannelType.GuildText,
-			ChannelType.PublicThread,
-			ChannelType.GuildForum,
-			ChannelType.PrivateThread,
-		]);
+// gif: https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif
 
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+    async execute(
+        client: DiscordClient<true>,
+        interaction: DiscordChatInputCommandInteraction<"cached">,
+    ) {
+        if (!interaction.channel) return;
 
-		const time = Math.floor(Date.now() / 1000);
+        await interaction.deferReply({ flags: 64 });
 
-		const start = interaction.options.getInteger("start", false);
-		const end = interaction.options.getInteger("end", false);
+        switch (interaction.options.getSubcommand()) {
+            case "create": {
+                const channel = interaction.options.getChannel("channel", true, [
+                    ChannelType.GuildText,
+                    ChannelType.PublicThread,
+                    ChannelType.GuildForum,
+                    ChannelType.PrivateThread,
+                ]);
+                const lockEpoch = interaction.options.getInteger("lock", false);
+                const unlockEpoch = interaction.options.getInteger("unlock", false);
 
-		const begining = interaction.options.getString("begin", false) ?? "";
-		const duration = interaction.options.getString("duration", false) ?? "";
+                const now = Math.floor(Date.now() / 1000);
+                const lockTime = lockEpoch || now;
+                const unlockTime = unlockEpoch || now + 86400;
+                const lockDuration = unlockTime - lockTime;
 
-		const startTimestamp = start ?? time + (parse(begining, "second") ?? 0);
-		const endTimestamp =
-			end ?? startTimestamp + (parse(duration, "second") ?? 86400);
+                let isLocked = false;
+                if (
+                    channel.type === ChannelType.GuildText ||
+                    channel.type === ChannelType.GuildForum
+                ) {
+                    const perms = channel.permissionsFor(interaction.guild.roles.everyone);
+                    isLocked = perms && !perms.has("SendMessages");
+                } else if (
+                    channel.type === ChannelType.PublicThread ||
+                    channel.type === ChannelType.PrivateThread
+                ) {
+                    isLocked = channel.locked ?? false;
+                }
+                if (isLocked) {
+                    await interaction.editReply({
+                        content: "This channel is already locked.",
+                    });
+                    return;
+                }
 
-		if (endTimestamp <= startTimestamp) {
-			await interaction.editReply({
-				content: "Invalid timestamps provided.",
-			});
+                const existing = await ChannelLockdown.findOne({
+                    guildId: interaction.guildId,
+                    channelId: channel.id,
+                });
 
-			return;
-		}
+                if (existing && existing.locked) {
+                    await interaction.editReply({
+                        content: "This channel is already locked (DB record).",
+                    });
+                    return;
+                }
 
-		if (startTimestamp <= time && endTimestamp >= time)
-			if (channel instanceof ThreadChannel) {
-				if (channel.locked) {
-					await interaction.editReply({
-						content: `<#${channel.id}> is already locked.`,
-					});
+                if (existing && !existing.locked) {
+                    const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = await import("discord.js");
+                    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId("lockdown_overwrite_yes")
+                            .setLabel("Yes, overwrite")
+                            .setStyle(ButtonStyle.Danger),
+                        new ButtonBuilder()
+                            .setCustomId("lockdown_overwrite_no")
+                            .setLabel("No, cancel")
+                            .setStyle(ButtonStyle.Secondary)
+                    );
 
-					return;
-				}
+                    await interaction.editReply({
+                        content: "A lockdown record already exists for this channel but it is not currently locked. Do you want to overwrite it?",
+                        components: [row],
+                    });
 
-				await channel.setLocked(true);
-			} else if (
-				channel instanceof TextChannel ||
-				channel instanceof ForumChannel
-			) {
-				const permissions = channel.permissionsFor(
-					interaction.guild.roles.everyone,
-				);
+                    const filter = (i: any) =>
+                        i.user.id === interaction.user.id &&
+                        (i.customId === "lockdown_overwrite_yes" || i.customId === "lockdown_overwrite_no");
 
-				if (!permissions.has(PermissionFlagsBits.SendMessages)) {
-					await interaction.editReply({
-						content: `<#${channel.id}> is already locked.`,
-					});
+                    try {
+                        const confirmation = await interaction.channel.awaitMessageComponent({
+                            filter,
+                            time: 15000,
+                        });
 
-					return;
-				}
+                        if (confirmation.customId === "lockdown_overwrite_yes") {
+                            await confirmation.update({ content: "Overwriting lockdown record...", components: [] });
+                        } else {
+                            await confirmation.update({ content: "Lockdown creation cancelled.", components: [] });
+                            return;
+                        }
+                    } catch {
+                        await interaction.editReply({ content: "No response, lockdown creation cancelled.", components: [] });
+                        return;
+                    }
+                }
 
-				await channel.permissionOverwrites.edit(
-					interaction.guild.roles.everyone,
-					{
-						SendMessages: false,
-						SendMessagesInThreads: false,
-					},
-				);
-			}
+                if (lockTime < now) {
+                    await interaction.editReply({
+                        content: "Lock time cannot be in the past.",
+                    });
+                    return;
+                }
 
-		await ChannelLockdown.updateOne(
-			{
-				guildId: interaction.guildId,
-				channelId: channel.id,
-			},
-			{
-				startTimestamp: startTimestamp.toString(),
-				endTimestamp: endTimestamp.toString(),
-			},
-			{ upsert: true },
-		);
+                if (unlockTime < now) {
+                    await interaction.editReply({
+                        content: "Unlock time cannot be in the past.",
+                    });
+                    return;
+                }
 
-		await interaction.editReply({
-			content: `<#${channel.id}> will be locked at <t:${Math.floor(startTimestamp)}:F> for ${humanizeDuration((endTimestamp - startTimestamp) * 1000)}.`,
-		});
-	}
+                if (unlockTime <= lockTime) {
+                    await interaction.editReply({
+                        content: "Unlock time must be after lock time.",
+                    });
+                    return;
+                }
+
+                await ChannelLockdown.updateOne(
+                    {
+                        guildId: interaction.guildId,
+                        channelId: channel.id,
+                    },
+                    {
+                        startTimestamp: lockTime.toString(),
+                        endTimestamp: unlockTime.toString(),
+                        locked: false
+                    },
+                    { upsert: true },
+                );
+                if (lockTime === now) {
+                    if (
+                        channel.type === ChannelType.GuildText ||
+                        channel.type === ChannelType.GuildForum
+                    ) {
+                        await channel.permissionOverwrites.edit(
+                            interaction.guild.roles.everyone,
+                            {
+                                SendMessages: false,
+                                SendMessagesInThreads: false,
+                                CreatePrivateThreads: false,
+                                CreatePublicThreads: false,
+                            }
+                        );
+                        await channel.permissionOverwrites.edit(
+                            "1092974042572660839",
+                            {
+                                SendMessages: true,
+                                SendMessagesInThreads: true,
+                                CreatePrivateThreads: true,
+                                CreatePublicThreads: true,
+                            }
+                        );
+                        if (channel.type === ChannelType.GuildText) {
+                            await (channel as import("discord.js").TextChannel).send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
+                        }
+                    } else if (
+                        channel.type === ChannelType.PublicThread ||
+                        channel.type === ChannelType.PrivateThread
+                    ) {
+                        if (!channel.locked) {
+                            await channel.setLocked(true);
+                            await channel.send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
+                        }
+                    }
+                    await ChannelLockdown.updateOne(
+                        {
+                            guildId: interaction.guildId,
+                            channelId: channel.id,
+                        },
+                        {
+                            $set: { locked: true }
+                        }
+                    );
+                }
+
+                await interaction.editReply({
+                    content: `<#${channel.id}> will be locked at <t:${lockTime}:F> (<t:${lockTime}:R>) for ${humanizeDuration(lockDuration * 1000)}.`,
+                });
+                break;
+            }
+            default:
+                await interaction.editReply({
+                    content: "Unknown subcommand.",
+                });
+                break;
+        }
+    }
 }
+

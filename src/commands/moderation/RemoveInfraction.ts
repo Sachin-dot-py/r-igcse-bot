@@ -76,7 +76,7 @@ export default class extends BaseCommand {
 				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			ephemeral: true,
+			flags: 64,
 		});
 
 		const response = await punishmentSelect.waitForResponse(
@@ -93,7 +93,7 @@ export default class extends BaseCommand {
 		if (!punishment) {
 			await interaction.reply({
 				content: "Punishment not found",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}

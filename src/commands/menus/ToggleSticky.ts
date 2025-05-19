@@ -100,7 +100,7 @@ export default class StickMessageCommand extends BaseCommand {
 				if (stickTime > unstickTime) {
 					await interaction.followUp({
 						content: "Stick time must be before unstick time.",
-						ephemeral: true,
+						flags: 64,
 					});
 
 					return;
@@ -108,7 +108,7 @@ export default class StickMessageCommand extends BaseCommand {
 				if (unstickTime < time) {
 					await interaction.followUp({
 						content: "Unstick time must be after now.",
-						ephemeral: true,
+						flags: 64,
 					});
 
 					return;
@@ -134,7 +134,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 			const interactionRes = await interaction.followUp({
 				components: [channelRow],
-				ephemeral: true,
+				flags: 64,
 			});
 
 			const selectInteraction =
@@ -153,7 +153,7 @@ export default class StickMessageCommand extends BaseCommand {
 			if (!channel || !channel.isTextBased()) {
 				await interaction.followUp({
 					content: "Channel not found / Invalid channel type",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -175,7 +175,7 @@ export default class StickMessageCommand extends BaseCommand {
 			if (!res) {
 				await interaction.followUp({
 					content: "Failed to create sticky message.",
-					ephemeral: true,
+					flags: 64,
 				});
 
 				return;
@@ -198,7 +198,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 			await interaction.followUp({
 				content: "Message scheduled to stick.",
-				ephemeral: true,
+				flags: 64,
 			});
 		} else {
 			await StickyMessageCache.remove(stickyCheck[0][EntityId]);
@@ -206,7 +206,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: "Successfully unstuck message.",
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 	}

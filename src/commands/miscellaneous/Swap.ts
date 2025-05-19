@@ -29,7 +29,7 @@ export default class PingCommand extends BaseCommand {
 		if (interaction.guild) {
 			interaction.reply({
 				content: "This command is intended for DMs",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;
@@ -43,7 +43,7 @@ export default class PingCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Please try sending a message in the server you're trying to contact.",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;

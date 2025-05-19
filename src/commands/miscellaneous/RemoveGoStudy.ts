@@ -39,7 +39,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"You do not have permission to remove gostudy from other users.",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;
@@ -53,7 +53,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
@@ -65,7 +65,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 		if (!role) {
 			await interaction.reply({
 				content: "Forced mute role not found!",
-				ephemeral: true,
+				flags: 64,
 			});
 
 			return;
@@ -79,7 +79,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			);
 			await interaction.followUp({
 				content: `Forced mute removed from ${user.username}`,
-				ephemeral: true,
+				flags: 64,
 			});
 		} catch (error) {
 			client.log(
@@ -93,7 +93,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			await interaction.followUp({
 				content:
 					"There was an error while removing the forced mute role.",
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 	}
