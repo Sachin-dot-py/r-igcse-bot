@@ -134,7 +134,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				await this.refreshChannelLockdowns().catch((e) =>
 					Logger.error(`Error at refreshChannelLockdowns: ${e}`),
 				),
-			60000,
+			20000,
 		);
 	}
 
@@ -216,13 +216,9 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const lockdown of toLock) {
-			const guild = await client.guilds.fetch(lockdown.guildId).catch(
-				() => null,
-			);
+			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
 			if (!guild) continue;
-			const channel = await guild.channels.fetch(lockdown.channelId).catch(
-				() => null,
-			);
+			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
 			if (!channel) {
 				await lockdown.deleteOne();
 				continue;
@@ -281,20 +277,15 @@ export default class ClientReadyEvent extends BaseEvent {
 				{ $set: { locked: true } },
 			);
 		}
-
 		const toUnlock = await ChannelLockdown.find({
 			locked: true,
 			endTimestamp: { $lte: now.toString() },
 		});
 
 		for (const lockdown of toUnlock) {
-			const guild = await client.guilds.fetch(lockdown.guildId).catch(
-				() => null,
-			);
+			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
 			if (!guild) continue;
-			const channel = await guild.channels.fetch(lockdown.channelId).catch(
-				() => null,
-			);
+			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
 			if (!channel) {
 				await lockdown.deleteOne();
 				continue;
@@ -322,17 +313,19 @@ export default class ClientReadyEvent extends BaseEvent {
 				}
 			}
 			if (channel.isTextBased && channel.isTextBased()) {
-				await channel.send({
-					embeds: [
-						new EmbedBuilder()
-							.setTitle("Channel is Unlocked!")
-							.setDescription(
-								"Discussing papers must only be done in the paper discussion channels. Discussion before all variants are over is strictly prohibited. Not following these rules will result in a timeout.\n\nTo gain access to the M/J 2025 discussion channels, head to <⁠#1372053567988301824> to get the verified role"
-							)
-							.setColor(Colors.Red)
-							.setTimestamp()
-					]
-				});
+				const unlockEmbed = new EmbedBuilder()
+					.setTitle("Channel Unlocked!")
+					.setDescription(
+						[
+							"Paper discussions are only allowed in the designated channels. Early discussion before all variants are completed is **strictly prohibited** and may result in a timeout.",
+							"",
+							"To access **M/J 2025** discussion channels, please visit <#1372053567988301824> and obtain the verified role."
+						].join("\n")
+					)
+					.setColor(Colors.Green)
+					.setTimestamp();
+
+				await channel.send({ embeds: [unlockEmbed] });
 			}
 			await lockdown.deleteOne();
 		}
