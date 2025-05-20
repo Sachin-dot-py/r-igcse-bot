@@ -73,7 +73,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				if (!tagsDel) {
 					await interaction.reply({
 						content: "Resource Tag not found.",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
@@ -84,7 +84,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: "Resource Tag deleted.",
-					flags: 64,
+					ephemeral: true,
 				});
 
 				break;
@@ -108,7 +108,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				if (!urlRegex.test(targetMessageUrl)) {
 					await interaction.reply({
 						content: "Invalid message url.",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
@@ -120,7 +120,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Please setup the bot using the command `/setup` first.",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -134,7 +134,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid configuration for resource tags. Please contact an admin.",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -148,7 +148,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"This message already has already been tagged as a resource.",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -211,7 +211,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Resource tag added with ID \`${newRes._id}\``,
-					flags: 64,
+					ephemeral: true,
 				});
 				break;
 			}

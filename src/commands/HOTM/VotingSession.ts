@@ -76,7 +76,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Configure the bot using `/setup` before starting sessions",
-				flags: 64,
+				ephemeral: true,
 			});
 			return;
 		}
@@ -88,7 +88,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 					interaction.options.getBoolean("permanent") ?? false;
 
 				await interaction.deferReply({
-					flags: 64,
+					ephemeral: true,
 				});
 
 				const blacklistEntry = await HOTMBlacklist.findOne({
@@ -164,7 +164,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 				const helper = interaction.options.getUser("helper", true);
 
 				await interaction.deferReply({
-					flags: 64,
+					ephemeral: true,
 				});
 
 				const blacklistEntry = await HOTMBlacklist.findOne({
@@ -192,13 +192,13 @@ export default class HOTMSessionCommand extends BaseCommand {
 					interaction.reply({
 						content:
 							"A HOTM session is already ongoing, end it before starting a new one",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
 
 				await interaction.deferReply({
-					flags: 64,
+					ephemeral: true,
 				});
 
 				await guildPreferences.updateOne({
@@ -222,12 +222,12 @@ export default class HOTMSessionCommand extends BaseCommand {
 				if (!guildPreferences.hotmSessionOngoing) {
 					interaction.reply({
 						content: "There is no voting session to end",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
 
-				await interaction.deferReply({ ephemeral: true });
+				await interaction.deferReply({ ephemeral: true, });
 
 				await guildPreferences.updateOne({ hotmSessionOngoing: false });
 

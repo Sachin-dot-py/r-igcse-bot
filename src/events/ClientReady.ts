@@ -233,7 +233,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				channel.type === ChannelType.GuildForum
 			) {
 				await channel.permissionOverwrites.edit(
-					guild.roles.everyone,
+					guild.roles.everyone.id,
 					{
 						SendMessages: false,
 						SendMessagesInThreads: false,
@@ -241,15 +241,24 @@ export default class ClientReadyEvent extends BaseEvent {
 						CreatePublicThreads: false,
 					}
 				);
-				await channel.permissionOverwrites.edit(
-					"1092974042572660839",
-					{
-						SendMessages: true,
-						SendMessagesInThreads: true,
-						CreatePrivateThreads: true,
-						CreatePublicThreads: true,
-					}
-				);
+				const modRoleId = guild.roles.cache.has("1092974042572660839")
+					? "1092974042572660839"
+					: "1364254995196674079";
+				const modRole = guild.roles.cache.get(modRoleId);
+				if (modRole) {
+					await channel.permissionOverwrites.edit(
+						modRole.id,
+						{
+							SendMessages: true,
+							SendMessagesInThreads: true,
+							CreatePrivateThreads: true,
+							CreatePublicThreads: true,
+						}
+					);
+				} else {
+					Logger.warn(`Mod role with ID ${modRoleId} not found in guild ${guild.id}`);
+				}
+
 				if (channel.type === ChannelType.GuildText) {
 					await channel.send(
 						"https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif",

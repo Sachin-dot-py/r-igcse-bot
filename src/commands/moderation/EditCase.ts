@@ -47,7 +47,7 @@ export default class EditCaseCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 
 		await interaction.deferReply({
-			flags: 64,
+			ephemeral: true,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(

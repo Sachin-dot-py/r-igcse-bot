@@ -94,7 +94,7 @@ export default class ColorRolesCommand extends BaseCommand {
 							customId,
 						) as ActionRowBuilder<ButtonBuilder>,
 					],
-					flags: 64,
+					ephemeral: true,
 					fetchReply: true,
 				});
 
@@ -139,7 +139,7 @@ export default class ColorRolesCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Encountered error while trying to delete color role. Please try again later.",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					client.log(
@@ -153,7 +153,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: "Successfully deleted color role.",
-					flags: 64,
+					ephemeral: true,
 				});
 
 				break;

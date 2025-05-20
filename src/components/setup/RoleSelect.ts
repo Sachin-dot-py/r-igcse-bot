@@ -56,7 +56,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 				await i.reply({
 					content:
 						"Failed to update the database. This exception has been logged.",
-					flags: 64,
+					ephemeral: true,
 				});
 				Logger.error(`Failed to update the database for ${this.name}`);
 				return;
@@ -64,7 +64,7 @@ class RoleSelect extends RoleSelectMenuBuilder {
 
 			await i.followUp({
 				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `<@&${x}>`).join(", ")}.`,
-				flags: 64,
+				ephemeral: true,
 			});
 
 			await GuildPreferencesCache.remove(interaction.guildId);

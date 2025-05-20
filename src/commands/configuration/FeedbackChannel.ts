@@ -61,7 +61,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
 					interaction.reply({
 						content:
 							"Feedback channel must be a valid text channel.",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
@@ -69,13 +69,13 @@ export default class FeedbackChannelCommand extends BaseCommand {
 				if (label === "Bot Developers") {
 					interaction.reply({
 						content: "Label cannot be `Bot Developers`",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
 
 				await interaction.deferReply({
-					flags: 64,
+					ephemeral: true,
 				});
 
 				try {
@@ -126,7 +126,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
 				if (feedbackTeams.length === 0) {
 					interaction.reply({
 						content: "There are no feedback channels to be removed",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}
@@ -155,7 +155,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
 						) as ActionRowBuilder<ButtonBuilder>,
 					],
 					fetchReply: true,
-					flags: 64,
+					ephemeral: true,
 				});
 
 				const response = await teamSelect.waitForResponse(
@@ -178,7 +178,7 @@ export default class FeedbackChannelCommand extends BaseCommand {
 				if (!team) {
 					interaction.followUp({
 						content: "Team not found",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}

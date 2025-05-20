@@ -63,13 +63,13 @@ export default class OldPinsThreadCommand extends BaseCommand {
 				if (res.matchedCount) {
 					await interaction.reply({
 						content: "The thread has already been set.",
-						flags: 64,
+						ephemeral: true,
 					});
 				} else {
 					await interaction.reply({
 						content:
 							"Error occured while setting thread. Please try again later.",
-						flags: 64,
+						ephemeral: true,
 					});
 				}
 
@@ -78,7 +78,7 @@ export default class OldPinsThreadCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully set Old Pins thread for <#${channel.id}>`,
-				flags: 64,
+				ephemeral: true,
 			});
 		} else if (interaction.options.getSubcommand() === "remove") {
 			const channel = interaction.options.getChannel("channel", true);
@@ -91,7 +91,7 @@ export default class OldPinsThreadCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Error occured while removing thread. Please try again later.",
-					flags: 64,
+					ephemeral: true,
 				});
 
 				return;
@@ -99,7 +99,7 @@ export default class OldPinsThreadCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully removed Old Pins thread for <#${channel.id}>.`,
-				flags: 64,
+				ephemeral: true,
 			});
 		}
 	}

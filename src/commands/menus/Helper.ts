@@ -39,7 +39,7 @@ export default class HelperMenu extends BaseCommand {
 		if (!studyChannel) {
 			interaction.reply({
 				content: "No helper for this channel",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -53,7 +53,7 @@ export default class HelperMenu extends BaseCommand {
 			interaction.reply({
 				content:
 					"Invalid configuration for this channel's helper role. Please contact an admin.",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -61,7 +61,7 @@ export default class HelperMenu extends BaseCommand {
 
 		interaction.reply({
 			content: "https://tenor.com/Wta8.gif",
-			flags: 64,
+			ephemeral: true,
 		});
 
 		const boosterRole = await interaction.guild.roles.cache.find(
@@ -142,7 +142,7 @@ export default class HelperMenu extends BaseCommand {
 
 			i.followUp({
 				content: `You don't have the neccessary permissions to do this action.`,
-				flags: 64,
+				ephemeral: true,
 			});
 		});
 

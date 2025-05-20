@@ -31,7 +31,7 @@ export default class StickMessageCommand extends BaseCommand {
 	) {
 		if (!interaction.channel) return;
 
-		await interaction.deferReply({ephemeral: true})
+		await interaction.deferReply({ephemeral: true,})
 
 		const oldRes = await StickyPinnedMessage.findOne({
 			channelId: interaction.channel.id,
@@ -117,7 +117,7 @@ export default class StickMessageCommand extends BaseCommand {
 		if (!res) {
 			interaction.followUp({
 				content: "Failed to create sticky pinned message.",
-				flags: 64,
+				ephemeral: true,
 			});
 			return;
 		}

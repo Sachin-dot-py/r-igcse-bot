@@ -32,7 +32,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 		);
 
 		await interaction.deferReply({
-			flags: 64,
+			ephemeral: true,
 		});
 
 		if (!guildPreferences) {

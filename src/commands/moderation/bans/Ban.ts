@@ -56,7 +56,7 @@ export default class BanCommand extends BaseCommand {
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
 		await interaction.deferReply({
-			flags: 64,
+			ephemeral: true,
 		});
 
 		if (user.id === interaction.user.id) {

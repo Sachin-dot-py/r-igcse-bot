@@ -41,7 +41,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		if (reps.length === 0) {
 			interaction.followUp({
 				content: "No one in this server has rep 💀",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;

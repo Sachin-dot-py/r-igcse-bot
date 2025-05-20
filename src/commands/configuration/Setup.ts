@@ -61,7 +61,7 @@ export default class SetupCommand extends BaseCommand {
 		const buttonMessage = await interaction.reply({
 			content:
 				"Please use the dropdowns and the buttons below to setup the bot.",
-			flags: 64,
+			ephemeral: true,
 			components: [setupButtons as ActionRowBuilder<ButtonBuilder>],
 			fetchReply: true,
 		});
@@ -162,7 +162,7 @@ export default class SetupCommand extends BaseCommand {
 			const selectInteraction = await interaction.followUp({
 				content: `Page ${pageCounter}`,
 				components: rows as ActionRowBuilder<StringSelectMenuBuilder>[],
-				flags: 64,
+				ephemeral: true,
 				fetchReply: true,
 			});
 

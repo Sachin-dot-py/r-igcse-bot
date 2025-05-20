@@ -49,7 +49,7 @@ export default class PinMenu extends BaseCommand {
 				});
 				await toggleInteraction.followUp({
 					content: `Couldn't bring sticky pin to the top. Sticky pin: ${stickyPin.url}`,
-					flags: 64,
+					ephemeral: true,
 				});
 				return;
 			}
@@ -62,7 +62,7 @@ export default class PinMenu extends BaseCommand {
 				});
 				await toggleInteraction.followUp({
 					content: `Couldn't re-pin the sticky pin. Sticky pin: ${stickyPin.url}`,
-					flags: 64,
+					ephemeral: true,
 				});
 				return;
 			}
@@ -88,7 +88,7 @@ export default class PinMenu extends BaseCommand {
 		) {
 			interaction.reply({
 				content: "You can't pin/unpin messages in this channel",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -97,7 +97,7 @@ export default class PinMenu extends BaseCommand {
 		if (interaction.targetMessage.pinned) {
 			// Unpin Message
 			await interaction.deferReply({
-				flags: 64,
+				ephemeral: true,
 			});
 
 			let thread = interaction.guild.channels.cache
@@ -243,7 +243,7 @@ export default class PinMenu extends BaseCommand {
 			if (!interaction.targetMessage.pinnable) {
 				await interaction.reply({
 					content: "Message isn't pinnable.",
-					flags: 64,
+					ephemeral: true,
 				});
 
 				return;
@@ -306,7 +306,7 @@ export default class PinMenu extends BaseCommand {
 						)?.startThread({ name: "Old Pins" });
 					}
 
-					await interaction.deferReply({ ephemeral: true });
+					await interaction.deferReply({ ephemeral: true, });
 					try {
 						const targetMessage = (
 							await interaction.channel?.messages.fetchPinned(
@@ -365,7 +365,7 @@ export default class PinMenu extends BaseCommand {
 
 				await interaction.reply({
 					content: "Couldn't pin message.",
-					flags: 64,
+					ephemeral: true,
 				});
 
 				client.log(
@@ -379,7 +379,7 @@ export default class PinMenu extends BaseCommand {
 
 			await interaction.reply({
 				content: "Successfully pinned message.",
-				flags: 64,
+				ephemeral: true,
 			});
 		}
 	}

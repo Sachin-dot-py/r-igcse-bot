@@ -42,7 +42,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		const member = await interaction.guild.members.fetch(user.id);
 
 		await interaction.deferReply({
-			flags: 64,
+			ephemeral: true,
 		});
 
 		if (!member.isCommunicationDisabled()) {

@@ -72,7 +72,7 @@ export default class EmbedCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid channel type, must be a text channel.",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -86,7 +86,7 @@ export default class EmbedCommand extends BaseCommand {
 				if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 					interaction.reply({
 						content: "Scheduled time cannot be in the past",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -169,7 +169,7 @@ export default class EmbedCommand extends BaseCommand {
 					await modalInteraction.reply({
 						content:
 							"You must provide at least one field to send an embed!",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -188,7 +188,7 @@ export default class EmbedCommand extends BaseCommand {
 					modalInteraction.reply({
 						content:
 							"The hex colour provided is invalid.\n-# Format: #FFFFFF",
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -212,7 +212,7 @@ export default class EmbedCommand extends BaseCommand {
 
 					await modalInteraction.reply({
 						content: `Embed scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-						flags: 64,
+						ephemeral: true,
 					});
 
 					return;
@@ -222,7 +222,7 @@ export default class EmbedCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Embed sent in the channel ${channel}!`,
-					flags: 64,
+					ephemeral: true,
 				});
 
 				Logger.info(`Embed sent by ${interaction.user.username}`);

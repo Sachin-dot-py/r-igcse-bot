@@ -49,15 +49,13 @@ export default class LockdownCommand extends BaseCommand {
         );
     }
 
-// gif: https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif
-
     async execute(
         client: DiscordClient<true>,
         interaction: DiscordChatInputCommandInteraction<"cached">,
     ) {
         if (!interaction.channel) return;
 
-        await interaction.deferReply({ flags: 64 });
+        await interaction.deferReply({ ephemeral: true, });
 
         switch (interaction.options.getSubcommand()) {
             case "create": {
@@ -174,6 +172,7 @@ export default class LockdownCommand extends BaseCommand {
                         channelId: channel.id,
                     },
                     {
+                        lockID: `${interaction.guildId}${channel.id}`,
                         startTimestamp: lockTime.toString(),
                         endTimestamp: unlockTime.toString(),
                         locked: false
@@ -186,7 +185,7 @@ export default class LockdownCommand extends BaseCommand {
                         channel.type === ChannelType.GuildForum
                     ) {
                         await channel.permissionOverwrites.edit(
-                            interaction.guild.roles.everyone,
+                            interaction.guild.roles.everyone.id,
                             {
                                 SendMessages: false,
                                 SendMessagesInThreads: false,
@@ -194,15 +193,21 @@ export default class LockdownCommand extends BaseCommand {
                                 CreatePublicThreads: false,
                             }
                         );
-                        await channel.permissionOverwrites.edit(
-                            "1092974042572660839",
-                            {
-                                SendMessages: true,
-                                SendMessagesInThreads: true,
-                                CreatePrivateThreads: true,
-                                CreatePublicThreads: true,
-                            }
-                        );
+                        const modRoleId = interaction.guild.roles.cache.has("1092974042572660839")
+                            ? "1092974042572660839"
+                            : "1364254995196674079";
+                        const modRole = interaction.guild.roles.cache.get(modRoleId);
+                        if (modRole) {
+                            await channel.permissionOverwrites.edit(
+                                modRole.id,
+                                {
+                                    SendMessages: true,
+                                    SendMessagesInThreads: true,
+                                    CreatePrivateThreads: true,
+                                    CreatePublicThreads: true,
+                                }
+                            );
+                        }
                         if (channel.type === ChannelType.GuildText) {
                             await (channel as import("discord.js").TextChannel).send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
                         }
@@ -227,7 +232,7 @@ export default class LockdownCommand extends BaseCommand {
                 }
 
                 await interaction.editReply({
-                    content: `<#${channel.id}> will be locked at <t:${lockTime}:F> (<t:${lockTime}:R>) for ${humanizeDuration(lockDuration * 1000)}.`,
+                    content: `<#${channel.id}> will be locked at <t:${lockTime}:F> (<t:${lockTime}:R>) and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
                 });
                 break;
             }

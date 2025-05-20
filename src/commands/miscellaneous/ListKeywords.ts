@@ -35,7 +35,7 @@ export default class ListKeywordsCommand extends BaseCommand {
 		if (keywords.length === 0) {
 			interaction.followUp({
 				content: "There are no keywords in this server",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;

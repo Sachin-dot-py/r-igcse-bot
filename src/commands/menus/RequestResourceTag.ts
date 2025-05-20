@@ -49,7 +49,7 @@ export default class StickMessageCommand extends BaseCommand {
 		if (!studyChannel) {
 			interaction.reply({
 				content: "This can only be used for a study channel!",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -66,7 +66,7 @@ export default class StickMessageCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -80,7 +80,7 @@ export default class StickMessageCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Invalid configuration for resource tags. Please contact an admin.",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -94,7 +94,7 @@ export default class StickMessageCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"This message already has already been tagged as a resource.",
-				flags: 64,
+				ephemeral: true,
 			});
 
 			return;
@@ -145,7 +145,7 @@ export default class StickMessageCommand extends BaseCommand {
 		await modalInteraction.reply({
 			content:
 				"Your tag request has been sent to the helpers.\nYou have to wait for them to approve it.",
-			flags: 64,
+			ephemeral: true,
 		});
 
 		const embed = new EmbedBuilder()

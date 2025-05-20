@@ -91,7 +91,7 @@ class SessionInfoModal extends ModalBuilder {
 		} catch (error) {
 			interaction.followUp({
 				content: "You took too long to respond",
-				flags: 64,
+				ephemeral: true,
 			});
 			return false;
 		}

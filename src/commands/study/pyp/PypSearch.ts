@@ -76,7 +76,7 @@ export default class ResourcesCommand extends BaseCommand {
 				interaction.followUp({
 					content:
 						"No results found in past papers. Try changing your query for better results.",
-					flags: 64,
+					ephemeral: true,
 				});
 
 				return;

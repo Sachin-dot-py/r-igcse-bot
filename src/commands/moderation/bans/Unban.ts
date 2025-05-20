@@ -36,7 +36,7 @@ export default class UnbanCommand extends BaseCommand {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		await interaction.deferReply({
-			flags: 64,
+			ephemeral: true,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(

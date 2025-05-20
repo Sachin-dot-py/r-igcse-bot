@@ -1,6 +1,7 @@
 import { Schema, model as createModel } from "mongoose";
 
 export interface IChannelLockdown {
+	lockID: string;
 	guildId: string;
 	channelId: string;
 	startTimestamp: string;
@@ -9,6 +10,7 @@ export interface IChannelLockdown {
 }
 
 const schema = new Schema<IChannelLockdown>({
+	lockID: { type: String, required: true, unique: true },
 	guildId: { type: String, required: true, unique: false },
 	channelId: { type: String, required: true, unique: true },
 	startTimestamp: { type: String, required: true, unique: false },

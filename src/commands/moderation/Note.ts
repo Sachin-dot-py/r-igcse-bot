@@ -79,7 +79,7 @@ export default class NoteCommand extends BaseCommand {
 				const note = interaction.options.getString("note", true);
 
 				await interaction.deferReply({
-					flags: 64,
+					ephemeral: true,
 				});
 
 				const guildPreferences = await GuildPreferencesCache.get(
@@ -187,7 +187,7 @@ export default class NoteCommand extends BaseCommand {
 						new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 					],
 					fetchReply: true,
-					flags: 64,
+					ephemeral: true,
 				});
 
 				const response = await noteSelect.waitForResponse(
@@ -204,7 +204,7 @@ export default class NoteCommand extends BaseCommand {
 				if (!note) {
 					await interaction.reply({
 						content: "Note not found",
-						flags: 64,
+						ephemeral: true,
 					});
 					return;
 				}

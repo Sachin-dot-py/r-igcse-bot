@@ -48,7 +48,7 @@ export default class WarnCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 
 		await interaction.deferReply({
-			flags: 64,
+			ephemeral: true,
 		});
 
 		const guildMember = await interaction.guild.members.fetch(user.id);
