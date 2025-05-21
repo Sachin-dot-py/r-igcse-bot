@@ -321,7 +321,7 @@ export default class ClientReadyEvent extends BaseEvent {
 						[
 							"Paper discussions are only allowed in the designated channels. Early discussion before all variants are completed is **strictly prohibited** and may result in a timeout.",
 							"",
-							"To access **M/J 2025** discussion channels, please visit <#1372053567988301824> and obtain the verified role."
+							"To access **M/J 2025** discussion channels, please visit <#1357402364629356544> and obtain the verified role."
 						].join("\n")
 					)
 					.setColor(Colors.Green)
