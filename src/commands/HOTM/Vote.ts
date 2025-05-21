@@ -6,7 +6,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { logToChannel } from "@/utils/Logger";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import type hotmSessionCommand from "./VotingSession";
 
 export default class HOTMVotingCommand extends BaseCommand {
@@ -30,7 +30,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
@@ -56,7 +56,7 @@ export default class HOTMVotingCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The voting period has not started yet or has already ended.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;

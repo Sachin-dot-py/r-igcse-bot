@@ -7,6 +7,7 @@ import {
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
+	MessageFlags,
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -46,7 +47,7 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -60,7 +61,7 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Invalid configuration for confessions. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -94,7 +95,7 @@ export default class ConfessionCommand extends BaseCommand {
 		const confession =
 			modalInteraction.fields.getTextInputValue("confession_input");
 
-		await modalInteraction.deferReply({ ephemeral: true });
+		await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		const bannedQuery: IBannedData[] | null =
 			(await ConfessionBan.aggregate([

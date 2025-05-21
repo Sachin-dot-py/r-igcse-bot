@@ -65,7 +65,7 @@ class SetBanAppealModal extends ModalBuilder {
 
 			await followUpInteraction.reply({
 				content: `Ban appeal link has been set to \`${banAppealLink}\``,
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 		} catch (error) {
 			return;

@@ -13,6 +13,7 @@ import {
 	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
+	MessageFlags,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import BaseCommand, {
@@ -101,7 +102,7 @@ export default class FeedbackCommand extends BaseCommand {
 				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const response = await teamSelect.waitForResponse(
@@ -159,7 +160,7 @@ export default class FeedbackCommand extends BaseCommand {
 			if (!channel || !(channel instanceof TextChannel)) {
 				await interaction.followUp({
 					content: "An error occurred. Channel not found.",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 				return;
 			}

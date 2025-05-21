@@ -14,6 +14,7 @@ import {
 	type Message,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
+	MessageFlags,
 } from "discord.js";
 import Fuse from "fuse.js";
 import { v4 as uuidv4 } from "uuid";
@@ -179,7 +180,7 @@ export default class ResourceTagCommand extends BaseCommand {
 				if (!response || response === "Timed out") {
 					interaction.followUp({
 						content: "An error occured",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return;
 				}

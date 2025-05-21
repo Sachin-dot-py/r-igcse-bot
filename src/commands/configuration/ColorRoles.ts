@@ -9,6 +9,7 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -94,7 +95,7 @@ export default class ColorRolesCommand extends BaseCommand {
 							customId,
 						) as ActionRowBuilder<ButtonBuilder>,
 					],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 					fetchReply: true,
 				});
 
@@ -139,7 +140,7 @@ export default class ColorRolesCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Encountered error while trying to delete color role. Please try again later.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					client.log(
@@ -153,7 +154,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: "Successfully deleted color role.",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				break;

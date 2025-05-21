@@ -14,6 +14,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	MessageFlags,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -79,7 +80,7 @@ export default class NoteCommand extends BaseCommand {
 				const note = interaction.options.getString("note", true);
 
 				await interaction.deferReply({
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				const guildPreferences = await GuildPreferencesCache.get(
@@ -187,7 +188,7 @@ export default class NoteCommand extends BaseCommand {
 						new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 					],
 					fetchReply: true,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				const response = await noteSelect.waitForResponse(
@@ -204,7 +205,7 @@ export default class NoteCommand extends BaseCommand {
 				if (!note) {
 					await interaction.reply({
 						content: "Note not found",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return;
 				}

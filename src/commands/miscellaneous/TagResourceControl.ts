@@ -3,6 +3,7 @@ import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import {
 	ActionRowBuilder,
+	MessageFlags,
 	ModalBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -73,7 +74,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				if (!tagsDel) {
 					await interaction.reply({
 						content: "Resource Tag not found.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return;
 				}
@@ -84,7 +85,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: "Resource Tag deleted.",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				break;
@@ -108,7 +109,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				if (!urlRegex.test(targetMessageUrl)) {
 					await interaction.reply({
 						content: "Invalid message url.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return;
 				}
@@ -120,7 +121,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Please setup the bot using the command `/setup` first.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -134,7 +135,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid configuration for resource tags. Please contact an admin.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -148,7 +149,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"This message already has already been tagged as a resource.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -211,7 +212,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Resource tag added with ID \`${newRes._id}\``,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 				break;
 			}

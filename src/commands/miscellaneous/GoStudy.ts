@@ -9,6 +9,7 @@ import { Logger } from "@discordforge/logger";
 import {
 	EmbedBuilder,
 	PermissionFlagsBits,
+	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
 import parse from "parse-duration";
@@ -56,7 +57,7 @@ export default class GoStudyCommand extends BaseCommand {
 		) {
 			await interaction.reply({
 				content: "You do not have permission to gostudy other users.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -74,7 +75,7 @@ export default class GoStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -88,7 +89,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (duration <= 0) {
 			await interaction.reply({
 				content: "Invalid duration!",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -99,7 +100,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (!member) {
 			await interaction.reply({
 				content: "Invalid user!",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -112,13 +113,13 @@ export default class GoStudyCommand extends BaseCommand {
 		if (!role) {
 			await interaction.reply({
 				content: "Forced mute role not found!",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
 		}
 
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		const expiration = new Date(Date.now() + duration * 1000);
 

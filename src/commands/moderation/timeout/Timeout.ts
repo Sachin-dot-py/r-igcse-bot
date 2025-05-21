@@ -10,6 +10,7 @@ import {
 	Colors,
 	EmbedBuilder,
 	PermissionFlagsBits,
+	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
@@ -57,7 +58,7 @@ export default class TimeoutCommand extends BaseCommand {
 		const durationString = interaction.options.getString("duration", true);
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
