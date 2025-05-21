@@ -13,6 +13,7 @@ import {
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
+	MessageFlags,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -72,7 +73,7 @@ export default class EmbedCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid channel type, must be a text channel.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -86,7 +87,7 @@ export default class EmbedCommand extends BaseCommand {
 				if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 					interaction.reply({
 						content: "Scheduled time cannot be in the past",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -169,7 +170,7 @@ export default class EmbedCommand extends BaseCommand {
 					await modalInteraction.reply({
 						content:
 							"You must provide at least one field to send an embed!",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -188,7 +189,7 @@ export default class EmbedCommand extends BaseCommand {
 					modalInteraction.reply({
 						content:
 							"The hex colour provided is invalid.\n-# Format: #FFFFFF",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -212,7 +213,7 @@ export default class EmbedCommand extends BaseCommand {
 
 					await modalInteraction.reply({
 						content: `Embed scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -222,7 +223,7 @@ export default class EmbedCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Embed sent in the channel ${channel}!`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				Logger.info(`Embed sent by ${interaction.user.username}`);

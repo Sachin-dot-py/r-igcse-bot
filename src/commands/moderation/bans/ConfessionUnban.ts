@@ -10,6 +10,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	MessageFlags,
 } from "discord.js";
 
 interface IBannedData {
@@ -43,7 +44,7 @@ export default class ConfessionUnban extends BaseCommand {
 		const user = interaction.options.getUser("user", true);
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(

@@ -11,6 +11,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	MessageFlags,
 } from "discord.js";
 
 export default class WarnCommand extends BaseCommand {
@@ -48,7 +49,7 @@ export default class WarnCommand extends BaseCommand {
 		const reason = interaction.options.getString("reason", true);
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const guildMember = await interaction.guild.members.fetch(user.id);

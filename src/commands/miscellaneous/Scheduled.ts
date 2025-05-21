@@ -14,6 +14,7 @@ import {
 	type ButtonBuilder,
 	Colors,
 	EmbedBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
@@ -56,13 +57,6 @@ export default class ScheduledCommand extends BaseCommand {
 									"Unschedule a message or embed",
 								),
 						)
-						.addSubcommand((command) =>
-							command
-								.setName("lockdown")
-								.setDescription(
-									"Unschedule a channel lockdown",
-								),
-						),
 				)
 				.setDMPermission(false)
 				.setDefaultMemberPermissions(
@@ -87,7 +81,7 @@ export default class ScheduledCommand extends BaseCommand {
 							interaction.reply({
 								content:
 									"There are no scheduled messages or embeds",
-								ephemeral: true,
+								flags: MessageFlags.Ephemeral
 							});
 
 							return;
@@ -96,21 +90,21 @@ export default class ScheduledCommand extends BaseCommand {
 						await interaction.reply({
 							content:
 								"The following messages and embeds were found",
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral
 						});
 
 						for (const doc of messages) {
 							await interaction.followUp({
 								content: `Message to be sent <t:${doc.scheduleTime}:R>:\n\`\`\`${doc.message.content}\n\`\`\``,
 								embeds: doc.message.embeds,
-								ephemeral: true,
+								flags: MessageFlags.Ephemeral
 							});
 						}
 
 						break;
 					}
 					case "lockdowns": {
-						await interaction.deferReply({ ephemeral: true });
+						await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 						const lockdowns = await ChannelLockdown.find({
 							guildId: interaction.guildId,
 						});
@@ -151,7 +145,7 @@ export default class ScheduledCommand extends BaseCommand {
 			case "delete": {
 				await interaction.deferReply({
 					fetchReply: true,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				switch (interaction.options.getSubcommand()) {
@@ -279,135 +273,7 @@ export default class ScheduledCommand extends BaseCommand {
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								ephemeral: true,
-							});
-						});
-
-						break;
-					}
-					case "lockdown": {
-						const options = await ChannelLockdown.find({
-							guildId: interaction.guildId,
-						});
-
-						if (!options) {
-							interaction.editReply({
-								content:
-									"There are no scheduled channel lockdowns",
-							});
-
-							return;
-						}
-
-						const selectCustomId = uuidv4();
-
-						const optionSelect = new Select(
-							"lockdown",
-							"Select the channel lockdown you want to unschedule",
-							options.map(({ id, startTimestamp, channelId }) => {
-								const channel =
-									interaction.guild?.channels.cache.get(
-										channelId,
-									);
-								return new StringSelectMenuOptionBuilder()
-									.setLabel(
-										`#${channel?.name} | in ${humanizeDuration(
-											Number.parseInt(startTimestamp) *
-												1000 -
-												Date.now(),
-											{ round: true, largest: 2 },
-										)}`,
-									)
-									.setValue(id);
-							}),
-							1,
-							`${selectCustomId}_0`,
-						);
-
-						const selectInteraction = await interaction.editReply({
-							content: "Select a channel lockdown to unschedule",
-							components: [
-								new ActionRowBuilder<Select>().addComponents(
-									optionSelect,
-								),
-								new Buttons(
-									selectCustomId,
-								) as ActionRowBuilder<ButtonBuilder>,
-							],
-						});
-
-						const response = await optionSelect.waitForResponse(
-							`${selectCustomId}_0`,
-							selectInteraction,
-							interaction,
-							true,
-						);
-
-						if (
-							!response ||
-							response === "Timed out" ||
-							!response[0]
-						) {
-							await interaction.followUp({
-								content: "An error occurred",
-								ephemeral: false,
-							});
-							return;
-						}
-
-						const doc = await ChannelLockdown.findById(response[0]);
-
-						if (!doc) {
-							interaction.editReply({
-								content:
-									"Couldn't find lockdown to be unschedule",
-								components: [],
-							});
-
-							return;
-						}
-
-						await doc.deleteOne();
-
-						interaction.editReply({
-							content: `Unscheduled ${interaction.guild?.channels.cache.get(doc.channelId)} from being locked <t:${Number.parseFloat(doc.startTimestamp).toFixed(0)}:R>`,
-							components: [],
-						});
-
-						const guildPreferences =
-							await GuildPreferencesCache.get(
-								interaction.guildId,
-							);
-
-						if (!guildPreferences?.generalLogsChannelId) {
-							interaction.editReply({
-								content:
-									"Please setup the bot using the command `/setup` first.",
-								components: [],
-							});
-							return;
-						}
-
-						await logToChannel(
-							interaction.guild,
-							guildPreferences.generalLogsChannelId,
-							{
-								embeds: [
-									new EmbedBuilder()
-										.setTitle(
-											"Channel Lockdown Unscheduled",
-										)
-										.setDescription(
-											`Channel Lockdown Unscheduled by ${interaction.user.tag} (<@${interaction.user.id}>) in <#${doc.channelId}>`,
-										)
-										.setColor("Red")
-										.setTimestamp(),
-								],
-							},
-						).catch(() => {
-							interaction.followUp({
-								content: "Invalid log channel, contact admins",
-								ephemeral: true,
+								flags: MessageFlags.Ephemeral
 							});
 						});
 

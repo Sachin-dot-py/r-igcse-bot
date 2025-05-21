@@ -11,6 +11,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	MessageFlags,
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -43,7 +44,7 @@ export default class KickCommand extends BaseCommand {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const user = interaction.options.getUser("user", true);

@@ -13,6 +13,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	MessageFlags,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -76,7 +77,7 @@ export default class extends BaseCommand {
 				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const response = await punishmentSelect.waitForResponse(
@@ -93,7 +94,7 @@ export default class extends BaseCommand {
 		if (!punishment) {
 			await interaction.reply({
 				content: "Punishment not found",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}

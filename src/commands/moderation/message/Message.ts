@@ -14,6 +14,7 @@ import {
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
+	MessageFlags
 } from "discord.js";
 
 export default class KickCommand extends BaseCommand {
@@ -71,7 +72,7 @@ export default class KickCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Invalid channel type, must be a text channel.",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				return;
@@ -85,7 +86,7 @@ export default class KickCommand extends BaseCommand {
 			if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 				interaction.reply({
 					content: "Scheduled time cannot be in the past",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				return;
@@ -150,7 +151,7 @@ export default class KickCommand extends BaseCommand {
 
 						await i.reply({
 							content: `Message scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral
 						});
 
 						const guildPreferences =
@@ -165,7 +166,7 @@ export default class KickCommand extends BaseCommand {
 							interaction.reply({
 								content:
 									"Please setup the bot using the command `/setup` first.",
-								ephemeral: true,
+								flags: MessageFlags.Ephemeral
 							});
 							return;
 						}
@@ -202,7 +203,7 @@ export default class KickCommand extends BaseCommand {
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								ephemeral: true,
+								flags: MessageFlags.Ephemeral
 							});
 						});
 
@@ -219,7 +220,7 @@ export default class KickCommand extends BaseCommand {
 
 					await i.reply({
 						content: "Message sent!",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
@@ -233,7 +234,7 @@ export default class KickCommand extends BaseCommand {
 						interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral
 						});
 						return;
 					}
@@ -284,7 +285,7 @@ export default class KickCommand extends BaseCommand {
 			if (!message) {
 				await interaction.reply({
 					content: "Message not found",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				return;
@@ -313,7 +314,7 @@ export default class KickCommand extends BaseCommand {
 
 					await i.reply({
 						content: "Message edited!",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
@@ -327,7 +328,7 @@ export default class KickCommand extends BaseCommand {
 						interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral
 						});
 						return;
 					}

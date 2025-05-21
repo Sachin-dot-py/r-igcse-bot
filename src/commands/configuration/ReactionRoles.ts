@@ -61,7 +61,7 @@ export default class ReactionRolesCommand extends BaseCommand {
 				if (!message) {
 					await interaction.reply({
 						content: "Message not found",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					return;
@@ -76,12 +76,12 @@ export default class ReactionRolesCommand extends BaseCommand {
 
 					await interaction.reply({
 						content: "Reaction role created",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 				} catch (error) {
 					await interaction.reply({
 						content: "Failed to create reaction role",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
@@ -92,7 +92,7 @@ export default class ReactionRolesCommand extends BaseCommand {
 						await interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							ephemeral: true,
+							flags: MessageFlags.Ephemeral
 						});
 						return;
 					}

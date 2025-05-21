@@ -12,6 +12,7 @@ import {
 	ContextMenuCommandBuilder,
 	EmbedBuilder,
 	PermissionFlagsBits,
+	MessageFlags,
 } from "discord.js";
 
 export default class StickMessageCommand extends BaseCommand {
@@ -31,7 +32,7 @@ export default class StickMessageCommand extends BaseCommand {
 	) {
 		if (!interaction.channel) return;
 
-		await interaction.deferReply({ephemeral: true})
+		await interaction.deferReply({flags: MessageFlags.Ephemeral})
 
 		const oldRes = await StickyPinnedMessage.findOne({
 			channelId: interaction.channel.id,
@@ -117,7 +118,7 @@ export default class StickMessageCommand extends BaseCommand {
 		if (!res) {
 			interaction.followUp({
 				content: "Failed to create sticky pinned message.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}

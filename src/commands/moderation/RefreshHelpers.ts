@@ -10,6 +10,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextChannel,
+	MessageFlags,	
 } from "discord.js";
 
 export default class RefreshHelpersCommand extends BaseCommand {
@@ -32,7 +33,7 @@ export default class RefreshHelpersCommand extends BaseCommand {
 		);
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		if (!guildPreferences) {

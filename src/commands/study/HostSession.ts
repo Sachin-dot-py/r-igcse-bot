@@ -16,6 +16,7 @@ import {
 	StringSelectMenuOptionBuilder,
 	TextInputBuilder,
 	TextInputStyle,
+	MessageFlags,
 	type Message,
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
@@ -44,7 +45,7 @@ export default class HostSessionCommand extends BaseCommand {
 		if (!interaction.guild.features.includes("COMMUNITY")) {
 			interaction.reply({
 				content: "Host sessions may only be used in community servers",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -62,7 +63,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"This guild hasn't configured session hosting. Please contact an admistrator (`/setup`)",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -79,7 +80,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Session Hosting Announcement Channel couldn't be found. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -89,7 +90,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Session Hosting Announcement Channel is of an invalid type. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -103,7 +104,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Session Hosting Approval Channel couldn't be found. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -113,7 +114,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Session Hosting Approval Channel is of an invalid type. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -136,7 +137,7 @@ export default class HostSessionCommand extends BaseCommand {
 		if (userHelperRoles.size <= 0) {
 			interaction.reply({
 				content: "Only helpers can host a session",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -197,7 +198,7 @@ export default class HostSessionCommand extends BaseCommand {
 		if (Number.isNaN(startDate)) {
 			modalInteraction.reply({
 				content: "Ensure you entered a valid epoch timestamp",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -206,7 +207,7 @@ export default class HostSessionCommand extends BaseCommand {
 		if (startDate - Date.now() / 1000 < 3600) {
 			modalInteraction.reply({
 				content: "Session can't be hosted before an hour.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -216,7 +217,7 @@ export default class HostSessionCommand extends BaseCommand {
 			modalInteraction.reply({
 				content:
 					"Ensure you enter a valid starting time (epoch in seconds)",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -235,7 +236,7 @@ export default class HostSessionCommand extends BaseCommand {
 		) {
 			modalInteraction.reply({
 				content: "Ensure you enter a valid duration",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -266,7 +267,7 @@ export default class HostSessionCommand extends BaseCommand {
 				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		const response = await subjectSelect.waitForResponse(
@@ -293,7 +294,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await modalInteraction.followUp({
 				content:
 					"Couldn't find study channel data. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -307,7 +308,7 @@ export default class HostSessionCommand extends BaseCommand {
 			await modalInteraction.followUp({
 				content:
 					"The Study Ping Role couldn't be found. Please contact an admin.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;

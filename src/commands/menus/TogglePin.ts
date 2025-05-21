@@ -15,6 +15,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	TextChannel,
+	MessageFlags,
 	ThreadChannel,
 } from "discord.js";
 
@@ -49,7 +50,7 @@ export default class PinMenu extends BaseCommand {
 				});
 				await toggleInteraction.followUp({
 					content: `Couldn't bring sticky pin to the top. Sticky pin: ${stickyPin.url}`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 				return;
 			}
@@ -62,7 +63,7 @@ export default class PinMenu extends BaseCommand {
 				});
 				await toggleInteraction.followUp({
 					content: `Couldn't re-pin the sticky pin. Sticky pin: ${stickyPin.url}`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 				return;
 			}
@@ -88,7 +89,7 @@ export default class PinMenu extends BaseCommand {
 		) {
 			interaction.reply({
 				content: "You can't pin/unpin messages in this channel",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -97,7 +98,7 @@ export default class PinMenu extends BaseCommand {
 		if (interaction.targetMessage.pinned) {
 			// Unpin Message
 			await interaction.deferReply({
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			let thread = interaction.guild.channels.cache
@@ -243,7 +244,7 @@ export default class PinMenu extends BaseCommand {
 			if (!interaction.targetMessage.pinnable) {
 				await interaction.reply({
 					content: "Message isn't pinnable.",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				return;
@@ -306,7 +307,7 @@ export default class PinMenu extends BaseCommand {
 						)?.startThread({ name: "Old Pins" });
 					}
 
-					await interaction.deferReply({ ephemeral: true });
+					await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 					try {
 						const targetMessage = (
 							await interaction.channel?.messages.fetchPinned(
@@ -365,7 +366,7 @@ export default class PinMenu extends BaseCommand {
 
 				await interaction.reply({
 					content: "Couldn't pin message.",
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				client.log(
@@ -379,7 +380,7 @@ export default class PinMenu extends BaseCommand {
 
 			await interaction.reply({
 				content: "Successfully pinned message.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	}

@@ -4,7 +4,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { PaginationBuilder } from "@discordforge/pagination";
-import { Colors, SlashCommandBuilder } from "discord.js";
+import { Colors, SlashCommandBuilder, MessageFlags } from "discord.js";
 
 export default class LeaderboardCommand extends BaseCommand {
 	constructor() {
@@ -41,7 +41,7 @@ export default class LeaderboardCommand extends BaseCommand {
 		if (reps.length === 0) {
 			interaction.followUp({
 				content: "No one in this server has rep 💀",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;

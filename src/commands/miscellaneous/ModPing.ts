@@ -11,6 +11,7 @@ import {
 	ComponentType,
 	SlashCommandBuilder,
 	EmbedBuilder,
+	MessageFlags,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -40,7 +41,7 @@ export default class ModPingCommand extends BaseCommand {
 		) {
 			interaction.reply({
 				content: `You may only ping moderators again <t:${Math.floor(userPingHistory.when.getTime() / 1000) + 3600}:R>`,
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -53,7 +54,7 @@ export default class ModPingCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -88,7 +89,7 @@ export default class ModPingCommand extends BaseCommand {
 		await interaction.reply({
 			embeds: [embed],
 			components: [row],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		if (!interaction.channel) {

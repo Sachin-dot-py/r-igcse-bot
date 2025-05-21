@@ -28,6 +28,7 @@ import {
 	ChannelType,
 	EmbedBuilder,
 	type Message,
+	MessageFlags,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
 	TextChannel,
@@ -116,7 +117,7 @@ export default class PracticeCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"This command cannot be used here, please run it from a channel instead.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -154,7 +155,7 @@ export default class PracticeCommand extends BaseCommand {
 			await followUpInteraction.reply({
 				content:
 					"Boi you ain't solving these MCQs in less than a minute, give yourself some more time, at least 1 minute!",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -206,7 +207,7 @@ export default class PracticeCommand extends BaseCommand {
 							customId,
 						) as ActionRowBuilder<ButtonBuilder>,
 					],
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 					fetchReply: true,
 				});
 			} else {
@@ -351,7 +352,7 @@ Session ID: ${sessionId}`,
 		if (!user) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -360,7 +361,7 @@ Session ID: ${sessionId}`,
 		if (!session) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
@@ -371,7 +372,7 @@ Session ID: ${sessionId}`,
 			await interaction.reply({
 				content:
 					"You cannot leave a session you started. Please end the session instead.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -384,7 +385,7 @@ Session ID: ${sessionId}`,
 
 		await interaction.reply({
 			content: "You have left the session.",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 	}
 
@@ -395,7 +396,7 @@ Session ID: ${sessionId}`,
 		if (!user) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -405,7 +406,7 @@ Session ID: ${sessionId}`,
 		if (!session) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
@@ -417,7 +418,7 @@ Session ID: ${sessionId}`,
 			await interaction.reply({
 				content:
 					"You are not the owner of the session. Please leave the session instead",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -444,7 +445,7 @@ Session ID: ${sessionId}`,
 			await interaction.reply({
 				content:
 					"There are no public sessions available at the moment!",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -478,7 +479,7 @@ Session ID: ${sessionId}`,
 				row,
 				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 			fetchReply: true,
 		});
 
@@ -536,7 +537,7 @@ Session ID: ${sessionId}`,
 		if (!user) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -547,7 +548,7 @@ Session ID: ${sessionId}`,
 		if (!session) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
@@ -558,7 +559,7 @@ Session ID: ${sessionId}`,
 		if (session.owner !== interaction.user.id) {
 			await interaction.reply({
 				content: "You are not the owner of the session.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -577,7 +578,7 @@ Session ID: ${sessionId}`,
 				new ActionRowBuilder<UserSelect>().addComponents(userSelect),
 				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 			fetchReply: true,
 		});
 
@@ -634,7 +635,7 @@ Session ID: ${sessionId}`,
 		if (!user) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -645,7 +646,7 @@ Session ID: ${sessionId}`,
 		if (!session) {
 			await interaction.reply({
 				content: "An error occurred, please try again.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			Logger.error(
 				`User is in a session but session not found in database. User: ${interaction.user.id} Session: ${sessionId}`,
@@ -656,7 +657,7 @@ Session ID: ${sessionId}`,
 		if (session.owner !== interaction.user.id) {
 			await interaction.reply({
 				content: "You are not the owner of the session.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -675,7 +676,7 @@ Session ID: ${sessionId}`,
 				new ActionRowBuilder<UserSelect>().addComponents(userSelect),
 				new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
 			],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 			fetchReply: true,
 		});
 
@@ -737,7 +738,7 @@ Session ID: ${sessionId}`,
 					await interaction.reply({
 						content:
 							"You need to be in a session to use this command.",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return true;
 				}
@@ -746,7 +747,7 @@ Session ID: ${sessionId}`,
 				if (user?.sessionId) {
 					await interaction.reply({
 						content: "You are already in a session",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return true;
 				}
