@@ -2,6 +2,7 @@ import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
 import type HostSessionCommand from "@/commands/study/HostSession";
 import type PracticeCommand from "@/commands/study/Practice";
 import { StickyMessage } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
@@ -237,13 +238,14 @@ export default class ClientReadyEvent extends BaseEvent {
 						CreatePublicThreads: false,
 					}
 				);
-				const modRoleId = guild.roles.cache.has("1092974042572660839")
-					? "1092974042572660839"
-					: "1364254995196674079";
-				const modRole = guild.roles.cache.get(modRoleId);
-				if (modRole) {
+
+				const guildPreferences = await GuildPreferencesCache.get(guild.id);
+				const modRoleId = guildPreferences?.moderatorRoleId;
+
+				if (modRoleId && guild.roles.cache.has(modRoleId)) {
+					const modRole = guild.roles.cache.get(modRoleId);
 					await channel.permissionOverwrites.edit(
-						modRole.id,
+						modRole!.id,
 						{
 							SendMessages: true,
 							SendMessagesInThreads: true,
@@ -251,8 +253,6 @@ export default class ClientReadyEvent extends BaseEvent {
 							CreatePublicThreads: true,
 						}
 					);
-				} else {
-					Logger.warn(`Mod role with ID ${modRoleId} not found in guild ${guild.id}`);
 				}
 
 				if (channel.type === ChannelType.GuildText) {
@@ -277,6 +277,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				{ $set: { locked: true } },
 			);
 		}
+
 		const toUnlock = await ChannelLockdown.find({
 			locked: true,
 			endTimestamp: { $lte: now.toString() },
@@ -312,6 +313,7 @@ export default class ClientReadyEvent extends BaseEvent {
 					await channel.setLocked(false);
 				}
 			}
+
 			if (channel.isTextBased && channel.isTextBased()) {
 				const unlockEmbed = new EmbedBuilder()
 					.setTitle("Channel Unlocked!")
