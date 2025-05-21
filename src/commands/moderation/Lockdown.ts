@@ -19,59 +19,67 @@ export default class LockdownCommand extends BaseCommand {
             .setName("lockdown")
             .setDescription("Lockdown related commands")
             .addSubcommand(sub =>
-                sub
-                .setName("create")
-                .setDescription("Lockdown a channel")
-                .addChannelOption(option =>
-                    option
-                    .setName("channel")
-                    .setDescription("Channel to lockdown")
-                    .setRequired(true)
-                    .addChannelTypes(
-                        ChannelType.GuildText,
-                        ChannelType.PublicThread,
-                        ChannelType.GuildForum,
-                        ChannelType.PrivateThread,
-                    )
-                )
-                .addIntegerOption(option =>
-                    option
-                    .setName("lock")
-                    .setDescription("Epoch time to lock the channel (defaults to now)")
-                )
-                .addIntegerOption(option =>
-                    option
-                    .setName("unlock")
-                    .setDescription("Epoch time to unlock the channel (defaults to 1 day)")
+            sub
+            .setName("create")
+            .setDescription("Lockdown a channel")
+            .addChannelOption(option =>
+                option
+                .setName("channel")
+                .setDescription("Channel to lockdown")
+                .setRequired(true)
+                .addChannelTypes(
+                ChannelType.GuildText,
+                ChannelType.PublicThread,
+                ChannelType.GuildForum,
+                ChannelType.PrivateThread,
                 )
             )
-            .addSubcommand(sub =>
-                sub
-                .setName("remove")
-                .setDescription("Remove lockdown from a channel")
-                .addChannelOption(option =>
-                    option
-                    .setName("channel")
-                    .setDescription("Channel to unlock and remove lockdown record")
-                    .setRequired(true)
-                    .addChannelTypes(
-                        ChannelType.GuildText,
-                        ChannelType.PublicThread,
-                        ChannelType.GuildForum,
-                        ChannelType.PrivateThread,
-                    )
+            .addStringOption(option =>
+                option
+                .setName("mode")
+                .setDescription("Select lockdown mode")
+                .addChoices(
+                { name: "Exam Lockdown", value: "exam" },
                 )
             )
+            .addIntegerOption(option =>
+                option
+                .setName("lock")
+                .setDescription("Epoch time to lock the channel (defaults to now)")
+            )
+            .addIntegerOption(option =>
+                option
+                .setName("unlock")
+                .setDescription("Epoch time to unlock the channel (defaults to 1 day)")
+            )
+            )
             .addSubcommand(sub =>
-                sub
-                .setName("bulk")
-                .setDescription("Bulk lockdown channels from a JSON file")
-                .addAttachmentOption(option =>
-                    option
-                    .setName("file")
-                    .setDescription("JSON file with lockdown instructions")
-                    .setRequired(true)
+            sub
+            .setName("remove")
+            .setDescription("Remove lockdown from a channel")
+            .addChannelOption(option =>
+                option
+                .setName("channel")
+                .setDescription("Channel to unlock and remove lockdown record")
+                .setRequired(true)
+                .addChannelTypes(
+                ChannelType.GuildText,
+                ChannelType.PublicThread,
+                ChannelType.GuildForum,
+                ChannelType.PrivateThread,
                 )
+            )
+            )
+            .addSubcommand(sub =>
+            sub
+            .setName("bulk")
+            .setDescription("Bulk lockdown channels from a JSON file")
+            .addAttachmentOption(option =>
+                option
+                .setName("file")
+                .setDescription("JSON file with lockdown instructions")
+                .setRequired(true)
+            )
             )
             .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
             .setDMPermission(false)
@@ -96,7 +104,7 @@ export default class LockdownCommand extends BaseCommand {
                 ]);
                 const lockEpoch = interaction.options.getInteger("lock", false);
                 const unlockEpoch = interaction.options.getInteger("unlock", false);
-
+                const mode = interaction.options.getString("mode", false);
                 const now = Math.floor(Date.now() / 1000);
                 const lockTime = lockEpoch || now;
                 const unlockTime = unlockEpoch || now + 86400;
@@ -200,14 +208,21 @@ export default class LockdownCommand extends BaseCommand {
                         channelId: channel.id,
                     },
                     {
-                        LockId: `${interaction.guildId}${channel.id}`,
                         startTimestamp: lockTime.toString(),
                         endTimestamp: unlockTime.toString(),
+                        mode: mode || null,
                         locked: false
                     },
                     { upsert: true },
                 );
                 if (lockTime === now) {
+                    let lockMessage: string;
+                    if (mode === "exam") {
+                        lockMessage = "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif";
+                    } else {
+                        lockMessage = "**Channel Locked !!**";
+                    }
+
                     if (
                         channel.type === ChannelType.GuildText ||
                         channel.type === ChannelType.GuildForum
@@ -237,8 +252,9 @@ export default class LockdownCommand extends BaseCommand {
                                 }
                             );
                         }
+                        
                         if (channel.type === ChannelType.GuildText) {
-                            await (channel as import("discord.js").TextChannel).send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
+                            await (channel as import("discord.js").TextChannel).send(lockMessage);
                         }
                     } else if (
                         channel.type === ChannelType.PublicThread ||
@@ -246,7 +262,7 @@ export default class LockdownCommand extends BaseCommand {
                     ) {
                         if (!channel.locked) {
                             await channel.setLocked(true);
-                            await channel.send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
+                            await channel.send(lockMessage);
                         }
                     }
                     await ChannelLockdown.updateOne(
@@ -279,6 +295,21 @@ export default class LockdownCommand extends BaseCommand {
                     guildId: interaction.guildId,
                     channelId: channel.id,
                 });
+                let isLocked = false;
+                if (
+                    channel.type === ChannelType.GuildText ||
+                    channel.type === ChannelType.GuildForum
+                ) {
+                    const perms = channel.permissionsFor(interaction.guild.roles.everyone);
+                    isLocked = perms && !perms.has("SendMessages");
+                } else if (
+                    channel.type === ChannelType.PublicThread ||
+                    channel.type === ChannelType.PrivateThread
+                ) {
+                    isLocked = channel.locked ?? false;
+                }
+
+                const dbLocked = record?.locked ?? false;
 
                 if (!record) {
                     await interaction.editReply({
@@ -287,27 +318,13 @@ export default class LockdownCommand extends BaseCommand {
                     return;
                 }
 
-                if (
-                    channel.type === ChannelType.GuildText ||
-                    channel.type === ChannelType.GuildForum
-                ) {
-                    await channel.permissionOverwrites.edit(
-                        interaction.guild.roles.everyone.id,
-                        {
-                            SendMessages: null,
-                            SendMessagesInThreads: null,
-                            CreatePrivateThreads: null,
-                            CreatePublicThreads: null,
-                        }
-                    );
-
-                    const guildPreferences = await GuildPreferencesCache.get(interaction.guildId);
-                    const modRoleId = guildPreferences?.moderatorRoleId;
-
-                    if (modRoleId && interaction.guild.roles.cache.has(modRoleId)) {
-                        const modRole = interaction.guild.roles.cache.get(modRoleId);
+                if (isLocked && dbLocked) {
+                    if (
+                        channel.type === ChannelType.GuildText ||
+                        channel.type === ChannelType.GuildForum
+                    ) {
                         await channel.permissionOverwrites.edit(
-                            modRole!.id,
+                            interaction.guild.roles.everyone.id,
                             {
                                 SendMessages: null,
                                 SendMessagesInThreads: null,
@@ -315,29 +332,125 @@ export default class LockdownCommand extends BaseCommand {
                                 CreatePublicThreads: null,
                             }
                         );
+
+                        const guildPreferences = await GuildPreferencesCache.get(interaction.guildId);
+                        const modRoleId = guildPreferences?.moderatorRoleId;
+
+                        if (modRoleId && interaction.guild.roles.cache.has(modRoleId)) {
+                            const modRole = interaction.guild.roles.cache.get(modRoleId);
+                            await channel.permissionOverwrites.edit(
+                                modRole!.id,
+                                {
+                                    SendMessages: null,
+                                    SendMessagesInThreads: null,
+                                    CreatePrivateThreads: null,
+                                    CreatePublicThreads: null,
+                                }
+                            );
+                        }
+                    } else if (
+                        channel.type === ChannelType.PublicThread ||
+                        channel.type === ChannelType.PrivateThread
+                    ) {
+                        if (channel.locked) {
+                            await channel.setLocked(false);
+                        }
                     }
-                } else if (
-                    channel.type === ChannelType.PublicThread ||
-                    channel.type === ChannelType.PrivateThread
-                ) {
-                    if (channel.locked) {
-                        await channel.setLocked(false);
+
+                    await ChannelLockdown.deleteOne({
+                        guildId: interaction.guildId,
+                        channelId: channel.id,
+                    });
+                    if (
+                        channel.type === ChannelType.GuildText ||
+                        channel.type === ChannelType.PublicThread ||
+                        channel.type === ChannelType.PrivateThread
+                    ) {
+                        await (channel as import("discord.js").TextChannel | import("discord.js").ThreadChannel).send("**Channel Unlocked !!**");
                     }
+                    await interaction.editReply({
+                        content: `<#${channel.id}> has been unlocked and the lockdown record has been removed.`,
+                    });
+                    break;
                 }
 
-                await ChannelLockdown.deleteOne({
-                    guildId: interaction.guildId,
-                    channelId: channel.id,
-                });
+                if (!isLocked && !dbLocked) {
+                    await ChannelLockdown.deleteOne({
+                        guildId: interaction.guildId,
+                        channelId: channel.id,
+                    });
 
-                await interaction.editReply({
-                    content: `<#${channel.id}> has been unlocked and the lockdown record has been removed.`,
-                });
+                    await interaction.editReply({
+                        content: `<#${channel.id}>'s record has been removed.`,
+                    });
+                    break;
+                }
+
+                if (isLocked && !dbLocked) {
+                    if (
+                        channel.type === ChannelType.GuildText ||
+                        channel.type === ChannelType.GuildForum
+                    ) {
+                        await channel.permissionOverwrites.edit(
+                            interaction.guild.roles.everyone.id,
+                            {
+                                SendMessages: null,
+                                SendMessagesInThreads: null,
+                                CreatePrivateThreads: null,
+                                CreatePublicThreads: null,
+                            }
+                        );
+
+                        const guildPreferences = await GuildPreferencesCache.get(interaction.guildId);
+                        const modRoleId = guildPreferences?.moderatorRoleId;
+
+                        if (modRoleId && interaction.guild.roles.cache.has(modRoleId)) {
+                            const modRole = interaction.guild.roles.cache.get(modRoleId);
+                            await channel.permissionOverwrites.edit(
+                                modRole!.id,
+                                {
+                                    SendMessages: null,
+                                    SendMessagesInThreads: null,
+                                    CreatePrivateThreads: null,
+                                    CreatePublicThreads: null,
+                                }
+                            );
+                        }
+                    } else if (
+                        channel.type === ChannelType.PublicThread ||
+                        channel.type === ChannelType.PrivateThread
+                    ) {
+                        if (channel.locked) {
+                            await channel.setLocked(false);
+                        }
+                    }
+
+                    await ChannelLockdown.deleteOne({
+                        guildId: interaction.guildId,
+                        channelId: channel.id,
+                    });
+                    await (channel as import("discord.js").TextChannel | import("discord.js").ThreadChannel).send("**Channel Unlocked !!**");
+                    await interaction.editReply({
+                        content: `<#${channel.id}> was locked (perms), now unlocked and record removed.`,
+                    });
+                    break;
+                }
+
+                if (!isLocked && dbLocked) {
+                    await ChannelLockdown.deleteOne({
+                        guildId: interaction.guildId,
+                        channelId: channel.id,
+                    });
+
+                    await interaction.editReply({
+                        content: `<#${channel.id}> was not locked (perms), but the lockdown record has been removed.`,
+                    });
+                    break;
+                }
                 break;
             }
             case "bulk": {
                 const file = interaction.options.getAttachment("file", true);
-                console.log(file);
                 if (
                     !file ||
                     !file.name.toLowerCase().endsWith(".json") ||
@@ -369,7 +482,12 @@ export default class LockdownCommand extends BaseCommand {
                     const channelId = entry["channel_id"];
                     let lockTime: number;
                     let unlockTime: number;
+                    let mode: string | null = null;
 
+                    if (entry["mode"] && typeof entry["mode"] === "string") {
+                        mode = entry["mode"].trim().toLowerCase();
+                    }
+                    console.log(mode)
                     if (typeof entry["lock_time"] === "string") {
                         const str = entry["lock_time"].trim().toLowerCase();
                         if (str === "now") {
@@ -409,6 +527,7 @@ export default class LockdownCommand extends BaseCommand {
                         results.push(`<#${channelId}> - Invalid lock_time`);
                         continue;
                     }
+
                     if (typeof entry["unlock_time"] === "string") {
                         const str = entry["unlock_time"].trim().toLowerCase();
                         if (/^\d+$/.test(str)) {
@@ -471,26 +590,29 @@ export default class LockdownCommand extends BaseCommand {
                     ) {
                         isLocked = channel.locked ?? false;
                     }
-                    if (isLocked && lockTime === now) {
-                        results.push(`<#${channelId}>: Already locked. please run \`/lockdown remove\` to remove lockdown .`);
-                        continue;
-                    }
 
                     await ChannelLockdown.updateOne(
                         {
                             guildId: interaction.guildId,
-                            channelId: channelId,
+                            channelId: channel.id,
                         },
                         {
-                            LockId: `${interaction.guildId}${channelId}`,
                             startTimestamp: lockTime.toString(),
                             endTimestamp: unlockTime.toString(),
+                            mode: mode || null,
                             locked: false
                         },
                         { upsert: true },
                     );
 
-                    if (lockTime === now) {
+                    if (lockTime === now && !isLocked) {
+                        let lockMessage: string;
+                        if (mode === "exam") {
+                            lockMessage = "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif";
+                        } else {
+                            lockMessage = "**Channel Locked !!**";
+                        }
+
                         if (
                             channel.type === ChannelType.GuildText ||
                             channel.type === ChannelType.GuildForum
@@ -521,7 +643,7 @@ export default class LockdownCommand extends BaseCommand {
                                 );
                             }
                             if (channel.type === ChannelType.GuildText) {
-                                await (channel as import("discord.js").TextChannel).send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
+                                await (channel as import("discord.js").TextChannel).send(lockMessage);
                             }
                         } else if (
                             channel.type === ChannelType.PublicThread ||
@@ -529,7 +651,7 @@ export default class LockdownCommand extends BaseCommand {
                         ) {
                             if (!channel.locked) {
                                 await channel.setLocked(true);
-                                await channel.send("https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif");
+                                await channel.send(lockMessage);
                             }
                         }
                         await ChannelLockdown.updateOne(
@@ -542,9 +664,11 @@ export default class LockdownCommand extends BaseCommand {
                             },
                             { upsert: false }
                         );
-                        results.push(`<#${channelId}> Locked now, unlocks at <t:${unlockTime}:F>`);
+                        results.push(`<#${channelId}> Locked now, unlocks <t:${unlockTime}:R>`);
+                    } else if (lockTime === now && isLocked) {
+                        results.push(`<#${channelId}>: Already locked. please run \`/lockdown remove\` to remove lockdown .`);
                     } else {
-                        results.push(`<#${channelId}> Scheduled lock at <t:${lockTime}:F>, unlock at <t:${unlockTime}:F>`);
+                        results.push(`<#${channelId}> Scheduled lock <t:${lockTime}:R>, unlock <t:${unlockTime}:R>`);
                     }
                 }
 
@@ -561,3 +685,4 @@ export default class LockdownCommand extends BaseCommand {
         }
     }
 }
+

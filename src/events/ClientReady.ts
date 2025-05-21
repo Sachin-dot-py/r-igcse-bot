@@ -220,10 +220,16 @@ export default class ClientReadyEvent extends BaseEvent {
 			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
 			if (!guild) continue;
 			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
+			const mode = await guild.channels.fetch(lockdown.mode).catch(() => null);
 			if (!channel) {
 				await lockdown.deleteOne();
 				continue;
 			}
+
+			const isExamMode = lockdown.mode === "exam";
+			const lockMessage = isExamMode
+				? "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif"
+				: "**Channel Locked !!**";
 
 			if (
 				channel.type === ChannelType.GuildText ||
@@ -256,9 +262,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				}
 
 				if (channel.type === ChannelType.GuildText) {
-					await channel.send(
-						"https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif",
-					);
+					await channel.send(lockMessage);
 				}
 			} else if (
 				channel.type === ChannelType.PublicThread ||
@@ -266,9 +270,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			) {
 				if (!channel.locked) {
 					await channel.setLocked(true);
-					await channel.send(
-						"https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif",
-					);
+					await channel.send(lockMessage);
 				}
 			}
 
@@ -314,20 +316,18 @@ export default class ClientReadyEvent extends BaseEvent {
 				}
 			}
 
-			if (channel.isTextBased && channel.isTextBased()) {
-				const unlockEmbed = new EmbedBuilder()
-					.setTitle("Channel Unlocked!")
-					.setDescription(
-						[
-							"Paper discussions are only allowed in the designated channels. Early discussion before all variants are completed is **strictly prohibited** and may result in a timeout.",
-							"",
-							"To access **M/J 2025** discussion channels, please visit <#1357402364629356544> and obtain the verified role."
-						].join("\n")
-					)
-					.setColor(Colors.Green)
-					.setTimestamp();
-
-				await channel.send({ embeds: [unlockEmbed] });
+			if (
+				channel.type === ChannelType.GuildText
+			) {
+				await (channel as TextChannel).send({ 
+					content: "**Channel Unlocked !!**" 
+				});
+			} else if (
+				(channel.type === ChannelType.PublicThread || channel.type === ChannelType.PrivateThread)
+			) {
+				await (channel as ThreadChannel).send({ 
+					content: "**Channel Unlocked !!**" 
+				});
 			}
 			await lockdown.deleteOne();
 		}
