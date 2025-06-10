@@ -4,7 +4,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { PaginationBuilder } from "@discordforge/pagination";
-import { Colors, SlashCommandBuilder } from "discord.js";
+import { Colors, SlashCommandBuilder, MessageFlags } from "discord.js";
 
 export default class ListKeywordsCommand extends BaseCommand {
 	constructor() {
@@ -35,7 +35,7 @@ export default class ListKeywordsCommand extends BaseCommand {
 		if (keywords.length === 0) {
 			interaction.followUp({
 				content: "There are no keywords in this server",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;

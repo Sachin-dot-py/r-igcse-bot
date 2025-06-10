@@ -10,6 +10,7 @@ import {
 	type ButtonBuilder,
 	SlashCommandBuilder,
 	StringSelectMenuOptionBuilder,
+	MessageFlags,
 } from "discord.js";
 import { v4 } from "uuid";
 
@@ -29,7 +30,7 @@ export default class PingCommand extends BaseCommand {
 		if (interaction.guild) {
 			interaction.reply({
 				content: "This command is intended for DMs",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -43,7 +44,7 @@ export default class PingCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Please try sending a message in the server you're trying to contact.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;

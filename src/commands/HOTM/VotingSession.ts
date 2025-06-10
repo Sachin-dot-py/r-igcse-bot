@@ -11,6 +11,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	TextChannel,
+	MessageFlags,
 } from "discord.js";
 import type hotmSessionCommand from "./VotingSession";
 
@@ -76,7 +77,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Configure the bot using `/setup` before starting sessions",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -88,7 +89,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 					interaction.options.getBoolean("permanent") ?? false;
 
 				await interaction.deferReply({
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				const blacklistEntry = await HOTMBlacklist.findOne({
@@ -164,7 +165,7 @@ export default class HOTMSessionCommand extends BaseCommand {
 				const helper = interaction.options.getUser("helper", true);
 
 				await interaction.deferReply({
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				const blacklistEntry = await HOTMBlacklist.findOne({
@@ -192,13 +193,13 @@ export default class HOTMSessionCommand extends BaseCommand {
 					interaction.reply({
 						content:
 							"A HOTM session is already ongoing, end it before starting a new one",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return;
 				}
 
 				await interaction.deferReply({
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral
 				});
 
 				await guildPreferences.updateOne({
@@ -222,12 +223,12 @@ export default class HOTMSessionCommand extends BaseCommand {
 				if (!guildPreferences.hotmSessionOngoing) {
 					interaction.reply({
 						content: "There is no voting session to end",
-						ephemeral: true,
+						flags: MessageFlags.Ephemeral
 					});
 					return;
 				}
 
-				await interaction.deferReply({ ephemeral: true });
+				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				await guildPreferences.updateOne({ hotmSessionOngoing: false });
 

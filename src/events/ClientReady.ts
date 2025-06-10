@@ -2,6 +2,7 @@ import type GoStudyCommand from "@/commands/miscellaneous/GoStudy";
 import type HostSessionCommand from "@/commands/study/HostSession";
 import type PracticeCommand from "@/commands/study/Practice";
 import { StickyMessage } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
 import { ChannelLockdown } from "@/mongo/schemas/ChannelLockdown";
 import { Keyword } from "@/mongo/schemas/Keyword";
 import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
@@ -22,6 +23,7 @@ import {
 	GuildChannel,
 	TextChannel,
 	ThreadChannel,
+	ChannelType,
 } from "discord.js";
 import { EntityId } from "redis-om";
 import { client } from "..";
@@ -127,12 +129,13 @@ export default class ClientReadyEvent extends BaseEvent {
 			60000,
 		);
 
+		Logger.info("Starting channel lockdowns refresh loop");
 		createTask(
 			async () =>
 				await this.refreshChannelLockdowns().catch((e) =>
 					Logger.error(`Error at refreshChannelLockdowns: ${e}`),
 				),
-			120000,
+			20000,
 		);
 	}
 
@@ -205,74 +208,128 @@ export default class ClientReadyEvent extends BaseEvent {
 	}
 
 	private async refreshChannelLockdowns() {
-		const time = Date.now() / 1000;
+		const now = Math.floor(Date.now() / 1000);
 
-		for (const lockdown of await ChannelLockdown.find()) {
-			if (!lockdown.guildId || lockdown.guildId === "") {
-				const channel = await client.channels.fetch(lockdown.channelId);
+		const toLock = await ChannelLockdown.find({
+			locked: false,
+			startTimestamp: { $lte: now.toString() },
+			endTimestamp: { $gt: now.toString() },
+		});
 
-				if (channel instanceof GuildChannel) {
-					lockdown.guildId = channel.guildId;
-					lockdown.markModified("guildId");
-					lockdown
-						.save()
-						.then(() =>
-							Logger.info(
-								`Added guild id to Channel Lockdown <#${lockdown.channelId}>`,
-							),
-						)
-						.catch(Logger.warn);
-				} else {
-					Logger.info(
-						`Channel Lockdown <#${lockdown.channelId}> wasn't a guild channel`,
-					);
-				}
-			}
-
-			const startTime = Number.parseInt(lockdown.startTimestamp);
-			const endTime = Number.parseInt(lockdown.endTimestamp);
-
-			if (time < startTime) continue;
-
-			const locked = time <= endTime;
-
-			const guild = await client.guilds.fetch(lockdown.guildId);
-			const channel = await guild?.channels.fetch(lockdown.channelId);
-
+		for (const lockdown of toLock) {
+			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
+			if (!guild) continue;
+			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
+			const mode = await guild.channels.fetch(lockdown.mode).catch(() => null);
 			if (!channel) {
-				Logger.info(
-					`Channel Lockdown <#${lockdown.channelId}> doesn't exist`,
-				);
 				await lockdown.deleteOne();
 				continue;
 			}
 
+			const isExamMode = lockdown.mode === "exam";
+			const lockMessage = isExamMode
+				? "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif"
+				: "**Channel Locked !!**";
 
-			if (channel instanceof ThreadChannel) channel.setLocked(locked);
-			else if (
-				channel instanceof TextChannel ||
-				channel instanceof ForumChannel
-			)
-				channel.permissionOverwrites.edit(
-					channel.guild.roles.everyone,
+			if (
+				channel.type === ChannelType.GuildText ||
+				channel.type === ChannelType.GuildForum
+			) {
+				await channel.permissionOverwrites.edit(
+					guild.roles.everyone.id,
 					{
-						SendMessages: !locked,
-						SendMessagesInThreads: !locked,
-					},
+						SendMessages: false,
+						SendMessagesInThreads: false,
+						CreatePrivateThreads: false,
+						CreatePublicThreads: false,
+					}
 				);
 
-			if (endTime <= time) {
-				await lockdown.deleteOne();
-				if (channel instanceof ThreadChannel) channel.setLocked(false);
-				else if (channel instanceof TextChannel)
-					channel.permissionOverwrites.edit(
-						channel.guild.roles.everyone,
+				const guildPreferences = await GuildPreferencesCache.get(guild.id);
+				const modRoleId = guildPreferences?.moderatorRoleId;
+
+				if (modRoleId && guild.roles.cache.has(modRoleId)) {
+					const modRole = guild.roles.cache.get(modRoleId);
+					await channel.permissionOverwrites.edit(
+						modRole!.id,
 						{
 							SendMessages: true,
 							SendMessagesInThreads: true,
-						},
+							CreatePrivateThreads: true,
+							CreatePublicThreads: true,
+						}
 					);
+				}
+
+				if (channel.type === ChannelType.GuildText) {
+					await channel.send(lockMessage);
+				}
+			} else if (
+				channel.type === ChannelType.PublicThread ||
+				channel.type === ChannelType.PrivateThread
+			) {
+				if (!channel.locked) {
+					await channel.setLocked(true);
+					await channel.send(lockMessage);
+				}
 			}
+
+			await ChannelLockdown.updateOne(
+				{ _id: lockdown._id },
+				{ $set: { locked: true } },
+			);
+		}
+
+		const toUnlock = await ChannelLockdown.find({
+			locked: true,
+			endTimestamp: { $lte: now.toString() },
+		});
+
+		for (const lockdown of toUnlock) {
+			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
+			if (!guild) continue;
+			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
+			if (!channel) {
+				await lockdown.deleteOne();
+				continue;
+			}
+
+			if (
+				channel.type === ChannelType.GuildText ||
+				channel.type === ChannelType.GuildForum
+			) {
+				await channel.permissionOverwrites.edit(
+					guild.roles.everyone,
+					{
+						SendMessages: null,
+						SendMessagesInThreads: null,
+						CreatePrivateThreads: null,
+						CreatePublicThreads: null,
+					},
+				);
+			} else if (
+				channel.type === ChannelType.PublicThread ||
+				channel.type === ChannelType.PrivateThread
+			) {
+				if (channel.locked) {
+					await channel.setLocked(false);
+				}
+			}
+
+			if (
+				channel.type === ChannelType.GuildText
+			) {
+				await (channel as TextChannel).send({ 
+					content: "**Channel Unlocked !!**" 
+				});
+			} else if (
+				(channel.type === ChannelType.PublicThread || channel.type === ChannelType.PrivateThread)
+			) {
+				await (channel as ThreadChannel).send({ 
+					content: "**Channel Unlocked !!**" 
+				});
+			}
+			await lockdown.deleteOne();
 		}
 	}
 

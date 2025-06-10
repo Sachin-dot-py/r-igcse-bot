@@ -9,6 +9,7 @@ import sendDm from "@/utils/sendDm";
 import {
 	Colors,
 	EmbedBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -42,7 +43,7 @@ export default class UntimeoutCommand extends BaseCommand {
 		const member = await interaction.guild.members.fetch(user.id);
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		if (!member.isCommunicationDisabled()) {

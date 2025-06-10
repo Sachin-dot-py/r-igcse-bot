@@ -11,6 +11,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	MessageFlags
 } from "discord.js";
 
 export default class BanCommand extends BaseCommand {
@@ -56,7 +57,7 @@ export default class BanCommand extends BaseCommand {
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
 		await interaction.deferReply({
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral
 		});
 
 		if (user.id === interaction.user.id) {

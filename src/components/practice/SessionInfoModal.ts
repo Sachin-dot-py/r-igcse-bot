@@ -6,6 +6,7 @@ import {
 	type ModalSubmitInteraction,
 	TextInputBuilder,
 	TextInputStyle,
+	MessageFlags,
 } from "discord.js";
 
 interface SessionInfoModalResponse {
@@ -91,7 +92,7 @@ class SessionInfoModal extends ModalBuilder {
 		} catch (error) {
 			interaction.followUp({
 				content: "You took too long to respond",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return false;
 		}

@@ -5,6 +5,8 @@ export interface IChannelLockdown {
 	channelId: string;
 	startTimestamp: string;
 	endTimestamp: string;
+	mode: string;
+	locked: boolean;
 }
 
 const schema = new Schema<IChannelLockdown>({
@@ -12,6 +14,8 @@ const schema = new Schema<IChannelLockdown>({
 	channelId: { type: String, required: true, unique: true },
 	startTimestamp: { type: String, required: true, unique: false },
 	endTimestamp: { type: String, required: true, unique: false },
+	mode: { type: String, required: true, unique: false },
+	locked: { type: Boolean, required: true, unique: false },
 });
 
 export const ChannelLockdown = createModel<IChannelLockdown>(

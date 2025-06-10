@@ -12,6 +12,7 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	type StringSelectMenuBuilder,
@@ -61,7 +62,7 @@ export default class SetupCommand extends BaseCommand {
 		const buttonMessage = await interaction.reply({
 			content:
 				"Please use the dropdowns and the buttons below to setup the bot.",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 			components: [setupButtons as ActionRowBuilder<ButtonBuilder>],
 			fetchReply: true,
 		});
@@ -162,7 +163,7 @@ export default class SetupCommand extends BaseCommand {
 			const selectInteraction = await interaction.followUp({
 				content: `Page ${pageCounter}`,
 				components: rows as ActionRowBuilder<StringSelectMenuBuilder>[],
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 				fetchReply: true,
 			});
 

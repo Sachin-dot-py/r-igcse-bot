@@ -4,7 +4,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { Logger } from "@discordforge/logger";
-import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { PermissionFlagsBits, SlashCommandBuilder, MessageFlags } from "discord.js";
 
 export default class RemoveGoStudyCommand extends BaseCommand {
 	constructor() {
@@ -39,7 +39,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"You do not have permission to remove gostudy from other users.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
@@ -53,7 +53,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 			return;
 		}
@@ -65,13 +65,13 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 		if (!role) {
 			await interaction.reply({
 				content: "Forced mute role not found!",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 
 			return;
 		}
 
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		try {
 			await (await interaction.guild.members.fetch(user)).roles.remove(
@@ -79,7 +79,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			);
 			await interaction.followUp({
 				content: `Forced mute removed from ${user.username}`,
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 		} catch (error) {
 			client.log(
@@ -93,7 +93,7 @@ export default class RemoveGoStudyCommand extends BaseCommand {
 			await interaction.followUp({
 				content:
 					"There was an error while removing the forced mute role.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	}
