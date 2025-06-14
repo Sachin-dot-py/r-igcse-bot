@@ -12,6 +12,7 @@ import {
 	Colors,
 	ComponentType,
 	EmbedBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	SnowflakeUtil,
@@ -45,6 +46,7 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 						.setRequired(true),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+			true,
 		);
 	}
 
@@ -52,11 +54,10 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction,
 	) {
-		if (interaction.guildId !== process.env.MAIN_GUILD_ID) {
-			interaction.reply({
-				content:
-					"You may only use this command in the official r/IGCSE server",
-				ephemeral: true,
+		if (!interaction.guildId) {
+			await interaction.reply({
+				content: "An error occurred.",
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -64,6 +65,15 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 		const guildPreferences = await GuildPreferencesCache.get(
 			interaction.guildId,
 		);
+
+		if (!guildPreferences?.modlogChannelId) {
+			interaction.reply({
+				content:
+					"Please setup the bot using the command `/setup` first.",
+				flags: MessageFlags.Ephemeral,
+			});
+			return;
+		}
 
 		const examSessionUnformatted = interaction.options.getString(
 			"exam_session",
@@ -103,7 +113,7 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 		await interaction.reply({
 			embeds: [confirmationEmbed],
 			components: [row],
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 
 		if (!interaction.channel) {
@@ -136,15 +146,6 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 				content: "An error occurred.",
 				embeds: [],
 				components: [],
-			});
-			return;
-		}
-
-		if (!guildPreferences?.modlogChannelId) {
-			interaction.reply({
-				content:
-					"Please setup the bot using the command `/setup` first.",
-				ephemeral: true,
 			});
 			return;
 		}
@@ -280,19 +281,19 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 
 		await caieDiscussion.setAvailableTags([
 			{
-				emoji: { id: "1089618794655272980" },
+				emoji: { id: "1370733122060292117" },
 				name: "AS/AL Variant 1",
 				moderated: true,
 				id: SnowflakeUtil.generate().toString(),
 			},
 			{
-				emoji: { id: "1089618793703145542" },
+				emoji: { id: "1370733122060292117" },
 				name: "AS/AL Variant 2",
 				moderated: true,
 				id: SnowflakeUtil.generate().toString(),
 			},
 			{
-				emoji: { id: "1089618791903809606" },
+				emoji: { id: "1370733122060292117" },
 				name: "AS/AL Variant 3",
 				moderated: true,
 				id: SnowflakeUtil.generate().toString(),
