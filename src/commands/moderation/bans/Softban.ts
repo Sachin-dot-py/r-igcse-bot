@@ -47,6 +47,45 @@ export default class SoftbanCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const user = interaction.options.getUser("user", true);
+		const reason = interaction.options.getString("reason", true);
+		const deleteMessagesString = interaction.options.getString("delete_messages", false) ?? "1d";
+
+		if (user.id === interaction.user.id) {
+			await interaction.editReply({
+				content: "You can't softban yourself!",
+			});
+			return;
+		}
+
+		const guildMember = await interaction.guild.members.fetch(user.id).catch(() => null);
+		if (guildMember) {
+			if (!guildMember.bannable) {
+				await interaction.editReply({
+					content: "I cannot softban this user. (Missing permissions)",
+				});
+				return;
+			}
+
+			const memberHighestRole = guildMember.roles.highest;
+			const modHighestRole = interaction.member.roles.highest;
+
+			if (memberHighestRole.comparePositionTo(modHighestRole) >= 0) {
+				await interaction.editReply({
+					content: "You cannot softban this user due to role hierarchy! (Role is higher or equal to yours)",
+				});
+				return;
+			}
+		}
+
+		// Check if user is already banned
+		if (await interaction.guild.bans.fetch(user.id).catch(() => null)) {
+			await interaction.editReply({ content: "User is already banned." });
+			return;
+		}
+
 		// TODO: Implement softban logic
 		await interaction.reply({
 			content: "Softban command not yet implemented",
