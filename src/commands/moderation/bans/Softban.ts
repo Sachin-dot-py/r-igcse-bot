@@ -86,6 +86,19 @@ export default class SoftbanCommand extends BaseCommand {
 			return;
 		}
 
+		// Attempt to DM the user before banning
+		if (guildMember) {
+			const dmEmbed = new EmbedBuilder()
+				.setTitle(`You have been softbanned from ${interaction.guild.name}`)
+				.setDescription(
+					`You have been softbanned from **${interaction.guild.name}** for: \`${reason}\`. You may rejoin the server, but your recent messages have been deleted.`
+				)
+				.setColor(Colors.Red);
+			try {
+				sendDm(guildMember, { embeds: [dmEmbed] });
+			} catch {}
+		}
+
 		// TODO: Implement softban logic
 		await interaction.reply({
 			content: "Softban command not yet implemented",
