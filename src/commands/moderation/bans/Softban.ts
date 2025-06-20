@@ -13,6 +13,7 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import parse from "parse-duration";
+import humanizeDuration from "humanize-duration";
 
 export default class SoftbanCommand extends BaseCommand {
 	constructor() {
@@ -47,7 +48,7 @@ export default class SoftbanCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply();
 
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
@@ -95,14 +96,35 @@ export default class SoftbanCommand extends BaseCommand {
 				)
 				.setColor(Colors.Red);
 			try {
-				sendDm(guildMember, { embeds: [dmEmbed] });
+				await sendDm(guildMember, { embeds: [dmEmbed] });
 			} catch {}
 		}
 
-		// TODO: Implement softban logic
-		await interaction.reply({
-			content: "Softban command not yet implemented",
-			ephemeral: true,
-		});
+		// Parse deleteMessagesString to seconds (default 1d)
+		let deleteMessageSeconds = parse(deleteMessagesString, "second") ?? 86400;
+		if (deleteMessageSeconds < 1) deleteMessageSeconds = 1;
+		if (deleteMessageSeconds > 604800) deleteMessageSeconds = 604800;
+		const humanDuration = humanizeDuration(deleteMessageSeconds * 1000, { largest: 2, round: true });
+
+		// Ban the user
+		try {
+			await interaction.guild.bans.create(user, {
+				reason: `${reason} | By: ${interaction.user.tag} (softban)` ,
+				deleteMessageSeconds,
+			});
+		} catch (error) {
+			await interaction.editReply({ content: `Failed to ban user: ${error instanceof Error ? error.message : error}` });
+			return;
+		}
+
+		// Unban the user
+		try {
+			await interaction.guild.bans.remove(user, `Softban unban by ${interaction.user.tag}`);
+		} catch (error) {
+			await interaction.editReply({ content: `User banned, but failed to unban: ${error instanceof Error ? error.message : error}` });
+			return;
+		}
+
+		await interaction.editReply({ content: `${user.tag} has been softbanned. Deleted messages from the last ${humanDuration}.` });
 	}
 } 
