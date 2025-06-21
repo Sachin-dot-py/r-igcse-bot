@@ -9,6 +9,7 @@ import sendDm from "@/utils/sendDm";
 import {
 	Colors,
 	EmbedBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -36,7 +37,7 @@ export default class SoftbanCommand extends BaseCommand {
 				.addStringOption((option) =>
 					option
 						.setName("delete_messages")
-						.setDescription("How far back to delete messages (e.g., 1d, 1h, 1w)")
+						.setDescription("How far back to delete messages (e.g., 1h, 1w, default: 1d)")
 						.setRequired(false),
 				)
 				.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
@@ -48,7 +49,9 @@ export default class SoftbanCommand extends BaseCommand {
 		client: DiscordClient<true>,
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
-		await interaction.deferReply();
+		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		const user = interaction.options.getUser("user", true);
 		const reason = interaction.options.getString("reason", true);
@@ -114,6 +117,11 @@ export default class SoftbanCommand extends BaseCommand {
 			});
 		} catch (error) {
 			await interaction.editReply({ content: `Failed to ban user: ${error instanceof Error ? error.message : error}` });
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`**Channel:** <#${interaction.channel?.id} >\n**User:** <@${interaction.user.id}>\n**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+			);
 			return;
 		}
 
@@ -122,9 +130,73 @@ export default class SoftbanCommand extends BaseCommand {
 			await interaction.guild.bans.remove(user, `Softban unban by ${interaction.user.tag}`);
 		} catch (error) {
 			await interaction.editReply({ content: `User banned, but failed to unban: ${error instanceof Error ? error.message : error}` });
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`**Channel:** <#${interaction.channel?.id} >\n**User:** <@${interaction.user.id}>\n**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+			);
 			return;
 		}
 
-		await interaction.editReply({ content: `${user.tag} has been softbanned. Deleted messages from the last ${humanDuration}.` });
+		// Log to modlog and create punishment record
+		const guildPreferences = await GuildPreferencesCache.get(interaction.guildId);
+		if (!guildPreferences) {
+			await interaction.editReply({
+				content: "Please configure the bot using `/setup` command first.",
+			});
+			return;
+		}
+		const caseNumber = (await Punishment.find({ guildId: interaction.guildId })).length + 1;
+
+		// Create punishment record
+		try {
+			await Punishment.create({
+				guildId: interaction.guild.id,
+				actionAgainst: user.id,
+				actionBy: interaction.user.id,
+				action: "Softban",
+				caseId: caseNumber,
+				reason,
+				points: 0,
+				when: new Date(),
+			});
+		} catch (error) {
+			await interaction.editReply({ content: `Softban succeeded, but failed to log punishment: ${error instanceof Error ? error.message : error}` });
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`**Channel:** <#${interaction.channel?.id} >\n**User:** <@${interaction.user.id}>\n**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+			);
+		}
+
+		if (guildPreferences.modlogChannelId) {
+			try {
+				const modEmbed = new EmbedBuilder()
+					.setTitle(`Softban | Case #${caseNumber}`)
+					.setColor(Colors.Red)
+					.addFields([
+						{ name: "User", value: `${user.tag} (${user.id})`, inline: false },
+						{ name: "Moderator", value: `${interaction.user.tag} (${interaction.user.id})`, inline: false },
+						{ name: "Reason", value: reason },
+						{ name: "Deleted Messages", value: humanDuration },
+					])
+					.setTimestamp();
+
+				await logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+					embeds: [modEmbed],
+				});
+			} catch (error) {
+				await interaction.followUp({ content: `Softban succeeded, but failed to log to modlog: ${error instanceof Error ? error.message : error}`, ephemeral: true });
+				client.log(
+					error,
+					`${this.data.name} Command`,
+					`**Channel:** <#${interaction.channel?.id} >\n**User:** <@${interaction.user.id}>\n**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+				);
+			}
+		}
+
+		interaction.editReply({
+			content: `Softbanned ${user.username} for ${reason}. Deleted messages from the last ${humanDuration}.`,
+		});
 	}
 } 
