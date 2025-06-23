@@ -169,6 +169,8 @@ export default class SoftbanCommand extends BaseCommand {
 			);
 		}
 
+		await interaction.channel.send(`${user.username} has been softbanned. (Case #${caseNumber})`);
+
 		if (guildPreferences.modlogChannelId) {
 			try {
 				const modEmbed = new EmbedBuilder()
