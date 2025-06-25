@@ -10,7 +10,7 @@ export type IPunishment = {
 	points: number;
 } & (
 	| {
-			action: "Warn" | "Kick" | "Remove Timeout" | "Ban" | "Unban";
+			action: "Warn" | "Kick" | "Remove Timeout" | "Ban" | "Unban" | "Softban";
 			duration: null;
 	  }
 	| {
