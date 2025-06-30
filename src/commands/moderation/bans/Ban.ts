@@ -100,7 +100,7 @@ export default class BanCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-		const guildMember = await interaction.guild.members.fetch(user.id);
+		const guildMember = await interaction.guild.members.fetch(user.id).catch(e => null)
 
 		if (guildMember) {
 			if (!guildMember.bannable) {
