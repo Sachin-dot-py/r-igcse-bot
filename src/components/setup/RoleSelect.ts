@@ -1,7 +1,7 @@
 import { GuildPreferences } from "@/mongo";
 import { GuildPreferencesCache } from "@/redis";
 import { Logger } from "@discordforge/logger";
-import { ComponentType, type Message, RoleSelectMenuBuilder } from "discord.js";
+import { ComponentType, type Message, MessageFlags, RoleSelectMenuBuilder } from "discord.js";
 
 class RoleSelect extends RoleSelectMenuBuilder {
 	name: string;

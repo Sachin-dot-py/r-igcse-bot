@@ -4,6 +4,7 @@ import { Logger } from "@discordforge/logger";
 import {
 	ComponentType,
 	type Message,
+	MessageFlags,
 	StringSelectMenuBuilder,
 } from "discord.js";
 
