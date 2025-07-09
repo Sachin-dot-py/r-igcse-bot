@@ -4,6 +4,7 @@ import type { ICachedGuildPreferences } from "@/redis/schemas/GuildPreferences";
 import {
 	ActionRowBuilder,
 	type ButtonInteraction,
+	MessageFlags,
 	ModalBuilder,
 	TextInputBuilder,
 	TextInputStyle,
