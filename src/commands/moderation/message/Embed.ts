@@ -1,8 +1,10 @@
 import { ScheduledMessage } from "@/mongo/schemas/ScheduledMessage";
+import { GuildPreferencesCache } from "@/redis";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
@@ -73,7 +75,7 @@ export default class EmbedCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid channel type, must be a text channel.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -87,7 +89,7 @@ export default class EmbedCommand extends BaseCommand {
 				if (scheduleTime && scheduleTime <= Date.now() / 1000) {
 					interaction.reply({
 						content: "Scheduled time cannot be in the past",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -160,17 +162,15 @@ export default class EmbedCommand extends BaseCommand {
 				const embedFooter =
 					modalInteraction.fields.getTextInputValue("footer") || null;
 				const embedColour =
-					(
-						await modalInteraction.fields.getTextInputValue(
-							"colour",
-						)
-					).trim() || null;
+					modalInteraction.fields
+						.getTextInputValue("colour")
+						.trim() || null;
 
 				if (!embedTitle && !embedDescription && !embedFooter) {
 					await modalInteraction.reply({
 						content:
 							"You must provide at least one field to send an embed!",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -180,20 +180,20 @@ export default class EmbedCommand extends BaseCommand {
 					.setTitle(embedTitle)
 					.setDescription(embedDescription);
 
-				if (embedColour && hexRegex.test(embedColour))
-					try {
-						embed.setColor(embedColour as HexColorString);
-					} finally {
+				if (embedColour)
+					if (hexRegex.test(embedColour)) {
+						try {
+							embed.setColor(embedColour as HexColorString);
+						} finally {
+						}
+					} else {
+						modalInteraction.reply({
+							content:
+								"The hex colour provided is invalid.\n-# Format: #FFFFFF",
+							flags: MessageFlags.Ephemeral,
+						});
 					}
-				else if (embedColour) {
-					modalInteraction.reply({
-						content:
-							"The hex colour provided is invalid.\n-# Format: #FFFFFF",
-						flags: MessageFlags.Ephemeral
-					});
 
-					return;
-				}
 				if (embedFooter) {
 					embed.setFooter({
 						text: embedFooter,
@@ -202,6 +202,52 @@ export default class EmbedCommand extends BaseCommand {
 
 				const role = interaction.options.getRole("role_ping", false);
 				const roleMention = role ? `<@&${role.id}>` : "";
+
+				const guildPreferences = await GuildPreferencesCache.get(
+					interaction.guildId,
+				);
+
+				if (
+					!guildPreferences ||
+					!guildPreferences.generalLogsChannelId
+				) {
+					interaction.reply({
+						content:
+							"Please setup the bot using the command `/setup` first.",
+						flags: MessageFlags.Ephemeral,
+					});
+					return;
+				}
+
+				logToChannel(
+					interaction.guild,
+					guildPreferences.generalLogsChannelId,
+					{
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("Embed Sent")
+								.setDescription(
+									`Embed sent by ${interaction.user.tag} (${interaction.user.id}) in <#${channel.id}>, ${scheduleTime ? `Sent <t:${scheduleTime}:R>` : "Unscheduled"}${embedColour ? `, #${embedColour}` : ""}${roleMention ? `, mentions ${roleMention}.` : "."}`,
+								)
+								.setColor("Green")
+								.addFields(
+									{
+										name: "Embed Title",
+										value: embedTitle ?? "None",
+									},
+									{
+										name: "Embed Description",
+										value: embedDescription ?? "None",
+									},
+									{
+										name: "Embed Footer",
+										value: embedFooter ?? "None",
+									},
+								)
+								.setTimestamp(),
+						],
+					},
+				);
 
 				if (scheduleTime) {
 					ScheduledMessage.create({
@@ -213,7 +259,7 @@ export default class EmbedCommand extends BaseCommand {
 
 					await modalInteraction.reply({
 						content: `Embed scheduled to be sent in ${channel} <t:${scheduleTime}:R>`,
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -223,7 +269,7 @@ export default class EmbedCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Embed sent in the channel ${channel}!`,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				Logger.info(`Embed sent by ${interaction.user.username}`);
