@@ -12,7 +12,7 @@ import {
 import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
-	type ActionRowBuilder,
+	ActionRowBuilder,
 	type ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
@@ -26,6 +26,9 @@ import {
 	PermissionFlagsBits,
 	TextChannel,
 	MessageFlags,
+	TextInputBuilder,
+	TextInputStyle,
+	ModalBuilder,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -45,8 +48,15 @@ export default class InteractionCreateEvent extends BaseEvent {
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
 			) {
-				if (interaction.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(interaction.guildId)) {
-					await interaction.reply("This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.")
+				if (
+					interaction.guildId &&
+					process.env.BLACKLISTED_GUILDS.split(" ").includes(
+						interaction.guildId,
+					)
+				) {
+					await interaction.reply(
+						"This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.",
+					);
 					return;
 				}
 				this.handleCommand(client, interaction);
@@ -125,7 +135,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!session) {
 			await interaction.reply({
 				content: "Invalid question! (Session no longer exists)",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -133,7 +143,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!session.users.includes(interaction.user.id)) {
 			await interaction.reply({
 				content: "You are not in this session",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -145,7 +155,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		) {
 			await interaction.reply({
 				content: "You have already answered this question!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -158,12 +168,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (interaction.component.label === question.answers) {
 			await interaction.reply({
 				content: "Correct!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		} else {
 			await interaction.reply({
 				content: "Incorrect!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
@@ -265,7 +275,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		) {
 			await interaction.reply({
 				content: "You aren't a helper for this channel",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -292,7 +302,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					return await interaction.reply({
 						content:
 							"This message has already been tagged as a resource",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				}
 
@@ -308,7 +318,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				try {
 					await interaction.reply({
 						content: `Resource tag approved with ID \`${newRes._id}\``,
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				} catch (error) {
 					return;
@@ -336,7 +346,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				try {
 					await interaction.reply({
 						content: "Resource tag rejected",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				} catch (error) {
 					if ((error as Error).message === "Unknown Interaction") {
@@ -359,7 +369,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction,
 	) {
-		const matchCustomIdRegex = /(.*_confession)_(accept|reject|ban)/gi;
+		const matchCustomIdRegex = /(.*_confession)_(accept|reject|ban|edit)/gi;
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches) return;
 
@@ -426,8 +436,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: `Confession accepted, ${confessionMsg.url}`,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
+
+				await ButtonInteractionCache.remove(confessionId);
+
 				break;
 			}
 			case "reject": {
@@ -445,8 +458,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: "Confession rejected",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
+
+				await ButtonInteractionCache.remove(confessionId);
+
 				break;
 			}
 			case "ban": {
@@ -487,15 +503,98 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await modalResponse.followUpInteraction.reply({
 					content: "Confession rejected and user banned",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
+				});
+
+				await ButtonInteractionCache.remove(confessionId);
+
+				break;
+			}
+			case "edit": {
+				const confessInput = new TextInputBuilder()
+					.setCustomId("edited_confession_input")
+					.setLabel("Edited Confession")
+					.setPlaceholder("The edited confession")
+					.setValue(confession)
+					.setRequired(true)
+					.setStyle(TextInputStyle.Paragraph);
+
+				const row =
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						confessInput,
+					);
+
+				const modalCustomId = uuidv4();
+
+				const modal = new ModalBuilder()
+					.setCustomId(modalCustomId)
+					.addComponents(row)
+					.setTitle("Edited Confession");
+
+				await interaction.showModal(modal);
+
+				const modalInteraction = await interaction.awaitModalSubmit({
+					time: 600_000,
+					filter: (i) => i.customId === modalCustomId,
+				});
+
+				const editedConfession =
+					modalInteraction.fields.getTextInputValue(
+						"edited_confession_input",
+					);
+
+				if (confession === editedConfession) {
+					break;
+				}
+
+				const confessionsChannel = client.channels.cache.get(
+					guildPreferences.confessionsChannelId,
+				);
+				if (
+					!confessionsChannel ||
+					!(confessionsChannel instanceof TextChannel)
+				)
+					return;
+
+				const confessionEmbed = new EmbedBuilder()
+					.setDescription(editedConfession)
+					.setColor("Random");
+
+				const confessionMsg = await confessionsChannel.send({
+					embeds: [confessionEmbed],
+					content: "New Anonymous Confession",
+				});
+
+				const acceptEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Confession edited and sent by ${interaction.user.tag}`,
+					})
+					.addFields(
+						{
+							name: "Original Confession",
+							value: confession,
+						},
+						{
+							name: "Edited Confession",
+							value: editedConfession,
+						},
+					)
+					.setColor("Blurple");
+
+				await message.edit({
+					embeds: [acceptEmbed],
+					components: [],
+				});
+
+				await modalInteraction.reply({
+					content: `Confession edited and sent, ${confessionMsg.url}`,
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}
 			default:
 				break;
 		}
-
-		await ButtonInteractionCache.remove(confessionId);
 	}
 
 	async handleKeywordButtons(
@@ -544,7 +643,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await interaction.reply({
 					content:
 						"Sent dm message (you have to create the keyword yourself)",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				newEmbedColor = Colors.Yellow;
 				moderatorAction = `Approved (edited) by ${interaction.user.tag}`;
@@ -555,7 +654,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				);
 				await interaction.reply({
 					content: "Sent rejection message",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				newEmbedColor = Colors.Red;
 				moderatorAction = `Rejected by ${interaction.user.tag}`;
@@ -738,7 +837,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: "Session rejected",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}
