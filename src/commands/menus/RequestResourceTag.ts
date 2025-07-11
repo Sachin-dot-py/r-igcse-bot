@@ -206,7 +206,7 @@ export default class StickMessageCommand extends BaseCommand {
 
 		await ButtonInteractionCache.expire(
 			`${customId}_tag`,
-			3 * 24 * 60 * 60,
+			14 * 24 * 60 * 60,
 		);
 	}
 }
