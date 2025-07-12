@@ -28,16 +28,16 @@ export default class TemplateCommand extends BaseCommand {
                 .setDescription("Send anonymously or not")
                 .setRequired(true)
             )
-            .addUserOption((opt) =>
-              opt.setName("user")
-                .setDescription("User to DM (optional if in DM thread)")
-                .setRequired(false)
-            )
             .addStringOption((opt) =>
               opt.setName("name")
                 .setDescription("Template name")
                 .setRequired(true)
                 .setAutocomplete(true)
+            )
+            .addUserOption((opt) =>
+              opt.setName("user")
+                .setDescription("User to DM (optional if in DM thread)")
+                .setRequired(false)
             )
         )
         .addSubcommand((sub) =>
