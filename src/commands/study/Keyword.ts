@@ -95,7 +95,7 @@ export default class KeywordCommand extends BaseCommand {
 			} else {
 				await interaction.reply({
 					content: "Keyword not found",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 		} else if (interaction.options.getSubcommand() === "request") {
@@ -108,7 +108,7 @@ export default class KeywordCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Please setup the bot using the command `/setup` first.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -125,7 +125,7 @@ export default class KeywordCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Invalid configuration for keyword requests. Please contact an admin.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -169,13 +169,16 @@ export default class KeywordCommand extends BaseCommand {
 
 			let action = "";
 			let keywordName = "";
-			let keywordReponse = "";
+			let keywordResponse = "";
 			let imageLink: string | undefined;
 			let currentInteraction:
 				| DiscordChatInputCommandInteraction<"cached">
 				| ModalSubmitInteraction<"cached">
 				| ButtonInteraction<"cached"> = interaction;
 			while (action !== "send") {
+				modal.components[0].components[0].setValue(keywordName);
+				modal.components[1].components[0].setValue(keywordResponse);
+
 				await (
 					currentInteraction as DiscordChatInputCommandInteraction<"cached">
 				).showModal(modal);
@@ -184,13 +187,15 @@ export default class KeywordCommand extends BaseCommand {
 					time: 600_000,
 					filter: (i) => i.customId === `${customId}_modal`,
 				});
-				await currentInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+				await currentInteraction.deferReply({
+					flags: MessageFlags.Ephemeral,
+				});
 
 				keywordName = currentInteraction.fields
 					.getTextInputValue("keyword_request_name")
 					.trim()
 					.toLowerCase();
-				keywordReponse = currentInteraction.fields.getTextInputValue(
+				keywordResponse = currentInteraction.fields.getTextInputValue(
 					"keyword_request_value",
 				);
 				imageLink = currentInteraction.fields.getTextInputValue(
@@ -199,7 +204,7 @@ export default class KeywordCommand extends BaseCommand {
 
 				const messagePreview = (await formatMessage(
 					interaction,
-					keywordReponse,
+					keywordResponse,
 					true,
 					keywordName,
 					imageLink,
@@ -211,7 +216,7 @@ export default class KeywordCommand extends BaseCommand {
 					.setCustomId(`${customId}_keyword_send`);
 
 				const editButton = new ButtonBuilder()
-					.setLabel("Edit (COPY TEXT FIRST)")
+					.setLabel("Edit")
 					.setStyle(ButtonStyle.Primary)
 					.setCustomId(`${customId}_keyword_edit`);
 
@@ -262,7 +267,7 @@ export default class KeywordCommand extends BaseCommand {
 
 			const approvalMessage = (await formatMessage(
 				interaction,
-				keywordReponse,
+				keywordResponse,
 				false,
 				keywordName,
 				imageLink,
