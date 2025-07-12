@@ -13,7 +13,7 @@ import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
-	type ButtonBuilder,
+	ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
 	type ChatInputCommandInteraction,
@@ -29,6 +29,8 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 	ModalBuilder,
+	ButtonStyle,
+	ComponentType,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -439,8 +441,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 					flags: MessageFlags.Ephemeral,
 				});
 
-				await ButtonInteractionCache.remove(confessionId);
-
 				break;
 			}
 			case "reject": {
@@ -460,8 +460,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 					content: "Confession rejected",
 					flags: MessageFlags.Ephemeral,
 				});
-
-				await ButtonInteractionCache.remove(confessionId);
 
 				break;
 			}
@@ -506,8 +504,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 					flags: MessageFlags.Ephemeral,
 				});
 
-				await ButtonInteractionCache.remove(confessionId);
-
 				break;
 			}
 			case "edit": {
@@ -544,8 +540,82 @@ export default class InteractionCreateEvent extends BaseEvent {
 					);
 
 				if (confession === editedConfession) {
-					break;
+					await modalInteraction.reply({
+						content:
+							"Confession is the same as before, no changes made.",
+						flags: MessageFlags.Ephemeral,
+					});
+					return;
 				}
+
+				const confirmationEmbed = new EmbedBuilder()
+					.setTitle("Send edited confession")
+					.setDescription(`${editedConfession}`)
+					.setColor(Colors.Blurple);
+
+				const buttonCustomId = uuidv4();
+
+				const confirmButton = new ButtonBuilder()
+					.setCustomId(`confirm_${buttonCustomId}`)
+					.setLabel("Send")
+					.setStyle(ButtonStyle.Success);
+
+				const cancelButton = new ButtonBuilder()
+					.setCustomId(`cancel_${buttonCustomId}`)
+					.setLabel("Cancel")
+					.setStyle(ButtonStyle.Danger);
+
+				const confirmationRow =
+					new ActionRowBuilder<ButtonBuilder>().addComponents(
+						confirmButton,
+						cancelButton,
+					);
+
+				await modalInteraction.reply({
+					embeds: [confirmationEmbed],
+					components: [confirmationRow],
+					flags: MessageFlags.Ephemeral,
+				});
+
+				if (!modalInteraction.channel) {
+					return;
+				}
+
+				const buttonResponse =
+					await modalInteraction.channel.awaitMessageComponent({
+						filter: (i) => {
+							i.deferUpdate();
+							return (
+								i.customId === `confirm_${buttonCustomId}` ||
+								i.customId === `cancel_${buttonCustomId}`
+							);
+						},
+						time: 300_000,
+						componentType: ComponentType.Button,
+					});
+
+				if (buttonResponse.customId === `cancel_${buttonCustomId}`) {
+					modalInteraction.editReply({
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("Confession Cancelled")
+								.setDescription(editedConfession)
+								.setColor("Red"),
+						],
+						components: [],
+					});
+					return;
+				}
+
+				modalInteraction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Confession Sent")
+							.setDescription(editedConfession)
+							.setColor("Green"),
+					],
+					components: [],
+				});
 
 				const confessionsChannel = client.channels.cache.get(
 					guildPreferences.confessionsChannelId,
@@ -586,15 +656,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 					components: [],
 				});
 
-				await modalInteraction.reply({
-					content: `Confession edited and sent, ${confessionMsg.url}`,
-					flags: MessageFlags.Ephemeral,
-				});
 				break;
 			}
 			default:
 				break;
 		}
+		await ButtonInteractionCache.remove(confessionId);
 	}
 
 	async handleKeywordButtons(
