@@ -97,12 +97,12 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 
 		const confirmButton = new ButtonBuilder()
 			.setCustomId(`confirm_${buttonCustomId}`)
-			.setLabel("Confirm Ping")
+			.setLabel("Confirm")
 			.setStyle(ButtonStyle.Success);
 
 		const cancelButton = new ButtonBuilder()
 			.setCustomId(`cancel_${buttonCustomId}`)
-			.setLabel("Cancel Ping")
+			.setLabel("Cancel")
 			.setStyle(ButtonStyle.Danger);
 
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
