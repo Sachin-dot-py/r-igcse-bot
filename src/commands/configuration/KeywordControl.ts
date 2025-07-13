@@ -12,6 +12,7 @@ import {
 	ButtonStyle,
 	type MessageEditAttachmentData,
 	type MessageEditOptions,
+	MessageFlags,
 	ModalBuilder,
 	type ModalSubmitInteraction,
 	PermissionFlagsBits,

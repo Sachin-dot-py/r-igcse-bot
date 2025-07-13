@@ -5,6 +5,7 @@ import BaseCommand, {
 } from "@/registry/Structure/BaseCommand";
 import {
 	EmbedBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
