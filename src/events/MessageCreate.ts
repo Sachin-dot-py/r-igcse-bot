@@ -478,11 +478,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 			const embed = new EmbedBuilder()
 				.setTitle(`Message from ${message.guild.name} Staff`)
 				.setAuthor({
-					name: message.author.username,
-					iconURL: message.author.displayAvatarURL(),
+					name: message.content.startsWith("//!") ? `${message.guild.name} Moderators` : message.author.username,
+					iconURL: message.content.startsWith("//!") ? message.guild.iconURL() : message.author.displayAvatarURL(),
 				})
 				.setDescription(
-					message.content?.replace("//", "").trim() || "No content",
+					message.content?.replace(/^\/\/!?/, "").trim() || "No content",
 				)
 				.setTimestamp(message.createdTimestamp)
 				.setColor(Colors.Green);
@@ -503,7 +503,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				embeds: [embed],
 			});
 
-			await message.react("✅");
+			await message.react(message.content.startsWith("//!") ? "☑" : "✅");
 		}
 	}
 
