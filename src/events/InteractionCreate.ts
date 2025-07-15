@@ -26,13 +26,18 @@ import {
 	PermissionFlagsBits,
 	TextChannel,
 	MessageFlags,
+	type ModalSubmitInteraction,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { DmTemplate } from "@/mongo";
+import { DmTemplateCache } from "@/redis";
 
 const channelRegex = /<#(\d+)>/;
 const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
+const TEMPLATE_EDIT_SUFFIX_REGEX = /_template_edit$/;
+const TEMPLATE_SEND_SUFFIX_REGEX = /_template_send$/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -41,12 +46,27 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async execute(client: DiscordClient<true>, interaction: Interaction) {
 		try {
+			if (interaction.isModalSubmit()) {
+				await this.handleTemplateModal(client, interaction);
+				return;
+			}
+
 			if (
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
 			) {
-				if (interaction.guildId && process.env.BLACKLISTED_GUILDS.split(" ").includes(interaction.guildId)) {
-					await interaction.reply("This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.")
+				if (
+					interaction.guildId &&
+					process.env.BLACKLISTED_GUILDS.split(" ").includes(
+						interaction.guildId,
+					)
+				) {
+					await interaction.reply(
+						"This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.",
+					);
+					await interaction.reply(
+						"This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.",
+					);
 					return;
 				}
 				this.handleCommand(client, interaction);
@@ -90,6 +110,60 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 	}
 
+	async handleTemplateModal(client: DiscordClient<true>, interaction: ModalSubmitInteraction) {
+		const { customId, guildId } = interaction;
+		if (!guildId) return;
+		// add modal
+		if (customId === "template_add_modal") {
+			const name = interaction.fields.getTextInputValue("name").trim();
+			const message = interaction.fields
+				.getTextInputValue("message")
+				.trim();
+			// Check for duplicate
+			const exists = await DmTemplateCache.get(guildId, name);
+			console.log(exists);
+			if (exists) {
+				await interaction.reply({
+					content: `A template named \`${name}\` already exists.`,
+					flags: 64,
+				});
+				return;
+			}
+			// Save to MongoDB
+			await DmTemplate.create({ guildId, name, message });
+			// Save to Redis
+			await DmTemplateCache.set(guildId, name, {
+				guildId,
+				name,
+				message,
+			});
+			await interaction.reply({
+				content: `Template \`${name}\` added!`,
+				flags: 64,
+			});
+			return;
+		}
+		// edit modal
+		if (customId.endsWith('_template_edit')) {
+			const name = customId.replace(TEMPLATE_EDIT_SUFFIX_REGEX, '');
+			const message = interaction.fields.getTextInputValue('message').trim();
+			// Update MongoDB
+			await DmTemplate.updateOne({ guildId, name }, { $set: { message } });
+			// Update Redis
+			await DmTemplateCache.set(guildId, name, { guildId, name, message });
+			await interaction.reply({ content: `Template \`${name}\` updated!`, flags: 64 });
+			return;
+		}
+
+		// send modal (for DM content override)?
+		if (customId.endsWith('_template_send')) {
+			const name = customId.replace(TEMPLATE_SEND_SUFFIX_REGEX, '');
+			// Implement as needed
+			await interaction.reply({ content: 'Send modal not implemented.', flags: 64 });
+			return;
+		}
+	}
+
 	async handleCommand(
 		client: DiscordClient<true>,
 		interaction:
@@ -125,7 +199,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!session) {
 			await interaction.reply({
 				content: "Invalid question! (Session no longer exists)",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -133,7 +207,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (!session.users.includes(interaction.user.id)) {
 			await interaction.reply({
 				content: "You are not in this session",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -145,7 +219,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		) {
 			await interaction.reply({
 				content: "You have already answered this question!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -158,12 +232,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		if (interaction.component.label === question.answers) {
 			await interaction.reply({
 				content: "Correct!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		} else {
 			await interaction.reply({
 				content: "Incorrect!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 
@@ -265,7 +339,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		) {
 			await interaction.reply({
 				content: "You aren't a helper for this channel",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -292,7 +366,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					return await interaction.reply({
 						content:
 							"This message has already been tagged as a resource",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				}
 
@@ -308,7 +382,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				try {
 					await interaction.reply({
 						content: `Resource tag approved with ID \`${newRes._id}\``,
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				} catch (error) {
 					return;
@@ -336,7 +410,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				try {
 					await interaction.reply({
 						content: "Resource tag rejected",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				} catch (error) {
 					if ((error as Error).message === "Unknown Interaction") {
@@ -426,7 +500,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: `Confession accepted, ${confessionMsg.url}`,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}
@@ -445,7 +519,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: "Confession rejected",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}
@@ -487,7 +561,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await modalResponse.followUpInteraction.reply({
 					content: "Confession rejected and user banned",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}
@@ -544,7 +618,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await interaction.reply({
 					content:
 						"Sent dm message (you have to create the keyword yourself)",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				newEmbedColor = Colors.Yellow;
 				moderatorAction = `Approved (edited) by ${interaction.user.tag}`;
@@ -555,7 +629,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				);
 				await interaction.reply({
 					content: "Sent rejection message",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				newEmbedColor = Colors.Red;
 				moderatorAction = `Rejected by ${interaction.user.tag}`;
@@ -738,7 +812,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 				await interaction.reply({
 					content: "Session rejected",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}

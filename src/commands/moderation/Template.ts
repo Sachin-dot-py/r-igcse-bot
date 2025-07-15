@@ -3,7 +3,7 @@ import { DmTemplateCache } from "@/redis";
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,
-  AutocompleteInteraction,
+  type AutocompleteInteraction,
 } from "discord.js";
 import BaseCommand, { type DiscordChatInputCommandInteraction } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
@@ -75,9 +75,9 @@ export default class TemplateCommand extends BaseCommand {
     const userId = interaction.user.id;
 
     if (sub === "add") {
-      // Show modal for add
+      // show modal for add
       await interaction.showModal({
-        customId: `template_add_modal`,
+        customId: "template_add_modal",
         title: "Add DM Template",
         components: [
           {
@@ -116,15 +116,7 @@ export default class TemplateCommand extends BaseCommand {
     if (sub === "edit") {
       // Get template name
       const name = interaction.options.getString("name", true);
-      // Try Redis first
-      let template = await DmTemplateCache.get(guildId ?? "", name);
-      if (!template) {
-        // Fallback to MongoDB
-        template = await DmTemplate.findOne({ guildId, name });
-        if (template) {
-          await DmTemplateCache.set(guildId ?? "", name, template);
-        }
-      }
+      const template = await DmTemplateCache.get(guildId ?? "", name);
       if (!template) {
         await interaction.reply({
           content: `Template \"${name}\" not found.`,
@@ -132,11 +124,9 @@ export default class TemplateCommand extends BaseCommand {
         });
         return;
       }
-      // Defensive: If template is null, return (should not happen here but for type safety)
-      if (!template) return;
-      // Show modal for edit
+      // show modal for edit
       await interaction.showModal({
-        customId: `template_edit_modal:${name}`,
+        customId: `${name}_template_edit`,
         title: `Edit DM Template: ${name}`,
         components: [
           {
@@ -172,25 +162,16 @@ export default class TemplateCommand extends BaseCommand {
     const focusedRaw = interaction.options.getFocused();
     const focused = typeof focusedRaw === "string" ? focusedRaw : "";
     const guildId = interaction.guildId;
-    if (!guildId || !["edit", "send", "delete"].includes(sub)) return;
+    if (!guildId || !["edit", "send", "delete"].includes(sub ?? "")) return;
     const focusedOption = interaction.options.getFocused(true);
     if (focusedOption.name !== "name") return;
 
-    // Try Redis first
-    let templates = await DmTemplateCache.getAll(guildId ?? "");
-    if (!templates || templates.length === 0) {
-      // Fallback to MongoDB
-      templates = await DmTemplate.find({ guildId });
-      // Update Redis cache
-      for (const t of templates) {
-        await DmTemplateCache.set(guildId, t.name, t);
-      }
-    }
+    const templates = await DmTemplateCache.getAll(guildId);
     const choices = templates
-      .map((t: any) => t.name)
-      .filter((name: string) => name.toLowerCase().includes(focused.toLowerCase()));
+      .map((t) => t.name)
+      .filter((name) => name.toLowerCase().includes(focused.toLowerCase()));
     await interaction.respond(
-      choices.slice(0, 25).map((name: string) => ({ name, value: name }))
+      choices.slice(0, 25).map((name) => ({ name, value: name }))
     );
   }
 }
