@@ -158,7 +158,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 				.trim();
 			// Check for duplicate
 			const exists = await DmTemplateCache.get(guildId, name);
-			console.log(exists);
 			if (exists) {
 				await interaction.editReply(`A template named \`${name}\` already exists.`);
 				return;
@@ -167,7 +166,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			const template = { guildId, name, message}
 			// Save to MongoDB & Redis
 			await DmTemplate.create(template);
-			await DmTemplateCache.create(guildId, name, template);
+			await DmTemplateCache.create(template);
 			await interaction.editReply(`Template \`${name}\` added!`);
 			return;
 		}

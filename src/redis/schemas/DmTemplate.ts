@@ -28,12 +28,12 @@ export class DmTemplateRepository extends Repository<ICachedDmTemplate> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { _id, ...data } = res.toObject();
 
-    await this.create(guildId, name, data);
+    await this.create(data);
     return data as ICachedDmTemplate;
   }
 
-  async create(guildId: string, name: string, data: ICachedDmTemplate) {
-    await this.save(`${guildId}:${name}`, data);
+  async create(data: ICachedDmTemplate) {
+    await this.save(`${data.guildId}:${data.name}`, data);
   }
 
   async update(guildId: string, name: string, data: ICachedDmTemplate) {
