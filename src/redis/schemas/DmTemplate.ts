@@ -1,4 +1,4 @@
-import type { IDmTemplate } from "@/mongo/schemas/DmTemplate";
+import { DmTemplate, type IDmTemplate } from "@/mongo/schemas/DmTemplate";
 import {
   type Entity,
   type RedisConnection,
@@ -20,18 +20,43 @@ export class DmTemplateRepository extends Repository<ICachedDmTemplate> {
   }
 
   async get(guildId: string, name: string) {
-    return (await this.fetch(`${guildId}:${name}`)) as ICachedDmTemplate;
+    const cachedRes = (await this.fetch(`${guildId}:${name}`)) as ICachedDmTemplate;
+    if (cachedRes?.name) return cachedRes;
+
+    const res = await DmTemplate.findOne({ guildId, name });
+    if (!res) return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { _id, ...data } = res.toObject();
+
+    await this.create(guildId, name, data);
+    return data as ICachedDmTemplate;
   }
 
-  async set(guildId: string, name: string, data: ICachedDmTemplate) {
+  async create(guildId: string, name: string, data: ICachedDmTemplate) {
     await this.save(`${guildId}:${name}`, data);
+  }
+
+  async update(guildId: string, name: string, data: ICachedDmTemplate) {
+    await this.update(guildId, name, data)
   }
 
   async delete(guildId: string, name: string) {
     await this.remove(`${guildId}:${name}`);
   }
 
-  async getAll(guildId: string): Promise<ICachedDmTemplate[]> {
-    return (await this.search().where("guildId").equal(guildId).return.all()) as ICachedDmTemplate[];
+  async getAll(guildId: string) {
+    const cachedTemplates = await this.search().where("guildId").equals(guildId).return.all();
+    if (cachedTemplates.length > 0) return cachedTemplates as ICachedDmTemplate[];
+    const res = await DmTemplate.find({ guildId });
+    if (!res) return null;
+    const templates: ICachedDmTemplate[] = res.map((template) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+	  	const { _id, ...data } = template.toObject();
+      return data;
+    });
+    for (const template of templates) {
+      await this.create(guildId, template.name, template);
+    }
+    return templates;
   }
 }
