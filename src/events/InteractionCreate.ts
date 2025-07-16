@@ -12,7 +12,7 @@ import {
 import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
-	type ActionRowBuilder,
+	ActionRowBuilder,
 	type ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
@@ -27,6 +27,9 @@ import {
 	TextChannel,
 	MessageFlags,
 	type ModalSubmitInteraction,
+	type CacheType,
+	TextInputStyle,
+	TextInputBuilder,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -38,6 +41,7 @@ const channelRegex = /<#(\d+)>/;
 const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 const TEMPLATE_EDIT_SUFFIX_REGEX = /_template_edit$/;
 const TEMPLATE_SEND_SUFFIX_REGEX = /_template_send$/;
+const TEMPLATE_CONTINUE_SUFFIX_REGEX = /_template_continue$/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -71,6 +75,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				}
 				this.handleCommand(client, interaction);
 			} else if (interaction.isButton()) {
+				this.handleTemplatePreviewButton(client, interaction)
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
@@ -109,12 +114,44 @@ export default class InteractionCreateEvent extends BaseEvent {
 			});
 		}
 	}
+	async handleTemplatePreviewButton(client: DiscordClient<true>, interaction: ButtonInteraction<CacheType>) {
+		if (!TEMPLATE_CONTINUE_SUFFIX_REGEX.test(interaction.customId) || !interaction.guildId) return;
+		const name = interaction.customId.replace(TEMPLATE_CONTINUE_SUFFIX_REGEX, '');
+		const template = await DmTemplateCache.get(interaction.guildId, name);
+		if (!template) {
+			await interaction.reply({ content: `Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+			return;
+		}
+		// Extract {field} placeholders from template.message
+		const fieldRegex = /\{([a-zA-Z0-9_]+)\}/g;
+		const foundFields = Array.from(template.message.matchAll(fieldRegex)).map(match => match[1]);
+		const uniqueFields = Array.from(new Set(foundFields));
+		const components = uniqueFields.map(field => (
+			new ActionRowBuilder<TextInputBuilder>().addComponents(
+				new TextInputBuilder()
+					.setCustomId(`field_${field}`)
+					.setLabel(`Value for {${field}}`)
+					.setStyle(TextInputStyle.Short)
+					.setRequired(true)
+					.setMinLength(1)
+					.setMaxLength(100)
+					.setPlaceholder(`Enter value for {${field}}`),
+			)
+		));
+		await interaction.showModal({
+			customId: `${name}_template_send`,
+			title: `Send DM Template: ${name}`,
+			components,
+		});
+	}
 
 	async handleTemplateModal(client: DiscordClient<true>, interaction: ModalSubmitInteraction) {
 		const { customId, guildId } = interaction;
-		if (!guildId) return;
+		if (!guildId || !customId.includes("template")) return;
+
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		// add modal
-		if (customId === "template_add_modal") {
+		if (customId === "template_add") {
 			const name = interaction.fields.getTextInputValue("name").trim();
 			const message = interaction.fields
 				.getTextInputValue("message")
@@ -123,43 +160,72 @@ export default class InteractionCreateEvent extends BaseEvent {
 			const exists = await DmTemplateCache.get(guildId, name);
 			console.log(exists);
 			if (exists) {
-				await interaction.reply({
-					content: `A template named \`${name}\` already exists.`,
-					flags: 64,
-				});
+				await interaction.editReply(`A template named \`${name}\` already exists.`);
 				return;
 			}
-			// Save to MongoDB
-			await DmTemplate.create({ guildId, name, message });
-			// Save to Redis
-			await DmTemplateCache.set(guildId, name, {
-				guildId,
-				name,
-				message,
-			});
-			await interaction.reply({
-				content: `Template \`${name}\` added!`,
-				flags: 64,
-			});
+
+			const template = { guildId, name, message}
+			// Save to MongoDB & Redis
+			await DmTemplate.create(template);
+			await DmTemplateCache.create(guildId, name, template);
+			await interaction.editReply(`Template \`${name}\` added!`);
 			return;
 		}
 		// edit modal
 		if (customId.endsWith('_template_edit')) {
 			const name = customId.replace(TEMPLATE_EDIT_SUFFIX_REGEX, '');
+			const newName = interaction.fields.getTextInputValue('name').trim()
 			const message = interaction.fields.getTextInputValue('message').trim();
-			// Update MongoDB
-			await DmTemplate.updateOne({ guildId, name }, { $set: { message } });
-			// Update Redis
-			await DmTemplateCache.set(guildId, name, { guildId, name, message });
-			await interaction.reply({ content: `Template \`${name}\` updated!`, flags: 64 });
+			// Update MongoDB & Redis
+			await DmTemplate.updateOne({ guildId, name }, { $set: { name: newName, message } });
+			await DmTemplateCache.update(guildId, name, { guildId, name: newName, message });
+			await interaction.editReply(`Template \`${name}\` updated!`);
 			return;
 		}
 
-		// send modal (for DM content override)?
+		// send modal (for DM content override)
 		if (customId.endsWith('_template_send')) {
 			const name = customId.replace(TEMPLATE_SEND_SUFFIX_REGEX, '');
-			// Implement as needed
-			await interaction.reply({ content: 'Send modal not implemented.', flags: 64 });
+			// Fetch the template again to get the original message
+			const guildId = interaction.guildId;
+			if (!guildId) {
+				await interaction.editReply('No guild ID.');
+				return;
+			}
+			const template = await DmTemplateCache.get(guildId, name);
+			if (!template) {
+				await interaction.editReply(`Template \`${name}\` not found.`);
+				return;
+			}
+			// Find all {field} in template
+			const fieldRegex = /\{([a-zA-Z0-9_]+)\}/g;
+			const foundFields = Array.from(template.message.matchAll(fieldRegex)).map(match => match[1]);
+			const uniqueFields = Array.from(new Set(foundFields));
+			const fieldValues: Record<string, string> = {};
+			for (const field of uniqueFields) {
+				const value = interaction.fields.getTextInputValue(`field_${field}`)?.trim();
+				if (!value) {
+					await interaction.editReply({ content: `Missing value for \`{${field}}\`.`, flags: 64 });
+					return;
+				}
+				fieldValues[field] = value;
+			}
+			// Replace {field} in template.message
+			let result = template.message;
+			for (const [field, value] of Object.entries(fieldValues)) {
+				result = result.replace(new RegExp(`\\{${field}\\}`, 'g'), value);
+			}
+			// Find the user to DM (from context, not modal)
+			// You may need to store the userId in the modal customId in the future for full reliability
+			const targetUser = interaction.user;
+			try {
+				await targetUser.send({
+					content: result,
+				});
+				await interaction.editReply(`DM sent to ${targetUser.tag}.`);
+			} catch (err) {
+				await interaction.editReply(`Failed to send DM: ${(err as Error).message}`);
+			}
 			return;
 		}
 	}
