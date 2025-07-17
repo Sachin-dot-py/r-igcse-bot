@@ -12,6 +12,7 @@
 	"dependencies": {
 		"@discordforge/logger": "^1.0.0",
 		"@discordforge/pagination": "^1.0.1",
+		"@huggingface/transformers": "^3.6.3",
 		"bufferutil": "^4.0.9",
 		"chucklejs": "^1.0.0",
 		"discord.js": "^14.18.0",

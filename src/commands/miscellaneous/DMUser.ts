@@ -44,7 +44,7 @@ export default class DMUserCommand extends BaseCommand {
 		) {
 			await interaction.reply({
 				content: "Modmail is not set up in this server.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -74,7 +74,7 @@ export default class DMUserCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Thread not found (could've been manually deleted), please try again to create a new thread.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				});
@@ -95,7 +95,7 @@ export default class DMUserCommand extends BaseCommand {
 		if (!threadsChannel || !(threadsChannel instanceof ForumChannel)) {
 			await interaction.reply({
 				content: `Threads channel (${threadsChannel}) should be a forum channel.`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -120,7 +120,7 @@ export default class DMUserCommand extends BaseCommand {
 		} catch (error) {
 			await interaction.reply({
 				content: "Unable to create thread",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			client.log(

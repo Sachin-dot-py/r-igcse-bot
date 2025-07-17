@@ -24,7 +24,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please use this command in the channel of the subject.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -38,7 +38,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"This guild hasn't configured group study sessions. Please contact an admistrator (`/setup`)",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -53,7 +53,7 @@ export default class GroupStudyCommand extends BaseCommand {
 		) {
 			await interaction.reply({
 				content: "You must be in a voice channel to use this command.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -75,7 +75,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Group Study Announcement Channel couldn't be found. Please contact an admin.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -85,7 +85,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Group Study Announcement Channel is of an invalid type. Please contact an admin.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -99,7 +99,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please use this command in the channel of the subject.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -113,7 +113,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"The Study Ping Role couldn't be found. Please contact an admin.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -134,7 +134,7 @@ export default class GroupStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please wait for at least 1 hour after the previous group study in this channel.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;

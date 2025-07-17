@@ -3,7 +3,11 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+	MessageFlags,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
 
 export default class OldPinsThreadCommand extends BaseCommand {
 	constructor() {
@@ -63,13 +67,13 @@ export default class OldPinsThreadCommand extends BaseCommand {
 				if (res.matchedCount) {
 					await interaction.reply({
 						content: "The thread has already been set.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				} else {
 					await interaction.reply({
 						content:
 							"Error occured while setting thread. Please try again later.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				}
 
@@ -78,7 +82,7 @@ export default class OldPinsThreadCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully set Old Pins thread for <#${channel.id}>`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		} else if (interaction.options.getSubcommand() === "remove") {
 			const channel = interaction.options.getChannel("channel", true);
@@ -91,7 +95,7 @@ export default class OldPinsThreadCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Error occured while removing thread. Please try again later.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -99,7 +103,7 @@ export default class OldPinsThreadCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully removed Old Pins thread for <#${channel.id}>.`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 	}

@@ -181,7 +181,7 @@ export default class ApplicationCommand extends BaseCommand {
 		if (!questions.length) {
 			await modalInteraction.reply({
 				content: "You must provide at least one question",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -250,7 +250,7 @@ export default class ApplicationCommand extends BaseCommand {
 		if (!application) {
 			await interaction.reply({
 				content: "Application not found",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -296,7 +296,7 @@ export default class ApplicationCommand extends BaseCommand {
 		if (!questions.length) {
 			await modalInteraction.reply({
 				content: "You must provide at least one question",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -355,7 +355,7 @@ export default class ApplicationCommand extends BaseCommand {
 		if (!application) {
 			await interaction.reply({
 				content: "Application not found",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -364,7 +364,7 @@ export default class ApplicationCommand extends BaseCommand {
 
 		await interaction.reply({
 			content: "Application deleted successfully",
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 	}
 }

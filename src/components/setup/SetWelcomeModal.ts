@@ -95,7 +95,7 @@ class SetWelcomeModal extends ModalBuilder {
 
 			await followUpInteraction.reply({
 				content: "Welcome message(s) have been set",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		} catch (error) {
 			return;

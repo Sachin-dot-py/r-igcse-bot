@@ -102,7 +102,7 @@ export default class FeedbackCommand extends BaseCommand {
 				new Buttons(selectCustomId) as ActionRowBuilder<ButtonBuilder>,
 			],
 			fetchReply: true,
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		const response = await teamSelect.waitForResponse(
@@ -160,7 +160,7 @@ export default class FeedbackCommand extends BaseCommand {
 			if (!channel || !(channel instanceof TextChannel)) {
 				await interaction.followUp({
 					content: "An error occurred. Channel not found.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}

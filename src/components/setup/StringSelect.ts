@@ -61,7 +61,7 @@ class StringSelect extends StringSelectMenuBuilder {
 				await i.reply({
 					content:
 						"Failed to update the database. This exception has been logged.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				Logger.error(`Failed to update the database for ${this.name}`);
 				return;
@@ -69,7 +69,7 @@ class StringSelect extends StringSelectMenuBuilder {
 
 			await i.followUp({
 				content: `Sucessfully updated ${this.name} to ${i.values.map((x) => `\`${x}\``).join(", ")}.`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			await GuildPreferencesCache.remove(interaction.guildId);

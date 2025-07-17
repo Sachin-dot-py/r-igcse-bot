@@ -58,7 +58,7 @@ export default class TimeoutCommand extends BaseCommand {
 		const durationString = interaction.options.getString("duration", true);
 
 		await interaction.deferReply({
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(

@@ -4,7 +4,11 @@ import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
-import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+	MessageFlags,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
 
 export default class ReactionRolesCommand extends BaseCommand {
 	constructor() {
@@ -61,7 +65,7 @@ export default class ReactionRolesCommand extends BaseCommand {
 				if (!message) {
 					await interaction.reply({
 						content: "Message not found",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -76,12 +80,12 @@ export default class ReactionRolesCommand extends BaseCommand {
 
 					await interaction.reply({
 						content: "Reaction role created",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 				} catch (error) {
 					await interaction.reply({
 						content: "Failed to create reaction role",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					const guildPreferences = await GuildPreferencesCache.get(
@@ -92,7 +96,7 @@ export default class ReactionRolesCommand extends BaseCommand {
 						await interaction.reply({
 							content:
 								"Please setup the bot using the command `/setup` first.",
-							flags: MessageFlags.Ephemeral
+							flags: MessageFlags.Ephemeral,
 						});
 						return;
 					}
