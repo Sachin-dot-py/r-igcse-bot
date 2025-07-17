@@ -50,7 +50,7 @@ export default class ChemInfoCommand extends BaseCommand {
 		if (!formula && !name) {
 			await interaction.reply({
 				content: "Please enter a formula or name",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}

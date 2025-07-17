@@ -64,7 +64,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Please setup the bot using the command `/setup` first.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -81,7 +81,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Invalid configuration for keyword requests. Please contact an admin.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -140,7 +140,9 @@ export default class KeywordControlCommand extends BaseCommand {
 					time: 600_000,
 					filter: (i) => i.customId === `${customId}_modal`,
 				});
-				await currentInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+				await currentInteraction.deferReply({
+					flags: MessageFlags.Ephemeral,
+				});
 
 				keywordName = currentInteraction.fields
 					.getTextInputValue("keyword_add_name")
@@ -235,7 +237,7 @@ export default class KeywordControlCommand extends BaseCommand {
 				await interaction.reply({
 					content:
 						"Error occurred while deleting keyword. Please try again later.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
@@ -244,7 +246,7 @@ export default class KeywordControlCommand extends BaseCommand {
 
 			await interaction.reply({
 				content: `Successfully deleted \`${keyword}\`.`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 	}
@@ -282,7 +284,7 @@ export async function addKeyword(
 		await interaction.reply({
 			content:
 				"Error occurred while creating keyword. Please try again later.",
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 		return;
 	}
@@ -301,6 +303,6 @@ export async function addKeyword(
 
 	await interaction.reply({
 		content: `Successfully created keyword \`${keyword}\`.`,
-		flags: MessageFlags.Ephemeral
+		flags: MessageFlags.Ephemeral,
 	});
 }

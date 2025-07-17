@@ -56,7 +56,7 @@ export default class ScheduledCommand extends BaseCommand {
 								.setDescription(
 									"Unschedule a message or embed",
 								),
-						)
+						),
 				)
 				.setDMPermission(false)
 				.setDefaultMemberPermissions(
@@ -81,7 +81,7 @@ export default class ScheduledCommand extends BaseCommand {
 							interaction.reply({
 								content:
 									"There are no scheduled messages or embeds",
-								flags: MessageFlags.Ephemeral
+								flags: MessageFlags.Ephemeral,
 							});
 
 							return;
@@ -90,21 +90,23 @@ export default class ScheduledCommand extends BaseCommand {
 						await interaction.reply({
 							content:
 								"The following messages and embeds were found",
-							flags: MessageFlags.Ephemeral
+							flags: MessageFlags.Ephemeral,
 						});
 
 						for (const doc of messages) {
 							await interaction.followUp({
 								content: `Message to be sent <t:${doc.scheduleTime}:R>:\n\`\`\`${doc.message.content}\n\`\`\``,
 								embeds: doc.message.embeds,
-								flags: MessageFlags.Ephemeral
+								flags: MessageFlags.Ephemeral,
 							});
 						}
 
 						break;
 					}
 					case "lockdowns": {
-						await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+						await interaction.deferReply({
+							flags: MessageFlags.Ephemeral,
+						});
 						const lockdowns = await ChannelLockdown.find({
 							guildId: interaction.guildId,
 						});
@@ -145,7 +147,7 @@ export default class ScheduledCommand extends BaseCommand {
 			case "delete": {
 				await interaction.deferReply({
 					fetchReply: true,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				switch (interaction.options.getSubcommand()) {
@@ -273,7 +275,7 @@ export default class ScheduledCommand extends BaseCommand {
 						).catch(() => {
 							interaction.followUp({
 								content: "Invalid log channel, contact admins",
-								flags: MessageFlags.Ephemeral
+								flags: MessageFlags.Ephemeral,
 							});
 						});
 

@@ -41,7 +41,7 @@ export default class ModPingCommand extends BaseCommand {
 		) {
 			interaction.reply({
 				content: `You may only ping moderators again <t:${Math.floor(userPingHistory.when.getTime() / 1000) + 3600}:R>`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -54,7 +54,7 @@ export default class ModPingCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -89,7 +89,7 @@ export default class ModPingCommand extends BaseCommand {
 		await interaction.reply({
 			embeds: [embed],
 			components: [row],
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		if (!interaction.channel) {

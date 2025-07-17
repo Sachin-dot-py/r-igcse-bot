@@ -1,5 +1,10 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { Colors, EmbedBuilder, SlashCommandBuilder, MessageFlags } from "discord.js";
+import {
+	Colors,
+	EmbedBuilder,
+	SlashCommandBuilder,
+	MessageFlags,
+} from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../../registry/Structure/BaseCommand";
@@ -76,7 +81,7 @@ export default class ResourcesCommand extends BaseCommand {
 				interaction.followUp({
 					content:
 						"No results found in past papers. Try changing your query for better results.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;

@@ -44,7 +44,7 @@ export default class KickCommand extends BaseCommand {
 		if (!interaction.channel || !interaction.channel.isTextBased()) return;
 
 		await interaction.deferReply({
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		const user = interaction.options.getUser("user", true);

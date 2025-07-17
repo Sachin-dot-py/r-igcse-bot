@@ -11,7 +11,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	MessageFlags
+	MessageFlags,
 } from "discord.js";
 
 export default class BanCommand extends BaseCommand {
@@ -57,7 +57,7 @@ export default class BanCommand extends BaseCommand {
 			interaction.options.getInteger("delete_messages", false) ?? 0;
 
 		await interaction.deferReply({
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		if (user.id === interaction.user.id) {
@@ -100,7 +100,9 @@ export default class BanCommand extends BaseCommand {
 			)
 			.setColor(Colors.Red);
 
-		const guildMember = await interaction.guild.members.fetch(user.id).catch(e => null)
+		const guildMember = await interaction.guild.members
+			.fetch(user.id)
+			.catch((e) => null);
 
 		if (guildMember) {
 			if (!guildMember.bannable) {

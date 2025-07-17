@@ -24,7 +24,9 @@ export default class NoteCommand extends BaseCommand {
 			new SlashCommandBuilder()
 				.setName("note")
 				.setDescription("Add a note to a user (for mods)")
-				.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+				.setDefaultMemberPermissions(
+					PermissionFlagsBits.ModerateMembers,
+				)
 				.setDMPermission(false)
 				.addSubcommand((subcommand) =>
 					subcommand
@@ -32,17 +34,17 @@ export default class NoteCommand extends BaseCommand {
 						.setDescription("Add a note to a user")
 						.addUserOption((option) =>
 							option
-							.setName("user")
-							.setDescription("User to add a note to")
-							.setRequired(true)
+								.setName("user")
+								.setDescription("User to add a note to")
+								.setRequired(true),
 						)
 						.addStringOption((option) =>
 							option
-							.setName("note")
-							.setDescription("The note you want to add")
-							.setRequired(true)
-						)
-					)
+								.setName("note")
+								.setDescription("The note you want to add")
+								.setRequired(true),
+						),
+				)
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName("delete")
@@ -51,9 +53,9 @@ export default class NoteCommand extends BaseCommand {
 							option
 								.setName("user")
 								.setDescription("User to delete a note from")
-								.setRequired(true)
-							)
-					)
+								.setRequired(true),
+						),
+				)
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName("view")
@@ -62,10 +64,10 @@ export default class NoteCommand extends BaseCommand {
 							option
 								.setName("user")
 								.setDescription("User to view notes of")
-								.setRequired(true)
-							)
-					)
-			)
+								.setRequired(true),
+						),
+				),
+		);
 	}
 
 	async execute(
@@ -80,7 +82,7 @@ export default class NoteCommand extends BaseCommand {
 				const note = interaction.options.getString("note", true);
 
 				await interaction.deferReply({
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				const guildPreferences = await GuildPreferencesCache.get(
@@ -92,7 +94,7 @@ export default class NoteCommand extends BaseCommand {
 						content:
 							"Please setup the bot using the command `/setup` first.",
 					});
-					return
+					return;
 				}
 
 				await ModNote.create({
@@ -126,9 +128,13 @@ export default class NoteCommand extends BaseCommand {
 						])
 						.setTimestamp();
 
-					logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
-						embeds: [modEmbed],
-					});
+					logToChannel(
+						interaction.guild,
+						guildPreferences.modlogChannelId,
+						{
+							embeds: [modEmbed],
+						},
+					);
 				}
 
 				interaction.editReply({
@@ -150,7 +156,7 @@ export default class NoteCommand extends BaseCommand {
 						content:
 							"Please setup the bot using the command `/setup` first.",
 					});
-					return
+					return;
 				}
 
 				const notes = await ModNote.find({
@@ -172,9 +178,8 @@ export default class NoteCommand extends BaseCommand {
 					"note",
 					"Select a note to remove",
 					notes.map(({ id, note }) => ({
-						label: ((x) => (x.length > 100 ? `${x.slice(0, 97)}...` : x))(
-							note,
-						),
+						label: ((x) =>
+							x.length > 100 ? `${x.slice(0, 97)}...` : x)(note),
 						value: id,
 					})),
 					1,
@@ -184,11 +189,15 @@ export default class NoteCommand extends BaseCommand {
 				const selectInteraction = await interaction.reply({
 					content: "Select a note to remove",
 					components: [
-						new ActionRowBuilder<Select>().addComponents(noteSelect),
-						new Buttons(customId) as ActionRowBuilder<ButtonBuilder>,
+						new ActionRowBuilder<Select>().addComponents(
+							noteSelect,
+						),
+						new Buttons(
+							customId,
+						) as ActionRowBuilder<ButtonBuilder>,
 					],
 					fetchReply: true,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				const response = await noteSelect.waitForResponse(
@@ -205,7 +214,7 @@ export default class NoteCommand extends BaseCommand {
 				if (!note) {
 					await interaction.reply({
 						content: "Note not found",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -256,9 +265,13 @@ export default class NoteCommand extends BaseCommand {
 						])
 						.setTimestamp();
 
-					logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
-						embeds: [modEmbed],
-					});
+					logToChannel(
+						interaction.guild,
+						guildPreferences.modlogChannelId,
+						{
+							embeds: [modEmbed],
+						},
+					);
 				}
 
 				return;
@@ -273,7 +286,9 @@ export default class NoteCommand extends BaseCommand {
 				});
 
 				if (notes.length < 1) {
-					await interaction.reply(`${user.tag} does not have any notes.`);
+					await interaction.reply(
+						`${user.tag} does not have any notes.`,
+					);
 					return;
 				}
 
@@ -281,7 +296,8 @@ export default class NoteCommand extends BaseCommand {
 
 				for (const { note, when, actionBy } of notes) {
 					const moderator =
-						interaction.guild.members.cache.get(actionBy)?.user.tag ?? actionBy;
+						interaction.guild.members.cache.get(actionBy)?.user
+							.tag ?? actionBy;
 
 					const date = when.toLocaleDateString("en-GB");
 					const time = when.toLocaleTimeString("en-GB", {

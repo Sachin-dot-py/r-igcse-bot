@@ -180,7 +180,7 @@ export default class ResourceTagCommand extends BaseCommand {
 				if (!response || response === "Timed out") {
 					interaction.followUp({
 						content: "An error occured",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}

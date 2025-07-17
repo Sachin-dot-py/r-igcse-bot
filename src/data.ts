@@ -493,6 +493,17 @@ export const preferences: Preference[] = [
 		type: "channel",
 		key: "tagResourceApprovalChannelId",
 	},
+	{
+		name: "Off-topic alert categories (r/IGCSE only)",
+		type: "categoryChannel",
+		key: "offTopicAlertCategoryIds",
+		maxValues: 25,
+	},
+	{
+		name: "Alerts Channel",
+		type: "channel",
+		key: "alertsChannelId",
+	},
 ];
 
 interface Subject {
