@@ -708,7 +708,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		const channelMessages = messageMap.get(message.channelId);
 		channelMessages?.push(message.content);
 
-		if (channelMessages?.length === 5) {
+		if (channelMessages?.length === 6) {
 			const result = (await classifier(
 				channelMessages.join(" "),
 			)) as TextClassificationOutput;
@@ -721,8 +721,6 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 			if (result[0].label === "not study related") {
 				flagged.flagCount += 1;
-				flagged.expires = Date.now() + 10 * 60 * 1000;
-
 				flaggedMap.set(message.channelId, flagged);
 			}
 
