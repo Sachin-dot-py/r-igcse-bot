@@ -30,18 +30,20 @@ import {
 	type CacheType,
 	TextInputStyle,
 	TextInputBuilder,
+	type User,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { DmTemplate } from "@/mongo";
 import { DmTemplateCache } from "@/redis";
+import sendDm from "@/utils/sendDm";
 
 const channelRegex = /<#(\d+)>/;
 const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
-const TEMPLATE_EDIT_SUFFIX_REGEX = /_template_edit$/;
-const TEMPLATE_SEND_SUFFIX_REGEX = /_template_send$/;
-const TEMPLATE_CONTINUE_SUFFIX_REGEX = /_template_continue$/;
+const TEMPLATE_EDIT_REGEX = /^(.+?)_template_edit$/;
+const TEMPLATE_CONTINUE_REGEX = /^(.+?)_(.+?)_template_continue$/;
+const TEMPLATE_SEND_REGEX = /^(.+?)_(.+?)_template_send$/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -85,6 +87,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				const command = client.commands.get(interaction.commandName);
 				if (!command) return;
 				try {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-call
 					await command.autoComplete(interaction);
 				} catch (e) {
 					Logger.error(e);
@@ -115,8 +118,12 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 	}
 	async handleTemplatePreviewButton(client: DiscordClient<true>, interaction: ButtonInteraction<CacheType>) {
-		if (!TEMPLATE_CONTINUE_SUFFIX_REGEX.test(interaction.customId) || !interaction.guildId) return;
-		const name = interaction.customId.replace(TEMPLATE_CONTINUE_SUFFIX_REGEX, '');
+		if (!TEMPLATE_CONTINUE_REGEX.test(interaction.customId) || !interaction.guildId) return;
+		// Expect customId format: {userId}_{templateName}_template_continue
+		const match = interaction.customId.match(TEMPLATE_CONTINUE_REGEX);
+		if (!match) return;
+		const userId = match[1];
+		const name = match[2];
 		const template = await DmTemplateCache.get(interaction.guildId, name);
 		if (!template) {
 			await interaction.reply({ content: `Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
@@ -139,7 +146,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			)
 		));
 		await interaction.showModal({
-			customId: `${name}_template_send`,
+			customId: `${userId}_${name}_template_send`,
 			title: `Send DM Template: ${name}`,
 			components,
 		});
@@ -171,8 +178,10 @@ export default class InteractionCreateEvent extends BaseEvent {
 			return;
 		}
 		// edit modal
-		if (customId.endsWith('_template_edit')) {
-			const name = customId.replace(TEMPLATE_EDIT_SUFFIX_REGEX, '');
+		if (TEMPLATE_EDIT_REGEX.test(customId)) {
+			const match = customId.match(TEMPLATE_EDIT_REGEX);
+			if (!match) return;
+			const name = match[1];
 			const newName = interaction.fields.getTextInputValue('name').trim()
 			const message = interaction.fields.getTextInputValue('message').trim();
 			// Update MongoDB & Redis
@@ -183,9 +192,15 @@ export default class InteractionCreateEvent extends BaseEvent {
 		}
 
 		// send modal (for DM content override)
-		if (customId.endsWith('_template_send')) {
-			const name = customId.replace(TEMPLATE_SEND_SUFFIX_REGEX, '');
-			// Fetch the template again to get the original message
+		if (TEMPLATE_SEND_REGEX.test(customId)) {
+			// Expect customId format: {userId}_{templateName}_template_send
+			const match = customId.match(TEMPLATE_SEND_REGEX);
+			if (!match) {
+				await interaction.editReply('Invalid modal customId format.');
+				return;
+			}
+			const userId = match[1];
+			const name = match[2];
 			const guildId = interaction.guildId;
 			if (!guildId) {
 				await interaction.editReply('No guild ID.');
@@ -196,6 +211,20 @@ export default class InteractionCreateEvent extends BaseEvent {
 				await interaction.editReply(`Template \`${name}\` not found.`);
 				return;
 			}
+
+			// Fetch the user to DM
+			let targetUser: User | null = null;
+			try {
+				targetUser = await interaction.client.users.fetch(userId);
+			} catch (e) {
+				await interaction.editReply('Could not fetch target user.');
+				return;
+			}
+			if (!targetUser) {
+				await interaction.editReply('No user provided.');
+				return;
+			}
+
 			// Find all {field} in template
 			const fieldRegex = /\{([a-zA-Z0-9_]+)\}/g;
 			const foundFields = Array.from(template.message.matchAll(fieldRegex)).map(match => match[1]);
@@ -216,7 +245,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 			}
 			// Find the user to DM (from context, not modal)
 			// You may need to store the userId in the modal customId in the future for full reliability
-			const targetUser = interaction.user;
 			try {
 				await targetUser.send({
 					content: result,

@@ -37,7 +37,8 @@ export class DmTemplateRepository extends Repository<ICachedDmTemplate> {
   }
 
   async update(guildId: string, name: string, data: ICachedDmTemplate) {
-    await this.update(guildId, name, data)
+    await this.delete(guildId, name);
+    await this.create(data);
   }
 
   async delete(guildId: string, name: string) {
@@ -55,7 +56,7 @@ export class DmTemplateRepository extends Repository<ICachedDmTemplate> {
       return data;
     });
     for (const template of templates) {
-      await this.create(guildId, template.name, template);
+      await this.create(template);
     }
     return templates;
   }

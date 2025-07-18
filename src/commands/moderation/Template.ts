@@ -1,5 +1,5 @@
-import { DmTemplate } from "@/mongo";
-import { DmTemplateCache } from "@/redis";
+import { DmTemplate, PrivateDmThread } from "@/mongo";
+import { DmTemplateCache, GuildPreferencesCache } from "@/redis";
 import {
 	SlashCommandBuilder,
 	PermissionFlagsBits,
@@ -10,6 +10,9 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 	InteractionContextType,
+	ButtonBuilder,
+	ButtonStyle,
+	ThreadChannel,
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -33,12 +36,6 @@ export default class TemplateCommand extends BaseCommand {
 					sub
 						.setName("send")
 						.setDescription("Send a DM template to a user")
-						.addBooleanOption((opt) =>
-							opt
-								.setName("anonymous")
-								.setDescription("Send anonymously or not")
-								.setRequired(true),
-						)
 						.addStringOption((opt) =>
 							opt
 								.setName("name")
@@ -46,11 +43,17 @@ export default class TemplateCommand extends BaseCommand {
 								.setRequired(true)
 								.setAutocomplete(true),
 						)
+						.addBooleanOption((opt) =>
+							opt
+								.setName("anonymous")
+								.setDescription("Send anonymously or not")
+								.setRequired(true),
+						)
 						.addUserOption((opt) =>
 							opt
 								.setName("user")
 								.setDescription(
-									"User to DM (optional if in DM thread)",
+									"[REQUIRED IF NOT IN THREAD] User to DM",
 								)
 								.setRequired(false),
 						),
@@ -88,7 +91,6 @@ export default class TemplateCommand extends BaseCommand {
 	) {
 		const sub = interaction.options.getSubcommand();
 		const guildId = interaction.guildId;
-		const userId = interaction.user.id;
 
 		if (sub === "add") {
 			// show modal for add
@@ -121,10 +123,7 @@ export default class TemplateCommand extends BaseCommand {
 			const name = interaction.options.getString("name", true);
 			const template = await DmTemplateCache.get(guildId ?? "", name);
 			if (!template) {
-				await interaction.reply({
-					content: `Template \"${name}\" not found.`,
-					flags: MessageFlags.Ephemeral,
-				});
+				await interaction.reply(`Template "${name}" not found.`);
 				return;
 			}
 			// show modal for edit
@@ -153,37 +152,73 @@ export default class TemplateCommand extends BaseCommand {
 			return;
 		}
 
+		// Can't defer reply before showModal
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
 		if (sub === "send") {
 			const name = interaction.options.getString("name", true);
 			const user = interaction.options.getUser("user");
-			const anonymous = interaction.options.getBoolean("anonymous", true);
+
+			let userId: string | null = null;
+			if (user) {
+				userId = user.id;
+			} else {
+				const guildPreferences = await GuildPreferencesCache.get(
+					interaction.guildId,
+				);
+				if (!guildPreferences) {
+					await interaction.editReply("Please setup the bot using the command `/setup` first.");
+					return;
+				}
+	
+				const inDmChannel = (interaction.channel instanceof ThreadChannel &&
+					interaction.channel.parentId ===
+					guildPreferences.modmailThreadsChannelId)
+				
+				if (inDmChannel) {
+					const dmThread = await PrivateDmThread.findOne({
+						threadId: interaction.channel?.id,
+					});
+					if (!dmThread) {
+						await interaction.editReply("Unable to find the user for this thread.");
+						return;
+					}
+					userId = dmThread.userId;
+				} else {
+					await interaction.editReply("Please use this command in a dm channel or provide a user.");
+					return;
+				}
+			}
+			
+			const member = await interaction.guild.members
+				.fetch(userId)
+				.catch(async () => {
+					await interaction.editReply("User is no longer in the server");
+					return;
+				});
+			if (!member) {
+				await interaction.editReply("User is no longer in the server");
+				return;
+			}
+
 			const template = await DmTemplateCache.get(guildId ?? "", name);
 			if (!template) {
-				await interaction.reply({
-					content: `Template \"${name}\" not found.`,
-					flags: MessageFlags.Ephemeral,
-				});
+				await interaction.editReply(`Template "${name}" not found.`);
 				return;
 			}
 
 			// Prepare the preview message (replace {username} for preview, if possible)
 			const previewMessage = template.message.replace(/\{username\}/g, user ? user.username : interaction.user.username);
 
-			await interaction.reply({
-				content: `You are about to send the following template:\n\n${previewMessage}`,
-				flags: MessageFlags.Ephemeral,
+			await interaction.editReply({
+				content: `Recipient: ${member.user.username} ||${member.user.tag}||\nYou are about to send the following template:\n${previewMessage}`,
 				components: [
-					{
-						type: 1, // ActionRow
-						components: [
-							{
-								type: 2, // Button
-								style: 1, // Primary
-								custom_id: `${name}_template_continue`,
-								label: "Continue",
-							},
-						],
-					},
+					new ActionRowBuilder<ButtonBuilder>().addComponents(
+						new ButtonBuilder()
+							.setCustomId(`${member.user.id}_${name}_template_continue`)
+							.setLabel("Continue")
+						.setStyle(ButtonStyle.Primary),
+					),
 				],
 			});
 			return;
@@ -193,27 +228,16 @@ export default class TemplateCommand extends BaseCommand {
 			const name = interaction.options.getString("name", true);
 			const template = await DmTemplateCache.get(guildId ?? "", name);
 			if (!template) {
-				await interaction.reply({
-					content: `Template \"${name}\" not found.`,
-					flags: MessageFlags.Ephemeral,
-				});
+				await interaction.editReply(`Template "${name}" not found.`);
 				return;
 			}
 			// Remove from MongoDB
 			await DmTemplate.deleteOne({ guildId, name });
 			// Remove from Redis
 			await DmTemplateCache.delete(guildId ?? "", name);
-			await interaction.reply({
-				content: `Template \`${name}\` deleted!`,
-				flags: MessageFlags.Ephemeral,
-			});
+			await interaction.editReply(`Template \`${name}\` deleted!`);
 			return;
 		}
-
-		await interaction.reply({
-			content: "This subcommand is not yet implemented.",
-			flags: MessageFlags.Ephemeral,
-		});
 	}
 
 	// Autocomplete for template names
