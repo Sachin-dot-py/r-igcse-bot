@@ -13,7 +13,7 @@ import { logToChannel } from "@/utils/Logger";
 import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
-	type ButtonBuilder,
+	ButtonBuilder,
 	type ButtonInteraction,
 	ChannelType,
 	type ChatInputCommandInteraction,
@@ -26,11 +26,11 @@ import {
 	PermissionFlagsBits,
 	TextChannel,
 	MessageFlags,
-	type ModalSubmitInteraction,
-	type CacheType,
-	TextInputStyle,
 	TextInputBuilder,
-	type User,
+	TextInputStyle,
+	ModalBuilder,
+	ButtonStyle,
+	ComponentType,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -67,9 +67,6 @@ export default class InteractionCreateEvent extends BaseEvent {
 						interaction.guildId,
 					)
 				) {
-					await interaction.reply(
-						"This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.",
-					);
 					await interaction.reply(
 						"This guild has been blacklisted from using the r/IGCSE Bot due to [TOS](https://archive.chirag.dev/r-ig/bot-tos) violations. Please contact a server admin.",
 					);
@@ -526,7 +523,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 		client: DiscordClient<true>,
 		interaction: ButtonInteraction,
 	) {
-		const matchCustomIdRegex = /(.*_confession)_(accept|reject|ban)/gi;
+		const matchCustomIdRegex = /(.*_confession)_(accept|reject|ban|edit)/gi;
 		const regexMatches = matchCustomIdRegex.exec(interaction.customId);
 		if (!regexMatches) return;
 
@@ -595,6 +592,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					content: `Confession accepted, ${confessionMsg.url}`,
 					flags: MessageFlags.Ephemeral,
 				});
+
 				break;
 			}
 			case "reject": {
@@ -614,6 +612,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 					content: "Confession rejected",
 					flags: MessageFlags.Ephemeral,
 				});
+
 				break;
 			}
 			case "ban": {
@@ -656,12 +655,164 @@ export default class InteractionCreateEvent extends BaseEvent {
 					content: "Confession rejected and user banned",
 					flags: MessageFlags.Ephemeral,
 				});
+
+				break;
+			}
+			case "edit": {
+				const confessInput = new TextInputBuilder()
+					.setCustomId("edited_confession_input")
+					.setLabel("Edited Confession")
+					.setPlaceholder("The edited confession")
+					.setValue(confession)
+					.setRequired(true)
+					.setStyle(TextInputStyle.Paragraph);
+
+				const row =
+					new ActionRowBuilder<TextInputBuilder>().addComponents(
+						confessInput,
+					);
+
+				const modalCustomId = uuidv4();
+
+				const modal = new ModalBuilder()
+					.setCustomId(modalCustomId)
+					.addComponents(row)
+					.setTitle("Edited Confession");
+
+				await interaction.showModal(modal);
+
+				const modalInteraction = await interaction.awaitModalSubmit({
+					time: 600_000,
+					filter: (i) => i.customId === modalCustomId,
+				});
+
+				const editedConfession =
+					modalInteraction.fields.getTextInputValue(
+						"edited_confession_input",
+					);
+
+				if (confession === editedConfession) {
+					await modalInteraction.reply({
+						content:
+							"Confession is the same as before, no changes made.",
+						flags: MessageFlags.Ephemeral,
+					});
+					return;
+				}
+
+				const confirmationEmbed = new EmbedBuilder()
+					.setTitle("Send edited confession")
+					.setDescription(`${editedConfession}`)
+					.setColor(Colors.Blurple);
+
+				const buttonCustomId = uuidv4();
+
+				const confirmButton = new ButtonBuilder()
+					.setCustomId(`confirm_${buttonCustomId}`)
+					.setLabel("Send")
+					.setStyle(ButtonStyle.Success);
+
+				const cancelButton = new ButtonBuilder()
+					.setCustomId(`cancel_${buttonCustomId}`)
+					.setLabel("Cancel")
+					.setStyle(ButtonStyle.Danger);
+
+				const confirmationRow =
+					new ActionRowBuilder<ButtonBuilder>().addComponents(
+						confirmButton,
+						cancelButton,
+					);
+
+				await modalInteraction.reply({
+					embeds: [confirmationEmbed],
+					components: [confirmationRow],
+					flags: MessageFlags.Ephemeral,
+				});
+
+				if (!modalInteraction.channel) {
+					return;
+				}
+
+				const buttonResponse =
+					await modalInteraction.channel.awaitMessageComponent({
+						filter: (i) => {
+							i.deferUpdate();
+							return (
+								i.customId === `confirm_${buttonCustomId}` ||
+								i.customId === `cancel_${buttonCustomId}`
+							);
+						},
+						time: 300_000,
+						componentType: ComponentType.Button,
+					});
+
+				if (buttonResponse.customId === `cancel_${buttonCustomId}`) {
+					modalInteraction.editReply({
+						embeds: [
+							new EmbedBuilder()
+								.setTitle("Confession Cancelled")
+								.setDescription(editedConfession)
+								.setColor("Red"),
+						],
+						components: [],
+					});
+					return;
+				}
+
+				modalInteraction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setTitle("Confession Sent")
+							.setDescription(editedConfession)
+							.setColor("Green"),
+					],
+					components: [],
+				});
+
+				const confessionsChannel = client.channels.cache.get(
+					guildPreferences.confessionsChannelId,
+				);
+				if (
+					!confessionsChannel ||
+					!(confessionsChannel instanceof TextChannel)
+				)
+					return;
+
+				const confessionEmbed = new EmbedBuilder()
+					.setDescription(editedConfession)
+					.setColor("Random");
+
+				const confessionMsg = await confessionsChannel.send({
+					embeds: [confessionEmbed],
+					content: "New Anonymous Confession",
+				});
+
+				const acceptEmbed = new EmbedBuilder()
+					.setAuthor({
+						name: `Confession edited and sent by ${interaction.user.tag}`,
+					})
+					.addFields(
+						{
+							name: "Original Confession",
+							value: confession,
+						},
+						{
+							name: "Edited Confession",
+							value: editedConfession,
+						},
+					)
+					.setColor("Blurple");
+
+				await message.edit({
+					embeds: [acceptEmbed],
+					components: [],
+				});
+
 				break;
 			}
 			default:
 				break;
 		}
-
 		await ButtonInteractionCache.remove(confessionId);
 	}
 

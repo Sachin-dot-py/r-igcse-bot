@@ -8,6 +8,7 @@ import BaseCommand, {
 import {
 	ActionRowBuilder,
 	type ButtonBuilder,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";

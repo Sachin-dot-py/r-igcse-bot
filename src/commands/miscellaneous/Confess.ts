@@ -47,7 +47,7 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -61,7 +61,7 @@ export default class ConfessionCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Invalid configuration for confessions. Please contact an admin.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -140,8 +140,13 @@ export default class ConfessionCommand extends BaseCommand {
 
 		const approveButton = new ButtonBuilder()
 			.setLabel("Approve")
-			.setStyle(ButtonStyle.Primary)
+			.setStyle(ButtonStyle.Success)
 			.setCustomId(`${customId}_confession_accept`);
+
+		const editButton = new ButtonBuilder()
+			.setLabel("Edit")
+			.setStyle(ButtonStyle.Primary)
+			.setCustomId(`${customId}_confession_edit`);
 
 		const rejectButton = new ButtonBuilder()
 			.setLabel("Reject")
@@ -155,6 +160,7 @@ export default class ConfessionCommand extends BaseCommand {
 
 		const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			approveButton,
+			editButton,
 			rejectButton,
 			banButton,
 		);
