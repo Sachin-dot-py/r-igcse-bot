@@ -14,7 +14,7 @@ import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	type ButtonInteraction,
+	ButtonInteraction,
 	ChannelType,
 	type ChatInputCommandInteraction,
 	type ColorResolvable,
@@ -31,6 +31,8 @@ import {
 	ModalBuilder,
 	ButtonStyle,
 	ComponentType,
+	type User,
+	type ModalSubmitInteraction,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -42,8 +44,8 @@ import sendDm from "@/utils/sendDm";
 const channelRegex = /<#(\d+)>/;
 const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
 const TEMPLATE_EDIT_REGEX = /^(.+?)_template_edit$/;
-const TEMPLATE_CONTINUE_REGEX = /^(.+?)_(.+?)_template_continue$/;
-const TEMPLATE_SEND_REGEX = /^(.+?)_(.+?)_template_send$/;
+const TEMPLATE_CONTINUE_REGEX = /^(.+?)_template_continue$/;
+const TEMPLATE_SEND_REGEX = /^(.+?)_template_send$/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -114,13 +116,17 @@ export default class InteractionCreateEvent extends BaseEvent {
 			});
 		}
 	}
-	async handleTemplatePreviewButton(client: DiscordClient<true>, interaction: ButtonInteraction<CacheType>) {
+	async handleTemplatePreviewButton(client: DiscordClient<true>, interaction: ButtonInteraction) {
 		if (!TEMPLATE_CONTINUE_REGEX.test(interaction.customId) || !interaction.guildId) return;
 		// Expect customId format: {userId}_{templateName}_template_continue
-		const match = interaction.customId.match(TEMPLATE_CONTINUE_REGEX);
-		if (!match) return;
-		const userId = match[1];
-		const name = match[2];
+        const match = interaction.customId.match(TEMPLATE_CONTINUE_REGEX);
+        if (!match) return;
+		const uuid = match[1];
+		const message = interaction.message;
+		if (!message) return;
+
+		const name = message.embeds[0].title?.match(/Preview Template: (.+)/)?.[1];
+		if (!name) return;
 		const template = await DmTemplateCache.get(interaction.guildId, name);
 		if (!template) {
 			await interaction.reply({ content: `Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
@@ -142,11 +148,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 					.setPlaceholder(`Enter value for {${field}}`),
 			)
 		));
-		await interaction.showModal({
-			customId: `${userId}_${name}_template_send`,
-			title: `Send DM Template: ${name}`,
-			components,
-		});
+        await interaction.showModal({
+            customId: `${uuid}_template_send`,
+            title: `Send DM Template: ${name}`,
+            components,
+        });
 	}
 
 	async handleTemplateModal(client: DiscordClient<true>, interaction: ModalSubmitInteraction) {
@@ -188,19 +194,29 @@ export default class InteractionCreateEvent extends BaseEvent {
 			return;
 		}
 
-		// send modal (for DM content override)
-		if (TEMPLATE_SEND_REGEX.test(customId)) {
-			// Expect customId format: {userId}_{templateName}_template_send
-			const match = customId.match(TEMPLATE_SEND_REGEX);
-			if (!match) {
-				await interaction.editReply('Invalid modal customId format.');
+        if (TEMPLATE_SEND_REGEX.test(customId)) {
+            // Expect customId format: {uuid}_template_send
+            const match = customId.match(TEMPLATE_SEND_REGEX);
+            if (!match) {
+                await interaction.editReply('Invalid modal customId format.');
+                return;
+            }
+			
+			const uuid = match[1];
+			const interactionCache = await ButtonInteractionCache.get(`${uuid}_template_continue`);
+			const { messageId, userId, guildId } = interactionCache ?? {};
+			if (!messageId || !userId || !guildId || guildId !== interaction.guild?.id || !interaction.channel) {
+                await interaction.editReply("Invalid/expired interaction. 1");
 				return;
 			}
-			const userId = match[1];
-			const name = match[2];
-			const guildId = interaction.guildId;
-			if (!guildId) {
-				await interaction.editReply('No guild ID.');
+			const message = await interaction.channel.messages.fetch(messageId);
+            const name = message.embeds[0].title?.match(/Preview Template: (.+)/)?.[1];
+			const anonymous = message.embeds[0].footer?.text?.includes("anonymously");
+			
+            const invalid = !message || !name || typeof anonymous === "undefined";
+
+            if (invalid) {
+				await interaction.editReply('Invalid/expired interaction. 2');
 				return;
 			}
 			const template = await DmTemplateCache.get(guildId, name);
@@ -230,7 +246,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			for (const field of uniqueFields) {
 				const value = interaction.fields.getTextInputValue(`field_${field}`)?.trim();
 				if (!value) {
-					await interaction.editReply({ content: `Missing value for \`{${field}}\`.`, flags: 64 });
+					await interaction.editReply(`Missing value for \`{${field}}\`.`);
 					return;
 				}
 				fieldValues[field] = value;
@@ -240,13 +256,27 @@ export default class InteractionCreateEvent extends BaseEvent {
 			for (const [field, value] of Object.entries(fieldValues)) {
 				result = result.replace(new RegExp(`\\{${field}\\}`, 'g'), value);
 			}
-			// Find the user to DM (from context, not modal)
-			// You may need to store the userId in the modal customId in the future for full reliability
+
+			const modPfp = interaction.user.displayAvatarURL() ?? interaction.user.defaultAvatarURL
+
+			const embed = new EmbedBuilder()
+				.setTitle(`Message from ${interaction.guild.name} Staff`)
+				.setAuthor({
+					name: anonymous ? `${interaction.guild.name} Moderators` : interaction.user.username,
+					iconURL: anonymous ? interaction.guild.iconURL() : modPfp,
+				})
+				.setDescription(
+					result,
+				)
+				.setTimestamp(message.createdTimestamp)
+				.setColor(Colors.Green);
+			
 			try {
 				await targetUser.send({
-					content: result,
+					embeds: [embed],
 				});
 				await interaction.editReply(`DM sent to ${targetUser.tag}.`);
+				await ButtonInteractionCache.remove(`${uuid}_template_continue`);
 			} catch (err) {
 				await interaction.editReply(`Failed to send DM: ${(err as Error).message}`);
 			}

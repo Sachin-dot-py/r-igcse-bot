@@ -1,5 +1,5 @@
 import { DmTemplate, PrivateDmThread } from "@/mongo";
-import { DmTemplateCache, GuildPreferencesCache } from "@/redis";
+import { ButtonInteractionCache, DmTemplateCache, GuildPreferencesCache } from "@/redis";
 import {
 	SlashCommandBuilder,
 	PermissionFlagsBits,
@@ -13,11 +13,13 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	ThreadChannel,
+	EmbedBuilder,
 } from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import type { DiscordClient } from "@/registry/DiscordClient";
+import { v4 as uuidv4 } from "uuid";
 
 export default class TemplateCommand extends BaseCommand {
 	constructor() {
@@ -207,21 +209,39 @@ export default class TemplateCommand extends BaseCommand {
 				return;
 			}
 
-			// Prepare the preview message (replace {username} for preview, if possible)
-			const previewMessage = template.message.replace(/\{username\}/g, user ? user.username : interaction.user.username);
+            const anonymous = interaction.options.getBoolean("anonymous", true);
 
-			await interaction.editReply({
-				content: `Recipient: ${member.user.username} ||${member.user.tag}||\nYou are about to send the following template:\n${previewMessage}`,
-				components: [
-					new ActionRowBuilder<ButtonBuilder>().addComponents(
-						new ButtonBuilder()
-							.setCustomId(`${member.user.id}_${name}_template_continue`)
-							.setLabel("Continue")
+			const embed = new EmbedBuilder()
+				.setAuthor({ name: `Recipient: ${member.user.username} | ${member.user.id}` })
+				.setTitle(`Preview Template: ${template.name}`)
+				.setDescription(template.message)
+				.setColor("Blurple")
+				.setFooter({ text: `Sent by ${interaction.user.username} (sent ${anonymous ? "anonymously" : "as mod"})`,
+					iconURL: interaction.member.displayAvatarURL(), });	
+
+			const uuid = uuidv4();
+
+			const message = await interaction.editReply({ embeds: [embed], components: [
+				new ActionRowBuilder<ButtonBuilder>().addComponents(
+					new ButtonBuilder()
+						.setCustomId(`${uuid}_template_continue`)
+						.setLabel("Continue")
 						.setStyle(ButtonStyle.Primary),
-					),
-				],
+				),
+			]});
+
+			await ButtonInteractionCache.set(`${uuid}_template_continue`, {
+				customId: `${uuid}_template_continue`,
+				messageId: message.id,
+				guildId: interaction.guildId,
+				userId: member.user.id,
 			});
-			return;
+
+			await ButtonInteractionCache.expire(
+				`${uuid}_template_continue`,
+				14 * 24 * 60 * 60,
+			);
+            return;
 		}
 
 		if (sub === "delete") {
