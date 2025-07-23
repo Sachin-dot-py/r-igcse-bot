@@ -217,10 +217,16 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const lockdown of toLock) {
-			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
+			const guild = await client.guilds
+				.fetch(lockdown.guildId)
+				.catch(() => null);
 			if (!guild) continue;
-			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
-			const mode = await guild.channels.fetch(lockdown.mode).catch(() => null);
+			const channel = await guild.channels
+				.fetch(lockdown.channelId)
+				.catch(() => null);
+			const mode = await guild.channels
+				.fetch(lockdown.mode)
+				.catch(() => null);
 			if (!channel) {
 				await lockdown.deleteOne();
 				continue;
@@ -242,23 +248,22 @@ export default class ClientReadyEvent extends BaseEvent {
 						SendMessagesInThreads: false,
 						CreatePrivateThreads: false,
 						CreatePublicThreads: false,
-					}
+					},
 				);
 
-				const guildPreferences = await GuildPreferencesCache.get(guild.id);
+				const guildPreferences = await GuildPreferencesCache.get(
+					guild.id,
+				);
 				const modRoleId = guildPreferences?.moderatorRoleId;
 
 				if (modRoleId && guild.roles.cache.has(modRoleId)) {
 					const modRole = guild.roles.cache.get(modRoleId);
-					await channel.permissionOverwrites.edit(
-						modRole!.id,
-						{
-							SendMessages: true,
-							SendMessagesInThreads: true,
-							CreatePrivateThreads: true,
-							CreatePublicThreads: true,
-						}
-					);
+					await channel.permissionOverwrites.edit(modRole!.id, {
+						SendMessages: true,
+						SendMessagesInThreads: true,
+						CreatePrivateThreads: true,
+						CreatePublicThreads: true,
+					});
 				}
 
 				if (channel.type === ChannelType.GuildText) {
@@ -286,9 +291,13 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const lockdown of toUnlock) {
-			const guild = await client.guilds.fetch(lockdown.guildId).catch(() => null);
+			const guild = await client.guilds
+				.fetch(lockdown.guildId)
+				.catch(() => null);
 			if (!guild) continue;
-			const channel = await guild.channels.fetch(lockdown.channelId).catch(() => null);
+			const channel = await guild.channels
+				.fetch(lockdown.channelId)
+				.catch(() => null);
 			if (!channel) {
 				await lockdown.deleteOne();
 				continue;
@@ -298,15 +307,12 @@ export default class ClientReadyEvent extends BaseEvent {
 				channel.type === ChannelType.GuildText ||
 				channel.type === ChannelType.GuildForum
 			) {
-				await channel.permissionOverwrites.edit(
-					guild.roles.everyone,
-					{
-						SendMessages: null,
-						SendMessagesInThreads: null,
-						CreatePrivateThreads: null,
-						CreatePublicThreads: null,
-					},
-				);
+				await channel.permissionOverwrites.edit(guild.roles.everyone, {
+					SendMessages: null,
+					SendMessagesInThreads: null,
+					CreatePrivateThreads: null,
+					CreatePublicThreads: null,
+				});
 			} else if (
 				channel.type === ChannelType.PublicThread ||
 				channel.type === ChannelType.PrivateThread
@@ -316,17 +322,16 @@ export default class ClientReadyEvent extends BaseEvent {
 				}
 			}
 
-			if (
-				channel.type === ChannelType.GuildText
-			) {
-				await (channel as TextChannel).send({ 
-					content: "**Channel Unlocked !!**" 
+			if (channel.type === ChannelType.GuildText) {
+				await (channel as TextChannel).send({
+					content: "**Channel Unlocked !!**",
 				});
 			} else if (
-				(channel.type === ChannelType.PublicThread || channel.type === ChannelType.PrivateThread)
+				channel.type === ChannelType.PublicThread ||
+				channel.type === ChannelType.PrivateThread
 			) {
-				await (channel as ThreadChannel).send({ 
-					content: "**Channel Unlocked !!**" 
+				await (channel as ThreadChannel).send({
+					content: "**Channel Unlocked !!**",
 				});
 			}
 			await lockdown.deleteOne();

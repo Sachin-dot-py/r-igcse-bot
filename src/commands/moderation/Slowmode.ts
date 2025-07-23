@@ -58,7 +58,7 @@ export default class SlowmodeCommand extends BaseCommand {
 			interaction.reply({
 				content:
 					"Invalid slowmode duration. Please provide a valid numerical duration (e.g., '5s', '1m', '1h').",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -66,7 +66,7 @@ export default class SlowmodeCommand extends BaseCommand {
 		if (!channel || !channel.isTextBased()) {
 			interaction.reply({
 				content: "Channel must be text-based.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -74,7 +74,7 @@ export default class SlowmodeCommand extends BaseCommand {
 		if (time > 21600 || time < 0) {
 			interaction.reply({
 				content: "Enter a valid time between 0 seconds and 6 hours.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -86,7 +86,7 @@ export default class SlowmodeCommand extends BaseCommand {
 
 		interaction.reply({
 			content: `Slowmode for ${channel} successfully set to ${timeString}.`,
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		const guildPreferences = await GuildPreferencesCache.get(
@@ -96,7 +96,7 @@ export default class SlowmodeCommand extends BaseCommand {
 		if (!guildPreferences || !guildPreferences.generalLogsChannelId) {
 			interaction.followUp({
 				content: "Please setup the bot using /setup to enable logging.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -130,7 +130,7 @@ export default class SlowmodeCommand extends BaseCommand {
 			console.error("Error logging to channel:", error);
 			interaction.followUp({
 				content: "Invalid log channel, contact admins.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 	}

@@ -57,7 +57,7 @@ export default class GoStudyCommand extends BaseCommand {
 		) {
 			await interaction.reply({
 				content: "You do not have permission to gostudy other users.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -75,7 +75,7 @@ export default class GoStudyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Please setup the bot using the command `/setup` first.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -89,7 +89,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (duration <= 0) {
 			await interaction.reply({
 				content: "Invalid duration!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -100,7 +100,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (!member) {
 			await interaction.reply({
 				content: "Invalid user!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -113,7 +113,7 @@ export default class GoStudyCommand extends BaseCommand {
 		if (!role) {
 			await interaction.reply({
 				content: "Forced mute role not found!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;

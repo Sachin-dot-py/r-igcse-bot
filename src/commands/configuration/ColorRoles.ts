@@ -140,7 +140,7 @@ export default class ColorRolesCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Encountered error while trying to delete color role. Please try again later.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					client.log(
@@ -154,7 +154,7 @@ export default class ColorRolesCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: "Successfully deleted color role.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				break;

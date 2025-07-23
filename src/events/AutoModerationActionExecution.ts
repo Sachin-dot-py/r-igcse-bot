@@ -32,7 +32,9 @@ export default class ErrorEvent extends BaseEvent {
 		const duration =
 			autoModerationActionExecution.action.metadata.durationSeconds ?? 0;
 
-		const reason = autoModerationActionExecution.action.metadata.customMessage || autoModerationActionExecution.autoModerationRule?.name;
+		const reason =
+			autoModerationActionExecution.action.metadata.customMessage ||
+			autoModerationActionExecution.autoModerationRule?.name;
 
 		const durationString = humanizeDuration(duration * 1000);
 
@@ -70,7 +72,9 @@ export default class ErrorEvent extends BaseEvent {
 				},
 				{
 					name: "Reason",
-					value: autoModerationActionExecution.autoModerationRule?.name || "Derogatory language",
+					value:
+						autoModerationActionExecution.autoModerationRule
+							?.name || "Derogatory language",
 				},
 				{
 					name: "Duration",

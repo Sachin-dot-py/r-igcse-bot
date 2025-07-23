@@ -40,7 +40,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"There are no applications in this server. Try again later.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -66,7 +66,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"You do not have the required roles to apply for any positions!",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -88,7 +88,7 @@ export default class ApplyCommand extends BaseCommand {
 		const selectInteraction = await interaction.reply({
 			content: "Select a position to apply for",
 			components: [row],
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 
 		const selectResponse = await selectInteraction.awaitMessageComponent({
@@ -104,7 +104,7 @@ export default class ApplyCommand extends BaseCommand {
 		if (!application) {
 			await selectResponse.reply({
 				content: "This application does not exist",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -150,7 +150,7 @@ export default class ApplyCommand extends BaseCommand {
 			await interaction.reply({
 				content:
 					"Invalid channel for submitting application. Please contact the server staff.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -193,7 +193,7 @@ export default class ApplyCommand extends BaseCommand {
 
 		await modalInteraction.reply({
 			content: "Application submitted successfully",
-			flags: MessageFlags.Ephemeral
+			flags: MessageFlags.Ephemeral,
 		});
 	}
 }

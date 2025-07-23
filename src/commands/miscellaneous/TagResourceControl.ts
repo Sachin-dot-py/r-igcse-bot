@@ -74,7 +74,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				if (!tagsDel) {
 					await interaction.reply({
 						content: "Resource Tag not found.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -85,7 +85,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 
 				await interaction.reply({
 					content: "Resource Tag deleted.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				break;
@@ -109,7 +109,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 				if (!urlRegex.test(targetMessageUrl)) {
 					await interaction.reply({
 						content: "Invalid message url.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 					return;
 				}
@@ -121,7 +121,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Please setup the bot using the command `/setup` first.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -135,7 +135,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"Invalid configuration for resource tags. Please contact an admin.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -149,7 +149,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 					await interaction.reply({
 						content:
 							"This message already has already been tagged as a resource.",
-						flags: MessageFlags.Ephemeral
+						flags: MessageFlags.Ephemeral,
 					});
 
 					return;
@@ -212,7 +212,7 @@ export default class TagResourceControlsCommand extends BaseCommand {
 
 				await modalInteraction.reply({
 					content: `Resource tag added with ID \`${newRes._id}\``,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				break;
 			}

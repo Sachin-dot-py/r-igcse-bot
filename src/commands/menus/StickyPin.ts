@@ -32,17 +32,17 @@ export default class StickMessageCommand extends BaseCommand {
 	) {
 		if (!interaction.channel) return;
 
-		await interaction.deferReply({flags: MessageFlags.Ephemeral})
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		const oldRes = await StickyPinnedMessage.findOne({
 			channelId: interaction.channel.id,
 		});
-		
+
 		if (oldRes) {
 			const yesButton = new ButtonBuilder()
-							.setCustomId("yes")
-							.setLabel("Yes")
-							.setStyle(ButtonStyle.Success);
+				.setCustomId("yes")
+				.setLabel("Yes")
+				.setStyle(ButtonStyle.Success);
 			const noButton = new ButtonBuilder()
 				.setCustomId("no")
 				.setLabel("No")
@@ -105,20 +105,20 @@ export default class StickMessageCommand extends BaseCommand {
 
 		const res = await StickyPinnedMessage.updateOne(
 			{
-			  channelId: interaction.channel.id,
+				channelId: interaction.channel.id,
 			},
 			{
-			  $set: {
-				messageId: interaction.targetMessage.id,
-			  },
+				$set: {
+					messageId: interaction.targetMessage.id,
+				},
 			},
-			{ upsert: true }
-		  );
+			{ upsert: true },
+		);
 
 		if (!res) {
 			interaction.followUp({
 				content: "Failed to create sticky pinned message.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -136,7 +136,9 @@ export default class StickMessageCommand extends BaseCommand {
 				components: [],
 			});
 		} catch (error) {
-			await StickyPinnedMessage.deleteOne({ channelId: interaction.channel.id });
+			await StickyPinnedMessage.deleteOne({
+				channelId: interaction.channel.id,
+			});
 			const pinnedMessages = (
 				await interaction.channel.messages.fetchPinned()
 			).sort((a, b) => a.createdTimestamp - b.createdTimestamp);

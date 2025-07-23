@@ -31,17 +31,19 @@ export default class PinMenu extends BaseCommand {
 	}
 
 	async handleStickyAndRespond(
-		toggleInteraction: DiscordMessageContextMenuCommandInteraction<"cached">
+		toggleInteraction: DiscordMessageContextMenuCommandInteraction<"cached">,
 	) {
 		if (!toggleInteraction.channel) {
 			return;
-		};
+		}
 		const stickyPinData = await StickyPinnedMessage.findOne({
 			channelId: toggleInteraction.channelId,
 		});
 
 		if (stickyPinData) {
-			const stickyPin = await toggleInteraction.channel.messages.fetch(stickyPinData.messageId);
+			const stickyPin = await toggleInteraction.channel.messages.fetch(
+				stickyPinData.messageId,
+			);
 			try {
 				await stickyPin.unpin();
 			} catch {
@@ -50,7 +52,7 @@ export default class PinMenu extends BaseCommand {
 				});
 				await toggleInteraction.followUp({
 					content: `Couldn't bring sticky pin to the top. Sticky pin: ${stickyPin.url}`,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
@@ -63,7 +65,7 @@ export default class PinMenu extends BaseCommand {
 				});
 				await toggleInteraction.followUp({
 					content: `Couldn't re-pin the sticky pin. Sticky pin: ${stickyPin.url}`,
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
@@ -89,7 +91,7 @@ export default class PinMenu extends BaseCommand {
 		) {
 			interaction.reply({
 				content: "You can't pin/unpin messages in this channel",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;
@@ -98,7 +100,7 @@ export default class PinMenu extends BaseCommand {
 		if (interaction.targetMessage.pinned) {
 			// Unpin Message
 			await interaction.deferReply({
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 
 			let thread = interaction.guild.channels.cache
@@ -244,7 +246,7 @@ export default class PinMenu extends BaseCommand {
 			if (!interaction.targetMessage.pinnable) {
 				await interaction.reply({
 					content: "Message isn't pinnable.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -307,7 +309,9 @@ export default class PinMenu extends BaseCommand {
 						)?.startThread({ name: "Old Pins" });
 					}
 
-					await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+					await interaction.deferReply({
+						flags: MessageFlags.Ephemeral,
+					});
 					try {
 						const targetMessage = (
 							await interaction.channel?.messages.fetchPinned(
@@ -366,7 +370,7 @@ export default class PinMenu extends BaseCommand {
 
 				await interaction.reply({
 					content: "Couldn't pin message.",
-					flags: MessageFlags.Ephemeral
+					flags: MessageFlags.Ephemeral,
 				});
 
 				client.log(
@@ -380,7 +384,7 @@ export default class PinMenu extends BaseCommand {
 
 			await interaction.reply({
 				content: "Successfully pinned message.",
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 	}
