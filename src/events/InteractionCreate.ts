@@ -1,7 +1,7 @@
 import { addKeyword } from "@/commands/configuration/KeywordControl";
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
-import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
+import { ConfessionBan, PracticeSession, PrivateDmThread, ResourceTag } from "@/mongo";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -14,7 +14,7 @@ import { Logger } from "@discordforge/logger";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonInteraction,
+	type ButtonInteraction,
 	ChannelType,
 	type ChatInputCommandInteraction,
 	type ColorResolvable,
@@ -31,8 +31,11 @@ import {
 	ModalBuilder,
 	ButtonStyle,
 	ComponentType,
-	type User,
 	type ModalSubmitInteraction,
+	type Message,
+	ForumChannel,
+	ThreadChannel,
+	type GuildBasedChannel,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
@@ -206,7 +209,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 			const interactionCache = await ButtonInteractionCache.get(`${uuid}_template_continue`);
 			const { messageId, userId, guildId } = interactionCache ?? {};
 			if (!messageId || !userId || !guildId || guildId !== interaction.guild?.id || !interaction.channel) {
-                await interaction.editReply("Invalid/expired interaction. 1");
+                await interaction.editReply("Invalid/expired interaction.");
 				return;
 			}
 			const message = await interaction.channel.messages.fetch(messageId);
@@ -216,7 +219,7 @@ export default class InteractionCreateEvent extends BaseEvent {
             const invalid = !message || !name || typeof anonymous === "undefined";
 
             if (invalid) {
-				await interaction.editReply('Invalid/expired interaction. 2');
+				await interaction.editReply('Invalid/expired interaction.');
 				return;
 			}
 			const template = await DmTemplateCache.get(guildId, name);
@@ -225,18 +228,13 @@ export default class InteractionCreateEvent extends BaseEvent {
 				return;
 			}
 
-			// Fetch the user to DM
-			let targetUser: User | null = null;
-			try {
-				targetUser = await interaction.client.users.fetch(userId);
-			} catch (e) {
-				await interaction.editReply('Could not fetch target user.');
-				return;
-			}
-			if (!targetUser) {
-				await interaction.editReply('No user provided.');
-				return;
-			}
+			const member = await interaction.guild.members
+				.fetch(userId)
+				.catch(async () => {
+					await interaction.editReply("User is no longer in the server");
+					return;
+				});
+			if (!member) return;
 
 			// Find all {field} in template
 			const fieldRegex = /\{([a-zA-Z0-9_]+)\}/g;
@@ -257,30 +255,84 @@ export default class InteractionCreateEvent extends BaseEvent {
 				result = result.replace(new RegExp(`\\{${field}\\}`, 'g'), value);
 			}
 
-			const modPfp = interaction.user.displayAvatarURL() ?? interaction.user.defaultAvatarURL
+            const guildPreferences = await GuildPreferencesCache.get(guildId);
+            if (!guildPreferences || !guildPreferences.modmailThreadsChannelId) {
+                await interaction.editReply("Modmail is not set up in this server.");
+                return;
+            }
+            const guild = interaction.guild;
+            let thread: GuildBasedChannel | ThreadChannel | undefined = undefined;
+            // Try to find existing thread
+            const threadRecord = await PrivateDmThread.findOne({ userId, guildId });
+            if (threadRecord) {
+                thread = guild.channels.cache.get(threadRecord.threadId);
+                if (!thread || !(thread instanceof ThreadChannel)) {
+                    // Thread was deleted, clean up
+                    await PrivateDmThread.deleteMany({ userId, guildId });
+                }
+            }
+            if (!thread) {
+                // Create new thread
+                const threadsChannel = guild.channels.cache.get(guildPreferences.modmailThreadsChannelId);
+                if (!threadsChannel || !(threadsChannel instanceof ForumChannel)) {
+                    await interaction.editReply("Threads channel is not a valid forum/thread channel.");
+                    return;
+                }
+                try {
+                    thread = await threadsChannel.threads.create({
+                        name: `${member.user.tag} (${member.user.id})`,
+                        message: {
+                            content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.user.id}\``,
+                        },
+                    });
+                    await PrivateDmThread.create({ userId, threadId: thread.id, guildId });
+                } catch (err) {
+                    await interaction.editReply("Unable to create DM thread.");
+                    return;
+                }
+            }
 
+			if (!thread || !(thread instanceof ThreadChannel)) {
+				await interaction.editReply("Unable to find or create DM thread.");
+				return;
+			}
+
+            // Compose message content
+			const iconURL = anonymous ? guild.iconURL() : interaction.user.displayAvatarURL();
+            const signature = `\nSent by ${interaction.user.tag} (${anonymous ? "anonymously" : "as mod"})`;
+            const threadMessage = result + signature;
+			const author = anonymous ? `${guild.name} Moderators` : interaction.user.tag;
 			const embed = new EmbedBuilder()
 				.setTitle(`Message from ${interaction.guild.name} Staff`)
 				.setAuthor({
-					name: anonymous ? `${interaction.guild.name} Moderators` : interaction.user.username,
-					iconURL: anonymous ? interaction.guild.iconURL() : modPfp,
+					name: author,
+					iconURL,
 				})
 				.setDescription(
-					result,
+					result.replace(/^\/\/!?/, "").trim() || "No content",
 				)
 				.setTimestamp(message.createdTimestamp)
 				.setColor(Colors.Green);
+            try {
+                const threadSentMessage: Message<true> = await thread.send({ content: threadMessage });
+                await ButtonInteractionCache.remove(`${uuid}_template_continue`);
+				try {
+					await sendDm(member, {
+						embeds: [embed],
+					});
+					await interaction.editReply(`Message sent to ${member.user.tag}.`);
+					await threadSentMessage.react("✅");
+				} catch (err) {
+					await interaction.editReply(`Failed to send DM: ${(err as Error).message}`);
+					await threadSentMessage.react("❌");
+				}
+            } catch (err) {
+                await interaction.followUp(`Failed to send thread message: ${(err as Error).message}`);
+				return;
+            }
+
 			
-			try {
-				await targetUser.send({
-					embeds: [embed],
-				});
-				await interaction.editReply(`DM sent to ${targetUser.tag}.`);
-				await ButtonInteractionCache.remove(`${uuid}_template_continue`);
-			} catch (err) {
-				await interaction.editReply(`Failed to send DM: ${(err as Error).message}`);
-			}
-			return;
+            return;
 		}
 	}
 
