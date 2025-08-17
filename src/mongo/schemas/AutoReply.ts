@@ -9,7 +9,7 @@ export interface IAutoReply {
 
 const schema = new Schema<IAutoReply>({
   guildId: { type: String, required: true, unique: false },
-  channelId: { type: String, required: true, unique: true },
+  channelId: { type: String, required: true, unique: false },
   reply: { type: String, required: true, unique: false },
   sendDm: { type: Boolean, required: true, unique: false },
 });
