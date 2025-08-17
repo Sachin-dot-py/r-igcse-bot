@@ -7,10 +7,9 @@ import { PracticeQuestionRepository } from "./schemas/Question";
 import { StickyMessageRepository } from "./schemas/StickyMessage";
 import { ModPingRepository } from "./schemas/ModPing";
 import { UserRepository } from "./schemas/User";
-import { AutoReplyRepository } from "./schemas/AutoReply";
 
 export const redis = createClient({
-  url: process.env.REDIS_URL,
+	url: process.env.REDIS_URL,
 });
 
 await redis.connect();
@@ -22,7 +21,6 @@ const PracticeQuestionCache = new PracticeQuestionRepository(redis);
 const UserCache = new UserRepository(redis);
 const ButtonInteractionCache = new ButtonInteractionRepository(redis);
 const KeywordCache = new KeywordRepository(redis);
-const AutoReplyCache = new AutoReplyRepository(redis);
 
 await GuildPreferencesCache.createIndex();
 await StickyMessageCache.createIndex();
@@ -31,6 +29,5 @@ await PracticeQuestionCache.createIndex();
 await UserCache.createIndex();
 await ButtonInteractionCache.createIndex();
 await KeywordCache.createIndex();
-await AutoReplyCache.createIndex();
 
 await redis.disconnect();
