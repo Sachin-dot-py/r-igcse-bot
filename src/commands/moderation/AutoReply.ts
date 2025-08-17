@@ -99,12 +99,19 @@ export default class KickCommand extends BaseCommand {
 
         const reply = modalInteraction.fields.getTextInputValue("reply");
 
-        await AutoReply.create({
-          guildId: interaction.guildId,
-          channelId,
-          reply,
-          sendDm,
-        });
+        await AutoReply.updateOne(
+          {
+            guildId: interaction.guildId,
+            channelId,
+          },
+          {
+            reply,
+            sendDm,
+          },
+          {
+            upsert: true,
+          }
+        );
 
         await modalInteraction.reply({
           content: `Auto-reply set up in <#${channelId}>, members will be sent:\n\`\`\`${reply}\`\`\``,
