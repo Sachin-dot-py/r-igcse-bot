@@ -1,7 +1,7 @@
 import { addKeyword } from "@/commands/configuration/KeywordControl";
 import ConfessionBanModal from "@/components/ConfessionBanModal";
 import disabledMcqButtons from "@/components/practice/DisabledMCQButtons";
-import { ConfessionBan, PracticeSession, ResourceTag } from "@/mongo";
+import { ConfessionBan, PracticeSession, PrivateDmThread, ResourceTag } from "@/mongo";
 import { HostSession } from "@/mongo/schemas/HostSession";
 import { StudyChannel } from "@/mongo/schemas/StudyChannel";
 import {
@@ -31,13 +31,24 @@ import {
 	ModalBuilder,
 	ButtonStyle,
 	ComponentType,
+	type ModalSubmitInteraction,
+	type Message,
+	ForumChannel,
+	ThreadChannel,
+	type GuildBasedChannel,
 } from "discord.js";
 import { v4 as uuidv4 } from "uuid";
 import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
+import { DmTemplate } from "@/mongo";
+import { DmTemplateCache } from "@/redis";
+import sendDm from "@/utils/sendDm";
 
 const channelRegex = /<#(\d+)>/;
 const matchCustomIdRegex = /[ABCD]_\d{4}_[msw]\d{1,2}_qp_\d{1,2}_q\d{1,3}_.*/;
+const TEMPLATE_EDIT_REGEX = /^(.+?)_template_edit$/;
+const TEMPLATE_CONTINUE_REGEX = /^(.+?)_template_continue$/;
+const TEMPLATE_SEND_REGEX = /^(.+?)_template_send$/;
 
 export default class InteractionCreateEvent extends BaseEvent {
 	constructor() {
@@ -46,6 +57,11 @@ export default class InteractionCreateEvent extends BaseEvent {
 
 	async execute(client: DiscordClient<true>, interaction: Interaction) {
 		try {
+			if (interaction.isModalSubmit()) {
+				await this.handleTemplateModal(client, interaction);
+				return;
+			}
+
 			if (
 				interaction.isChatInputCommand() ||
 				interaction.isContextMenuCommand()
@@ -63,6 +79,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				}
 				this.handleCommand(client, interaction);
 			} else if (interaction.isButton()) {
+				this.handleTemplatePreviewButton(client, interaction)
 				this.handleMCQButton(client, interaction);
 				this.handleConfessionButton(client, interaction);
 				this.handleHostSessionButton(client, interaction);
@@ -72,6 +89,7 @@ export default class InteractionCreateEvent extends BaseEvent {
 				const command = client.commands.get(interaction.commandName);
 				if (!command) return;
 				try {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-call
 					await command.autoComplete(interaction);
 				} catch (e) {
 					Logger.error(e);
@@ -99,6 +117,222 @@ export default class InteractionCreateEvent extends BaseEvent {
 			logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
 				embeds: [embed],
 			});
+		}
+	}
+	async handleTemplatePreviewButton(client: DiscordClient<true>, interaction: ButtonInteraction) {
+		if (!TEMPLATE_CONTINUE_REGEX.test(interaction.customId) || !interaction.guildId) return;
+		// Expect customId format: {userId}_{templateName}_template_continue
+        const match = interaction.customId.match(TEMPLATE_CONTINUE_REGEX);
+        if (!match) return;
+		const uuid = match[1];
+		const message = interaction.message;
+		if (!message) return;
+
+		const name = message.embeds[0].title?.match(/Preview Template: (.+)/)?.[1];
+		if (!name) return;
+		const template = await DmTemplateCache.get(interaction.guildId, name);
+		if (!template) {
+			await interaction.reply({ content: `Template \`${name}\` not found.`, flags: MessageFlags.Ephemeral });
+			return;
+		}
+		// Extract {field} placeholders from template.message
+		const fieldRegex = /\{([a-zA-Z0-9_]+)\}/g;
+		const foundFields = Array.from(template.message.matchAll(fieldRegex)).map(match => match[1]);
+		const uniqueFields = Array.from(new Set(foundFields));
+		const components = uniqueFields.map(field => (
+			new ActionRowBuilder<TextInputBuilder>().addComponents(
+				new TextInputBuilder()
+					.setCustomId(`field_${field}`)
+					.setLabel(`Value for {${field}}`)
+					.setStyle(TextInputStyle.Short)
+					.setRequired(true)
+					.setMinLength(1)
+					.setMaxLength(100)
+					.setPlaceholder(`Enter value for {${field}}`),
+			)
+		));
+        await interaction.showModal({
+            customId: `${uuid}_template_send`,
+            title: `Send DM Template: ${name}`,
+            components,
+        });
+	}
+
+	async handleTemplateModal(client: DiscordClient<true>, interaction: ModalSubmitInteraction) {
+		const { customId, guildId } = interaction;
+		if (!guildId || !customId.includes("template")) return;
+
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		// add modal
+		if (customId === "template_add") {
+			const name = interaction.fields.getTextInputValue("name").trim();
+			const message = interaction.fields
+				.getTextInputValue("message")
+				.trim();
+			// Check for duplicate
+			const exists = await DmTemplateCache.get(guildId, name);
+			if (exists) {
+				await interaction.editReply(`A template named \`${name}\` already exists.`);
+				return;
+			}
+
+			const template = { guildId, name, message}
+			// Save to MongoDB & Redis
+			await DmTemplate.create(template);
+			await DmTemplateCache.create(template);
+			await interaction.editReply(`Template \`${name}\` added!`);
+			return;
+		}
+		// edit modal
+		if (TEMPLATE_EDIT_REGEX.test(customId)) {
+			const match = customId.match(TEMPLATE_EDIT_REGEX);
+			if (!match) return;
+			const name = match[1];
+			const newName = interaction.fields.getTextInputValue('name').trim()
+			const message = interaction.fields.getTextInputValue('message').trim();
+			// Update MongoDB & Redis
+			await DmTemplate.updateOne({ guildId, name }, { $set: { name: newName, message } });
+			await DmTemplateCache.update(guildId, name, { guildId, name: newName, message });
+			await interaction.editReply(`Template \`${name}\` updated!`);
+			return;
+		}
+
+        if (TEMPLATE_SEND_REGEX.test(customId)) {
+            // Expect customId format: {uuid}_template_send
+            const match = customId.match(TEMPLATE_SEND_REGEX);
+            if (!match) {
+                await interaction.editReply('Invalid modal customId format.');
+                return;
+            }
+			
+			const uuid = match[1];
+			const interactionCache = await ButtonInteractionCache.get(`${uuid}_template_continue`);
+			const { messageId, userId, guildId } = interactionCache ?? {};
+			if (!messageId || !userId || !guildId || guildId !== interaction.guild?.id || !interaction.channel) {
+                await interaction.editReply("Invalid/expired interaction.");
+				return;
+			}
+			const message = await interaction.channel.messages.fetch(messageId);
+            const name = message.embeds[0].title?.match(/Preview Template: (.+)/)?.[1];
+			const anonymous = message.embeds[0].footer?.text?.includes("anonymously");
+			
+            const invalid = !message || !name || typeof anonymous === "undefined";
+
+            if (invalid) {
+				await interaction.editReply('Invalid/expired interaction.');
+				return;
+			}
+			const template = await DmTemplateCache.get(guildId, name);
+			if (!template) {
+				await interaction.editReply(`Template \`${name}\` not found.`);
+				return;
+			}
+
+			const member = await interaction.guild.members
+				.fetch(userId)
+				.catch(async () => {
+					await interaction.editReply("User is no longer in the server");
+					return;
+				});
+			if (!member) return;
+
+			// Find all {field} in template
+			const fieldRegex = /\{([a-zA-Z0-9_]+)\}/g;
+			const foundFields = Array.from(template.message.matchAll(fieldRegex)).map(match => match[1]);
+			const uniqueFields = Array.from(new Set(foundFields));
+			const fieldValues: Record<string, string> = {};
+			for (const field of uniqueFields) {
+				const value = interaction.fields.getTextInputValue(`field_${field}`)?.trim();
+				if (!value) {
+					await interaction.editReply(`Missing value for \`{${field}}\`.`);
+					return;
+				}
+				fieldValues[field] = value;
+			}
+			// Replace {field} in template.message
+			let result = template.message;
+			for (const [field, value] of Object.entries(fieldValues)) {
+				result = result.replace(new RegExp(`\\{${field}\\}`, 'g'), value);
+			}
+
+            const guildPreferences = await GuildPreferencesCache.get(guildId);
+            if (!guildPreferences || !guildPreferences.modmailThreadsChannelId) {
+                await interaction.editReply("Modmail is not set up in this server.");
+                return;
+            }
+            const guild = interaction.guild;
+            let thread: GuildBasedChannel | ThreadChannel | undefined = undefined;
+            // Try to find existing thread
+            const threadRecord = await PrivateDmThread.findOne({ userId, guildId });
+            if (threadRecord) {
+                thread = guild.channels.cache.get(threadRecord.threadId);
+                if (!thread || !(thread instanceof ThreadChannel)) {
+                    // Thread was deleted, clean up
+                    await PrivateDmThread.deleteMany({ userId, guildId });
+                }
+            }
+            if (!thread) {
+                // Create new thread
+                const threadsChannel = guild.channels.cache.get(guildPreferences.modmailThreadsChannelId);
+                if (!threadsChannel || !(threadsChannel instanceof ForumChannel)) {
+                    await interaction.editReply("Threads channel is not a valid forum/thread channel.");
+                    return;
+                }
+                try {
+                    thread = await threadsChannel.threads.create({
+                        name: `${member.user.tag} (${member.user.id})`,
+                        message: {
+                            content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.user.id}\``,
+                        },
+                    });
+                    await PrivateDmThread.create({ userId, threadId: thread.id, guildId });
+                } catch (err) {
+                    await interaction.editReply("Unable to create DM thread.");
+                    return;
+                }
+            }
+
+			if (!thread || !(thread instanceof ThreadChannel)) {
+				await interaction.editReply("Unable to find or create DM thread.");
+				return;
+			}
+
+            // Compose message content
+			const iconURL = anonymous ? guild.iconURL() : interaction.user.displayAvatarURL();
+            const signature = `\nSent by ${interaction.user.tag} (${anonymous ? "anonymously" : "as mod"})`;
+            const threadMessage = result + signature;
+			const author = anonymous ? `${guild.name} Moderators` : interaction.user.tag;
+			const embed = new EmbedBuilder()
+				.setTitle(`Message from ${interaction.guild.name} Staff`)
+				.setAuthor({
+					name: author,
+					iconURL,
+				})
+				.setDescription(
+					result.replace(/^\/\/!?/, "").trim() || "No content",
+				)
+				.setTimestamp(message.createdTimestamp)
+				.setColor(Colors.Green);
+            try {
+                const threadSentMessage: Message<true> = await thread.send({ content: threadMessage });
+                await ButtonInteractionCache.remove(`${uuid}_template_continue`);
+				try {
+					await sendDm(member, {
+						embeds: [embed],
+					});
+					await interaction.editReply(`Message sent to ${member.user.tag}.`);
+					await threadSentMessage.react("✅");
+				} catch (err) {
+					await interaction.editReply(`Failed to send DM: ${(err as Error).message}`);
+					await threadSentMessage.react("❌");
+				}
+            } catch (err) {
+                await interaction.followUp(`Failed to send thread message: ${(err as Error).message}`);
+				return;
+            }
+
+			
+            return;
 		}
 	}
 
