@@ -50,6 +50,17 @@ export default class KickCommand extends BaseCommand {
     const user = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason", false) ?? null;
 
+    const displayName = interaction.guild.members.cache.get(
+      user.id
+    )?.displayName;
+
+    if (!displayName) {
+      interaction.editReply({
+        content: "User not found in this server.",
+      });
+      return;
+    }
+
     if (user.id === interaction.user.id) {
       interaction.editReply({
         content: "You cannot reset your own display name.",
@@ -78,9 +89,9 @@ export default class KickCommand extends BaseCommand {
     const dmEmbed = new EmbedBuilder()
       .setTitle("Nickname Reset")
       .setDescription(
-        `You must rename yourself in **${interaction.guild.name}**${
-          reason ? ` due to \`${reason}\`.` : "."
-        }`
+        `Your nickname \`${displayName}\` must be renamed in **${
+          interaction.guild.name
+        }**${reason ? ` due to \`${reason}\`.` : "."}`
       )
       .setColor(Colors.Red);
 
@@ -151,7 +162,9 @@ export default class KickCommand extends BaseCommand {
           },
           {
             name: "Reason",
-            value: reason ?? "No reason provided",
+            value: `${
+              reason ?? "No reason provided"
+            } (previous nickname: ${displayName})`,
           },
         ])
         .setTimestamp();
