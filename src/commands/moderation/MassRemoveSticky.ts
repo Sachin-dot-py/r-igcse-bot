@@ -1,6 +1,5 @@
 import { StickyMessage } from "@/mongo";
 import { StickyMessageCache, GuildPreferencesCache } from "@/redis";
-import type { ICachedStickyMessage } from "@/redis/schemas/StickyMessage";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
   type DiscordChatInputCommandInteraction,
@@ -15,7 +14,7 @@ import {
   ChannelType,
 } from "discord.js";
 
-export default class KickCommand extends BaseCommand {
+export default class MassRemoveStickyCommand extends BaseCommand {
   constructor() {
     super(
       new SlashCommandBuilder()

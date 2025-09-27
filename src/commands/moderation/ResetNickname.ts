@@ -14,7 +14,7 @@ import {
   MessageFlags,
 } from "discord.js";
 
-export default class KickCommand extends BaseCommand {
+export default class ResetNicknameCommand extends BaseCommand {
   constructor() {
     super(
       new SlashCommandBuilder()
