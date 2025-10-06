@@ -1,4 +1,5 @@
 import { Punishment } from "@/mongo";
+import { ModNote } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -23,18 +24,9 @@ export default class HistoryCommand extends BaseCommand {
 						.setDescription("User to view history of")
 						.setRequired(true),
 				)
-				.addBooleanOption((option) =>
-					option
-						.setName("show_mod_username")
-						.setDescription(
-							"Show the usernames of the mod (default: false).",
-						)
-						.setRequired(false),
-				)
 				.setDefaultMemberPermissions(
 					PermissionFlagsBits.ModerateMembers,
 				)
-				.setDMPermission(false),
 		);
 	}
 
@@ -43,8 +35,7 @@ export default class HistoryCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
-		const showUsername =
-			interaction.options.getBoolean("show_mod_username", false) ?? false;
+		//const showUsername = interaction.options.getBoolean("show_mod_username", false) ?? false;
 
 		await interaction.deferReply();
 
@@ -52,6 +43,11 @@ export default class HistoryCommand extends BaseCommand {
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
 		}).sort({ when: 1 });
+
+		const notes = await ModNote.find({
+			guildId: interaction.guildId,
+			actionAgainst: user.id,
+		}).sort({ when: 1})
 
 		if (punishments.length < 1) {
 			await interaction.editReply({
@@ -71,7 +67,9 @@ export default class HistoryCommand extends BaseCommand {
 		let offenceCount = 0;
 
 		const punishmentsList = [];
+		const notesList = [];
 
+		// loop through punishments
 		for (const {
 			when,
 			actionBy,
@@ -88,10 +86,7 @@ export default class HistoryCommand extends BaseCommand {
 				offenceCount++;
 			}
 
-			const moderator =
-				interaction.guild.members.cache.get(actionBy)?.user.tag ??
-				actionBy;
-
+			const moderator = interaction.guild.members.cache.get(actionBy)?.user.tag ?? actionBy;
 			const date = when.toLocaleDateString("en-GB");
 			const time = when.toLocaleTimeString("en-GB", {
 				hour12: true,
@@ -99,31 +94,85 @@ export default class HistoryCommand extends BaseCommand {
 				minute: "2-digit",
 			});
 
-			punishmentsList.push(
-				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
-			);
+			// Make space every 5 infractions
+			if (offenceCount % 5 === 0) {
+				punishmentsList.push(" ")
+			}
+
+			// used multiple if statements to prevent insanely long .push with ternary operator
+			if (action === 'Warn') {
+				punishmentsList.push(
+					`:exclamation: **\` WARN${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+				)
+			} else if (action === 'Timeout') {
+				punishmentsList.push(
+					`:mute: **\` TIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** - (${humanizeDuration(duration * 1000)})${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+				)
+			} else if (action === 'Remove Timeout') {
+				punishmentsList.push(
+					`:handshake: **\` UNTIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+				)
+			} else if (action === 'Kick') {
+				punishmentsList.push(
+					`:hammer: **\` KICK${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+				)
+			} else if (action === 'Unban') {
+				punishmentsList.push(
+					`:unlock: **\` UNBAN${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+				)
+			} else if (action === 'Ban') {
+				punishmentsList.push(
+					`:hammer: **\` BAN${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: #${caseId}`
+				)
+			}
+			// punishmentsList.push(
+			//	`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
+			//);	
 		}
 
-		let description = `**Number of offenses:** ${offenceCount}\n`;
+		// loop through notes
+		for (const {
+			when,
+			actionBy,
+			actionAgainst,
+			note,
+		} of notes) {
 
+			const moderator = interaction.guild.members.cache.get(actionBy)?.user.tag ?? actionBy;
+			const date = when.toLocaleDateString("en-GB");
+			const time = when.toLocaleTimeString("en-GB", {
+				hour12: true,
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+
+			notesList.push(
+				":pencil: **` NOTE `** " + " **`" + `[${date} at ${time}]`+ "`**    " + `${note ? `  - ${note}` : "  - No reason specified."}` + `\n-# Action by: ${moderator}`
+			)
+		}
+
+		let description = "";
+
+		description += "\n\n**Summary**\n"
+		
 		description += Object.entries(counts)
 			.map(([action, count]) =>
-				count > 0 ? `- **${action}s:** ${count}` : "",
+				count > 0 ? `- ${action}s: ${count}` : "",
 			)
 			.filter((x) => x !== "")
 			.join("\n");
+		//description += "\n\n"
 
-		description += `\n\n**Total points:** ${totalPoints}\n\n`;
-		description += "```";
+		// `**Number of offenses:** ${offenceCount}\n`;
+		//description += `\n\n**Total points:** ${totalPoints}\n`;
+		description += `\n:warning: **Total Points: ${totalPoints}**\n\n`;
 		description += punishmentsList.join("\n");
-		description += "```";
+		description += "\n"
+		description += notesList.join("\n");
 
 		const embed = new EmbedBuilder()
-			.setTitle(
-				`Moderation History for ${user.tag}${totalPoints >= 10 ? " *[ Action Required ]*" : ""}`,
-			)
 			.setAuthor({
-				name: `${user.username} (ID: ${user.id})`,
+				name: `Infraction History for ${user.username} (Total Cases: ${offenceCount})`,
 				iconURL: user.displayAvatarURL(),
 			})
 			.setColor(Colors.DarkOrange)
