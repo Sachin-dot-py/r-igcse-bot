@@ -325,9 +325,12 @@ export default class LockdownCommand extends BaseCommand {
 					);
 
 					await interaction.editReply({
-						content: `<#${channel.id}> will be locked at <t:${lockTime}:F> (<t:${lockTime}:R>) and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
+						content: `<#${channel.id}> has been locked immediately and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
 					});
-					break;
+				} else {
+					await interaction.editReply({
+						content: `<#${channel.id}> has been scheduled to lock at <t:${lockTime}:F> (<t:${lockTime}:R>) and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
+					});
 				}
 				break;
 			}
