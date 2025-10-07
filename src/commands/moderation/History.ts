@@ -101,30 +101,43 @@ export default class HistoryCommand extends BaseCommand {
 			}
 
 			// used multiple if statements to prevent insanely long .push with ternary operator
-			if (action === 'Warn') {
-				punishmentsList.push(
-					`:exclamation: **\` WARN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
-				)
-			} else if (action === 'Timeout') {
-				punishmentsList.push(
-					`:mute: **\` TIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> - (${humanizeDuration(duration * 1000)})${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
-				)
-			} else if (action === 'Remove Timeout') {
-				punishmentsList.push(
-					`:handshake: **\` UNTIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
-				)
-			} else if (action === 'Kick') {
-				punishmentsList.push(
-					`:hammer: **\` KICK${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
-				)
-			} else if (action === 'Unban') {
-				punishmentsList.push(
-					`:unlock: **\` UNBAN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
-				)
-			} else if (action === 'Ban') {
-				punishmentsList.push(
-					`:hammer: **\` BAN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: #${caseId}`
-				)
+			switch (action) {
+				case 'Warn':
+					punishmentsList.push(
+						`:exclamation: **\` WARN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` +
+						`-# Action by: ${moderator} | Case: ${caseId}`
+					);
+					break;
+				case 'Timeout':
+					punishmentsList.push(
+						`:mute: **\` TIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> - (${humanizeDuration(duration * 1000)})${reason ? `  - ${reason}` : "  - No reason specified."}\n` +
+						`-# Action by: ${moderator} | Case: ${caseId}`
+					);
+					break;
+				case 'Remove Timeout':
+					punishmentsList.push(
+						`:handshake: **\` UNTIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` +
+						`-# Action by: ${moderator} | Case: ${caseId}`
+					);
+					break;
+				case 'Kick':
+					punishmentsList.push(
+						`:hammer: **\` KICK${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` +
+						`-# Action by: ${moderator} | Case: ${caseId}`
+					);
+					break;
+				case 'Unban':
+					punishmentsList.push(
+						`:unlock: **\` UNBAN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` +
+						`-# Action by: ${moderator} | Case: ${caseId}`
+					);
+					break;
+				case 'Ban':
+					punishmentsList.push(
+						`:hammer: **\` BAN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` +
+						`-# Action by: ${moderator} | Case: #${caseId}`
+					);
+					break;
 			}
 			// punishmentsList.push(
 			//	`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
