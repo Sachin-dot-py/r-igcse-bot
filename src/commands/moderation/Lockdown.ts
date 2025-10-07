@@ -237,6 +237,7 @@ export default class LockdownCommand extends BaseCommand {
           },
           { upsert: true }
         );
+        
         if (lockTime === now) {
           let lockMessage: string;
           if (mode === "exam") {
@@ -301,9 +302,12 @@ export default class LockdownCommand extends BaseCommand {
           );
 
           await interaction.editReply({
+            content: `<#${channel.id}> has been locked and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
+          });
+        } else {
+          await interaction.editReply({
             content: `<#${channel.id}> will be locked at <t:${lockTime}:F> (<t:${lockTime}:R>) and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
           });
-          break;
         }
         break;
       }
