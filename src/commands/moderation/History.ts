@@ -42,7 +42,7 @@ export default class HistoryCommand extends BaseCommand {
 		const punishments = await Punishment.find({
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
-		}).sort({ when: 1 });
+		}).sort({ when: -1 });
 
 		const notes = await ModNote.find({
 			guildId: interaction.guildId,
@@ -87,7 +87,8 @@ export default class HistoryCommand extends BaseCommand {
 			}
 
 			const moderator = interaction.guild.members.cache.get(actionBy)?.user.tag ?? actionBy;
-			const date = when.toLocaleDateString("en-GB");
+			// convert date to unix timestamp
+			const date = Math.round(when.valueOf() / 1000);
 			const time = when.toLocaleTimeString("en-GB", {
 				hour12: true,
 				hour: "2-digit",
@@ -102,27 +103,27 @@ export default class HistoryCommand extends BaseCommand {
 			// used multiple if statements to prevent insanely long .push with ternary operator
 			if (action === 'Warn') {
 				punishmentsList.push(
-					`:exclamation: **\` WARN${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+					`:exclamation: **\` WARN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
 				)
 			} else if (action === 'Timeout') {
 				punishmentsList.push(
-					`:mute: **\` TIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** - (${humanizeDuration(duration * 1000)})${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+					`:mute: **\` TIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> - (${humanizeDuration(duration * 1000)})${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
 				)
 			} else if (action === 'Remove Timeout') {
 				punishmentsList.push(
-					`:handshake: **\` UNTIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+					`:handshake: **\` UNTIMEOUT${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
 				)
 			} else if (action === 'Kick') {
 				punishmentsList.push(
-					`:hammer: **\` KICK${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+					`:hammer: **\` KICK${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
 				)
 			} else if (action === 'Unban') {
 				punishmentsList.push(
-					`:unlock: **\` UNBAN${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
+					`:unlock: **\` UNBAN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: ${caseId}`
 				)
 			} else if (action === 'Ban') {
 				punishmentsList.push(
-					`:hammer: **\` BAN${points !== 0 ? ` [${points}]` : ""} \`** **\`[${date} at ${time}]\`** ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: #${caseId}`
+					`:hammer: **\` BAN${points !== 0 ? ` [${points}]` : ""} \`** <t:${date}:f> ${reason ? `  - ${reason}` : "  - No reason specified."}\n` + `-# Action by: ${moderator} | Case: #${caseId}`
 				)
 			}
 			// punishmentsList.push(
@@ -139,7 +140,8 @@ export default class HistoryCommand extends BaseCommand {
 		} of notes) {
 
 			const moderator = interaction.guild.members.cache.get(actionBy)?.user.tag ?? actionBy;
-			const date = when.toLocaleDateString("en-GB");
+			// convert date to unix timestamp
+			const date = Math.round(when.valueOf() / 1000);
 			const time = when.toLocaleTimeString("en-GB", {
 				hour12: true,
 				hour: "2-digit",
@@ -147,7 +149,7 @@ export default class HistoryCommand extends BaseCommand {
 			});
 
 			notesList.push(
-				":pencil: **` NOTE `** " + " **`" + `[${date} at ${time}]`+ "`**    " + `${note ? `  - ${note}` : "  - No reason specified."}` + `\n-# Action by: ${moderator}`
+				":pencil: **` NOTE `** " + `<t:${date}:f>` + `${note ? `  - ${note}` : "  - No reason specified."}` + `\n-# Action by: ${moderator}`
 			)
 		}
 
