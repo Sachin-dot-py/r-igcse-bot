@@ -242,7 +242,7 @@ export default class LockdownCommand extends BaseCommand {
           let lockMessage: string;
           if (mode === "exam") {
             lockMessage =
-              "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif";
+              "https://github.com/Sachin-dot-py/r-igcse-bot/blob/assets/r-igcse-locked-gif.gif?raw=true";
           } else {
             lockMessage = "**Channel Locked !!**";
           }
