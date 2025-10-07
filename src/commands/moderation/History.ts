@@ -46,7 +46,7 @@ export default class HistoryCommand extends BaseCommand {
 		const notes = await ModNote.find({
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
-		}).sort({ when: 1})
+		}).sort({ when: -1})
 
 		if (punishments.length < 1) {
 			await interaction.editReply({
