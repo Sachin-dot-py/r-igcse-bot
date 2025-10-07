@@ -237,11 +237,12 @@ export default class LockdownCommand extends BaseCommand {
           },
           { upsert: true }
         );
+        
         if (lockTime === now) {
           let lockMessage: string;
           if (mode === "exam") {
             lockMessage =
-              "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif";
+              "https://github.com/Sachin-dot-py/r-igcse-bot/blob/assets/r-igcse-locked-gif.gif?raw=true";
           } else {
             lockMessage = "**Channel Locked !!**";
           }
@@ -301,9 +302,12 @@ export default class LockdownCommand extends BaseCommand {
           );
 
           await interaction.editReply({
+            content: `<#${channel.id}> has been locked and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
+          });
+        } else {
+          await interaction.editReply({
             content: `<#${channel.id}> will be locked at <t:${lockTime}:F> (<t:${lockTime}:R>) and will be unlocked at <t:${unlockTime}:F> (<t:${unlockTime}:R>)`,
           });
-          break;
         }
         break;
       }
