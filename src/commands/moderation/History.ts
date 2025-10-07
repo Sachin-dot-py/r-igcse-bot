@@ -35,7 +35,6 @@ export default class HistoryCommand extends BaseCommand {
 		interaction: DiscordChatInputCommandInteraction<"cached">,
 	) {
 		const user = interaction.options.getUser("user", true);
-		//const showUsername = interaction.options.getBoolean("show_mod_username", false) ?? false;
 
 		await interaction.deferReply();
 
@@ -139,9 +138,6 @@ export default class HistoryCommand extends BaseCommand {
 					);
 					break;
 			}
-			// punishmentsList.push(
-			//	`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
-			//);	
 		}
 
 		// loop through notes
@@ -176,14 +172,9 @@ export default class HistoryCommand extends BaseCommand {
 			)
 			.filter((x) => x !== "")
 			.join("\n");
-		//description += "\n\n"
 
-		// `**Number of offenses:** ${offenceCount}\n`;
-		//description += `\n\n**Total points:** ${totalPoints}\n`;
 		description += `\n:warning: **Total Points: ${totalPoints}**\n\n`;
 		description += punishmentsList.join("\n");
-		//description += "\n"
-		//description += notesList.join("\n");
 
 		const infractionsEmbed = new EmbedBuilder()
 			.setAuthor({
