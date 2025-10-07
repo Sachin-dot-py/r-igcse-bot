@@ -169,19 +169,27 @@ export default class HistoryCommand extends BaseCommand {
 		//description += `\n\n**Total points:** ${totalPoints}\n`;
 		description += `\n:warning: **Total Points: ${totalPoints}**\n\n`;
 		description += punishmentsList.join("\n");
-		description += "\n"
-		description += notesList.join("\n");
+		//description += "\n"
+		//description += notesList.join("\n");
 
-		const embed = new EmbedBuilder()
+		const infractionsEmbed = new EmbedBuilder()
 			.setAuthor({
 				name: `Infraction History for ${user.username} (Total Cases: ${offenceCount})`,
 				iconURL: user.displayAvatarURL(),
 			})
 			.setColor(Colors.DarkOrange)
 			.setDescription(description);
+		
+		const notesEmbed = new EmbedBuilder()
+			.setAuthor({
+				name: `Notes History for ${user.username}`,
+				iconURL: user.displayAvatarURL(),
+			})
+			.setColor(Colors.Blurple)
+			.setDescription(notesList.join("\n"));
 
 		await interaction.editReply({
-			embeds: [embed],
+			embeds: [infractionsEmbed, notesEmbed],
 		});
 	}
 }
