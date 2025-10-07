@@ -56,17 +56,6 @@ export default class NoteCommand extends BaseCommand {
 								.setRequired(true),
 						),
 				)
-				.addSubcommand((subcommand) =>
-					subcommand
-						.setName("view")
-						.setDescription("View a user's notes")
-						.addUserOption((option) =>
-							option
-								.setName("user")
-								.setDescription("User to view notes of")
-								.setRequired(true),
-						),
-				),
 		);
 	}
 
@@ -273,57 +262,6 @@ export default class NoteCommand extends BaseCommand {
 						},
 					);
 				}
-
-				return;
-			}
-
-			case "view": {
-				const user = interaction.options.getUser("user", true);
-
-				const notes = await ModNote.find({
-					guildId: interaction.guildId,
-					actionAgainst: user.id,
-				});
-
-				if (notes.length < 1) {
-					await interaction.reply(
-						`${user.tag} does not have any notes.`,
-					);
-					return;
-				}
-
-				const notesList = [];
-
-				for (const { note, when, actionBy } of notes) {
-					const moderator =
-						interaction.guild.members.cache.get(actionBy)?.user
-							.tag ?? actionBy;
-
-					const date = when.toLocaleDateString("en-GB");
-					const time = when.toLocaleTimeString("en-GB", {
-						hour12: true,
-						hour: "2-digit",
-						minute: "2-digit",
-					});
-					notesList.push(
-						`[${date} at ${time}] ${note} by ${moderator}`,
-					);
-				}
-
-				let description = `\`\`\`\n${notesList.join("\n")}\n\`\`\``;
-
-				const embed = new EmbedBuilder()
-					.setTitle(`Notes for ${user.tag}`)
-					.setAuthor({
-						name: `${user.username} (ID: ${user.id})`,
-						iconURL: user.displayAvatarURL(),
-					})
-					.setColor(Colors.DarkGreen)
-					.setDescription(description);
-
-				await interaction.reply({
-					embeds: [embed],
-				});
 
 				return;
 			}
