@@ -86,23 +86,6 @@ export default class LockdownCommand extends BaseCommand {
                 .setRequired(true)
             )
         )
-        .addSubcommand((sub) =>
-          sub
-            .setName("list")
-            .setDescription("List all scheduled lockdowns for a channel")
-            .addChannelOption((option) =>
-              option
-                .setName("channel")
-                .setDescription("Channel to list lockdowns for")
-                .setRequired(true)
-                .addChannelTypes(
-                  ChannelType.GuildText,
-                  ChannelType.PublicThread,
-                  ChannelType.GuildForum,
-                  ChannelType.PrivateThread
-                )
-            )
-        )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .setDMPermission(false)
     );
@@ -654,44 +637,6 @@ export default class LockdownCommand extends BaseCommand {
 
         await interaction.editReply({
           content: results.join("\n") || "No valid entries processed.",
-        });
-        break;
-      }
-      case "list": {
-        const channel = interaction.options.getChannel("channel", true, [
-          ChannelType.GuildText,
-          ChannelType.PublicThread,
-          ChannelType.GuildForum,
-          ChannelType.PrivateThread,
-        ]);
-
-        const records = await ChannelLockdown.find({
-          guildId: interaction.guildId,
-          channelId: channel.id,
-        }).sort({ startTimestamp: 1 });
-
-        if (!records || records.length === 0) {
-          await interaction.editReply({
-            content: `No lockdown records found for <#${channel.id}>.`,
-          });
-          return;
-        }
-
-        const now = Math.floor(Date.now() / 1000);
-        const lockdownList = records.map((record, index) => {
-          const startTime = parseInt(record.startTimestamp);
-          const endTime = parseInt(record.endTimestamp);
-          const status = record.locked ? "🔒 Active" : 
-                        startTime <= now ? "⏰ Should be active" : "📅 Scheduled";
-          const mode = record.mode ? ` (${record.mode})` : "";
-          
-          return `**${index + 1}.** ${status}${mode}\n` +
-                 `   Lock: <t:${startTime}:F> (<t:${startTime}:R>)\n` +
-                 `   Unlock: <t:${endTime}:F> (<t:${endTime}:R>)`;
-        }).join("\n\n");
-
-        await interaction.editReply({
-          content: `**Lockdown Schedule for <#${channel.id}>:**\n\n${lockdownList}`,
         });
         break;
       }
