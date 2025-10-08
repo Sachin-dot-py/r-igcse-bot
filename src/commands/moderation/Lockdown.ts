@@ -193,19 +193,14 @@ export default class LockdownCommand extends BaseCommand {
           return;
         }
 
-        const newLockdown = await ChannelLockdown.findOneAndUpdate(
-          {
-            guildId: interaction.guildId,
-            channelId: channel.id,
-          },
-          {
-            startTimestamp: lockTime.toString(),
-            endTimestamp: unlockTime.toString(),
-            mode: mode || null,
-            locked: false,
-          },
-          { upsert: true, new: true }
-        );
+        const newLockdown = await ChannelLockdown.create({
+          guildId: interaction.guildId,
+          channelId: channel.id,
+          startTimestamp: lockTime.toString(),
+          endTimestamp: unlockTime.toString(),
+          mode: mode || null,
+          locked: false,
+        });
         
         if (lockTime === now) {
           let lockMessage: string;
