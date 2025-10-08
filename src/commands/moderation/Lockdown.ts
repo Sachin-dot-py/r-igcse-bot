@@ -114,93 +114,62 @@ export default class LockdownCommand extends BaseCommand {
         const lockTime = lockEpoch || now;
         const unlockTime = unlockEpoch || now + 86400;
 
-        let isLocked = false;
-        if (
-          channel.type === ChannelType.GuildText ||
-          channel.type === ChannelType.GuildForum
-        ) {
-          const perms = channel.permissionsFor(
-            interaction.guild.roles.everyone
-          );
-          isLocked = perms && !perms.has("SendMessages");
-        } else if (
-          channel.type === ChannelType.PublicThread ||
-          channel.type === ChannelType.PrivateThread
-        ) {
-          isLocked = channel.locked ?? false;
-        }
-        if (isLocked) {
-          await interaction.editReply({
-            content:
-              "This channel is already locked. please run `/lockdown remove` to remove lockdown .",
-          });
-          return;
+        if (lockTime === now) {
+          let isLocked = false;
+          if (
+            channel.type === ChannelType.GuildText ||
+            channel.type === ChannelType.GuildForum
+          ) {
+            const perms = channel.permissionsFor(
+              interaction.guild.roles.everyone
+            );
+            isLocked = perms && !perms.has("SendMessages");
+          } else if (
+            channel.type === ChannelType.PublicThread ||
+            channel.type === ChannelType.PrivateThread
+          ) {
+            isLocked = channel.locked ?? false;
+          }
+          if (isLocked) {
+            await interaction.editReply({
+              content:
+                "This channel is already locked. Please run `/lockdown remove` to remove the active lockdown first, or schedule the lockdown for a future time.",
+            });
+            return;
+          }
         }
 
-        const existing = await ChannelLockdown.findOne({
+        const existingLockdowns = await ChannelLockdown.find({
           guildId: interaction.guildId,
           channelId: channel.id,
         });
 
-        if (existing && existing.locked) {
-          await interaction.editReply({
-            content: "This channel is already locked (DB record).",
-          });
-          return;
-        }
-
-        if (existing && !existing.locked) {
-          const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = await import(
-            "discord.js"
-          );
-          const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-              .setCustomId("lockdown_overwrite_yes")
-              .setLabel("Yes, overwrite")
-              .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-              .setCustomId("lockdown_overwrite_no")
-              .setLabel("No, cancel")
-              .setStyle(ButtonStyle.Secondary)
-          );
-
-          await interaction.editReply({
-            content:
-              "A lockdown record already exists for this channel but it is not currently locked. Do you want to overwrite it?",
-            components: [row],
-          });
-
-          const filter = (i: any) =>
-            i.user.id === interaction.user.id &&
-            (i.customId === "lockdown_overwrite_yes" ||
-              i.customId === "lockdown_overwrite_no");
-
-          try {
-            const confirmation =
-              await interaction.channel.awaitMessageComponent({
-                filter,
-                time: 15000,
-              });
-
-            if (confirmation.customId === "lockdown_overwrite_yes") {
-              await confirmation.update({
-                content: "Overwriting lockdown record...",
-                components: [],
-              });
-            } else {
-              await confirmation.update({
-                content: "Lockdown creation cancelled.",
-                components: [],
-              });
-              return;
-            }
-          } catch {
+        if (lockTime === now) {
+          const activeLockdown = existingLockdowns.find(lockdown => lockdown.locked);
+          if (activeLockdown) {
             await interaction.editReply({
-              content: "No response, lockdown creation cancelled.",
-              components: [],
+              content: "This channel is already locked. Please run `/lockdown remove` to remove the active lockdown first.",
             });
             return;
           }
+        }
+
+        const hasOverlap = existingLockdowns.some(existing => {
+          const existingStart = parseInt(existing.startTimestamp);
+          const existingEnd = parseInt(existing.endTimestamp);
+          
+          return (
+            (lockTime >= existingStart && lockTime < existingEnd) ||
+            (unlockTime > existingStart && unlockTime <= existingEnd) ||
+            (lockTime <= existingStart && unlockTime >= existingEnd)
+          );
+        });
+
+        if (hasOverlap) {
+          await interaction.editReply({
+            content: "The specified time period overlaps with an existing scheduled lockdown. Please choose a different time period.",
+          });
+          return;
         }
 
         if (lockTime < now) {
@@ -224,19 +193,14 @@ export default class LockdownCommand extends BaseCommand {
           return;
         }
 
-        await ChannelLockdown.updateOne(
-          {
-            guildId: interaction.guildId,
-            channelId: channel.id,
-          },
-          {
-            startTimestamp: lockTime.toString(),
-            endTimestamp: unlockTime.toString(),
-            mode: mode || null,
-            locked: false,
-          },
-          { upsert: true }
-        );
+        const newLockdown = await ChannelLockdown.create({
+          guildId: interaction.guildId,
+          channelId: channel.id,
+          startTimestamp: lockTime.toString(),
+          endTimestamp: unlockTime.toString(),
+          mode: mode || null,
+          locked: false,
+        });
         
         if (lockTime === now) {
           let lockMessage: string;
@@ -292,13 +256,11 @@ export default class LockdownCommand extends BaseCommand {
           }
           await ChannelLockdown.updateOne(
             {
-              guildId: interaction.guildId,
-              channelId: channel.id,
+              _id: newLockdown._id,
             },
             {
               $set: { locked: true },
-            },
-            { upsert: false }
+            }
           );
 
           await interaction.editReply({
@@ -319,169 +281,100 @@ export default class LockdownCommand extends BaseCommand {
           ChannelType.PrivateThread,
         ]);
 
-        const record = await ChannelLockdown.findOne({
+        const records = await ChannelLockdown.find({
           guildId: interaction.guildId,
           channelId: channel.id,
         });
-        let isLocked = false;
-        if (
-          channel.type === ChannelType.GuildText ||
-          channel.type === ChannelType.GuildForum
-        ) {
-          const perms = channel.permissionsFor(
-            interaction.guild.roles.everyone
-          );
-          isLocked = perms && !perms.has("SendMessages");
-        } else if (
-          channel.type === ChannelType.PublicThread ||
-          channel.type === ChannelType.PrivateThread
-        ) {
-          isLocked = channel.locked ?? false;
-        }
 
-        const dbLocked = record?.locked ?? false;
-
-        if (!record) {
+        if (!records || records.length === 0) {
           await interaction.editReply({
-            content: "No lockdown record found for this channel.",
+            content: "No lockdown records found for this channel.",
           });
           return;
         }
 
-        if (isLocked && dbLocked) {
+        const activeLockdown = records.find(record => record.locked);
+        
+        if (activeLockdown) {
+          let isLocked = false;
           if (
             channel.type === ChannelType.GuildText ||
             channel.type === ChannelType.GuildForum
           ) {
-            await channel.permissionOverwrites.edit(
-              interaction.guild.roles.everyone.id,
-              {
-                SendMessages: null,
-                SendMessagesInThreads: null,
-                CreatePrivateThreads: null,
-                CreatePublicThreads: null,
-              }
+            const perms = channel.permissionsFor(
+              interaction.guild.roles.everyone
             );
-
-            const guildPreferences = await GuildPreferencesCache.get(
-              interaction.guildId
-            );
-            const modRoleId = guildPreferences?.moderatorRoleId;
-
-            if (modRoleId && interaction.guild.roles.cache.has(modRoleId)) {
-              const modRole = interaction.guild.roles.cache.get(modRoleId);
-              await channel.permissionOverwrites.edit(modRole!.id, {
-                SendMessages: null,
-                SendMessagesInThreads: null,
-                CreatePrivateThreads: null,
-                CreatePublicThreads: null,
-              });
-            }
+            isLocked = perms && !perms.has("SendMessages");
           } else if (
             channel.type === ChannelType.PublicThread ||
             channel.type === ChannelType.PrivateThread
           ) {
-            if (channel.locked) {
-              await channel.setLocked(false);
-            }
+            isLocked = channel.locked ?? false;
           }
 
-          await ChannelLockdown.deleteOne({
-            guildId: interaction.guildId,
-            channelId: channel.id,
-          });
-          if (
-            channel.type === ChannelType.GuildText ||
-            channel.type === ChannelType.PublicThread ||
-            channel.type === ChannelType.PrivateThread
-          ) {
-            await (
-              channel as
-                | import("discord.js").TextChannel
-                | import("discord.js").ThreadChannel
-            ).send("**Channel Unlocked !!**");
-          }
-          await interaction.editReply({
-            content: `<#${channel.id}> has been unlocked and the lockdown record has been removed.`,
-          });
-          break;
-        }
+          if (isLocked) {
+            if (
+              channel.type === ChannelType.GuildText ||
+              channel.type === ChannelType.GuildForum
+            ) {
+              await channel.permissionOverwrites.edit(
+                interaction.guild.roles.everyone.id,
+                {
+                  SendMessages: null,
+                  SendMessagesInThreads: null,
+                  CreatePrivateThreads: null,
+                  CreatePublicThreads: null,
+                }
+              );
 
-        if (!isLocked && !dbLocked) {
-          await ChannelLockdown.deleteOne({
-            guildId: interaction.guildId,
-            channelId: channel.id,
-          });
+              const guildPreferences = await GuildPreferencesCache.get(
+                interaction.guildId
+              );
+              const modRoleId = guildPreferences?.moderatorRoleId;
 
-          await interaction.editReply({
-            content: `<#${channel.id}>'s record has been removed.`,
-          });
-          break;
-        }
-
-        if (isLocked && !dbLocked) {
-          if (
-            channel.type === ChannelType.GuildText ||
-            channel.type === ChannelType.GuildForum
-          ) {
-            await channel.permissionOverwrites.edit(
-              interaction.guild.roles.everyone.id,
-              {
-                SendMessages: null,
-                SendMessagesInThreads: null,
-                CreatePrivateThreads: null,
-                CreatePublicThreads: null,
+              if (modRoleId && interaction.guild.roles.cache.has(modRoleId)) {
+                const modRole = interaction.guild.roles.cache.get(modRoleId);
+                await channel.permissionOverwrites.edit(modRole!.id, {
+                  SendMessages: null,
+                  SendMessagesInThreads: null,
+                  CreatePrivateThreads: null,
+                  CreatePublicThreads: null,
+                });
               }
-            );
-
-            const guildPreferences = await GuildPreferencesCache.get(
-              interaction.guildId
-            );
-            const modRoleId = guildPreferences?.moderatorRoleId;
-
-            if (modRoleId && interaction.guild.roles.cache.has(modRoleId)) {
-              const modRole = interaction.guild.roles.cache.get(modRoleId);
-              await channel.permissionOverwrites.edit(modRole!.id, {
-                SendMessages: null,
-                SendMessagesInThreads: null,
-                CreatePrivateThreads: null,
-                CreatePublicThreads: null,
-              });
+            } else if (
+              channel.type === ChannelType.PublicThread ||
+              channel.type === ChannelType.PrivateThread
+            ) {
+              if (channel.locked) {
+                await channel.setLocked(false);
+              }
             }
-          } else if (
-            channel.type === ChannelType.PublicThread ||
-            channel.type === ChannelType.PrivateThread
-          ) {
-            if (channel.locked) {
-              await channel.setLocked(false);
+
+            if (
+              channel.type === ChannelType.GuildText ||
+              channel.type === ChannelType.PublicThread ||
+              channel.type === ChannelType.PrivateThread
+            ) {
+              await (
+                channel as
+                  | import("discord.js").TextChannel
+                  | import("discord.js").ThreadChannel
+              ).send("**Channel Unlocked !!**");
             }
           }
 
-          await ChannelLockdown.deleteOne({
+          await ChannelLockdown.deleteOne({ _id: activeLockdown._id });
+          await interaction.editReply({
+            content: `<#${channel.id}> has been unlocked and the active lockdown record has been removed.`,
+          });
+        } else {
+          await ChannelLockdown.deleteMany({
             guildId: interaction.guildId,
             channelId: channel.id,
           });
-          await (
-            channel as
-              | import("discord.js").TextChannel
-              | import("discord.js").ThreadChannel
-          ).send("**Channel Unlocked !!**");
           await interaction.editReply({
-            content: `<#${channel.id}> was locked (perms), now unlocked and record removed.`,
+            content: `All scheduled lockdown records for <#${channel.id}> have been removed.`,
           });
-          break;
-        }
-
-        if (!isLocked && dbLocked) {
-          await ChannelLockdown.deleteOne({
-            guildId: interaction.guildId,
-            channelId: channel.id,
-          });
-
-          await interaction.editReply({
-            content: `<#${channel.id}> was not locked (perms), but the lockdown record has been removed.`,
-          });
-          break;
         }
         break;
       }
@@ -631,12 +524,39 @@ export default class LockdownCommand extends BaseCommand {
             isLocked = channel.locked ?? false;
           }
 
-          await ChannelLockdown.create({
+          const existingLockdowns = await ChannelLockdown.find({
+            guildId: interaction.guildId,
+            channelId: channel.id,
+          });
+
+          const activeLockdown = existingLockdowns.find(lockdown => lockdown.locked);
+          if (activeLockdown && lockTime === now) {
+            results.push(`<#${channelId}> - Channel is already locked`);
+            continue;
+          }
+
+          const hasOverlap = existingLockdowns.some(existing => {
+            const existingStart = parseInt(existing.startTimestamp);
+            const existingEnd = parseInt(existing.endTimestamp);
+            
+            return (
+              (lockTime >= existingStart && lockTime < existingEnd) ||
+              (unlockTime > existingStart && unlockTime <= existingEnd) ||
+              (lockTime <= existingStart && unlockTime >= existingEnd)
+            );
+          });
+
+          if (hasOverlap) {
+            results.push(`<#${channelId}> - Time period overlaps with existing lockdown`);
+            continue;
+          }
+
+          const newLockdown = await ChannelLockdown.create({
             guildId: interaction.guildId,
             channelId: channel.id,
             startTimestamp: lockTime.toString(),
             endTimestamp: unlockTime.toString(),
-            mode: mode || null,
+            ...(mode && { mode }),
             locked: false,
           });
 
@@ -644,7 +564,7 @@ export default class LockdownCommand extends BaseCommand {
             let lockMessage: string;
             if (mode === "exam") {
               lockMessage =
-                "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif";
+                "https://github.com/Sachin-dot-py/r-igcse-bot/blob/assets/r-igcse-locked-gif.gif?raw=true";
             } else {
               lockMessage = "**Channel Locked !!**";
             }
@@ -693,21 +613,16 @@ export default class LockdownCommand extends BaseCommand {
             }
             await ChannelLockdown.updateOne(
               {
-                guildId: interaction.guildId,
-                channelId: channelId,
+                _id: newLockdown._id,
               },
               {
                 $set: { locked: true },
-              },
-              { upsert: false }
+              }
             );
             results.push(
               `<#${channelId}> Locked now, unlocks <t:${unlockTime}:R>`
             );
-          } else if (lockTime === now && isLocked) {
-            results.push(
-              `<#${channelId}>: Already locked. please run \`/lockdown remove\` to remove lockdown .`
-            );
+          } else if (lockTime !== now) {
           } else {
             results.push(
               `<#${channelId}> Scheduled lock <t:${lockTime}:R>, unlock <t:${unlockTime}:R>`
