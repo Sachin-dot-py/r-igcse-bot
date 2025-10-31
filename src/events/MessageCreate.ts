@@ -379,7 +379,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		let thread: ThreadChannel;
 
 		if (res)
-			thread = channel.threads.fetch(res.threadId) as ThreadChannel;
+			thread = await channel.threads.fetch(res.threadId) as ThreadChannel;
 		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
@@ -750,4 +750,5 @@ Last 5 messages:
 		}
 	}
 }
+
 
