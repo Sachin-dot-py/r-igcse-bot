@@ -438,10 +438,10 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 	private async handleModMailDelete(
 		client: DiscordClient<true>,
-		member: GuildMember,
+		user: GuildMember | User,
 		numDelete = 1,
 	) {
-		const channel = await member.createDM();
+		const channel = await user.createDM();
 		const messages = (await channel.messages.fetch({ limit: 100 })).filter(
 			(m) => m.author.id === client.user.id,
 		);
@@ -476,11 +476,12 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 		const member = await message.guild.members
 			.fetch(dmThread.userId)
-			.catch(async () => {
-				await message.reply("User is no longer in the server");
-				return;
-			});
-		if (!member) return;
+			.catch(() => null);
+		const user = member ?? await client.users.fetch(dmThread.userId).catch(() => null);
+		if (!user) {
+			await message.reply("Unable to find the user.");
+			return;
+		}
 
 		if (message.content.startsWith("!!")) {
 			const fullCommand = message.content.split(" ");
@@ -494,7 +495,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				} else {
 					numDelete = 1;
 				}
-				this.handleModMailDelete(client, member, numDelete);
+				this.handleModMailDelete(client, user, numDelete);
 				await message.react("☑");
 			}
 		} else {
@@ -527,9 +528,15 @@ To change the server you're contacting, use the \`/swap\` command`,
 				});
 			}
 
-			await sendDm(member, {
-				embeds: [embed],
-			});
+			if (member) {
+				await sendDm(member, {
+					embeds: [embed],
+				});
+			} else {
+				await user.send({
+					embeds: [embed],
+				});
+			}
 
 			await message.react(message.content.startsWith("//!") ? "☑" : "✅");
 		}
