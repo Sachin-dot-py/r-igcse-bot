@@ -52,7 +52,6 @@ export default class DMUserCommand extends BaseCommand {
 		const member = interaction.options.getMember("user");
 		const user = interaction.options.getUser("user", true);
 
-		// Use member if available, otherwise fall back to user (for user-installed apps)
 		const targetUser = member?.user ?? user;
 
 		const res = await PrivateDmThread.findOne({
@@ -130,3 +129,4 @@ export default class DMUserCommand extends BaseCommand {
 		}
 	}
 }
+
