@@ -50,16 +50,13 @@ export default class DMUserCommand extends BaseCommand {
 		}
 
 		const member = interaction.options.getMember("user");
+		const user = interaction.options.getUser("user", true);
 
-		if (!member) {
-			await interaction.reply({
-				content: "User not found.",
-			});
-			return;
-		}
+		// Use member if available, otherwise fall back to user (for user-installed apps)
+		const targetUser = member?.user ?? user;
 
 		const res = await PrivateDmThread.findOne({
-			userId: member.id,
+			userId: targetUser.id,
 			guildId: interaction.guild.id,
 		});
 
@@ -68,7 +65,7 @@ export default class DMUserCommand extends BaseCommand {
 				.fetch(res.threadId)
 				.catch(async () => {
 					await PrivateDmThread.deleteMany({
-						userId: member.id,
+						userId: targetUser.id,
 						guildId: interaction.guild.id,
 					});
 					await interaction.reply({
@@ -102,14 +99,14 @@ export default class DMUserCommand extends BaseCommand {
 
 		try {
 			const newThread = await threadsChannel.threads.create({
-				name: `${member.user.tag} (${member.id})`,
+				name: `${targetUser.tag} (${targetUser.id})`,
 				message: {
-					content: `Username: \`${member.user.tag}\`\nUser ID: \`${member.id}\``,
+					content: `Username: \`${targetUser.tag}\`\nUser ID: \`${targetUser.id}\``,
 				},
 			});
 
 			await PrivateDmThread.create({
-				userId: member.id,
+				userId: targetUser.id,
 				threadId: newThread.id,
 				guildId: interaction.guild.id,
 			});
