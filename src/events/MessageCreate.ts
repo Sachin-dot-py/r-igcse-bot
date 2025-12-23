@@ -33,15 +33,9 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { syncCommands } from "@/registry";
 import { isBotDev } from "@/utils/isBotDev";
-import { classifier } from "@/utils/classifier";
-import type { TextClassificationOutput } from "@huggingface/transformers";
 import { ReputationData } from "@/mongo/schemas/ReputationData";
 
 const stickyCounter: Record<string, number> = {};
-
-// for automatic off topic message detection
-const messageMap = new Map<string, string[]>();
-const flaggedMap = new Map<string, { expires: number; flagCount: number }>();
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -251,19 +245,6 @@ export default class MessageCreateEvent extends BaseEvent {
 					guildPreferences.modmailThreadsChannelId
 			) {
 				this.handleModMailReply(client, message as Message<true>);
-			}
-
-			if (
-				guildPreferences.offTopicAlertCategoryIds?.includes(
-					message.channel.parentId || "",
-				) &&
-				message.guildId === process.env.MAIN_GUILD_ID
-			) {
-				this.handleOffTopicAlert(
-					client,
-					message as Message<true>,
-					guildPreferences,
-				);
 			}
 		} else this.handleModMail(client, message as Message<false>);
 	}
@@ -712,60 +693,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			await StickyMessageCache.save(stickyMessage);
 		}
 	}
-
-	private async handleOffTopicAlert(
-		client: DiscordClient<true>,
-		message: Message<true>,
-		guildPreferences: IGuildPreferences,
-	) {
-		if (!messageMap.has(message.channelId)) {
-			messageMap.set(message.channelId, []);
-		}
-
-		const channelMessages = messageMap.get(message.channelId);
-		channelMessages?.push(message.content);
-
-		if (channelMessages?.length === 6) {
-			const result = (await classifier(
-				channelMessages.join(" "),
-			)) as TextClassificationOutput;
-			messageMap.set(message.channelId, []);
-
-			const flagged = flaggedMap.get(message.channelId) || {
-					expires: Date.now() + 10 * 60 * 1000,
-					flagCount: 0,
-				};
-
-			if (result[0].label === "not study related") {
-				flagged.flagCount += 1;
-				flaggedMap.set(message.channelId, flagged);
-			}
-
-			if (flagged.expires < Date.now()) {
-				flaggedMap.delete(message.channelId);
-				return;
-			}
-
-			if (flagged?.flagCount >= 4) {
-				const alertChannel = await message.guild.channels
-					.fetch(guildPreferences.alertsChannelId || "")
-					.catch(() => null);
-				
-				if (!alertChannel || !alertChannel.isTextBased()) return;
-
-				alertChannel.send({
-					content: `Channel <#${message.channelId}> has been flagged for off-topic messages.
-Confidence: ${result[0].score}
-Flag Count: ${flaggedMap.get(message.channelId)?.flagCount}
-Last 5 messages:
-\`\`\`${channelMessages.join("\n")}\`\`\`
-`,
-				});
-
-				flaggedMap.delete(message.channelId);
-			}
-		}
-	}
 }
+
 
 
