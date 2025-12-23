@@ -35,6 +35,7 @@ import { syncCommands } from "@/registry";
 import { isBotDev } from "@/utils/isBotDev";
 import { classifier } from "@/utils/classifier";
 import type { TextClassificationOutput } from "@huggingface/transformers";
+import { ReputationData } from "@/mongo/schemas/ReputationData";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -590,6 +591,15 @@ To change the server you're contacting, use the \`/swap\` command`,
 					userId: member.id,
 					rep: 1,
 				});
+
+			ReputationData.create({
+				guildId: message.guildId,
+				channelId: message.channelId,
+				time: new Date(),
+				repNumber: rep,
+				reppedUser: member.id,
+				reppedBy: message.author.id,
+			}).catch(e => Logger.error(`Error creating ReputationData: ${e}`));
 
 			let content = `Gave +1 Rep to <@${user.id}> (${rep})`;
 
