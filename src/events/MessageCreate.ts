@@ -576,7 +576,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 			ReputationData.create({
 				guildId: message.guildId,
 				channelId: message.channelId,
-				time: new Date(),
+				when: new Date(),
 				repNumber: rep,
 				reppedUser: member.id,
 				reppedBy: message.author.id,
@@ -694,6 +694,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		}
 	}
 }
+
 
 
 
