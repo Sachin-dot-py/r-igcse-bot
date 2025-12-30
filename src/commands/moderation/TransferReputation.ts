@@ -54,13 +54,13 @@ export default class extends BaseCommand {
             userId: sender.id,
         });
 
-        const currentRecipientDocument = await Reputation.findOne({
+        const currentRecipientRepDocument = await Reputation.findOne({
             guildId: interaction.guild.id,
             userId: recipient.id,
         });
 
         const currentSenderRep = currentSenderRepDocument?.rep ?? 0;
-        const currentRecipientRep = currentRecipientDocument?.rep ?? 0;
+        const currentRecipientRep = currentRecipientRepDocument?.rep ?? 0;
 
         const amount =
             interaction.options.getInteger("amount", false) ?? currentSenderRep;
@@ -122,14 +122,24 @@ export default class extends BaseCommand {
             .sort({ repNumber: -1, when: -1 })
             .limit(amount);
 
-        if (toBeTransferred.length) {
-            const transfers = toBeTransferred.reverse().map((doc, i) => ({
+        const recipientReps = await ReputationData.find({
+            guildId: interaction.guildId,
+            reppedUser: recipient.id,
+            deleted: { $ne: true },
+        });
+
+        const allReps = [...recipientReps, ...toBeTransferred];
+
+        allReps.sort((a, b) => a.when.getTime() - b.when.getTime());
+
+        if (allReps.length) {
+            const transfers = allReps.map((doc, i) => ({
                 updateOne: {
                     filter: { _id: doc._id },
                     update: {
                         $set: {
                             reppedUser: recipient.id,
-                            repNumber: currentRecipientRep + i + 1,
+                            repNumber: i + 1,
                         },
                     },
                 },
@@ -139,7 +149,7 @@ export default class extends BaseCommand {
         }
 
         await interaction.reply({
-            content: `Transferred ${amount} rep from <@${sender.id}> to <@${recipient.id}>`,
+            content: `Transferred ${amount} rep from <@${sender.id}> (${newSenderRep}) to <@${recipient.id}> (${newRecipientRep})`,
         });
     }
 }
