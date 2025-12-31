@@ -10,6 +10,7 @@ declare module "bun" {
 		BOT_DEV_ROLE_ID: string;
 		MOD_ROLE_ID: string;
 		BLACKLISTED_GUILDS: string;
+		GET_ROLE: string;
 		[key: string]: string | undefined;
 	}
 }
