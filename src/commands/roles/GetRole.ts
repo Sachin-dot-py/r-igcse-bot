@@ -77,14 +77,14 @@ export default class PingCommand extends BaseCommand {
 				flags: MessageFlags.Ephemeral,
 			});
 			return;
-		}
+		};
 
 		const answerInput = new TextInputBuilder()
 			.setCustomId("answer_input")
-			.setLabel(question.question)
-			.setPlaceholder("Answer to the question")
+			.setLabel(question.label)
+			.setPlaceholder(question.question)
 			.setRequired(true)
-			.setStyle(TextInputStyle.Short);
+			.setStyle(TextInputStyle.Paragraph);
 
 		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
 			answerInput,
