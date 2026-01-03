@@ -100,6 +100,12 @@ export default class extends BaseCommand {
                 flags: MessageFlags.Ephemeral,
             });
             return;
+        } else if (sender == recipient) {
+            await interaction.reply({
+                content: `Are we being fr rn dawg? (Same sender and recipient)`,
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
         }
 
         const newSenderRep = currentSenderRep - amount;
