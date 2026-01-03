@@ -1,9 +1,14 @@
 import { Reputation, ReputationData } from "@/mongo";
+import { GuildPreferencesCache } from "@/redis";
+import { ModNote } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
     type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
+import { logToChannel } from "@/utils/Logger";
 import {
+    Colors,
+    EmbedBuilder,
     MessageFlags,
     PermissionFlagsBits,
     SlashCommandBuilder,
@@ -64,6 +69,18 @@ export default class extends BaseCommand {
 
         const amount =
             interaction.options.getInteger("amount", false) ?? currentSenderRep;
+
+        const guildPreferences = await GuildPreferencesCache.get(
+            interaction.guildId
+        );
+
+        if (!guildPreferences) {
+            interaction.editReply({
+                content:
+                    "Please setup the bot using the command `/setup` first.",
+            });
+            return;
+        }
 
         if (currentSenderRep < 1) {
             await interaction.reply({
@@ -146,6 +163,37 @@ export default class extends BaseCommand {
             }));
 
             await ReputationData.bulkWrite(transfers);
+        }
+
+        const modEmbed = new EmbedBuilder()
+            .setTitle(`Reputation Transfer`)
+            .setColor(Colors.Red)
+            .addFields([
+                {
+                    name: "Sender",
+                    value: `<@${sender.id}> (${sender.id})`,
+                    inline: false,
+                },
+                {
+                    name: "Recipient",
+                    value: `<@${recipient.id}> (${recipient.id})`,
+                    inline: false,
+                },
+                {
+                    name: "Moderator",
+                    value: `${interaction.user.tag} (${interaction.user.id})`,
+                    inline: false,
+                },
+                {
+                    name: "Amount",
+                    value: `${amount} Rep`,
+                },
+            ]);
+
+        if (guildPreferences.modlogChannelId) {
+            logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
+                embeds: [modEmbed],
+            });
         }
 
         await interaction.reply({
