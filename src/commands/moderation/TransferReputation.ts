@@ -75,7 +75,7 @@ export default class extends BaseCommand {
         );
 
         if (!guildPreferences) {
-            interaction.editReply({
+            interaction.reply({
                 content:
                     "Please setup the bot using the command `/setup` first.",
             });
@@ -193,6 +193,38 @@ export default class extends BaseCommand {
         if (guildPreferences.modlogChannelId) {
             logToChannel(interaction.guild, guildPreferences.modlogChannelId, {
                 embeds: [modEmbed],
+            });
+        }
+
+        const existingAltNoteSender = await ModNote.findOne({
+            guildId: interaction.guild.id,
+            actionAgainst: sender.id,
+            note: { $regex: `\\(${recipient.id}\\)` },
+        });
+
+        if (!existingAltNoteSender) {
+            await ModNote.create({
+                guildId: interaction.guild.id,
+                actionAgainst: sender.id,
+                actionBy: interaction.user.id,
+                note: `Alt account: ${recipient.tag} (${recipient.id})`,
+                when: new Date(),
+            });
+        }
+
+        const existingAltNoteRecipient = await ModNote.findOne({
+            guildId: interaction.guild.id,
+            actionAgainst: recipient.id,
+            note: { $regex: `\\(${sender.id}\\)` },
+        });
+
+        if (!existingAltNoteRecipient) {
+            await ModNote.create({
+                guildId: interaction.guild.id,
+                actionAgainst: recipient.id,
+                actionBy: interaction.user.id,
+                note: `Alt account: ${sender.tag} (${sender.id})`,
+                when: new Date(),
             });
         }
 
