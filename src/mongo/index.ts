@@ -13,6 +13,10 @@ export { Reputation, type IReputation } from "./schemas/Reputation";
 export { ReputationData, type IReputationData } from "./schemas/ReputationData";
 export { StickyMessage, type IStickyMessage } from "./schemas/StickyMessage";
 export { Question, type IQuestion } from "./schemas/Question";
+export {
+    QuestionOfTheWeek,
+    type IQuestionOfTheWeek,
+} from "./schemas/QuestionOfTheWeek.ts";
 export { HOTM, type IHOTM } from "./schemas/HOTM";
 export {
     PracticeSession,
