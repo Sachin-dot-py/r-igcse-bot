@@ -434,6 +434,16 @@ export const preferences: Preference[] = [
 		key: "countingChannelId",
 	},
 	{
+		name: "QOTW Channel",
+		type: "channel",
+		key: "qotwChannelId",
+	},
+	{
+		name: "QOTW Role",
+		type: "role",
+		key: "qotwRoleId",
+	},
+	{
 		name: "HOTM Results Channel",
 		type: "channel",
 		key: "hotmResultsChannelId",
