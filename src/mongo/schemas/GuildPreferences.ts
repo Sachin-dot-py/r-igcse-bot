@@ -16,6 +16,8 @@ export type IGuildPreferences = {
 	confessionApprovalChannelId: string;
 	hostSessionApprovalChannelId: string;
 	countingChannelId: string;
+	qotwChannelId: string;
+	qotwRoleId: string;
 	hotmResultsChannelId: string;
 	hotmResultsEmbedId: string;
 	hostSessionChannelId: string;
@@ -53,6 +55,8 @@ const schema = new Schema<IGuildPreferences>({
 	confessionApprovalChannelId: { type: String, default: null },
 	hostSessionApprovalChannelId: { type: String, default: null },
 	countingChannelId: { type: String, default: null },
+	qotwChannelId: { type: String, default: null },
+	qotwRoleId: { type: String, default: null },
 	hotmResultsChannelId: { type: String, default: null },
 	hotmResultsEmbedId: { type: String, default: null },
 	hostSessionChannelId: { type: String, default: null },

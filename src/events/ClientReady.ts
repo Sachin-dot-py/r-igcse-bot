@@ -224,9 +224,6 @@ export default class ClientReadyEvent extends BaseEvent {
 			const channel = await guild.channels
 				.fetch(lockdown.channelId)
 				.catch(() => null);
-			const mode = await guild.channels
-				.fetch(lockdown.mode)
-				.catch(() => null);
 			if (!channel) {
 				await lockdown.deleteOne();
 				continue;
@@ -234,7 +231,7 @@ export default class ClientReadyEvent extends BaseEvent {
 
 			const isExamMode = lockdown.mode === "exam";
 			const lockMessage = isExamMode
-				? "https://raw.githubusercontent.com/Juzcallmekaushik/r-igcse-bot/refs/heads/assets/r-igcse_locked_banner_gif_1_1.gif"
+				? "https://github.com/Sachin-dot-py/r-igcse-bot/blob/assets/r-igcse-locked-gif.gif?raw=true"
 				: "**Channel Locked !!**";
 
 			if (

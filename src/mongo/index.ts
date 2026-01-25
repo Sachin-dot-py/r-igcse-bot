@@ -2,20 +2,25 @@ export { Punishment, type IPunishment } from "./schemas/Punishment";
 export { ModNote, type IModNote } from "./schemas/ModNote";
 export { ReactionRole, type IReactionRole } from "./schemas/ReactionRole";
 export {
-	PrivateDmThread,
-	type IPrivateDmThread,
+    PrivateDmThread,
+    type IPrivateDmThread,
 } from "./schemas/PrivateDmThread";
 export {
-	GuildPreferences,
-	type IGuildPreferences,
+    GuildPreferences,
+    type IGuildPreferences,
 } from "./schemas/GuildPreferences";
 export { Reputation, type IReputation } from "./schemas/Reputation";
+export { ReputationData, type IReputationData } from "./schemas/ReputationData";
 export { StickyMessage, type IStickyMessage } from "./schemas/StickyMessage";
 export { Question, type IQuestion } from "./schemas/Question";
+export {
+    QuestionOfTheWeek,
+    type IQuestionOfTheWeek,
+} from "./schemas/QuestionOfTheWeek.ts";
 export { HOTM, type IHOTM } from "./schemas/HOTM";
 export {
-	PracticeSession,
-	type IPracticeSession,
+    PracticeSession,
+    type IPracticeSession,
 } from "./schemas/PracticeSession";
 export { HOTMUser, type IHOTMUser } from "./schemas/HOTMUser";
 export { HOTMBlacklist, type IHOTMBlacklist } from "./schemas/HOTMBlacklist";

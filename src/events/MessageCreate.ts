@@ -33,14 +33,9 @@ import type { DiscordClient } from "../registry/DiscordClient";
 import BaseEvent from "../registry/Structure/BaseEvent";
 import { syncCommands } from "@/registry";
 import { isBotDev } from "@/utils/isBotDev";
-import { classifier } from "@/utils/classifier";
-import type { TextClassificationOutput } from "@huggingface/transformers";
+import { ReputationData } from "@/mongo/schemas/ReputationData";
 
 const stickyCounter: Record<string, number> = {};
-
-// for automatic off topic message detection
-const messageMap = new Map<string, string[]>();
-const flaggedMap = new Map<string, { expires: number; flagCount: number }>();
 
 export default class MessageCreateEvent extends BaseEvent {
 	constructor() {
@@ -251,19 +246,6 @@ export default class MessageCreateEvent extends BaseEvent {
 			) {
 				this.handleModMailReply(client, message as Message<true>);
 			}
-
-			if (
-				guildPreferences.offTopicAlertCategoryIds?.includes(
-					message.channel.parentId || "",
-				) &&
-				message.guildId === process.env.MAIN_GUILD_ID
-			) {
-				this.handleOffTopicAlert(
-					client,
-					message as Message<true>,
-					guildPreferences,
-				);
-			}
 		} else this.handleModMail(client, message as Message<false>);
 	}
 
@@ -379,7 +361,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 		let thread: ThreadChannel;
 
 		if (res)
-			thread = channel.threads.cache.get(res.threadId) as ThreadChannel;
+			thread = await channel.threads.fetch(res.threadId) as ThreadChannel;
 		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
@@ -438,10 +420,10 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 	private async handleModMailDelete(
 		client: DiscordClient<true>,
-		member: GuildMember,
+		user: GuildMember | User,
 		numDelete = 1,
 	) {
-		const channel = await member.createDM();
+		const channel = await user.createDM();
 		const messages = (await channel.messages.fetch({ limit: 100 })).filter(
 			(m) => m.author.id === client.user.id,
 		);
@@ -476,11 +458,12 @@ To change the server you're contacting, use the \`/swap\` command`,
 
 		const member = await message.guild.members
 			.fetch(dmThread.userId)
-			.catch(async () => {
-				await message.reply("User is no longer in the server");
-				return;
-			});
-		if (!member) return;
+			.catch(() => null);
+		const user = member ?? await client.users.fetch(dmThread.userId).catch(() => null);
+		if (!user) {
+			await message.reply("Unable to find the user.");
+			return;
+		}
 
 		if (message.content.startsWith("!!")) {
 			const fullCommand = message.content.split(" ");
@@ -494,7 +477,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				} else {
 					numDelete = 1;
 				}
-				this.handleModMailDelete(client, member, numDelete);
+				this.handleModMailDelete(client, user, numDelete);
 				await message.react("☑");
 			}
 		} else {
@@ -527,9 +510,15 @@ To change the server you're contacting, use the \`/swap\` command`,
 				});
 			}
 
-			await sendDm(member, {
-				embeds: [embed],
-			});
+			if (member) {
+				await sendDm(member, {
+					embeds: [embed],
+				});
+			} else {
+				await user.send({
+					embeds: [embed],
+				});
+			}
 
 			await message.react(message.content.startsWith("//!") ? "☑" : "✅");
 		}
@@ -583,6 +572,15 @@ To change the server you're contacting, use the \`/swap\` command`,
 					userId: member.id,
 					rep: 1,
 				});
+
+			ReputationData.create({
+				guildId: message.guildId,
+				channelId: message.channelId,
+				when: new Date(),
+				repNumber: rep,
+				reppedUser: member.id,
+				reppedBy: message.author.id,
+			}).catch(e => Logger.error(`Error creating ReputationData: ${e}`));
 
 			let content = `Gave +1 Rep to <@${user.id}> (${rep})`;
 
@@ -695,58 +693,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 			await StickyMessageCache.save(stickyMessage);
 		}
 	}
-
-	private async handleOffTopicAlert(
-		client: DiscordClient<true>,
-		message: Message<true>,
-		guildPreferences: IGuildPreferences,
-	) {
-		if (!messageMap.has(message.channelId)) {
-			messageMap.set(message.channelId, []);
-		}
-
-		const channelMessages = messageMap.get(message.channelId);
-		channelMessages?.push(message.content);
-
-		if (channelMessages?.length === 6) {
-			const result = (await classifier(
-				channelMessages.join(" "),
-			)) as TextClassificationOutput;
-			messageMap.set(message.channelId, []);
-
-			const flagged = flaggedMap.get(message.channelId) || {
-					expires: Date.now() + 10 * 60 * 1000,
-					flagCount: 0,
-				};
-
-			if (result[0].label === "not study related") {
-				flagged.flagCount += 1;
-				flaggedMap.set(message.channelId, flagged);
-			}
-
-			if (flagged.expires < Date.now()) {
-				flaggedMap.delete(message.channelId);
-				return;
-			}
-
-			if (flagged?.flagCount >= 4) {
-				const alertChannel = await message.guild.channels
-					.fetch(guildPreferences.alertsChannelId || "")
-					.catch(() => null);
-				
-				if (!alertChannel || !alertChannel.isTextBased()) return;
-
-				alertChannel.send({
-					content: `Channel <#${message.channelId}> has been flagged for off-topic messages.
-Confidence: ${result[0].score}
-Flag Count: ${flaggedMap.get(message.channelId)?.flagCount}
-Last 5 messages:
-\`\`\`${channelMessages.join("\n")}\`\`\`
-`,
-				});
-
-				flaggedMap.delete(message.channelId);
-			}
-		}
-	}
 }
+
+
+
+
