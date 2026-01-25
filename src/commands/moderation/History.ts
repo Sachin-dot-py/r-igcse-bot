@@ -1,4 +1,5 @@
 import { Punishment } from "@/mongo";
+import { ModNote } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -52,6 +53,12 @@ export default class HistoryCommand extends BaseCommand {
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
 		}).sort({ when: 1 });
+		
+		// get notes collection
+		const notes = await ModNote.find({
+			guildId: interaction.guildId,
+			actionAgainst: user.id,
+		}).sort({ when: -1})
 
 		if (punishments.length < 1) {
 			await interaction.editReply({
@@ -69,6 +76,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		let totalPoints = 0;
 		let offenceCount = 0;
+		let actionName = "";
 
 		const punishmentsList = [];
 
@@ -81,6 +89,7 @@ export default class HistoryCommand extends BaseCommand {
 			duration,
 			caseId,
 		} of punishments) {
+
 			if (points) totalPoints += points;
 
 			if (action in counts) {
@@ -99,9 +108,52 @@ export default class HistoryCommand extends BaseCommand {
 				minute: "2-digit",
 			});
 
+			if (action == "Warn") {
+				actionName = "❗WARN";
+
+			} else if (action == "Kick") {
+				actionName = "👢 KICK";
+
+			} else if (action == "Timeout") {
+				actionName = "⏳ TIMEOUT";
+
+			} else if (action == "Ban") {
+				actionName = "🔨 BAN";
+		
+			} else if (action == "Remove Timeout") {
+				actionName = "🔓 UNTIMEOUT";
+			
+			} else if (action == "Unban") {
+				actionName = "🔓 UNBAN";
+			}
+			
 			punishmentsList.push(
-				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
+				`[${date}, ${time}] ${actionName}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
 			);
+		}
+
+		for (const {
+			when,
+			actionBy,
+			actionAgainst,
+			note
+		} of notes) {
+
+			const moderator =
+				interaction.guild.members.cache.get(actionBy)?.user.tag ??
+				actionBy;
+
+			const date = when.toLocaleDateString("en-GB");
+			const time = when.toLocaleTimeString("en-GB", {
+				hour12: true,
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+
+			punishmentsList.push(
+				`📝 [${date} at ${time}] NOTE: ${note} ${showUsername ? ` by ${moderator}` : ""}`,
+			);
+
 		}
 
 		let description = `**Number of offenses:** ${offenceCount}\n`;
