@@ -116,26 +116,26 @@ export default class HistoryCommand extends BaseCommand {
 			const timestamp = when.getTime();
 
 			if (action == "Warn") {
-				actionName = "WARN";
+				actionName = " WARN";
 
 			} else if (action == "Kick") {
-				actionName = "KICK";
+				actionName = " KICK";
 
 			} else if (action == "Timeout") {
-				actionName = "TIMEOUT";
+				actionName = " TIMEOUT";
 
 			} else if (action == "Ban") {
-				actionName = "BAN";
+				actionName = " BAN";
 		
 			} else if (action == "Remove Timeout") {
-				actionName = "UNTIMEOUT";
+				actionName = " UNTIMEOUT";
 			
 			} else if (action == "Unban") {
-				actionName = "UNBAN";
+				actionName = " UNBAN";
 			}
 			
 			punishmentsList.push(
-				`[**\`${actionName} ${action === "Timeout" ? ` (${humanizeDurationShort(duration * 1000)})` : ""}\`**](https://google.com) ${points !== 0 ? ` \`[${points}]\`` : ""} <t:${timestamp}:s> ${reason ? ` - ${reason}` : ""}   [[\`#${caseId}\`](https://google.com)] ${showUsername ? ` by ${moderator}` : ""}`
+				`**\`${actionName} ${action === "Timeout" ? ` (${humanizeDurationShort(duration * 1000)})` : ""}\`** ${points !== 0 ? ` \`[${points}]\`` : ""} <t:${timestamp}:s> ${reason ? ` - ${reason}` : ""}   [[\`#${caseId}\`](https://google.com)] ${showUsername ? ` by ${moderator}` : ""}`
 			);
 
 			//punishmentsList.push(
@@ -184,7 +184,7 @@ export default class HistoryCommand extends BaseCommand {
 				name: `${user.username} (ID: ${user.id})`,
 				iconURL: user.displayAvatarURL(),
 			})
-			.setColor(Colors.DarkOrange)
+			.setColor(Colors.Red)
 			.setDescription(description);
 
 		await interaction.editReply({
