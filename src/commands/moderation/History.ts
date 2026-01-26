@@ -12,6 +12,18 @@ import {
 } from "discord.js";
 import humanizeDuration from "humanize-duration";
 
+function humanizeDurationShort(duration: number): string {
+    const seconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    if (minutes > 0) return `${minutes}m`;
+    return `${seconds}s`;
+}
+
 export default class HistoryCommand extends BaseCommand {
 	constructor() {
 		super(
@@ -101,35 +113,34 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
-			const date = when.toLocaleDateString("en-GB");
-			const time = when.toLocaleTimeString("en-GB", {
-				hour12: true,
-				hour: "2-digit",
-				minute: "2-digit",
-			});
+			const timestamp = when.getTime();
 
 			if (action == "Warn") {
-				actionName = "❗WARN";
+				actionName = "WARN";
 
 			} else if (action == "Kick") {
-				actionName = "👢 KICK";
+				actionName = "KICK";
 
 			} else if (action == "Timeout") {
-				actionName = "⏳ TIMEOUT";
+				actionName = "TIMEOUT";
 
 			} else if (action == "Ban") {
-				actionName = "🔨 BAN";
+				actionName = "BAN";
 		
 			} else if (action == "Remove Timeout") {
-				actionName = "🔓 UNTIMEOUT";
+				actionName = "UNTIMEOUT";
 			
 			} else if (action == "Unban") {
-				actionName = "🔓 UNBAN";
+				actionName = "UNBAN";
 			}
 			
 			punishmentsList.push(
-				`[${date}, ${time}] ${actionName}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
+				`[**\`${actionName} ${action === "Timeout" ? ` (${humanizeDurationShort(duration * 1000)})` : ""}\`**](https://google.com) ${points !== 0 ? ` \`[${points}]\`` : ""} <t:${timestamp}:s> ${reason ? ` - ${reason}` : ""}   [[\`#${caseId}\`](https://google.com)] ${showUsername ? ` by ${moderator}` : ""}`
 			);
+
+			//punishmentsList.push(
+			//	`[${date}, ${time}] ${actionName}${action === "Timeout" ? ` (${humanizeDurationShort(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
+			//);
 		}
 
 		for (const {
@@ -143,15 +154,10 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
-			const date = when.toLocaleDateString("en-GB");
-			const time = when.toLocaleTimeString("en-GB", {
-				hour12: true,
-				hour: "2-digit",
-				minute: "2-digit",
-			});
+			const timestamp = when.getTime();
 
 			punishmentsList.push(
-				`📝 [${date} at ${time}] NOTE: ${note} ${showUsername ? ` by ${moderator}` : ""}`,
+				`[**\`📝 NOTE \`**](https://google.com) <t:${timestamp}:s> ${note} ${showUsername ? ` by ${moderator}` : ""}`,
 			);
 
 		}
@@ -166,9 +172,9 @@ export default class HistoryCommand extends BaseCommand {
 			.join("\n");
 
 		description += `\n\n**Total points:** ${totalPoints}\n\n`;
-		description += "```";
+		// description += "```";
 		description += punishmentsList.join("\n");
-		description += "```";
+		// description += "```";
 
 		const embed = new EmbedBuilder()
 			.setTitle(
