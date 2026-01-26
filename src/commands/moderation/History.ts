@@ -29,18 +29,18 @@ export default class HistoryCommand extends BaseCommand {
 		super(
 			new SlashCommandBuilder()
 				.setName("history")
-				.setDescription("Check a user's previous offenses (for mods)")
+				.setDescription("View a users infraction history.")
 				.addUserOption((option) =>
 					option
 						.setName("user")
-						.setDescription("User to view history of")
+						.setDescription("User you would like to see the history of.")
 						.setRequired(true),
 				)
 				.addBooleanOption((option) =>
 					option
 						.setName("show_mod_username")
 						.setDescription(
-							"Show the usernames of the mod (default: false).",
+							"Show usernames of the staff responsible for the infractions.",
 						)
 						.setRequired(false),
 				)
