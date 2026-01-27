@@ -119,7 +119,7 @@ export default class HistoryCommand extends BaseCommand {
 				"Kick": "KICK",
 				"Nickname Reset": "NICK RESET",
 				"Remove Timeout": "UNTIMEOUT",
-				"Softban": "SOFTBAN",
+				"Softban": "SOFT BAN",
 				"Timeout": "TIMEOUT",
 				"Unban": "UNBAN",
 				"Warn": "WARN"
