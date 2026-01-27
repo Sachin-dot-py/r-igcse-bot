@@ -145,6 +145,9 @@ export default class HistoryCommand extends BaseCommand {
 			//);
 		}
 
+		// add space between notes & infractions for visibility
+		punishmentsList.push(``);
+
 		for (const {
 			when,
 			actionBy,
