@@ -37,9 +37,9 @@ export default class HistoryCommand extends BaseCommand {
 				)
 				.addBooleanOption((option) =>
 					option
-						.setName("show_mod_username")
+						.setName("blame")
 						.setDescription(
-							"Show usernames of the staff responsible for the infractions.",
+							"Show the staff responsible for the infractions.",
 						)
 						.setRequired(false),
 				)
@@ -56,7 +56,7 @@ export default class HistoryCommand extends BaseCommand {
 	) {
 		const user = interaction.options.getUser("user", true);
 		const showUsername =
-			interaction.options.getBoolean("show_mod_username", false) ?? false;
+			interaction.options.getBoolean("blame", false) ?? false;
 
 		await interaction.deferReply();
 
@@ -109,7 +109,7 @@ export default class HistoryCommand extends BaseCommand {
 			}
 
 			const moderator =
-				interaction.guild.members.cache.get(actionBy)?.user.tag ??
+				interaction.guild.members.cache.get(actionBy)?.user.id ??
 				actionBy;
 
 			const timestamp = Math.round(when.getTime() / 1000);
@@ -137,7 +137,7 @@ export default class HistoryCommand extends BaseCommand {
 			}
 			
 			punishmentsList.push(
-				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by ${moderator}` : ""}`
+				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
 			);
 
 			//punishmentsList.push(
@@ -153,13 +153,13 @@ export default class HistoryCommand extends BaseCommand {
 		} of notes) {
 
 			const moderator =
-				interaction.guild.members.cache.get(actionBy)?.user.tag ??
+				interaction.guild.members.cache.get(actionBy)?.user.id ??
 				actionBy;
 
 			const timestamp = Math.round(when.getTime() / 1000);
 
 			punishmentsList.push(
-				`**\`    NOTE   \`** <t:${timestamp}:s> ${note} ${showUsername ? ` by ${moderator}` : ""}`,
+				`**\`    NOTE   \`** <t:${timestamp}:s> ${note} ${showUsername ? ` by <@${moderator}>` : ""}`,
 			);
 
 		}
