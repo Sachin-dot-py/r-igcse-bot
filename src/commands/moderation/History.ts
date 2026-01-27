@@ -114,35 +114,18 @@ export default class HistoryCommand extends BaseCommand {
 
 			const timestamp = Math.round(when.getTime() / 1000);
 
-			if (action == "Warn") {
-				actionName = "    WARN   ";
-
-			} else if (action == "Kick") {
-				actionName = "    KICK   ";
-
-			} else if (action == "Timeout") {
-				actionName = "  TIMEOUT  ";
-
-			} else if (action == "Ban") {
-				actionName = "    BAN    ";
-		
-			} else if (action == "Remove Timeout") {
-				actionName = " UNTIMEOUT ";
-			
-			} else if (action == "Unban") {
-				actionName = "  UNBAN     ";
-			} else if (action == "Softban") {
-				actionName = "  SOFTBAN   ";
-
+			if (action == "Remove Timeout") {
+				actionName = "UNTIMEOUT";
+			} else {
+				actionName = action;
 			}
-			
+
+			let whitespaceCount = (Math.round(12 - actionName.length) / 2);
+
 			punishmentsList.push(
-				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
+				`**\`${" ".repeat(whitespaceCount)}${actionName.toUpperCase()}${" ".repeat(whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
 			);
 
-			//punishmentsList.push(
-			//	`[${date}, ${time}] ${actionName}${action === "Timeout" ? ` (${humanizeDurationShort(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
-			//);
 		}
 
 		// add space between notes & infractions for visibility
@@ -162,7 +145,7 @@ export default class HistoryCommand extends BaseCommand {
 			const timestamp = Math.round(when.getTime() / 1000);
 
 			punishmentsList.push(
-				`**\`    NOTE   \`** <t:${timestamp}:s> ${note} ${showUsername ? ` by <@${moderator}>` : ""}`,
+				`**\`${" ".repeat(4)}NOTE${" ".repeat(4)}\`** <t:${timestamp}:s> ${note} ${showUsername ? ` by <@${moderator}>` : ""}`,
 			);
 
 		}
@@ -177,9 +160,7 @@ export default class HistoryCommand extends BaseCommand {
 			.join("\n");
 
 		description += `\n\n**Total Points:** ${totalPoints}\n\n`;
-		// description += "```";
 		description += punishmentsList.join("\n");
-		// description += "```";
 
 		const embed = new EmbedBuilder()
 			.setTitle(
