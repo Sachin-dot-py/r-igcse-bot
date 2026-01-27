@@ -10,9 +10,8 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
-import humanizeDuration from "humanize-duration";
 
-function humanizeDurationShort(duration: number): string {
+function shortenTime(duration: number): string {
     const seconds = Math.floor(duration / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -113,7 +112,7 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
-			const timestamp = when.getTime();
+			const timestamp = Math.round(when.getTime() / 1000);
 
 			if (action == "Warn") {
 				actionName = "    WARN   ";
@@ -138,7 +137,7 @@ export default class HistoryCommand extends BaseCommand {
 			}
 			
 			punishmentsList.push(
-				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${humanizeDurationShort(duration * 1000)})**` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} <t:${timestamp}:s> ${reason ? ` - ${reason}` : ""}   [[\`#${caseId}\`](https://google.com)] ${showUsername ? ` by ${moderator}` : ""}`
+				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://google.com)] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by ${moderator}` : ""}`
 			);
 
 			//punishmentsList.push(
@@ -157,10 +156,10 @@ export default class HistoryCommand extends BaseCommand {
 				interaction.guild.members.cache.get(actionBy)?.user.tag ??
 				actionBy;
 
-			const timestamp = when.getTime();
+			const timestamp = Math.round(when.getTime() / 1000);
 
 			punishmentsList.push(
-				`**\`   NOTE   \`** <t:${timestamp}:s> ${note} ${showUsername ? ` by ${moderator}` : ""}`,
+				`**\`    NOTE   \`** <t:${timestamp}:s> ${note} ${showUsername ? ` by ${moderator}` : ""}`,
 			);
 
 		}
