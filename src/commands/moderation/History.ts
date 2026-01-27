@@ -116,26 +116,29 @@ export default class HistoryCommand extends BaseCommand {
 			const timestamp = when.getTime();
 
 			if (action == "Warn") {
-				actionName = " WARN";
+				actionName = "    WARN   ";
 
 			} else if (action == "Kick") {
-				actionName = " KICK";
+				actionName = "    KICK   ";
 
 			} else if (action == "Timeout") {
-				actionName = " TIMEOUT";
+				actionName = "  TIMEOUT  ";
 
 			} else if (action == "Ban") {
-				actionName = " BAN";
+				actionName = "    BAN    ";
 		
 			} else if (action == "Remove Timeout") {
-				actionName = " UNTIMEOUT";
+				actionName = " UNTIMEOUT ";
 			
 			} else if (action == "Unban") {
-				actionName = " UNBAN";
+				actionName = "  UNBAN     ";
+			} else if (action == "Softban") {
+				actionName = "  SOFTBAN   ";
+
 			}
 			
 			punishmentsList.push(
-				`**\`${actionName} ${action === "Timeout" ? ` (${humanizeDurationShort(duration * 1000)})` : ""}\`** ${points !== 0 ? ` \`[${points}]\`` : ""} <t:${timestamp}:s> ${reason ? ` - ${reason}` : ""}   [[\`#${caseId}\`](https://google.com)] ${showUsername ? ` by ${moderator}` : ""}`
+				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${humanizeDurationShort(duration * 1000)})**` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} <t:${timestamp}:s> ${reason ? ` - ${reason}` : ""}   [[\`#${caseId}\`](https://google.com)] ${showUsername ? ` by ${moderator}` : ""}`
 			);
 
 			//punishmentsList.push(
@@ -157,21 +160,21 @@ export default class HistoryCommand extends BaseCommand {
 			const timestamp = when.getTime();
 
 			punishmentsList.push(
-				`[**\`📝 NOTE \`**](https://google.com) <t:${timestamp}:s> ${note} ${showUsername ? ` by ${moderator}` : ""}`,
+				`**\`   NOTE   \`** <t:${timestamp}:s> ${note} ${showUsername ? ` by ${moderator}` : ""}`,
 			);
 
 		}
 
-		let description = `**Number of offenses:** ${offenceCount}\n`;
+		let description = `> **Number of Infractions:** ${offenceCount}\n`;
 
 		description += Object.entries(counts)
 			.map(([action, count]) =>
-				count > 0 ? `- **${action}s:** ${count}` : "",
+				count > 0 ? `> -# **${action}s:** ${count}` : "",
 			)
 			.filter((x) => x !== "")
 			.join("\n");
 
-		description += `\n\n**Total points:** ${totalPoints}\n\n`;
+		description += `\n\n**Total Points:** ${totalPoints}\n\n`;
 		// description += "```";
 		description += punishmentsList.join("\n");
 		// description += "```";
