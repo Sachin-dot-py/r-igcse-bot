@@ -114,16 +114,22 @@ export default class HistoryCommand extends BaseCommand {
 
 			const timestamp = Math.round(when.getTime() / 1000);
 
-			if (action == "Remove Timeout") {
-				actionName = "UNTIMEOUT";
-			} else {
-				actionName = action;
+
+			const actionNameMap: Record<string, string> = {
+				"Ban": "BAN",
+				"Kick": "KICK",
+				"Nickname Reset": "NICK RESET",
+				"Remove Timeout": "UNTIMEOUT",
+				"Softban": "SOFT BAN",
+				"Timeout": "TIMEOUT",
+				"Unban": "UNBAN",
+				"Warn": "WARN"
 			}
 
-			let whitespaceCount = (Math.round(12 - actionName.length) / 2);
+			let whitespaceCount = (Math.round(12 - actionNameMap[action].length) / 2);
 
 			punishmentsList.push(
-				`**\`${" ".repeat(whitespaceCount)}${actionName.toUpperCase()}${" ".repeat(!(actionName.length % 2 == 0) ? whitespaceCount+1 : whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
+				`**\`${" ".repeat(whitespaceCount)}${actionNameMap[action]}${" ".repeat(!(actionNameMap[action].length % 2 == 0) ? whitespaceCount+1 : whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
 			);
 
 		}
