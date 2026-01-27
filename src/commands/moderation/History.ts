@@ -137,7 +137,7 @@ export default class HistoryCommand extends BaseCommand {
 			}
 			
 			punishmentsList.push(
-				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://google.com)] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by ${moderator}` : ""}`
+				`**\`${actionName}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by ${moderator}` : ""}`
 			);
 
 			//punishmentsList.push(
