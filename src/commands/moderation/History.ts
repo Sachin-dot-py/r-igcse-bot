@@ -1,4 +1,5 @@
 import { Punishment } from "@/mongo";
+import { ModNote } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
@@ -9,25 +10,36 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
-import humanizeDuration from "humanize-duration";
+
+function shortenTime(duration: number): string {
+    const seconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    if (minutes > 0) return `${minutes}m`;
+    return `${seconds}s`;
+}
 
 export default class HistoryCommand extends BaseCommand {
 	constructor() {
 		super(
 			new SlashCommandBuilder()
 				.setName("history")
-				.setDescription("Check a user's previous offenses (for mods)")
+				.setDescription("View a users infraction history.")
 				.addUserOption((option) =>
 					option
 						.setName("user")
-						.setDescription("User to view history of")
+						.setDescription("User you would like to see the history of.")
 						.setRequired(true),
 				)
 				.addBooleanOption((option) =>
 					option
-						.setName("show_mod_username")
+						.setName("blame")
 						.setDescription(
-							"Show the usernames of the mod (default: false).",
+							"Show the staff responsible for the infractions.",
 						)
 						.setRequired(false),
 				)
@@ -44,7 +56,7 @@ export default class HistoryCommand extends BaseCommand {
 	) {
 		const user = interaction.options.getUser("user", true);
 		const showUsername =
-			interaction.options.getBoolean("show_mod_username", false) ?? false;
+			interaction.options.getBoolean("blame", false) ?? false;
 
 		await interaction.deferReply();
 
@@ -52,6 +64,12 @@ export default class HistoryCommand extends BaseCommand {
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
 		}).sort({ when: 1 });
+		
+		// get notes collection
+		const notes = await ModNote.find({
+			guildId: interaction.guildId,
+			actionAgainst: user.id,
+		}).sort({ when: 1})
 
 		if (punishments.length < 1) {
 			await interaction.editReply({
@@ -69,6 +87,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		let totalPoints = 0;
 		let offenceCount = 0;
+		let actionName = "";
 
 		const punishmentsList = [];
 
@@ -81,6 +100,7 @@ export default class HistoryCommand extends BaseCommand {
 			duration,
 			caseId,
 		} of punishments) {
+
 			if (points) totalPoints += points;
 
 			if (action in counts) {
@@ -89,34 +109,58 @@ export default class HistoryCommand extends BaseCommand {
 			}
 
 			const moderator =
-				interaction.guild.members.cache.get(actionBy)?.user.tag ??
+				interaction.guild.members.cache.get(actionBy)?.user.id ??
 				actionBy;
 
-			const date = when.toLocaleDateString("en-GB");
-			const time = when.toLocaleTimeString("en-GB", {
-				hour12: true,
-				hour: "2-digit",
-				minute: "2-digit",
-			});
+			const timestamp = Math.round(when.getTime() / 1000);
+
+			if (action == "Remove Timeout") {
+				actionName = "UNTIMEOUT";
+			} else {
+				actionName = action;
+			}
+
+			let whitespaceCount = (Math.round(12 - actionName.length) / 2);
 
 			punishmentsList.push(
-				`[${date} at ${time}] ${action}${action === "Timeout" ? ` (${humanizeDuration(duration * 1000)})` : ""}${points !== 0 ? ` [${points}]` : ""}${reason ? ` for ${reason}` : ""} [case ${caseId}]${showUsername ? ` by ${moderator}` : ""}`,
+				`**\`${" ".repeat(whitespaceCount)}${actionName.toUpperCase()}${" ".repeat(!(actionName.length % 2 == 0) ? whitespaceCount+1 : whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
 			);
+
 		}
 
-		let description = `**Number of offenses:** ${offenceCount}\n`;
+		// add space between notes & infractions for visibility
+		punishmentsList.push(``);
+
+		for (const {
+			when,
+			actionBy,
+			actionAgainst,
+			note
+		} of notes) {
+
+			const moderator =
+				interaction.guild.members.cache.get(actionBy)?.user.id ??
+				actionBy;
+
+			const timestamp = Math.round(when.getTime() / 1000);
+
+			punishmentsList.push(
+				`**\`${" ".repeat(4)}NOTE${" ".repeat(4)}\`** <t:${timestamp}:s> ${note} ${showUsername ? ` by <@${moderator}>` : ""}`,
+			);
+
+		}
+
+		let description = `> **Number of Infractions:** ${offenceCount}\n`;
 
 		description += Object.entries(counts)
 			.map(([action, count]) =>
-				count > 0 ? `- **${action}s:** ${count}` : "",
+				count > 0 ? `> -# **${action}s:** ${count}` : "",
 			)
 			.filter((x) => x !== "")
 			.join("\n");
 
-		description += `\n\n**Total points:** ${totalPoints}\n\n`;
-		description += "```";
+		description += `\n\n**Total Points:** ${totalPoints}\n\n`;
 		description += punishmentsList.join("\n");
-		description += "```";
 
 		const embed = new EmbedBuilder()
 			.setTitle(
@@ -126,7 +170,7 @@ export default class HistoryCommand extends BaseCommand {
 				name: `${user.username} (ID: ${user.id})`,
 				iconURL: user.displayAvatarURL(),
 			})
-			.setColor(Colors.DarkOrange)
+			.setColor(Colors.Red)
 			.setDescription(description);
 
 		await interaction.editReply({
