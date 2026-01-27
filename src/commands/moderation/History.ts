@@ -87,6 +87,7 @@ export default class HistoryCommand extends BaseCommand {
 
 		let totalPoints = 0;
 		let offenceCount = 0;
+		let actionName = "";
 
 		const punishmentsList = [];
 
