@@ -123,7 +123,7 @@ export default class HistoryCommand extends BaseCommand {
 			let whitespaceCount = (Math.round(12 - actionName.length) / 2);
 
 			punishmentsList.push(
-				`**\`${" ".repeat(whitespaceCount)}${actionName.toUpperCase()}${" ".repeat(whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
+				`**\`${" ".repeat(whitespaceCount)}${actionName.toUpperCase()}${" ".repeat(!(actionName.length % 2 == 0) ? whitespaceCount+1 : whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
 			);
 
 		}
