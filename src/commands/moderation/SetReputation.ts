@@ -51,7 +51,7 @@ export default class extends BaseCommand {
 
         if (newRep === currentRep) {
             await interaction.reply({
-                content: `<@${user.id}>'s rep is already ${newRep}`,
+                content: `${user.tag}'s rep is already ${newRep}`,
             });
             return;
         }
@@ -117,9 +117,8 @@ export default class extends BaseCommand {
                 );
             }
         }
-
         await interaction.reply({
-            content: `Changed <@${user.id}>'s rep to ${newRep}`,
+            content: `Changed ${user.tag} rep to ${newRep}`,
         });
     }
 }
