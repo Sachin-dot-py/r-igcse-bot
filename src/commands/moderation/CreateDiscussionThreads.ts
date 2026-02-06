@@ -12,6 +12,7 @@ import {
 	Colors,
 	ComponentType,
 	EmbedBuilder,
+	Message,
 	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -81,11 +82,12 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 		);
 		const examSession = examSessionUnformatted.replace(/\//, " ");
 		const role = interaction.options.getRole("role", true);
+		const isMarch = examSession.toLowerCase().includes("march");
 
 		const confirmationEmbed = new EmbedBuilder()
 			.setTitle(`Create ${examSessionUnformatted} discussion channels`)
 			.setDescription(
-				`This will create channels, and discussion threads for the CAIE and Edexcel ${examSessionUnformatted} session.\nThe session text will be used unchanged, ensure it's provided in the format \`<Start>/<End> <Year>\` (eg. May/June 2025).`,
+				`This will create channels, and discussion threads for the CAIE${isMarch ? "" : " and Edexcel"} ${examSessionUnformatted} session.\nThe session text will be used unchanged, ensure it's provided in the format \`<Start>/<End> <Year>\` (eg. May/June 2025).`,
 			)
 			.setColor(Colors.Red)
 			.setAuthor({
@@ -213,32 +215,6 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 			embeds: [malpracticeEmbed],
 		};
 
-		(
-			await interaction.guild.channels.create({
-				parent: process.env.GENERAL_HUB_ID,
-				name: `${examSession}-discussion`,
-				type: ChannelType.GuildText,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: role.id,
-						allow: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: process.env.MOD_ROLE_ID,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.ManageMessages,
-							PermissionFlagsBits.ManageThreads,
-						],
-					},
-				],
-			})
-		).send(initialMessage);
-
 		await interaction.editReply({
 			content: `Created ${examSessionUnformatted} channels.`,
 			embeds: [],
@@ -279,95 +255,132 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 			],
 		});
 
-		await caieDiscussion.setAvailableTags([
-			{
-				emoji: { id: "1089618794655272980" },
-				name: "AS/AL Variant 1",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { id: "1089618793703145542" },
-				name: "AS/AL Variant 2",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { id: "1089618791903809606" },
-				name: "AS/AL Variant 3",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { name: "1️⃣" },
-				name: "IGCSE Variant 1",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { name: "2️⃣" },
-				name: "IGCSE Variant 2",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { name: "3️⃣" },
-				name: "IGCSE Variant 3",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { name: "🥼" },
-				name: "AS/AL Practical",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-		]);
-
-		const caieVariants = [
-			caieDiscussionForums.ALevel.Variant1,
-			caieDiscussionForums.ALevel.Variant2,
-			caieDiscussionForums.ALevel.Variant3,
-			caieDiscussionForums.IGCSE.Variant1,
-			caieDiscussionForums.IGCSE.Variant2,
-			caieDiscussionForums.IGCSE.Variant3,
-			caieDiscussionForums.ALevel.Practical,
-		];
-
-		const caieOtherVariants = [
-			caieDiscussionForums.ALevel.Others,
-			caieDiscussionForums.IGCSE.Others,
-		];
-
-		const followUpMessage = await interaction.followUp({
-			content: `Creating CAIE ${examSession} discussion channels`,
-		});
-
+		let caieVariants: string[][] = [];
 		let totalCAIEThreads = 0;
 		let completedCAIEThreads = 0;
-
-		for (const variant of [caieOtherVariants, ...caieVariants]) {
-			totalCAIEThreads += variant.length;
-		}
-
 		let caieCSV = "Subject,ID\n";
+		let followUpMessage: Message;
 
-		for (let i = 0; i < caieOtherVariants.length; i++) {
-			for (const subject of caieOtherVariants[i]) {
-				const thread = await caieDiscussion.threads.create({
-					appliedTags: [
-						caieDiscussion.availableTags[i * 3].id,
-						caieDiscussion.availableTags[i * 3 + 1].id,
-						caieDiscussion.availableTags[i * 3 + 2].id,
-					],
-					name: subject,
-					message: initialMessage,
-				});
-				completedCAIEThreads++;
-				caieCSV += `"${subject}","\`${thread.id}"\n`;
-				followUpMessage.edit({
-					content: `Creating CAIE forum\n${((completedCAIEThreads / totalCAIEThreads) * 100).toFixed(1)}% (${completedCAIEThreads}/${totalCAIEThreads}) (Creating ${i < 7 ? caieDiscussion.availableTags[i].name : "other"} threads)\nLast thread was created <t:${Math.round(new Date().getTime() / 1000)}:R>`,
-				});
+		if (isMarch) {
+			await caieDiscussion.setAvailableTags([
+				{
+					emoji: { name: "🟥" },
+					name: "A-Level",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { name: "🟦" },
+					name: "IGCSE",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { name: "🥼" },
+					name: "AS/AL Practical",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+			]);
+
+			caieVariants = [
+				caieDiscussionForums.ALevel.FM,
+				caieDiscussionForums.IGCSE.FM,
+				caieDiscussionForums.ALevel.Practical,
+			];
+
+			followUpMessage = await interaction.followUp({
+				content: `Creating CAIE ${examSession} discussion channels`,
+			});
+
+			for (const variant of caieVariants) {
+				totalCAIEThreads += variant.length;
+			}
+		} else {
+			await caieDiscussion.setAvailableTags([
+				{
+					emoji: { id: "1089618794655272980" },
+					name: "AS/AL Variant 1",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { id: "1089618793703145542" },
+					name: "AS/AL Variant 2",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { id: "1089618791903809606" },
+					name: "AS/AL Variant 3",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { name: "1️⃣" },
+					name: "IGCSE Variant 1",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { name: "2️⃣" },
+					name: "IGCSE Variant 2",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { name: "3️⃣" },
+					name: "IGCSE Variant 3",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+				{
+					emoji: { name: "🥼" },
+					name: "AS/AL Practical",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
+				},
+			]);
+
+			caieVariants = [
+				caieDiscussionForums.ALevel.Variant1,
+				caieDiscussionForums.ALevel.Variant2,
+				caieDiscussionForums.ALevel.Variant3,
+				caieDiscussionForums.IGCSE.Variant1,
+				caieDiscussionForums.IGCSE.Variant2,
+				caieDiscussionForums.IGCSE.Variant3,
+				caieDiscussionForums.ALevel.Practical,
+			];
+			const caieOtherVariants = [
+				caieDiscussionForums.ALevel.Others,
+				caieDiscussionForums.IGCSE.Others,
+			];
+
+			followUpMessage = await interaction.followUp({
+				content: `Creating CAIE ${examSession} discussion channels`,
+			});
+
+			for (const variant of [caieOtherVariants, ...caieVariants]) {
+				totalCAIEThreads += variant.length;
+			}
+
+			for (let i = 0; i < caieOtherVariants.length; i++) {
+				for (const subject of caieOtherVariants[i]) {
+					const thread = await caieDiscussion.threads.create({
+						appliedTags: [
+							caieDiscussion.availableTags[i * 3].id,
+							caieDiscussion.availableTags[i * 3 + 1].id,
+							caieDiscussion.availableTags[i * 3 + 2].id,
+						],
+						name: subject,
+						message: initialMessage,
+					});
+					completedCAIEThreads++;
+					caieCSV += `"${subject}","\`${thread.id}"\n`;
+					followUpMessage.edit({
+						content: `Creating CAIE forum\n${((completedCAIEThreads / totalCAIEThreads) * 100).toFixed(1)}% (${completedCAIEThreads}/${totalCAIEThreads}) (Creating ${i < 7 ? caieDiscussion.availableTags[i].name : "other"} threads)\nLast thread was created <t:${Math.round(new Date().getTime() / 1000)}:R>`,
+					});
+				}
 			}
 		}
 
@@ -388,97 +401,103 @@ export default class CreateDiscussionForumCommand extends BaseCommand {
 
 		const caieFinishTimestamp = Math.round(new Date().getTime() / 1000);
 
-		const edexcelDiscussion = await interaction.guild.channels.create({
-			parent: process.env.GENERAL_HUB_ID,
-			name: `edexcel-${examSession}-paper-discussion`,
-			type: ChannelType.GuildForum,
-			permissionOverwrites: [
+		let edexcelCSVAttachment: AttachmentBuilder | undefined = undefined;
+
+		if (!isMarch) {
+			const edexcelDiscussion = await interaction.guild.channels.create({
+				parent: process.env.GENERAL_HUB_ID,
+				name: `edexcel-${examSession}-paper-discussion`,
+				type: ChannelType.GuildForum,
+				permissionOverwrites: [
+					{
+						id: interaction.guild.roles.everyone,
+						deny: [
+							PermissionFlagsBits.ViewChannel,
+							PermissionFlagsBits.ManageThreads,
+						],
+					},
+					{
+						id: role.id,
+						deny: [
+							PermissionFlagsBits.ManageThreads,
+							PermissionFlagsBits.SendMessages,
+						],
+						allow: [
+							PermissionFlagsBits.ViewChannel,
+							PermissionFlagsBits.SendMessagesInThreads,
+						],
+					},
+					{
+						id: process.env.MOD_ROLE_ID,
+						allow: [
+							PermissionFlagsBits.ViewChannel,
+							PermissionFlagsBits.ManageMessages,
+							PermissionFlagsBits.ManageThreads,
+						],
+					},
+				],
+			});
+
+			await edexcelDiscussion.setAvailableTags([
 				{
-					id: interaction.guild.roles.everyone,
-					deny: [
-						PermissionFlagsBits.ViewChannel,
-						PermissionFlagsBits.ManageThreads,
-					],
+					emoji: { name: "🟥" },
+					name: "A-Level",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
 				},
 				{
-					id: role.id,
-					deny: [
-						PermissionFlagsBits.ManageThreads,
-						PermissionFlagsBits.SendMessages,
-					],
-					allow: [
-						PermissionFlagsBits.ViewChannel,
-						PermissionFlagsBits.SendMessagesInThreads,
-					],
+					emoji: { name: "🟦" },
+					name: "IGCSE",
+					moderated: true,
+					id: SnowflakeUtil.generate().toString(),
 				},
-				{
-					id: process.env.MOD_ROLE_ID,
-					allow: [
-						PermissionFlagsBits.ViewChannel,
-						PermissionFlagsBits.ManageMessages,
-						PermissionFlagsBits.ManageThreads,
-					],
-				},
-			],
-		});
+			]);
 
-		await edexcelDiscussion.setAvailableTags([
-			{
-				emoji: { name: "🟥" },
-				name: "A-Level",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-			{
-				emoji: { name: "🟦" },
-				name: "IGCSE",
-				moderated: true,
-				id: SnowflakeUtil.generate().toString(),
-			},
-		]);
+			const edexcelVariants = [
+				edexcelDiscussionForums.ALevel,
+				edexcelDiscussionForums.IGCSE,
+			];
 
-		const edexcelVariants = [
-			edexcelDiscussionForums.ALevel,
-			edexcelDiscussionForums.IGCSE,
-		];
-
-		let totalEdexcelThreads = 0;
-		for (const variant of edexcelVariants) {
-			totalEdexcelThreads += variant.length;
-		}
-
-		let completedEdexcelThreads = 0;
-
-		let edexcelCSV = "Subject,ID\n\n";
-
-		for (let i = 0; i < edexcelVariants.length; i++) {
-			for (const subject of edexcelVariants[i]) {
-				const thread = await edexcelDiscussion.threads.create({
-					appliedTags: [edexcelDiscussion.availableTags[i].id],
-					name: subject,
-					message: initialMessage,
-				});
-				completedEdexcelThreads++;
-				edexcelCSV += `"${subject}","\`${thread.id}"\n`;
-				followUpMessage.edit({
-					content: `Finished CAIE forum <t:${caieFinishTimestamp}:R>\n\nCreating Edexcel forum:\n${((completedEdexcelThreads / totalEdexcelThreads) * 100).toFixed(1)}% (${completedEdexcelThreads}/${totalEdexcelThreads}) (Creating ${i < 7 ? edexcelDiscussion.availableTags[i].name : "other"} threads)\nLast creation time <t:${Math.round(new Date().getTime() / 1000)}:R>`,
-				});
+			let totalEdexcelThreads = 0;
+			for (const variant of edexcelVariants) {
+				totalEdexcelThreads += variant.length;
 			}
+
+			let completedEdexcelThreads = 0;
+
+			let edexcelCSV = "Subject,ID\n\n";
+
+			for (let i = 0; i < edexcelVariants.length; i++) {
+				for (const subject of edexcelVariants[i]) {
+					const thread = await edexcelDiscussion.threads.create({
+						appliedTags: [edexcelDiscussion.availableTags[i].id],
+						name: subject,
+						message: initialMessage,
+					});
+					completedEdexcelThreads++;
+					edexcelCSV += `"${subject}","\`${thread.id}"\n`;
+					followUpMessage.edit({
+						content: `Finished CAIE forum <t:${caieFinishTimestamp}:R>\n\nCreating Edexcel forum:\n${((completedEdexcelThreads / totalEdexcelThreads) * 100).toFixed(1)}% (${completedEdexcelThreads}/${totalEdexcelThreads}) (Creating ${i < 7 ? edexcelDiscussion.availableTags[i].name : "other"} threads)\nLast creation time <t:${Math.round(new Date().getTime() / 1000)}:R>`,
+					});
+				}
+			}
+			const edexcelCSVBuffer = Buffer.from(edexcelCSV);
+			edexcelCSVAttachment = new AttachmentBuilder(edexcelCSVBuffer, {
+				name: `${examSession} Edexcel IDs.csv`,
+			});
 		}
 
 		const caieCSVBuffer = Buffer.from(caieCSV);
-		const edexcelCSVBuffer = Buffer.from(edexcelCSV);
-
 		const caieCSVAttachment = new AttachmentBuilder(caieCSVBuffer, {
 			name: `${examSession} CAIE IDs.csv`,
-		});
-		const edexcelCSVAttachment = new AttachmentBuilder(edexcelCSVBuffer, {
-			name: `${examSession} Edexcel IDs.csv`,
 		});
 
 		followUpMessage.edit({
 			content: `${examSessionUnformatted} discussion channels created [!](https://tenor.com/view/great-work-good-job-hired-remoteli-celebration-teamwork-gif-25782100)`,
-			files: [caieCSVAttachment, edexcelCSVAttachment],
+			files: [
+				caieCSVAttachment,
+				...(edexcelCSVAttachment ? [edexcelCSVAttachment] : []),
+			],
 		});
 	}
 }
