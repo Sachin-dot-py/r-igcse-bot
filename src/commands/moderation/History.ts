@@ -1,4 +1,4 @@
-import { Punishment } from "@/mongo";
+import { Punishment, type IPunishment } from "@/mongo";
 import { ModNote } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -115,7 +115,7 @@ export default class HistoryCommand extends BaseCommand {
 			const timestamp = Math.round(when.getTime() / 1000);
 
 
-			const actionNameMap: Record<string, string> = {
+			const actionNameMap: Record<IPunishment["action"], string> = {
 				"Ban": "BAN",
 				"Kick": "KICK",
 				"Nickname Reset": "NICK RESET",
