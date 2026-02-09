@@ -71,7 +71,7 @@ export default class HistoryCommand extends BaseCommand {
 			actionAgainst: user.id,
 		}).sort({ when: 1})
 
-		if (punishments.length < 1) {
+		if (punishments.length < 1 && notes.length < 1) {
 			await interaction.editReply({
 				content: `${user.tag} does not have any previous offenses.`,
 			});
