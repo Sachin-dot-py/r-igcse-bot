@@ -1,4 +1,4 @@
-import { Punishment } from "@/mongo";
+import { Punishment, type IPunishment } from "@/mongo";
 import { ModNote } from "@/mongo";
 import type { DiscordClient } from "@/registry/DiscordClient";
 import BaseCommand, {
@@ -71,7 +71,7 @@ export default class HistoryCommand extends BaseCommand {
 			actionAgainst: user.id,
 		}).sort({ when: 1})
 
-		if (punishments.length < 1) {
+		if (punishments.length < 1 && notes.length < 1) {
 			await interaction.editReply({
 				content: `${user.tag} does not have any previous offenses.`,
 			});
@@ -115,7 +115,7 @@ export default class HistoryCommand extends BaseCommand {
 			const timestamp = Math.round(when.getTime() / 1000);
 
 
-			const actionNameMap: Record<string, string> = {
+			const actionNameMap: Record<IPunishment["action"], string> = {
 				"Ban": "BAN",
 				"Kick": "KICK",
 				"Nickname Reset": "NICK RESET",
