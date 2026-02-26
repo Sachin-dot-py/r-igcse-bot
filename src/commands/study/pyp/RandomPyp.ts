@@ -12,13 +12,13 @@ import BaseCommand, {
 } from "../../../registry/Structure/BaseCommand";
 
 const variants = ["1", "2", "3"];
-const years = ["2018", "2019", "2020", "2021", "2022", "2023"];
+const years = ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
 const session = ["m", "s", "w"];
 
 const sessionsMap = {
 	m: "March",
-	s: "June",
-	w: "November",
+	s: "May-June",
+	w: "Oct-Nov",
 };
 
 export default class RandomPypCommand extends BaseCommand {
@@ -97,23 +97,26 @@ export default class RandomPypCommand extends BaseCommand {
 		}
 
 		const randomYear = years[Math.floor(Math.random() * years.length)];
-		const randomVariant =
-			variants[Math.floor(Math.random() * variants.length)];
 		const randomSession = session[
 			Math.floor(Math.random() * session.length)
 		] as "m" | "s" | "w";
+
+		const randomVariant =
+			randomSession === "m"
+				? "2"
+				: variants[Math.floor(Math.random() * variants.length)];
 
 		const paperName = `${subjectCode}_${randomSession}${randomYear.slice(2)}_qp_${paperNumber}${randomVariant}`;
 
 		const fields: APIEmbedField[] = [
 			{
 				name: "QP Link:",
-				value: `[${paperName}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName}.pdf)`,
+				value: `[${paperName}](https://pastpapers.co/api/file/caie/${programme}/${subject.name}-${subjectCode}/${randomYear}-${sessionsMap[randomSession]}/${paperName}.pdf)`,
 				// inline: true
 			},
 			{
 				name: "MS Link:",
-				value: `[${paperName.replace("qp", "ms")}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`,
+				value: `[${paperName.replace("qp", "ms")}](https://pastpapers.co/api/file/caie/${programme}/${subject.name}-${subjectCode}/${randomYear}-${sessionsMap[randomSession]}/${paperName.replace("qp", "ms")}.pdf)`,
 				// inline: true
 			},
 		];
@@ -121,7 +124,7 @@ export default class RandomPypCommand extends BaseCommand {
 		if (subject.insert) {
 			fields.push({
 				name: "Insert/Supporting Files:",
-				value: `[${paperName.replace("qp", subject.insert)}](https://edupapers.store/wp-content/uploads/simple-file-list/${programme}/${subject.name}-${subject.code}/${randomYear}/${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`,
+				value: `[${paperName.replace("qp", subject.insert)}](https://pastpapers.co/api/file/caie/${programme}/${subject.name}-${subjectCode}/${randomYear}-${sessionsMap[randomSession]}/${paperName.replace("qp", subject.insert)}.pdf)`,
 				// inline: true
 			});
 		}
