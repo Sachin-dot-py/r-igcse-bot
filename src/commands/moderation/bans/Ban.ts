@@ -123,7 +123,7 @@ export default class BanCommand extends BaseCommand {
 				return;
 			}
 
-			sendDm(guildMember, {
+			await sendDm(guildMember, {
 				embeds: [dmEmbed],
 			});
 		}
@@ -210,3 +210,4 @@ export default class BanCommand extends BaseCommand {
 		});
 	}
 }
+
