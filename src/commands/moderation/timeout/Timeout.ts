@@ -118,6 +118,16 @@ export default class TimeoutCommand extends BaseCommand {
 
 		try {
 			await guildMember.timeout(duration * 1000, reason);
+			sendDm(guildMember, {
+        		embeds: [
+         			 new EmbedBuilder()
+            			.setTitle("Timeout")
+            			.setColor(Colors.Red)
+            			.setDescription(
+              				`You have been timed out in ${interaction.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${reason}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
+            			),
+        			],
+      			});
 		} catch (error) {
 			interaction.editReply({
 				content: `Failed to timeout user ${
@@ -317,3 +327,4 @@ export default class TimeoutCommand extends BaseCommand {
 		);
 	}
 }
+
