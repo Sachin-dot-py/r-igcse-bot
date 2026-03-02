@@ -361,7 +361,9 @@ To change the server you're contacting, use the \`/swap\` command`,
 		let thread: ThreadChannel;
 
 		if (res)
-			thread = await channel.threads.fetch(res.threadId) as ThreadChannel;
+			thread = (await channel.threads.fetch(
+				res.threadId,
+			)) as ThreadChannel;
 		else {
 			thread = await channel.threads.create({
 				name: `${message.author.username} (${message.author.id})`,
@@ -459,7 +461,9 @@ To change the server you're contacting, use the \`/swap\` command`,
 		const member = await message.guild.members
 			.fetch(dmThread.userId)
 			.catch(() => null);
-		const user = member ?? await client.users.fetch(dmThread.userId).catch(() => null);
+		const user =
+			member ??
+			(await client.users.fetch(dmThread.userId).catch(() => null));
 		if (!user) {
 			await message.reply("Unable to find the user.");
 			return;
@@ -580,7 +584,9 @@ To change the server you're contacting, use the \`/swap\` command`,
 				repNumber: rep,
 				reppedUser: member.id,
 				reppedBy: message.author.id,
-			}).catch(e => Logger.error(`Error creating ReputationData: ${e}`));
+			}).catch((e) =>
+				Logger.error(`Error creating ReputationData: ${e}`),
+			);
 
 			let content = `Gave +1 Rep to <@${user.id}> (${rep})`;
 
@@ -694,7 +700,3 @@ To change the server you're contacting, use the \`/swap\` command`,
 		}
 	}
 }
-
-
-
-

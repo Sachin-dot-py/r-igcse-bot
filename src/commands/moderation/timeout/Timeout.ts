@@ -116,36 +116,6 @@ export default class TimeoutCommand extends BaseCommand {
 			return;
 		}
 
-		try {
-			await guildMember.timeout(duration * 1000, reason);
-			sendDm(guildMember, {
-        		embeds: [
-         			 new EmbedBuilder()
-            			.setTitle("Timeout")
-            			.setColor(Colors.Red)
-            			.setDescription(
-              				`You have been timed out in ${interaction.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${reason}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`
-            			),
-        			],
-      			});
-		} catch (error) {
-			interaction.editReply({
-				content: `Failed to timeout user ${
-					error instanceof Error ? `(${error.message})` : ""
-				}`,
-			});
-
-			client.log(
-				error,
-				`${this.data.name} Command`,
-				`**Channel:** <#${interaction.channel?.id}>
-						**User:** <@${interaction.user.id}>
-						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
-			);
-
-			return;
-		}
-
 		const latestTimeout = (
 			await Punishment.find({
 				guildId: interaction.guildId,
@@ -191,6 +161,26 @@ export default class TimeoutCommand extends BaseCommand {
 						),
 				],
 			});
+
+			try {
+				await guildMember.timeout(duration * 1000, reason);
+			} catch (error) {
+				interaction.editReply({
+					content: `Failed to update user timeout duration ${
+						error instanceof Error ? `(${error.message})` : ""
+					}`,
+				});
+
+				client.log(
+					error,
+					`${this.data.name} Command (change duration)`,
+					`**Channel:** <#${interaction.channel?.id}>
+						**User:** <@${interaction.user.id}>
+						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+				);
+
+				return;
+			}
 
 			const previousReason = latestTimeout.reason;
 
@@ -243,6 +233,36 @@ export default class TimeoutCommand extends BaseCommand {
 			interaction.channel.send(
 				`${user.username}'s timeout has been modified due to *${reason}*, it will end at <t:${time}:f>. (<t:${time}:R>)`,
 			);
+			return;
+		}
+
+		try {
+			await guildMember.timeout(duration * 1000, reason);
+			sendDm(guildMember, {
+				embeds: [
+					new EmbedBuilder()
+						.setTitle("Timeout")
+						.setColor(Colors.Red)
+						.setDescription(
+							`You have been timed out in ${interaction.guild.name} for ${humanizeDuration(duration * 1000)} due to: \`${reason}\`. Your timeout will end <t:${Math.floor(Date.now() / 1000) + duration}:R>.`,
+						),
+				],
+			});
+		} catch (error) {
+			interaction.editReply({
+				content: `Failed to timeout user ${
+					error instanceof Error ? `(${error.message})` : ""
+				}`,
+			});
+
+			client.log(
+				error,
+				`${this.data.name} Command`,
+				`**Channel:** <#${interaction.channel?.id}>
+						**User:** <@${interaction.user.id}>
+						**Guild:** ${interaction.guild.name} (${interaction.guildId})\n`,
+			);
+
 			return;
 		}
 
@@ -327,4 +347,3 @@ export default class TimeoutCommand extends BaseCommand {
 		);
 	}
 }
-

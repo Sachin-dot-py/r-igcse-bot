@@ -55,7 +55,7 @@ export default class NoteCommand extends BaseCommand {
 								.setDescription("User to delete a note from")
 								.setRequired(true),
 						),
-				)
+				),
 		);
 	}
 

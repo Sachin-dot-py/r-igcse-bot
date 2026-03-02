@@ -12,15 +12,15 @@ import {
 } from "discord.js";
 
 function shortenTime(duration: number): string {
-    const seconds = Math.floor(duration / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+	const seconds = Math.floor(duration / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const hours = Math.floor(minutes / 60);
+	const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days}d`;
-    if (hours > 0) return `${hours}h`;
-    if (minutes > 0) return `${minutes}m`;
-    return `${seconds}s`;
+	if (days > 0) return `${days}d`;
+	if (hours > 0) return `${hours}h`;
+	if (minutes > 0) return `${minutes}m`;
+	return `${seconds}s`;
 }
 
 export default class HistoryCommand extends BaseCommand {
@@ -32,7 +32,9 @@ export default class HistoryCommand extends BaseCommand {
 				.addUserOption((option) =>
 					option
 						.setName("user")
-						.setDescription("User you would like to see the history of.")
+						.setDescription(
+							"User you would like to see the history of.",
+						)
 						.setRequired(true),
 				)
 				.addBooleanOption((option) =>
@@ -64,12 +66,12 @@ export default class HistoryCommand extends BaseCommand {
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
 		}).sort({ when: 1 });
-		
+
 		// get notes collection
 		const notes = await ModNote.find({
 			guildId: interaction.guildId,
 			actionAgainst: user.id,
-		}).sort({ when: 1})
+		}).sort({ when: 1 });
 
 		if (punishments.length < 1 && notes.length < 1) {
 			await interaction.editReply({
@@ -100,7 +102,6 @@ export default class HistoryCommand extends BaseCommand {
 			duration,
 			caseId,
 		} of punishments) {
-
 			if (points) totalPoints += points;
 
 			if (action in counts) {
@@ -114,36 +115,29 @@ export default class HistoryCommand extends BaseCommand {
 
 			const timestamp = Math.round(when.getTime() / 1000);
 
-
 			const actionNameMap: Record<IPunishment["action"], string> = {
-				"Ban": "BAN",
-				"Kick": "KICK",
+				Ban: "BAN",
+				Kick: "KICK",
 				"Nickname Reset": "NICK RESET",
 				"Remove Timeout": "UNTIMEOUT",
-				"Softban": "SOFT BAN",
-				"Timeout": "TIMEOUT",
-				"Unban": "UNBAN",
-				"Warn": "WARN"
-			}
+				Softban: "SOFT BAN",
+				Timeout: "TIMEOUT",
+				Unban: "UNBAN",
+				Warn: "WARN",
+			};
 
-			let whitespaceCount = (Math.round(12 - actionNameMap[action].length) / 2);
+			let whitespaceCount =
+				Math.round(12 - actionNameMap[action].length) / 2;
 
 			punishmentsList.push(
-				`**\`${" ".repeat(whitespaceCount)}${actionNameMap[action]}${" ".repeat(!(actionNameMap[action].length % 2 == 0) ? whitespaceCount+1 : whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`
+				`**\`${" ".repeat(whitespaceCount)}${actionNameMap[action]}${" ".repeat(!(actionNameMap[action].length % 2 == 0) ? whitespaceCount + 1 : whitespaceCount)}\`** ${action === "Timeout" ? ` **(${shortenTime(duration * 1000)})**` : ""} [[\`#${caseId}\`](https://discord.com/users/${user.id})] \<t:${timestamp}:s> ${reason ? ` - ${reason}` : ""} ${points !== 0 ? ` \`[${points}]\`` : ""} ${showUsername ? ` by <@${moderator}>` : ""}`,
 			);
-
 		}
 
 		// add space between notes & infractions for visibility
 		punishmentsList.push(``);
 
-		for (const {
-			when,
-			actionBy,
-			actionAgainst,
-			note
-		} of notes) {
-
+		for (const { when, actionBy, actionAgainst, note } of notes) {
 			const moderator =
 				interaction.guild.members.cache.get(actionBy)?.user.id ??
 				actionBy;
@@ -153,7 +147,6 @@ export default class HistoryCommand extends BaseCommand {
 			punishmentsList.push(
 				`**\`${" ".repeat(4)}NOTE${" ".repeat(4)}\`** <t:${timestamp}:s> ${note} ${showUsername ? ` by <@${moderator}>` : ""}`,
 			);
-
 		}
 
 		let description = `> **Number of Infractions:** ${offenceCount}\n`;

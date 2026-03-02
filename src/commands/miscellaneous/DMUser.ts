@@ -129,4 +129,3 @@ export default class DMUserCommand extends BaseCommand {
 		}
 	}
 }
-

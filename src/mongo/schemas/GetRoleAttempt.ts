@@ -1,4 +1,3 @@
-
 import { Schema, model as createModel } from "mongoose";
 
 export interface IGetRoleAttempt {
