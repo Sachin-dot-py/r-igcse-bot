@@ -77,7 +77,7 @@ export default class PingCommand extends BaseCommand {
 				flags: MessageFlags.Ephemeral,
 			});
 			return;
-		};
+		}
 
 		const answerInput = new TextInputBuilder()
 			.setCustomId("answer_input")
