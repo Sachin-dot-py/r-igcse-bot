@@ -141,7 +141,7 @@ export default class ResetNicknameCommand extends BaseCommand {
       action: "Nickname Reset",
       caseId: caseNumber,
       reason,
-      points: 0,
+      points: 1,
       when: new Date(),
     });
 
