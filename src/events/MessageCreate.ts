@@ -133,8 +133,8 @@ export default class MessageCreateEvent extends BaseEvent {
 
 			if (client.stickyChannelIds.includes(message.channelId)) {
 				if (
-					stickyCounter[message.channelId] === 4 &&
-					stickyCounter[message.channelId] >= 4
+					stickyCounter[message.channelId] === 10 &&
+					stickyCounter[message.channelId] >= 10
 				) {
 					this.handleStickyMessages(message).catch((e) =>
 						Logger.error(`Error at handleStickyMessages: ${e}`),
