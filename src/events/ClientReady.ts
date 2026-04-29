@@ -213,10 +213,11 @@ export default class ClientReadyEvent extends BaseEvent {
 		const toLock = await ChannelLockdown.find({
 			locked: false,
 			startTimestamp: { $lte: now.toString() },
-			endTimestamp: { $gt: now.toString() },
+			endTimestamp: { $gte: now.toString() },
 		});
 
 		for (const lockdown of toLock) {
+			
 			const guild = await client.guilds
 				.fetch(lockdown.guildId)
 				.catch(() => null);
@@ -270,20 +271,17 @@ export default class ClientReadyEvent extends BaseEvent {
 				channel.type === ChannelType.PublicThread ||
 				channel.type === ChannelType.PrivateThread
 			) {
+				if (channel.archived) await channel.setArchived(false);
 				if (!channel.locked) {
 					await channel.setLocked(true);
 					await channel.send(lockMessage);
 				}
 			}
 
-			await ChannelLockdown.updateOne(
-				{ _id: lockdown._id },
-				{ $set: { locked: true } },
-			);
+			await lockdown.updateOne({ locked: true }).catch(() => null);
 		}
 
 		const toUnlock = await ChannelLockdown.find({
-			locked: true,
 			endTimestamp: { $lte: now.toString() },
 		});
 
