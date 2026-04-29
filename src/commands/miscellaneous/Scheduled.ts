@@ -14,6 +14,7 @@ import {
 	type ButtonBuilder,
 	Colors,
 	EmbedBuilder,
+	Message,
 	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -121,23 +122,29 @@ export default class ScheduledCommand extends BaseCommand {
 						}
 
 						new PaginationBuilder(
-							lockdowns,
+							lockdowns.map((l) => ({
+								startTimestamp: l.startTimestamp,
+								channelId: l.channelId,
+								endTimestamp: l.endTimestamp,
+							})),
 							async ({
 								startTimestamp,
 								channelId,
+								endTimestamp,
 							}: {
 								startTimestamp: string;
 								channelId: string;
+								endTimestamp: string;
 							}) => ({
-								name: `${interaction.guild.channels.cache.get(channelId)?.name} <t:${Number.parseFloat(startTimestamp).toFixed(0)}:R>`,
-								value: "\n",
+								name: `${interaction.guild.channels.cache.get(channelId)?.name ?? "Unknown Channel"}`,
+								value: `starts <t:${Number.parseFloat(startTimestamp).toFixed(0)}:R> and ends <t:${Number.parseFloat(endTimestamp).toFixed(0)}:R>`,
 								inline: false,
 							}),
 						)
 							.setTitle("Scheduled Lockdowns")
 							.setColor(Colors.Blurple)
 							.build(
-								(page) => interaction.followUp(page),
+								(page) => interaction.editReply(page),
 								[interaction.user.id],
 							);
 					}

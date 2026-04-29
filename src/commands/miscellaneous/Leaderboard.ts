@@ -4,7 +4,7 @@ import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "@/registry/Structure/BaseCommand";
 import { PaginationBuilder } from "@discordforge/pagination";
-import { Colors, SlashCommandBuilder, MessageFlags } from "discord.js";
+import { Colors, SlashCommandBuilder, MessageFlags, Message } from "discord.js";
 
 export default class LeaderboardCommand extends BaseCommand {
 	constructor() {
