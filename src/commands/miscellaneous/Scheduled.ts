@@ -105,9 +105,7 @@ export default class ScheduledCommand extends BaseCommand {
 						break;
 					}
 					case "lockdowns": {
-						await interaction.deferReply({
-							flags: MessageFlags.Ephemeral,
-						});
+						await interaction.deferReply();
 						const lockdowns = await ChannelLockdown.find({
 							guildId: interaction.guildId,
 						});
@@ -143,8 +141,9 @@ export default class ScheduledCommand extends BaseCommand {
 						)
 							.setTitle("Scheduled Lockdowns")
 							.setColor(Colors.Blurple)
+							.setInitialPage(0)
 							.build(
-								(page) => interaction.editReply(page),
+								(page) => interaction.followUp(page),
 								[interaction.user.id],
 							);
 					}
