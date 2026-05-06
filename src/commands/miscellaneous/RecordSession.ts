@@ -66,7 +66,7 @@ export default class RecordSessionCommand extends BaseCommand {
 
         await interaction.deferReply();
 
-        const res = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/create`, {
+        const res = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/create?name=rigrecorder`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
