@@ -41,9 +41,15 @@ export default class ClientReadyEvent extends BaseEvent {
 		Logger.info(`Logged in as \x1b[1m${client.user.tag}\x1b[0m`);
 
 		client.user.setPresence({
-    activities: [{ type: ActivityType.Custom, name: "Custom", state: "DM for ModMail" }],
-    status: "online",
-});
+			activities: [
+				{
+					type: ActivityType.Custom,
+					name: "Custom",
+					state: "DM for ModMail",
+				},
+			],
+			status: "online",
+		});
 
 		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
 		if (mainGuild) {
@@ -217,7 +223,6 @@ export default class ClientReadyEvent extends BaseEvent {
 		});
 
 		for (const lockdown of toLock) {
-			
 			const guild = await client.guilds
 				.fetch(lockdown.guildId)
 				.catch(() => null);
