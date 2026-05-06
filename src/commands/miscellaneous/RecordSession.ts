@@ -120,9 +120,9 @@ export default class RecordSessionCommand extends BaseCommand {
             method: "POST",
             headers: {
                 "X-API-Key": process.env.PORTAINER_API_KEY,
-                "Content-Length": "0"
+                'Content-Type': 'application/json'
             },
-            body: null
+            body: {}
         }).catch(async (err) => {
             console.error(err);
             await interaction.editReply({
