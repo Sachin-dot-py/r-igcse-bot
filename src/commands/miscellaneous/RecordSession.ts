@@ -82,7 +82,7 @@ export default class RecordSessionCommand extends BaseCommand {
                     ShmSize: 1610612736, // 1.5 GB
                     Memory: 1610612736, // 1.5 GB
                     Binds: [
-                        "/mnt/recordings:/var/lib/docker/volumes/rig-recordings/_data"
+                        "rig-recordings:/mnt/recordings"
                     ],
                 },
                 Cmd: [
