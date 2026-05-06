@@ -106,12 +106,31 @@ export default class RecordSessionCommand extends BaseCommand {
             return;
         }
 
-        const data = await res.json() as { message?: string } | { Id: string };
+        const data = await res.json() as { Id: string, message?: string };
 
         if (res.status !== 201) {
             console.error(data);
             await interaction.editReply({
                 content: "An error occurred while starting the recording session. \n\n" + (JSON.stringify(data) || "No additional information provided."),
+            });
+            return;
+        }
+
+        const startRes = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/${data.Id}/start`, {
+            method: "POST",
+            headers: {
+                "X-API-Key": process.env.PORTAINER_API_KEY,
+            },
+        }).catch(async (err) => {
+            console.error(err);
+            await interaction.editReply({
+                content: "An unknown error occurred while starting the recording session. \n\n" + err,
+            });
+        });
+
+        if (!startRes) {
+            await interaction.editReply({
+                content: "An unknown error occurred while starting the recording session.",
             });
             return;
         }
