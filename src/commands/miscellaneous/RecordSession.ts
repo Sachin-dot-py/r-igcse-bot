@@ -23,7 +23,7 @@ export default class RecordSessionCommand extends BaseCommand {
                 .addStringOption((option) =>
                     option
                         .setName("duration")
-                        .setDescription("The duration of the recording (recording will stop after this time or when session ends, whichever comes first)")
+                        .setDescription("The maximum duration of the recording")
                         .setRequired(true)
                 )
                 .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
