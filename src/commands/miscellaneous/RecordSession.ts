@@ -106,9 +106,9 @@ export default class RecordSessionCommand extends BaseCommand {
             return;
         }
 
-        const data = await res.json() as { Id: string, message?: string };
+        const data = await res.json() as { Id: string } | { message: string };
 
-        if (res.status !== 201) {
+        if (res.status !== 201 || !("Id" in data)) {
             console.error(data);
             await interaction.editReply({
                 content: "An error occurred while starting the recording session. \n\n" + (JSON.stringify(data) || "No additional information provided."),
@@ -131,6 +131,16 @@ export default class RecordSessionCommand extends BaseCommand {
         if (!startRes) {
             await interaction.editReply({
                 content: "An unknown error occurred while starting the recording session.",
+            });
+            return;
+        }
+
+        const startData = await startRes.json() as { message: string } | {};
+
+        if (startRes.status !== 204) {
+            console.error(startData);
+            await interaction.editReply({
+                content: "An error occurred while starting the recording session. \n\n" + (JSON.stringify(startData) || "No additional information provided."),
             });
             return;
         }
