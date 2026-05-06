@@ -116,11 +116,13 @@ export default class RecordSessionCommand extends BaseCommand {
             return;
         }
 
-        const startRes = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/${data.Id}/start`, {
+		const startRes = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/${data.Id}/start`, {
             method: "POST",
             headers: {
                 "X-API-Key": process.env.PORTAINER_API_KEY,
+                "Content-Length": "0"
             },
+            body: null
         }).catch(async (err) => {
             console.error(err);
             await interaction.editReply({
