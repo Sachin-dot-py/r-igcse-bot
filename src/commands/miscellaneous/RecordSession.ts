@@ -90,7 +90,7 @@ export default class RecordSessionCommand extends BaseCommand {
 						ShmSize: 2.5 * 1024 * 1024 * 1024, // 2.5 GB
 						Memory: 2.5 * 1024 * 1024 * 1024, // 2.5 GB
 						Binds: ["rig-recordings:/mnt/recordings"],
-						NanoCpus: 2 * 1e9, // 2 cpus
+						NanoCpus: 3 * 1e9, // 3 cpus
 					},
 					Cmd: [
 						"-c",
