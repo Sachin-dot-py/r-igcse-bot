@@ -39,6 +39,7 @@ const schema = new Schema("GuildPreferences", {
 	tagResourceApprovalChannelId: { type: "string" },
 	offTopicAlertCategoryIds: { type: "string[]" },
 	alertsChannelId: { type: "string" },
+	verboseLoggingChannelId: { type: "string" },
 });
 
 export class GuildPreferencesRepository extends Repository {

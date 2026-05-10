@@ -40,6 +40,7 @@ export type IGuildPreferences = {
 	tagResourceApprovalChannelId: string;
 	offTopicAlertCategoryIds: string[];
 	alertsChannelId: string;
+	verboseLoggingChannelId: string;
 }>;
 
 const schema = new Schema<IGuildPreferences>({
@@ -75,6 +76,7 @@ const schema = new Schema<IGuildPreferences>({
 	tagResourceApprovalChannelId: { type: String, default: null },
 	offTopicAlertCategoryIds: { type: [String], default: [] },
 	alertsChannelId: { type: String, default: null },
+	verboseLoggingChannelId: { type: String, default: null },
 });
 
 export const GuildPreferences = createModel<IGuildPreferences>(

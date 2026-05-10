@@ -1,5 +1,9 @@
 import type { DiscordClient } from "@/registry/DiscordClient";
-import { ChannelType, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+	ChannelType,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
 import BaseCommand, {
 	type DiscordChatInputCommandInteraction,
 } from "../../registry/Structure/BaseCommand";
@@ -19,14 +23,15 @@ export default class RecordSessionCommand extends BaseCommand {
 						.addChannelTypes(
 							ChannelType.GuildVoice,
 							ChannelType.GuildStageVoice,
-						))
-                .addStringOption((option) =>
-                    option
-                        .setName("duration")
-                        .setDescription("The maximum duration of the recording")
-                        .setRequired(true)
-                )
-                .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+						),
+				)
+				.addStringOption((option) =>
+					option
+						.setName("duration")
+						.setDescription("The maximum duration of the recording")
+						.setRequired(true),
+				)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 		);
 	}
 
@@ -45,110 +50,133 @@ export default class RecordSessionCommand extends BaseCommand {
 			return;
 		}
 
-        const channel = interaction.options.getChannel("channel", true);
-        const duration = interaction.options.getString("duration", true);
+		const channel = interaction.options.getChannel("channel", true);
+		const duration = interaction.options.getString("duration", true);
 
-        if (channel.type !== ChannelType.GuildVoice && channel.type !== ChannelType.GuildStageVoice) {
-            await interaction.reply({
-                content: "Please select a voice or stage channel.",
-                ephemeral: true,
-            });
-            return;
-        }
+		if (
+			channel.type !== ChannelType.GuildVoice &&
+			channel.type !== ChannelType.GuildStageVoice
+		) {
+			await interaction.reply({
+				content: "Please select a voice or stage channel.",
+				ephemeral: true,
+			});
+			return;
+		}
 
-        if (parse(duration) === null) {
-            await interaction.reply({
-                content: "Please enter a valid duration (e.g. 1h30m, 45m, 2h).",
-                ephemeral: true,
-            });
-            return;
-        }
+		if (parse(duration) === null) {
+			await interaction.reply({
+				content: "Please enter a valid duration (e.g. 1h30m, 45m, 2h).",
+				ephemeral: true,
+			});
+			return;
+		}
 
-        await interaction.deferReply();
+		await interaction.deferReply();
 
-        const res = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/create?name=rigrecorder`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-API-Key": process.env.PORTAINER_API_KEY,
-            },
-            body: JSON.stringify({
-                Image: "chirag350/recorder:latest",
-                Env: [
-                    `DISCORD_TOKEN=${process.env.RECORDING_TOKEN}`
-                ],
-                HostConfig: {
-                    AutoRemove: true,
-                    ShmSize: 1610612736, // 1.5 GB
-                    Memory: 1610612736, // 1.5 GB
-                    Binds: [
-                        "rig-recordings:/mnt/recordings"
-                    ],
-                },
-                Cmd: [
-                    "-c", channel.id,
-                    "-d", duration,
-                    "-g", interaction.guildId,
-                    "-w", process.env.RECORDING_WEBHOOK_URL
-                ],
-            }),
-        }).catch(async (err) => {
-            console.error(err);
-            await interaction.editReply({
-                content: "An unknown error occurred while starting the recording session. \n\n" + err,
-            });
-        });
+		const res = await fetch(
+			`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/create?name=rigrecorder`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-API-Key": process.env.PORTAINER_API_KEY || "",
+				},
+				body: JSON.stringify({
+					Image: "chiraglol/recorder:latest",
+					Env: [`DISCORD_TOKEN=${process.env.RECORDING_TOKEN}`],
+					HostConfig: {
+						AutoRemove: true,
+						ShmSize: 2.5 * 1024 * 1024 * 1024, // 2.5 GB
+						Memory: 2.5 * 1024 * 1024 * 1024, // 2.5 GB
+						Binds: ["rig-recordings:/mnt/recordings"],
+						NanoCpus: 2 * 1e9, // 2 cpus
+					},
+					Cmd: [
+						"-c",
+						channel.id,
+						"-d",
+						duration,
+						"-g",
+						interaction.guildId,
+						"-w",
+						process.env.RECORDING_WEBHOOK_URL,
+					],
+				}),
+			},
+		).catch(async (err) => {
+			console.error(err);
+			await interaction.editReply({
+				content:
+					"An unknown error occurred while starting the recording session. \n\n" +
+					err,
+			});
+		});
 
-        if (!res) {
-            await interaction.editReply({
-                content: "An unknown error occurred while starting the recording session.",
-            });
-            return;
-        }
+		if (!res) {
+			await interaction.editReply({
+				content:
+					"An unknown error occurred while starting the recording session.",
+			});
+			return;
+		}
 
-        const data = await res.json() as { Id: string } | { message: string };
+		const data = (await res.json()) as { Id: string } | { message: string };
 
-        if (res.status !== 201 || !("Id" in data)) {
-            console.error(data);
-            await interaction.editReply({
-                content: "An error occurred while starting the recording session. \n\n" + (JSON.stringify(data) || "No additional information provided."),
-            });
-            return;
-        }
+		if (res.status !== 201 || !("Id" in data)) {
+			console.error(data);
+			await interaction.editReply({
+				content:
+					"An error occurred while starting the recording session. \n\n" +
+					(JSON.stringify(data) ||
+						"No additional information provided."),
+			});
+			return;
+		}
 
-		const startRes = await fetch(`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/${data.Id}/start`, {
-            method: "POST",
-            headers: {
-                "X-API-Key": process.env.PORTAINER_API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({})
-        }).catch(async (err) => {
-            console.error(err);
-            await interaction.editReply({
-                content: "An unknown error occurred while starting the recording session. \n\n" + err,
-            });
-        });
+		const startRes = await fetch(
+			`${process.env.PORTAINER_API_URL}/api/endpoints/3/docker/containers/${data.Id}/start`,
+			{
+				method: "POST",
+				headers: {
+					"X-API-Key": process.env.PORTAINER_API_KEY || "",
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({}),
+			},
+		).catch(async (err) => {
+			console.error(err);
+			await interaction.editReply({
+				content:
+					"An unknown error occurred while starting the recording session. \n\n" +
+					err,
+			});
+		});
 
-        if (!startRes) {
-            await interaction.editReply({
-                content: "An unknown error occurred while starting the recording session.",
-            });
-            return;
-        }
+		if (!startRes) {
+			await interaction.editReply({
+				content:
+					"An unknown error occurred while starting the recording session.",
+			});
+			return;
+		}
 
-        const startData = await startRes.json() as { message: string } | {};
+		const startData = (await startRes.json()) as { message: string } | {};
 
-        if (startRes.status !== 204) {
-            console.error(startData);
-            await interaction.editReply({
-                content: "An error occurred while starting the recording session. \n\n" + (JSON.stringify(startData) || "No additional information provided."),
-            });
-            return;
-        }
+		if (startRes.status !== 204) {
+			console.error(startData);
+			await interaction.editReply({
+				content:
+					"An error occurred while starting the recording session. \n\n" +
+					(JSON.stringify(startData) ||
+						"No additional information provided."),
+			});
+			return;
+		}
 
-        await interaction.editReply({
-            content: "Recording session started successfully! The recording will automatically stop after the specified duration or when the session ends, whichever comes first.",
-        });
+		await interaction.editReply({
+			content:
+				"Recording session started successfully! The recording will automatically stop after the specified duration or when the session ends, whichever comes first.",
+		});
 	}
 }
