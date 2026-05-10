@@ -83,13 +83,14 @@ export default class RecordSessionCommand extends BaseCommand {
 					"X-API-Key": process.env.PORTAINER_API_KEY || "",
 				},
 				body: JSON.stringify({
-					Image: "chirag350/recorder:latest",
+					Image: "chiraglol/recorder:latest",
 					Env: [`DISCORD_TOKEN=${process.env.RECORDING_TOKEN}`],
 					HostConfig: {
 						AutoRemove: true,
-						ShmSize: 1610612736, // 1.5 GB
-						Memory: 1610612736, // 1.5 GB
+						ShmSize: 2.5 * 1024 * 1024 * 1024, // 2.5 GB
+						Memory: 2.5 * 1024 * 1024 * 1024, // 2.5 GB
 						Binds: ["rig-recordings:/mnt/recordings"],
+						NanoCpus: 2 * 1e9, // 2 cpus
 					},
 					Cmd: [
 						"-c",
