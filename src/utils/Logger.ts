@@ -1,7 +1,7 @@
-import { GuildPreferencesCache, redis } from "@/redis";
+import { GuildPreferencesCache } from "@/redis";
 import type { Guild, MessageCreateOptions, MessagePayload } from "discord.js";
 
-export const logToChannel = async(
+export const logToChannel = async (
 	guild: Guild,
 	channelId: string,
 	options: string | MessagePayload | MessageCreateOptions,
@@ -26,7 +26,6 @@ export const verboseLog = async (
 		if (!guildPreferences?.verboseLoggingChannelId) return;
 		channelId = guildPreferences.verboseLoggingChannelId;
 	}
-
 
 	const channel = await guild.channels.fetch(channelId).catch(() => null);
 

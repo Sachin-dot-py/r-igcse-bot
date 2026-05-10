@@ -11,7 +11,7 @@ import type {
 	APIEmbedRedis,
 	MessageCreateOptionsRedis,
 } from "@/redis/schemas/StickyMessage";
-import { logToChannel } from "@/utils/Logger";
+import { logToChannel, verboseLog } from "@/utils/Logger";
 import createTask from "@/utils/createTask";
 import { Logger } from "@discordforge/logger";
 import {
@@ -51,7 +51,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			status: "online",
 		});
 
-		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID);
+		const mainGuild = client.guilds.cache.get(process.env.MAIN_GUILD_ID!);
 		if (mainGuild) {
 			const readyEmbed = new EmbedBuilder()
 				.setTitle("Restarted successfully!")
@@ -62,7 +62,7 @@ export default class ClientReadyEvent extends BaseEvent {
 				})
 				.setTimestamp();
 
-			await logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID, {
+			await logToChannel(mainGuild, process.env.ERROR_LOGS_CHANNEL_ID!, {
 				embeds: [readyEmbed],
 			});
 		}
@@ -238,7 +238,7 @@ export default class ClientReadyEvent extends BaseEvent {
 			const isExamMode = lockdown.mode === "exam";
 			const lockMessage = isExamMode
 				? "https://github.com/Sachin-dot-py/r-igcse-bot/blob/assets/r-igcse-locked-gif.gif?raw=true"
-				: "**Channel Locked !!**";
+				: "**Channel Locked!**";
 
 			if (
 				channel.type === ChannelType.GuildText ||
@@ -269,6 +269,12 @@ export default class ClientReadyEvent extends BaseEvent {
 					});
 				}
 
+				verboseLog(
+					guild,
+					`Locked channel <#${channel.id}> scheduled to be locked at <t:${lockdown.startTimestamp}:F> and unlocked at <t:${lockdown.endTimestamp}:F>.`,
+					guildPreferences?.verboseLoggingChannelId,
+				);
+
 				if (channel.type === ChannelType.GuildText) {
 					await channel.send(lockMessage);
 				}
@@ -280,6 +286,10 @@ export default class ClientReadyEvent extends BaseEvent {
 				if (!channel.locked) {
 					await channel.setLocked(true);
 					await channel.send(lockMessage);
+					verboseLog(
+						guild,
+						`Locked thread <#${channel.id}>, was scheduled to be locked at <t:${lockdown.startTimestamp}:F> and unlocked at <t:${lockdown.endTimestamp}:F>`,
+					);
 				}
 			}
 
@@ -313,25 +323,54 @@ export default class ClientReadyEvent extends BaseEvent {
 					CreatePrivateThreads: null,
 					CreatePublicThreads: null,
 				});
+
+				const guildPreferences = await GuildPreferencesCache.get(
+					guild.id,
+				);
+
+				verboseLog(
+					guild,
+					`Unlocked channel <#${channel.id}>, was scheduled to be locked at <t:${lockdown.startTimestamp}:F> and unlocked at <t:${lockdown.endTimestamp}:F>.`,
+					guildPreferences?.verboseLoggingChannelId,
+				);
+
+				const modRoleId = guildPreferences?.moderatorRoleId;
+				if (!modRoleId || !guild.roles.cache.has(modRoleId)) continue;
+
+				const modOverwrite =
+					channel.permissionOverwrites.cache.get(modRoleId);
+				if (!modOverwrite) continue;
+
+				if (modOverwrite.deny.has("SendMessages")) {
+					verboseLog(
+						guild,
+						`Channel <#${channel.id}> may have been locked by another bot (sapphire), overwrites need to be reset using manually using particular bot, <@&${modRoleId}>`,
+						guildPreferences?.verboseLoggingChannelId,
+					);
+				}
 			} else if (
 				channel.type === ChannelType.PublicThread ||
 				channel.type === ChannelType.PrivateThread
 			) {
 				if (channel.locked) {
 					await channel.setLocked(false);
+					verboseLog(
+						guild,
+						`Unlocked thread <#${channel.id}>, was scheduled to be locked at <t:${lockdown.startTimestamp}:F> and unlocked at <t:${lockdown.endTimestamp}:F>.`,
+					);
 				}
 			}
 
 			if (channel.type === ChannelType.GuildText) {
 				await (channel as TextChannel).send({
-					content: "**Channel Unlocked !!**",
+					content: "**Channel Unlocked!**",
 				});
 			} else if (
 				channel.type === ChannelType.PublicThread ||
 				channel.type === ChannelType.PrivateThread
 			) {
 				await (channel as ThreadChannel).send({
-					content: "**Channel Unlocked !!**",
+					content: "**Channel Unlocked!**",
 				});
 			}
 			await lockdown.deleteOne();
