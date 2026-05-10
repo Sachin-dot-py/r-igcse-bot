@@ -514,6 +514,11 @@ export const preferences: Preference[] = [
 		type: "channel",
 		key: "alertsChannelId",
 	},
+	{
+		name: "Verbose Logging",
+		type: "channel",
+		key: "verboseLoggingChannelId",
+	}
 ];
 
 interface Subject {
