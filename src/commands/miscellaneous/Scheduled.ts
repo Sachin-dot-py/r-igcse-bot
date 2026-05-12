@@ -108,7 +108,7 @@ export default class ScheduledCommand extends BaseCommand {
 						await interaction.deferReply();
 						const lockdowns = await ChannelLockdown.find({
 							guildId: interaction.guildId,
-						});
+						}).sort({ startTimestamp: 1 });
 
 						if (!lockdowns || lockdowns.length === 0) {
 							interaction.editReply({
