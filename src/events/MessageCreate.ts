@@ -602,7 +602,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 			).filter(
 				(msg) =>
 					msg.author.id === member.id ||
-					msg.author.id === message.author.id,
+					msg.author.id === message.author.id ||
+					msg.author.id === user.reppedBy,
 			);
 
 			const tenMinsAgo = Date.now() - 10 * 60 * 1000;
