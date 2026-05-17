@@ -635,9 +635,12 @@ To change the server you're contacting, use the \`/swap\` command`,
 					if (
 						isReplyingToOther &&
 						i > 0 &&
-						recentMessages[i - 1].id === msg.reference?.messageId
+						message.reference
 					) {
-						startIndex = i - 1;
+						startIndex = recentMessages.findIndex((m) =>
+							m.id === msg.reference?.messageId,
+						);
+						if (startIndex === -1) startIndex = i;
 					} else {
 						startIndex = i;
 					}
