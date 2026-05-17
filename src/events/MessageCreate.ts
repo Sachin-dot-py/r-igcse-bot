@@ -652,7 +652,8 @@ To change the server you're contacting, use the \`/swap\` command`,
 				content: string;
 				attachmentUrls: string[];
 			}[] = relevantMessages.map((msg) => ({
-				author: msg.author.username,
+				// anonymize by using Asker and Responder instead of actual usernames
+				author: msg.author.id === message.author.id ? "Asker" : "Responder",
 				content: msg.content,
 				attachmentUrls: msg.attachments.map((a) => a.url),
 			}));
