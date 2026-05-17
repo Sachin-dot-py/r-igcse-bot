@@ -597,23 +597,65 @@ To change the server you're contacting, use the \`/swap\` command`,
 			}
 
 			// get last convo between repped user and rep giver in the channel
-			const messages = (await message.channel.messages.fetch({ limit: 50 })).filter(
-				msg => msg.author.id === member.id || msg.author.id === message.author.id
+			const messages = (
+				await message.channel.messages.fetch({ limit: 50 })
+			).filter(
+				(msg) =>
+					msg.author.id === member.id ||
+					msg.author.id === message.author.id,
 			);
 
-			// trim the array so that the last message is the current message
-			const lastMessage = messages.find(msg => msg.id === message.id);
-			if (!lastMessage) return;
+			const tenMinsAgo = Date.now() - 10 * 60 * 1000;
 
-			const conversation = messages.filter(msg => msg.createdTimestamp <= lastMessage.createdTimestamp)
-				.sort((a, b) => a.createdTimestamp - b.createdTimestamp)
-				.map(msg => {
-					return {
-						author: msg.author.id === member.id ? "Responder" : "Asker",
-						content: msg.content,
-						attachmentUrls: msg.attachments.map(attachment => attachment.url),
+			const recentMessages = Array.from(messages.values())
+				.filter(
+					(msg) =>
+						msg.createdTimestamp >= tenMinsAgo &&
+						msg.createdTimestamp <= message.createdTimestamp,
+				)
+				.reverse();
+
+			if (recentMessages.length === 0) return;
+			let startIndex = 0;
+
+			for (let i = 0; i < recentMessages.length; i++) {
+				const msg = recentMessages[i];
+
+				const otherUserId =
+					msg.author.id === message.author.id
+						? member.id
+						: message.author.id;
+
+				const isReplyingToOther =
+					msg.reference &&
+					msg.mentions.repliedUser?.id === otherUserId;
+				const isPingingOther = msg.mentions.users.has(otherUserId);
+
+				if (isReplyingToOther || isPingingOther) {
+					if (
+						isReplyingToOther &&
+						i > 0 &&
+						recentMessages[i - 1].id === msg.reference?.messageId
+					) {
+						startIndex = i - 1;
+					} else {
+						startIndex = i;
 					}
-				})
+					break;
+				}
+			}
+
+			const relevantMessages = recentMessages.slice(startIndex);
+
+			const conversation: {
+				author: string;
+				content: string;
+				attachmentUrls: string[];
+			}[] = relevantMessages.map((msg) => ({
+				author: msg.author.username,
+				content: msg.content,
+				attachmentUrls: msg.attachments.map((a) => a.url),
+			}));
 
 			await ReputationQueue.create({
 				reputationDataObjectId: repData._id.toString(),
