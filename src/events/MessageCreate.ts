@@ -584,7 +584,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				when: new Date(),
 				repNumber: rep,
 				reppedUser: member.id,
-				reppedBy: message.author.id,
+				reppedBy: user.reppedBy ?? message.author.id,
 			}).catch((e) =>
 				Logger.error(`Error creating ReputationData: ${e}`),
 			);
@@ -653,7 +653,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 				attachmentUrls: string[];
 			}[] = relevantMessages.map((msg) => ({
 				// anonymize by using Asker and Responder instead of actual usernames
-				author: msg.author.id === message.author.id ? "Asker" : "Responder",
+				author: msg.author.id === user.reppedBy ? "Asker" : "Responder",
 				content: msg.content,
 				attachmentUrls: msg.attachments.map((a) => a.url),
 			}));
@@ -689,7 +689,11 @@ To change the server you're contacting, use the \`/swap\` command`,
 		client: DiscordClient<true>,
 		message: Message,
 	) {
-		const users = new Set<User>();
+		interface ReppedUser extends User {
+			reppedBy?: string | null;
+			repType?: "yw" | "ty";
+		}
+		const users = new Set<ReppedUser>();
 
 		if (
 			tyAliases.some((alias) =>
@@ -700,7 +704,12 @@ To change the server you're contacting, use the \`/swap\` command`,
 				if (message.author.id === user.id)
 					message.reply("You can't rep yourself dummy!");
 				else if (user.bot) message.reply("Uh-oh, you can't rep a bot");
-				else users.add(user);
+				else {
+					const reppedUser = user as ReppedUser;
+					reppedUser.repType = "ty";
+					reppedUser.reppedBy = message.author.id;
+					users.add(reppedUser);
+				}
 
 			if (message.reference) {
 				const reference = await message.fetchReference();
@@ -709,7 +718,12 @@ To change the server you're contacting, use the \`/swap\` command`,
 					message.reply("You can't rep yourself dummy!");
 				else if (reference.author.bot)
 					message.reply("Uh-oh, you can't rep a bot");
-				else users.add(reference.author);
+				else {
+					const reppedUser = reference.author as ReppedUser;
+					reppedUser.repType = "ty";
+					reppedUser.reppedBy = message.author.id;
+					users.add(reppedUser);
+				}
 			}
 		} else if (
 			message.reference &&
@@ -743,8 +757,12 @@ To change the server you're contacting, use the \`/swap\` command`,
 					reference,
 				);
 
-				if (!referenceRepped.has(message.author))
-					users.add(message.author);
+				if (!referenceRepped.has(message.author)) {
+					const reppedUser = message.author as ReppedUser;
+					reppedUser.repType = "yw";
+					reppedUser.reppedBy = reference.author.id;
+					users.add(reppedUser);
+				}
 			}
 		}
 
