@@ -34,6 +34,7 @@ import BaseEvent from "../registry/Structure/BaseEvent";
 import { syncCommands } from "@/registry";
 import { isBotDev } from "@/utils/isBotDev";
 import { ReputationData } from "@/mongo/schemas/ReputationData";
+import { ReputationQueue } from "@/mongo/schemas/ReputationQueue";
 
 const stickyCounter: Record<string, number> = {};
 
@@ -47,7 +48,7 @@ export default class MessageCreateEvent extends BaseEvent {
 		if (message.system) return;
 		if (
 			message.guildId &&
-			process.env.BLACKLISTED_GUILDS.split(" ").includes(message.guildId)
+			process.env.BLACKLISTED_GUILDS?.split(" ").includes(message.guildId)
 		)
 			return;
 
@@ -577,7 +578,7 @@ To change the server you're contacting, use the \`/swap\` command`,
 					rep: 1,
 				});
 
-			ReputationData.create({
+			const repData = await ReputationData.create({
 				guildId: message.guildId,
 				channelId: message.channelId,
 				when: new Date(),
@@ -586,6 +587,39 @@ To change the server you're contacting, use the \`/swap\` command`,
 				reppedBy: message.author.id,
 			}).catch((e) =>
 				Logger.error(`Error creating ReputationData: ${e}`),
+			);
+
+			if (!repData) {
+				Logger.error(
+					`Failed to create ReputationData for ${member.id} in guild ${message.guildId}`,
+				);
+				return;
+			}
+
+			// get last convo between repped user and rep giver in the channel
+			const messages = (await message.channel.messages.fetch({ limit: 50 })).filter(
+				msg => msg.author.id === member.id || msg.author.id === message.author.id
+			);
+
+			// trim the array so that the last message is the current message
+			const lastMessage = messages.find(msg => msg.id === message.id);
+			if (!lastMessage) return;
+
+			const conversation = messages.filter(msg => msg.createdTimestamp <= lastMessage.createdTimestamp)
+				.sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+				.map(msg => {
+					return {
+						author: msg.author.id === member.id ? "Responder" : "Asker",
+						content: msg.content,
+						attachmentUrls: msg.attachments.map(attachment => attachment.url),
+					}
+				})
+
+			await ReputationQueue.create({
+				reputationDataObjectId: repData._id.toString(),
+				input: conversation,
+			}).catch((e) =>
+				Logger.error(`Error creating ReputationQueue: ${e}`),
 			);
 
 			let content = `Gave +1 Rep to <@${user.id}> (${rep})`;

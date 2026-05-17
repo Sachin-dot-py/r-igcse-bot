@@ -8,6 +8,7 @@ export interface IReputationData {
 	channelId: string;
 	guildId: string;
 	deleted?: boolean | null;
+	qualityScore?: number | null;
 }
 
 const schema = new Schema<IReputationData>({
@@ -18,6 +19,7 @@ const schema = new Schema<IReputationData>({
 	channelId: { type: String, required: true },
 	guildId: { type: String, required: true },
 	deleted: { type: Boolean, required: false },
+	qualityScore: { type: Number, required: false },
 });
 
 export const ReputationData = createModel<IReputationData>(
